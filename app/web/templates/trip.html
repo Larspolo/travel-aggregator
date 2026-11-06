@@ -12,6 +12,14 @@
     <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
   <label>Transfer markup €<output name="transfer_value">{{ weights.transfer_markup }}</output>
     <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
+  <details class="advanced"><summary>Advanced</summary>
+    <label>Airport before departure (min)
+      <input type="number" name="airport_before_min" min="0" max="1440" step="1" value="{{ weights.airport_before_min }}"></label>
+    <label>Airport after landing (min)
+      <input type="number" name="airport_after_min" min="0" max="1440" step="1" value="{{ weights.airport_after_min }}"></label>
+    <label>Baggage fee €
+      <input type="number" name="baggage_fee" min="0" max="1000" step="0.01" value="{{ weights.baggage_fee }}"></label>
+  </details>
 </form>
 <div class="scroll">
 <table>

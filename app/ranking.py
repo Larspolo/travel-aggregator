@@ -12,6 +12,10 @@ class Weights:
 
     hour_markup: Decimal = Decimal("15")
     transfer_markup: Decimal = Decimal("10")
+    # The "Advanced" values (P2) of a flight (#99); 0 disables each.
+    airport_before_min: int = 120
+    airport_after_min: int = 30
+    baggage_fee: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
