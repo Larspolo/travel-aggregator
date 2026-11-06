@@ -348,6 +348,17 @@ def save_note(trip_id: int, itinerary_id: int, note: str = Form("", max_length=2
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
+@router.get("/trips/{trip_id}/itineraries/{itinerary_id}/history", response_class=HTMLResponse,
+            dependencies=[Depends(require_login)])
+def price_history(trip_id: int, itinerary_id: int, request: Request,
+                  session: Session = Depends(get_session)) -> HTMLResponse:
+    """The price history of each fare of an itinerary, the newest capture first (#240): a fragment, no page."""
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    return templates.TemplateResponse(request, "price_history.html", {"fares": it.fares})
+
+
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/hide",
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 def toggle_hide(trip_id: int, itinerary_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
