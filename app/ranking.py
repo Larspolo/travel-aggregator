@@ -26,6 +26,8 @@ class Weights:
     night_end: time = time(6, 0)
     night_min: int = 240
     night_adjust: Decimal = Decimal("0")
+    # The hour markup inside the night window (#143); None = the same as hour_markup.
+    night_hour_markup: Decimal | None = None
 
 
 @dataclass(frozen=True)
