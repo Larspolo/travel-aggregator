@@ -246,6 +246,7 @@ gets the answer 403.
 The table of `/trips/{id}` has one row per offer. Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
 An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on).
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
+If the newest capture is older than the stale hours, the row also shows "stale, price may have changed". See "Stale offers".
 Click a column header to sort by it. Click it again to reverse the order.
 The Mode and Source lists show only one mode or one source.
 
@@ -257,6 +258,7 @@ Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 - `latest_arrive`: the last leg arrives by this local time, on the day of its departure.
 - `exclude_mode`: a mode (train, bus or flight) hides each offer with one of its legs.
 - `exclude_carrier`: a carrier hides each offer with one of its legs.
+- `hide_stale`: the checkbox "hide stale" above the table hides each stale offer. The badges count only the rows that show.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
 The expanded row also shows the price history chart of each fare: one point for each capture of the fare.
@@ -430,6 +432,18 @@ its part from the ranking. Each part shows its own label in the breakdown.
   The text `flexible`, `flex`, `refundable` or `fully_refundable` gives flexible. Any other text, or no text, adds nothing.
 - **Self-transfer €**, default `0`. The part `self-transfer` is this amount times the count of self-transfers of the fare.
   The count comes from the `ticket` field of the legs (see "API").
+
+### Stale offers
+
+An offer is stale when its newest capture is older than **Stale after hours**, default `24` (from 1 to 720).
+The setting is in the **Advanced** section under the sliders. A stale row shows "stale, price may have changed".
+The flag only informs you: it does not change the price.
+
+- **Stale penalty €**, default `0`. The part `stale` is this amount for each stale offer. It adds to the cost of the
+  offer, and the breakdown shows it. The value is at most 1000. A value of 0 does not change the ranking.
+- A score profile stores both values (see "Score profiles").
+- To hide the stale offers, tick the checkbox "hide stale" above the table. The rows that stay visible are the only
+  rows that the badges and the highlights use.
 
 ## Development
 
