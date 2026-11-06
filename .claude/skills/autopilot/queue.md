@@ -60,14 +60,14 @@ R < N, and make at most 2 × N − R tickets, so the queue stays at most twice t
 again, a large queue only waits). Do this at most once per run, in about 10 minutes.
 Lock it first: `python3 framework/tools/claim.py 0 --refill` (one run per 10 minutes). Exit 1: another run makes the whole
 refill; then refill one open epic instead (the first one with open goals that an agent can do, under its lock below):
-up to 10 sub-issues (within the cap) for its open goals, then pick again. The pacer starts `refill_runs` runs more
-than the ready tickets for this (`agent.toml`): many runs close tickets faster than one refill makes them (#650;
-2026-10-28: 3 ready tickets for 40 target runs). It starts them only while an open ticket is less than 60 minutes old
-(`usage.refill_runs`), else 1: an empty refill run costs quota. It starts none when R >= N and no epic or release check
-waits (`usage.refill_need`, #3547), and none when R < N and the refill has no source: no such check, no roadmap
-feature with no epic and no fallback (#3560). A due process or roadmap review starts one too (deep locks).
-It starts none while a refill lock is younger than `refill_gap` minutes (`agent.toml`, `usage.refill_recent`), unless R < N / 2
-or a review is due: a review has its own lock (owner, 2026-10-29).
+up to 10 sub-issues (within the cap) for its open goals, then pick again. The pacer starts refill runs from the
+tickets that the queue misses (`usage.refill_count`, owner, 2026-11-06): one run for each `refill_tickets` of N − R, at
+least 1, less the live refill runs (a refill lock younger than `refill_minutes`, `usage.refill_live`). At most
+`refill_runs` (`[pacing]` of `steering/system/system.toml`) and one run per refill source (the whole refill and each open
+epic), and only 1 when no open ticket is less than 60 minutes old (`usage.new_ticket`): an empty refill run costs quota.
+It starts none when R >= N and no epic or release check waits (`usage.refill_need`, #3547), and none when R < N and the
+refill has no source: no such check, no roadmap feature with no epic and no fallback (#3560). A due process or roadmap
+review starts one too (deep locks), also while refill runs are live: a review has its own lock (owner, 2026-10-29).
 Give each new ticket its lane (`ticket` skill, "Model lanes").
 Also lock each epic E with `python3 framework/tools/claim.py E --refill` before you make its tickets (exit 1: skip that epic, #505).
 A `muted` or `after-release` ticket or epic (the owner holds it until later, 2026-10-26, #4175) is out of all these steps: no split, no check, no
