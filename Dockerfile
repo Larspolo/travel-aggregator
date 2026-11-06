@@ -1,4 +1,4 @@
-# The image of travel-aggregator: deploy/preview/ runs it as :preview (.github/workflows/preview.yml).
+# The image of travel-aggregator: deploy/preview/ runs it as :preview (the job preview of .github/workflows/ci.yml).
 # Stage 1 installs the Python packages into a virtual environment; stage 2 copies only that and the app.
 FROM python:3.12-slim AS build
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1

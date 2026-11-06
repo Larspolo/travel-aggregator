@@ -61,3 +61,50 @@ jobs:
           docker inspect -f '{{.State.Health.Status}}' app | grep -qx healthy
       - if: failure()
         run: docker logs app || true; docker logs db | tail -20 || true
+
+  # The preview image: after green checks on main, push ghcr.io/larspolo/travel-aggregator:preview (and :sha-<commit>);
+  # the owner's server runs it (deploy/preview/, watchtower within 5 minutes). It is a job of CI, not a workflow of its
+  # own: Automerge merges with GITHUB_TOKEN and starts CI on main itself, and a run of GITHUB_TOKEN starts no
+  # workflow_run of another workflow. Only the newest commit of main pushes :preview, so an old run that ends late
+  # cannot replace a newer image. A start by hand: Actions, CI, "Run workflow" on main.
+  # GitHub Actions terms: this is the publication of the project. It sends no request to a travel site (P1).
+  preview:
+    needs: [quick, docker]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: preview-image
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skip an old commit
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(gh api "repos/${{ github.repository }}/commits/main" --jq .sha)
+          if [ "$head" != "$GITHUB_SHA" ]; then echo "main is at $head now: skip $GITHUB_SHA."; echo "go=false" >> "$GITHUB_OUTPUT"
+          else echo "go=true" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.gate.outputs.go == 'true'
+        uses: docker/setup-buildx-action@v3
+      - if: steps.gate.outputs.go == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - if: steps.gate.outputs.go == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: GIT_SHA=${{ github.sha }}   # /api/health shows it
+          tags: |
+            ghcr.io/larspolo/travel-aggregator:preview
+            ghcr.io/larspolo/travel-aggregator:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -10,7 +10,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [ ] `capture:skeleton` Walking skeleton: `docker compose up` (app + db), Alembic migrations at start, an API token, `POST /api/ingest` with normalized offers, the offers in a list on the trip page
   - `docker compose up` starts `app` and `db`, and `GET /api/health` answers "ok"
   - A POST with a valid token shows its offers on the trip page; a request with a bad token gets 401
-  - Each green CI on `main` pushes the image `:preview` (`.github/workflows/preview.yml`), and `travel-preview.larspolo.nl` runs it within 5 minutes (`deploy/preview/`); `/api/health` shows its commit (`GIT_SHA`)
+  - Each green CI on `main` pushes the image `:preview` (job `preview` of `.github/workflows/ci.yml`), and `travel-preview.larspolo.nl` runs it within 5 minutes (`deploy/preview/`); `/api/health` shows its commit (`GIT_SHA`)
 - [ ] `capture:upsert` Idempotent upsert by itinerary fingerprint, price history, the raw capture stored compressed, the counts in the response
   - The same itinerary sent twice gives 1 itinerary and 2 price rows
   - One bad offer is rejected and the other offers of the batch are stored (`{created, updated, unchanged, rejected, errors[]}`)

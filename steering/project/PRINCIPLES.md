@@ -52,7 +52,7 @@ How the owner tries a new feature. The agents make what this needs for each feat
 
 - Preview server: each green merge to `main` becomes the image `:preview`, and `https://travel-preview.larspolo.nl`
   (the owner's server: Traefik, a scoped watchtower, its own database with test data) runs it within 5 minutes
-  (`deploy/preview/`, `.github/workflows/preview.yml`). The owner types `/try` in a local session: it lists what is
+  (`deploy/preview/`, the job `preview` of `.github/workflows/ci.yml`). The owner types `/try` in a local session: it lists what is
   new, with the steps to try it on the preview. `dev` in `[commands]` stays for a run on the owner's computer.
 - Screenshots in each PR: each PR that changes a page has screenshots at desktop width (1280 px) and phone width
   (390 px), as an artifact of the CI job, with a description in the PR body (the REST API cannot upload images).
