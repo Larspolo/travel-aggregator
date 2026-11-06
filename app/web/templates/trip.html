@@ -6,6 +6,7 @@
 <p class="muted">{{ trip.origin_text or "?" }} → {{ trip.destination_text or "?" }}</p>
 {% endif %}
 <p><a href="/trips/{{ trip.id }}/offers/new">Add an offer by hand</a> · <a href="/trips/{{ trip.id }}/captures">Captures</a></p>
+{% include "journey.html" %}
 {% if not trip.return_of_id and not trip.return_trip %}
 <form method="post" action="/trips/{{ trip.id }}/return">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
