@@ -9,10 +9,10 @@
 <div class="scroll">
 <table>
   <thead>
-    <tr><th>Route</th><th>Departure</th><th>Arrival</th><th>Carrier</th><th>Fare</th><th>Price</th></tr>
+    <tr><th>Route</th><th>Departure</th><th>Arrival</th><th>Carrier</th><th>Fare</th><th>Price</th><th>Effective cost</th></tr>
   </thead>
   <tbody>
-  {% for it, fare in rows %}
+  {% for it, fare, cost in rows %}
     {% set first, last = it.legs[0], it.legs[-1] %}
     <tr>
       <td>{{ first.from_name }} → {{ last.to_name }}
@@ -23,6 +23,7 @@
       <td>{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</td>
       <td>{{ fare.fare_name or "" }}<div class="muted">{{ fare.source }}</div></td>
       <td class="price">{{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }}</td>
+      <td class="cost">{{ format_breakdown(cost) }}</td>
     </tr>
   {% endfor %}
   </tbody>
