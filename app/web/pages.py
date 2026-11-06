@@ -21,6 +21,7 @@ from app.db import get_session
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.risk import mode_extras, self_transfer_extras, transfer_extras
+from app.profiles import save as save_profile
 from app.models import AccessTime, ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
@@ -322,6 +323,47 @@ def toggle_pin(trip_id: int, itinerary_id: int, session: Session = Depends(get_s
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
     it.pinned = not it.pinned
     session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+@router.post("/profiles", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length=1, max_length=100),
+                      hour_markup: Decimal = Form(Weights.hour_markup, ge=0, le=100),
+                      transfer_markup: Decimal = Form(Weights.transfer_markup, ge=0, le=100),
+                      airport_before_min: int = Form(Weights.airport_before_min, ge=0, le=1440),
+                      airport_after_min: int = Form(Weights.airport_after_min, ge=0, le=1440),
+                      baggage_fee: Decimal = Form(Weights.baggage_fee, ge=0, le=1000),
+                      early_limit: time = Form(Weights.early_limit), late_limit: time = Form(Weights.late_limit),
+                      time_window_penalty: Decimal = Form(Weights.time_window_penalty, ge=0, le=1000),
+                      night_start: time = Form(Weights.night_start), night_end: time = Form(Weights.night_end),
+                      night_min: int = Form(Weights.night_min, ge=0, le=1440),
+                      night_adjust: Decimal = Form(Weights.night_adjust, ge=-1000, le=1000),
+                      night_hour_markup: Decimal | None = Form(None, ge=0, le=100),
+                      short_transfer_min: int = Form(Weights.short_transfer_min, ge=0, le=240),
+                      short_transfer_penalty: Decimal = Form(Weights.short_transfer_penalty, ge=0, le=1000),
+                      train_markup: Decimal = Form(Weights.train_markup, ge=-1000, le=1000),
+                      bus_markup: Decimal = Form(Weights.bus_markup, ge=-1000, le=1000),
+                      flight_markup: Decimal = Form(Weights.flight_markup, ge=-1000, le=1000),
+                      ferry_markup: Decimal = Form(Weights.ferry_markup, ge=-1000, le=1000),
+                      flex_non_refundable: Decimal = Form(Weights.flex_non_refundable, ge=-1000, le=1000),
+                      flex_partly_refundable: Decimal = Form(Weights.flex_partly_refundable, ge=-1000, le=1000),
+                      flex_flexible: Decimal = Form(Weights.flex_flexible, ge=-1000, le=1000),
+                      self_transfer_penalty: Decimal = Form(Weights.self_transfer_penalty, ge=0, le=1000),
+                      session: Session = Depends(get_session)) -> RedirectResponse:
+    """Store the present weights of the trip page as a named profile (#229); the same ranges as `trip_page`."""
+    if session.get(Trip, trip_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    weights = Weights(hour_markup=hour_markup, transfer_markup=transfer_markup,
+                      airport_before_min=airport_before_min, airport_after_min=airport_after_min,
+                      baggage_fee=baggage_fee, early_limit=early_limit, late_limit=late_limit,
+                      time_window_penalty=time_window_penalty, night_start=night_start, night_end=night_end,
+                      night_min=night_min, night_adjust=night_adjust, night_hour_markup=night_hour_markup,
+                      short_transfer_min=short_transfer_min, short_transfer_penalty=short_transfer_penalty,
+                      train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
+                      ferry_markup=ferry_markup, flex_non_refundable=flex_non_refundable,
+                      flex_partly_refundable=flex_partly_refundable, flex_flexible=flex_flexible,
+                      self_transfer_penalty=self_transfer_penalty)
+    save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
