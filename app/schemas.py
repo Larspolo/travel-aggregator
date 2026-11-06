@@ -1,7 +1,7 @@
 """The body of POST /api/ingest (docs/SPEC.md section 5). Captured data is untrusted: Pydantic validates each field
 and limits each size (P4, P5)."""
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Literal
 
@@ -72,3 +72,34 @@ class IngestIn(BaseModel):
 
 def utc_offset_min(t: datetime) -> int:
     return int(t.utcoffset().total_seconds() // 60)
+
+
+TripStatus = Literal["active", "planning", "booked", "archived"]
+
+
+class TripForm(BaseModel):
+    """The fields of the create and edit forms of a trip (#22). An empty text field is None."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    title: str = Field(min_length=1, max_length=200)
+    origin_text: str | None = Field(None, max_length=200)
+    destination_text: str | None = Field(None, max_length=200)
+    date_from: date | None = None
+    date_to: date | None = None
+    travelers: int = Field(1, ge=1, le=9)
+    status: TripStatus = "planning"
+    notes: str | None = Field(None, max_length=5000)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _empty_is_none(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            return {k: (None if isinstance(v, str) and not v.strip() and k != "title" else v) for k, v in data.items()}
+        return data
+
+    @model_validator(mode="after")
+    def _dates_in_order(self) -> "TripForm":
+        if self.date_from and self.date_to and self.date_to < self.date_from:
+            raise ValueError("date_to is before date_from")
+        return self

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if trip_id %}Edit trip{% else %}New trip{% endif %} – travel-aggregator</title></head>
+<body>
+<h1>{% if trip_id %}Edit trip{% else %}New trip{% endif %}</h1>
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<form method="post" action="{% if trip_id %}/trips/{{ trip_id }}/edit{% else %}/trips/new{% endif %}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p><label>Title <input name="title" required maxlength="200" value="{{ values.title or '' }}"></label></p>
+  <p><label>Origin <input name="origin_text" maxlength="200" value="{{ values.origin_text or '' }}"></label></p>
+  <p><label>Destination <input name="destination_text" maxlength="200" value="{{ values.destination_text or '' }}"></label></p>
+  <p><label>From <input type="date" name="date_from" value="{{ values.date_from or '' }}"></label>
+     <label>To <input type="date" name="date_to" value="{{ values.date_to or '' }}"></label></p>
+  <p><label>Travelers <input type="number" name="travelers" min="1" max="9" value="{{ values.travelers or 1 }}"></label></p>
+  <p><label>Status <select name="status">
+    {% for s in ["planning", "booked", "archived", "active"] %}
+    <option value="{{ s }}"{% if values.status == s %} selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select></label></p>
+  <p><label>Notes <textarea name="notes" maxlength="5000">{{ values.notes or '' }}</textarea></label></p>
+  <p><button type="submit">Save</button> <a href="/">Cancel</a></p>
+</form>
+</body>
+</html>

@@ -4,7 +4,7 @@
 <title>Trips – travel-aggregator</title></head>
 <body>
 <h1>Trips</h1>
-<p><a href="/logout">Log out</a></p>
+<p><a href="/trips/new">New trip</a> · <a href="/logout">Log out</a></p>
 {% if trips %}
 <table>
   <thead><tr><th>Trip</th><th>Route</th><th>Dates</th><th>Offers</th><th>Best offer</th><th>Status</th></tr></thead>
@@ -16,7 +16,7 @@
       <td>{{ t.date_from or "" }}{% if t.date_to %} – {{ t.date_to }}{% endif %}</td>
       <td>{{ t.offer_count }}</td>
       <td>{% if t.best_price is not none %}{{ t.best_currency }} {{ t.best_price }}{% else %}no offers yet{% endif %}</td>
-      <td>{{ t.status }}</td>
+      <td>{{ t.status }} <a href="/trips/{{ t.id }}/edit">Edit</a></td>
     </tr>
   {% endfor %}
   </tbody>

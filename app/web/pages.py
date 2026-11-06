@@ -8,12 +8,14 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
+from pydantic import ValidationError
 from sqlalchemy.orm import Session, selectinload
 
 from app.auth import SESSION_KEY, check_password, csrf_token, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
 from app.models import Itinerary, Trip
+from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
 from app.trips import list_trips
 
@@ -54,6 +56,61 @@ def logout(request: Request) -> RedirectResponse:
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def index(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     return templates.TemplateResponse(request, "trips.html", {"trips": list_trips(session)})
+
+
+FORM_FIELDS = tuple(TripForm.model_fields)
+
+
+def _form_page(request: Request, values: dict, errors: list[str], trip_id: int | None, code: int = 200):
+    return templates.TemplateResponse(request, "trip_form.html",
+                                      {"values": values, "errors": errors, "trip_id": trip_id}, status_code=code)
+
+
+async def _save(request: Request, session: Session, trip: Trip | None):
+    form = await request.form()
+    values = {k: str(form.get(k, "")) for k in FORM_FIELDS}
+    try:
+        data = TripForm.model_validate(values)
+    except ValidationError as e:
+        errors = [f"{'.'.join(map(str, err['loc'])) or 'form'}: {err['msg']}" for err in e.errors()]
+        return _form_page(request, values, errors, trip.id if trip else None, 422)
+    if trip is None:
+        trip = Trip()
+        session.add(trip)
+    for k, v in data.model_dump().items():
+        setattr(trip, k, v)
+    session.commit()
+    return RedirectResponse("/", status_code=303)
+
+
+def _get_trip(session: Session, trip_id: int) -> Trip:
+    trip = session.get(Trip, trip_id)
+    if trip is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    return trip
+
+
+@router.get("/trips/new", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def new_trip_form(request: Request) -> HTMLResponse:
+    return _form_page(request, {"travelers": 1, "status": "planning"}, [], None)
+
+
+@router.post("/trips/new", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def new_trip(request: Request, session: Session = Depends(get_session)):
+    return await _save(request, session, None)
+
+
+@router.get("/trips/{trip_id}/edit", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def edit_trip_form(request: Request, trip_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+    trip = _get_trip(session, trip_id)
+    values = {k: ("" if getattr(trip, k) is None else getattr(trip, k)) for k in FORM_FIELDS}
+    return _form_page(request, values, [], trip_id)
+
+
+@router.post("/trips/{trip_id}/edit", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def edit_trip(request: Request, trip_id: int, session: Session = Depends(get_session)):
+    return await _save(request, session, _get_trip(session, trip_id))
 
 
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
