@@ -230,6 +230,7 @@ limited to 5 MB.
 | `/trips/new` | The form to make a trip |
 | `/trips/{id}/edit` | The form to change a trip |
 | `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
+| `/trips/{id}/compare` | 2 to 4 offers of a trip side by side, with the best value of each line marked (see below) |
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile |
@@ -272,7 +273,20 @@ Each row of the trip table has buttons at its left side:
 To write a note on an offer, open "Legs and fares" in its row, change the text in the box and click "Save note".
 A note has at most 2000 characters. The row shows the note under its route.
 
-### Add an offer by hand
+### Compare offers side by side
+
+To compare 2 to 4 offers of a trip:
+1. On `/trips/{id}`, tick the box "Compare" of each row. Tick 2 to 4 rows.
+2. Click "Compare". The page `/trips/{id}/compare` opens.
+
+The page shows one column for each ticked offer. The lines are the route, the departure and arrival times, the duration,
+the transfers, the modes, the carriers, the fare, the price and the effective cost with its breakdown.
+The best value of each line has the mark "best": the lowest price, duration, transfers and effective cost.
+A tie marks every column with the lowest value.
+The page uses the same weights as the trip page: the two sliders, and the profile that you chose there.
+Click "Back to the trip" to return to the trip page with the same weights.
+If you tick fewer than 2 or more than 4 offers, the page shows an error and asks you to select again.
+
 
 The trip page has a link "Add an offer by hand" above the offer table. It opens the form `/trips/{id}/offers/new`.
 The form has a price (required), a currency (EUR by default), an optional fare name and the UTC offset of the times.
