@@ -100,8 +100,9 @@ jobs:
           # A red exit waits one cycle first: no fast loop of red runs. The next run reads the newest text and code.
           stop=
           trap 'rc=$?; [ -n "$stop" ] && exit $rc
-                # a run that a person started (a try after a fix) ends at once; the cron restarts the loop
-                [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$GITHUB_ACTOR" != "github-actions[bot]" ] && exit 1
+                # a failed try of a person (a try after a fix) ends at once and red. A run of a person that ends with
+                # no error starts the next run: the cron did not fire for a whole day, and the loop died (2026-11-06)
+                [ $rc -ne 0 ] && [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$GITHUB_ACTOR" != "github-actions[bot]" ] && exit $rc
                 [ $rc -eq 0 ] || sleep 600
                 gh workflow run pacer.yml --repo "$GITHUB_REPOSITORY" --ref main; exit $rc' EXIT
           end=$((SECONDS + 330 * 60))
