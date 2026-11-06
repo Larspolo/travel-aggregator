@@ -15,7 +15,13 @@
   {% for it, fare in rows %}
     {% set first, last = it.legs[0], it.legs[-1] %}
     <tr>
-      <td>{{ first.from_name }} → {{ last.to_name }}
+      <td>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/pin">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button type="submit">{{ "Unpin" if it.pinned else "Pin" }}</button>
+          {% if it.pinned %}<span class="muted">pinned</span>{% endif %}
+        </form>
+      {{ first.from_name }} → {{ last.to_name }}
         <div class="muted">{{ it.mode_summary }}, {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }},
           {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }}</div></td>
       <td>{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }}</td>

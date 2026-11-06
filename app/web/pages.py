@@ -64,4 +64,16 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                                   .options(selectinload(Itinerary.legs), selectinload(Itinerary.fares))).all()
     rows = [(it, min(it.fares, key=lambda f: f.latest_price)) for it in itineraries if it.fares]
     rows.sort(key=lambda r: (r[1].latest_price, r[0].depart_at))   # ranking comes with rank:base
+    rows.sort(key=lambda r: not r[0].pinned)   # stable: the pinned rows first, in their order
     return templates.TemplateResponse(request, "trip.html", {"trip": trip, "rows": rows})
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/pin",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def toggle_pin(trip_id: int, itinerary_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    it.pinned = not it.pinned
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
