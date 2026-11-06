@@ -26,6 +26,10 @@
     .panel.ok { background: #e7f6e7; border-color: #2e7d32; color: #1b5e20; }
     .panel.error { background: #fdecea; border-color: #c62828; color: #b71c1c; font-weight: bold; }
     .panel.info { background: #e8f0fe; border-color: #1a73e8; color: #0d47a1; }
+    .controls { position: fixed; right: 12px; bottom: 48px; z-index: 2147483647; display: flex; gap: 6px;
+      align-items: center; font: 13px/1.4 system-ui, sans-serif; padding: 6px 10px; border-radius: 6px;
+      background: #f4f4f4; color: #222; border: 1px solid #999; }
+    .controls select, .controls button { font: inherit; }
   `;
 
   function createPanel() {
@@ -38,10 +42,20 @@
     box.className = "panel info";
     box.setAttribute("role", "status");
     box.textContent = "travel-aggregator ready";
-    shadow.append(style, box);
+    const controls = document.createElement("div");
+    controls.className = "controls";
+    controls.innerHTML = `<label>Attach to trip: <select class="trip"></select></label>
+      <button type="button" class="new-trip">+ new trip</button>
+      <label><input type="checkbox" class="autosend"> auto-send</label>
+      <button type="button" class="send">Send</button>`;
+    shadow.append(style, controls, box);
     (document.body || document.documentElement).appendChild(host);
     return {
       host,
+      select: controls.querySelector(".trip"),
+      newTrip: controls.querySelector(".new-trip"),
+      autosend: controls.querySelector(".autosend"),
+      sendButton: controls.querySelector(".send"),
       setStatus(text, kind) {
         box.className = "panel " + (["ok", "error", "info"].includes(kind) ? kind : "info");
         box.textContent = String(text);
@@ -60,6 +74,11 @@
     const q = gm.getValue("queue", []);
     return Array.isArray(q) ? q : [];
   };
+  const tripId = () => {
+    const id = Number(gm.getValue("trip", 0));
+    return Number.isInteger(id) && id > 0 ? id : null;
+  };
+  const autoSend = () => gm.getValue("autosend", true) !== false;
   const count = (payload) => (payload && Array.isArray(payload.offers) ? payload.offers.length : 0);
   let busy = false;
 
@@ -68,6 +87,10 @@
     const { server, token } = config();
     if (!/^https?:\/\//.test(server)) {
       panel.setStatus("Set the server URL in the menu", "error");
+      return Promise.resolve("retry");
+    }
+    if (!payload || !payload.trip_id) {
+      panel.setStatus("Choose a trip in the panel", "error");
       return Promise.resolve("retry");
     }
     return new Promise((resolve) => {
@@ -106,6 +129,68 @@
     }
   }
 
+  // GET or POST /api/trips on the configured server only (P1). Resolves the parsed JSON or null.
+  function trips(method, body) {
+    const { server, token } = config();
+    if (!/^https?:\/\//.test(server)) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      gm.request({
+        method,
+        url: server + "/api/trips" + (method === "GET" ? "?status=active" : ""),
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        data: body === undefined ? undefined : JSON.stringify(body),
+        onload: (r) => {
+          if (r.status < 200 || r.status >= 300) {
+            panel.setStatus(`Trips request failed (${r.status})`, "error");
+            return resolve(null);
+          }
+          try { resolve(JSON.parse(r.responseText)); } catch (e) { resolve(null); }
+        },
+        onerror: () => { panel.setStatus("Trips request failed", "error"); resolve(null); },
+        ontimeout: () => { panel.setStatus("Trips request failed", "error"); resolve(null); },
+      });
+    });
+  }
+
+  function addOption(trip) {
+    const opt = document.createElement("option");
+    opt.value = String(trip.id);
+    opt.textContent = String(trip.title);
+    panel.select.appendChild(opt);
+  }
+
+  async function loadTrips() {
+    const list = await trips("GET");
+    if (!Array.isArray(list)) return;
+    panel.select.replaceChildren();
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "(choose)";
+    panel.select.appendChild(empty);
+    list.forEach(addOption);
+    const id = tripId();
+    panel.select.value = id && list.some((t) => t.id === id) ? String(id) : "";
+  }
+
+  async function newTrip() {
+    const title = root.prompt("Title of the new trip", "");
+    if (title === null || !title.trim()) return;
+    const trip = await trips("POST", { title: title.trim() });
+    if (!trip || !trip.id) return;
+    addOption(trip);
+    panel.select.value = String(trip.id);
+    gm.setValue("trip", trip.id);
+  }
+
+  panel.select.addEventListener("change", () => gm.setValue("trip", Number(panel.select.value) || 0));
+  panel.newTrip.addEventListener("click", newTrip);
+  panel.autosend.checked = autoSend();
+  panel.autosend.addEventListener("change", () => {
+    gm.setValue("autosend", panel.autosend.checked);
+    if (panel.autosend.checked) flush();
+  });
+  panel.sendButton.addEventListener("click", () => flush());
+
   const core = {
     gm,
     panel,
@@ -113,8 +198,18 @@
     sent(n) { panel.setStatus(`Captured ${n} offers → sent ✓`, "ok"); },
     queue: loadQueue,
     flush,
+    loadTrips,
+    newTrip,
+    tripId,
+    // Queue one payload for the chosen trip; send it now only when auto-send is on.
     send(payload) {
-      gm.setValue("queue", loadQueue().concat([payload]));
+      const id = tripId();
+      const item = id ? Object.assign({}, payload, { trip_id: id }) : payload;
+      gm.setValue("queue", loadQueue().concat([item]));
+      if (!autoSend()) {
+        panel.setStatus(`Captured ${count(item)} offers: ${loadQueue().length} waiting, press Send`, "info");
+        return Promise.resolve();
+      }
       return flush();
     },
   };
@@ -127,6 +222,7 @@
     const v = root.prompt("travel-aggregator API token", "");
     if (v !== null) gm.setValue("token", v.trim());
   });
-  flush();
-  setInterval(flush, RETRY_MS);
+  loadTrips();
+  if (autoSend()) flush();
+  setInterval(() => { if (autoSend()) flush(); }, RETRY_MS);
 })(typeof unsafeWindow !== "undefined" ? unsafeWindow : window);
