@@ -1,0 +1,31 @@
+name: After release
+
+# Removes the label `after-release` from each open issue when a release tag v* is pushed (#4175). The owner holds a
+# ticket until the next release with this label: `framework/tools/dashboard.py` skips it (`AFTER`), so no run takes it before.
+# Each released ticket gets `rank` (owner, 2026-11-01): it waits until a deep run ranks all of them against each other
+# (P1 to P3, or `muted`) and puts them into the next release epic (`roadmap` skill, "Release cycle"). release.yml starts
+# this workflow on its tag (a tag of GITHUB_TOKEN starts no workflow).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:     # by hand: release the held tickets now
+
+permissions:
+  issues: write          # labels
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Move the label after-release to rank
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R: ${{ github.repository }}
+        run: |
+          for i in $(gh api --paginate "repos/$R/issues?state=open&labels=after-release&per_page=100" --jq '.[].number'); do
+            gh api "repos/$R/issues/$i/labels" -f "labels[]=rank" > /dev/null
+            gh api "repos/$R/issues/$i/labels/after-release" -X DELETE > /dev/null
+            gh api "repos/$R/issues/$i/comments" -f body="Released by the After release workflow (\`${GITHUB_REF_NAME}\`, #4175). It waits with \`rank\` until a deep run ranks the released tickets and gives it its priority (\`steering/project/RELEASE.md\`, \"Release cycle\")." > /dev/null
+            echo "released #$i"
+          done

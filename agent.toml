@@ -1,0 +1,27 @@
+# Project values of the agent system (#905). The tools in tools/ read this file (framework/tools/agent_config.py).
+
+repo = "Larspolo/travel-aggregator"
+owner = "Larspolo"
+branch = "main"
+
+[status]
+issue = 1
+label = "agent-status"
+paused = "paused"
+
+[commands]                      # change these to the commands of the project
+install = "python3 -m pip install --quiet --disable-pip-version-check --root-user-action=ignore -r requirements-dev.txt"
+lint = "ruff check ."
+fast = "python3 -m pytest -n auto"
+slow = "python3 -m pytest -m slow"
+server = ""
+dev = "docker compose up --build"  # starts the development server on the owner's computer (the `try` skill); "" = none
+
+[ci]                            # framework/tools/ship_pr.py
+gates = []                      # the PR checks of ci.yml besides `quick` that Automerge needs green (for example ["browser"])
+
+[docs]
+system = "framework/docs/SYSTEM.md"
+steering = "framework/docs/STEERING.md"
+learnings = "docs/LEARNINGS.md"
+roadmap = "steering/project/ROADMAP.md"

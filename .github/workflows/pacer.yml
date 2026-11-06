@@ -1,0 +1,126 @@
+name: Pacer
+
+# Starts the autopilot runs that the quota target misses (`framework/tools/pacer.py`, #3193):
+# a script keeps no old rule in memory (the old pacer session fired 4 runs for 8, #3147). Only while `pacer` in
+# `[pacing]` of steering/system/system.toml is "workflow" (#3194): another value stops the loop.
+# One run loops for about 5.5 hours (a cycle every 10 minutes), then starts the next run itself: GitHub fires the
+# cron schedules of this repository only a few times per day (dashboard.yml "*/10" ran at 08:43 and 15:31 on
+# 2026-10-28). The schedule only restarts a loop that died. A workflow_dispatch by GITHUB_TOKEN starts a new run.
+# A change of this file on main also ends the loop and starts the next run: a run keeps the text of its start.
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # a restart when no loop runs; the concurrency group queues it behind a live loop
+  workflow_dispatch:
+
+permissions:
+  contents: write    # checkout, the claim refs (`health.lane_claims`, the claims of the briefs) and the branch metrics
+  issues: write      # the ready tickets, the status issue (`usage.fire`), `in-progress` and "Started by" of the briefs
+  pull-requests: read   # the flow brake (`usage.read_flow`)
+  actions: write     # the queued CI runs (`usage.read_flow`) and the start of the next loop
+
+concurrency:
+  group: pacer
+  cancel-in-progress: false   # one loop at a time; a new run waits for the live loop
+
+jobs:
+  names:   # the secret names of the accounts in agent.toml and the lanes (`pacer.py secret_names`)
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.names.outputs.list }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: names
+        run: echo "list=$(python3 framework/tools/pacer.py --secrets)" >> "$GITHUB_OUTPUT"
+  pacer:
+    needs: names
+    runs-on: ubuntu-latest
+    timeout-minutes: 350     # below the 360 of GitHub: the loop ends at 330 and starts the next run
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5  # pip for numpy: the system Python of the runner refuses it (#2631)
+        with:
+          python-version: "3.12"
+      - name: Install the Claude Code CLI (the quota read, `usage.read_usage`) and numpy (`framework/tools/health.py`)
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          python3 -m pip install -q numpy
+      - name: Check out the branch metrics (the log of each cycle, `framework/tools/metrics_log.py --push`)
+        run: git fetch -q --depth 1 origin metrics && git worktree add -q --detach "$RUNNER_TEMP/metrics" FETCH_HEAD || true
+      - name: Start the runs every 10 minutes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GIT_AUTHOR_NAME: github-actions[bot]          # the claim commits of the briefs (`claim.claim`)
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          # The quota read of the first account (`usage.read_usage`). The secrets of each account in agent.toml, one by
+          # one (`framework/tools/pacer.py secret_names`, `accounts`, #4237): name i of SECRET_NAMES has the value SECRET_<i>.
+          # Not `toJSON(secrets)`: GitHub held runs that read all secrets as "may be malicious" (2026-10-30).
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          SECRET_NAMES: ${{ needs.names.outputs.list }}
+          SECRET_0: ${{ secrets[fromJSON(needs.names.outputs.list)[0]] }}
+          SECRET_1: ${{ secrets[fromJSON(needs.names.outputs.list)[1]] }}
+          SECRET_2: ${{ secrets[fromJSON(needs.names.outputs.list)[2]] }}
+          SECRET_3: ${{ secrets[fromJSON(needs.names.outputs.list)[3]] }}
+          SECRET_4: ${{ secrets[fromJSON(needs.names.outputs.list)[4]] }}
+          SECRET_5: ${{ secrets[fromJSON(needs.names.outputs.list)[5]] }}
+          SECRET_6: ${{ secrets[fromJSON(needs.names.outputs.list)[6]] }}
+          SECRET_7: ${{ secrets[fromJSON(needs.names.outputs.list)[7]] }}
+          SECRET_8: ${{ secrets[fromJSON(needs.names.outputs.list)[8]] }}
+          SECRET_9: ${{ secrets[fromJSON(needs.names.outputs.list)[9]] }}
+          SECRET_10: ${{ secrets[fromJSON(needs.names.outputs.list)[10]] }}
+          SECRET_11: ${{ secrets[fromJSON(needs.names.outputs.list)[11]] }}
+          SECRET_12: ${{ secrets[fromJSON(needs.names.outputs.list)[12]] }}
+          SECRET_13: ${{ secrets[fromJSON(needs.names.outputs.list)[13]] }}
+          SECRET_14: ${{ secrets[fromJSON(needs.names.outputs.list)[14]] }}
+          SECRET_15: ${{ secrets[fromJSON(needs.names.outputs.list)[15]] }}
+          SECRET_16: ${{ secrets[fromJSON(needs.names.outputs.list)[16]] }}
+          SECRET_17: ${{ secrets[fromJSON(needs.names.outputs.list)[17]] }}
+          SECRET_18: ${{ secrets[fromJSON(needs.names.outputs.list)[18]] }}
+          SECRET_19: ${{ secrets[fromJSON(needs.names.outputs.list)[19]] }}
+          SECRET_20: ${{ secrets[fromJSON(needs.names.outputs.list)[20]] }}
+          SECRET_21: ${{ secrets[fromJSON(needs.names.outputs.list)[21]] }}
+          SECRET_22: ${{ secrets[fromJSON(needs.names.outputs.list)[22]] }}
+          SECRET_23: ${{ secrets[fromJSON(needs.names.outputs.list)[23]] }}
+          SECRET_24: ${{ secrets[fromJSON(needs.names.outputs.list)[24]] }}
+          SECRET_25: ${{ secrets[fromJSON(needs.names.outputs.list)[25]] }}
+          SECRET_26: ${{ secrets[fromJSON(needs.names.outputs.list)[26]] }}
+          SECRET_27: ${{ secrets[fromJSON(needs.names.outputs.list)[27]] }}
+          SECRET_28: ${{ secrets[fromJSON(needs.names.outputs.list)[28]] }}
+          SECRET_29: ${{ secrets[fromJSON(needs.names.outputs.list)[29]] }}
+          SECRET_30: ${{ secrets[fromJSON(needs.names.outputs.list)[30]] }}
+          SECRET_31: ${{ secrets[fromJSON(needs.names.outputs.list)[31]] }}
+          SECRET_32: ${{ secrets[fromJSON(needs.names.outputs.list)[32]] }}
+          SECRET_33: ${{ secrets[fromJSON(needs.names.outputs.list)[33]] }}
+          SECRET_34: ${{ secrets[fromJSON(needs.names.outputs.list)[34]] }}
+        run: |
+          text=$(git rev-parse HEAD:.github/workflows/pacer.yml)   # the checkout is the commit of the text of this run
+          # Each exit starts the next run, also a failed command: a loop that died stayed dead for hours (the cron fires
+          # a few times a day; 2026-10-29 22:31 and 2026-10-30 10:50, a start by hand). Only the switch stops the loop.
+          # A red exit waits one cycle first: no fast loop of red runs. The next run reads the newest text and code.
+          stop=
+          trap 'rc=$?; [ -n "$stop" ] && exit $rc
+                # a run that a person started (a try after a fix) ends at once; the cron restarts the loop
+                [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$GITHUB_ACTOR" != "github-actions[bot]" ] && exit 1
+                [ $rc -eq 0 ] || sleep 600
+                gh workflow run pacer.yml --repo "$GITHUB_REPOSITORY" --ref main; exit $rc' EXIT
+          end=$((SECONDS + 330 * 60))
+          while [ $SECONDS -lt $end ]; do
+            git fetch -q --depth 1 origin main && git reset -q --hard FETCH_HEAD   # the newest code and switch
+            # a new pacer.yml on main: the next run reads it. This old text can call a moved file (tools/pacer.py, #4488)
+            if [ "$(git rev-parse HEAD:.github/workflows/pacer.yml)" != "$text" ]; then
+              echo "pacer.yml changed on main: start a new loop with the new text"
+              exit 0
+            fi
+            # exit 3: another value stops the loop; a missing key is red, not a quiet stop (#4349, `pacer.switch`)
+            python3 framework/tools/pacer.py --switch || { rc=$?; [ $rc -eq 3 ] || exit $rc
+              echo "pacer is not \"workflow\" in [pacing] (steering/system/system.toml): stop the loop"; stop=1; exit 0; }
+            # a failed call (HTTP 401, 500): red now, and the next run after one cycle
+            python3 framework/tools/pacer.py --log "$RUNNER_TEMP/pacer.jsonl" || exit 1
+            gh workflow run dashboard-site.yml --repo "$GITHUB_REPOSITORY" --ref main || true   # the dashboard, fresh each cycle
+            # the status issue: 6 runs an hour, not one after each merge (35 an hour, 30 to 50 API calls each, 2026-10-29)
+            gh workflow run dashboard.yml --repo "$GITHUB_REPOSITORY" --ref main || true
+            # the status comments and the cycle records to the branch metrics: the cron of metrics.yml fires a few times a day
+            [ -d "$RUNNER_TEMP/metrics" ] && python3 framework/tools/metrics_log.py "$RUNNER_TEMP/metrics" --pacer "$RUNNER_TEMP/pacer.jsonl" --push || true
+            sleep 600
+          done   # the trap starts the next loop

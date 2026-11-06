@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 130
+
+[tool.ruff.lint]
+select = ["F"]                  # the copied tools pass these rules; add more rules for the project code
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "framework/tests"]
+addopts = "-q -m 'not slow'"
+markers = ["slow: Playwright browser tests of the pages and the userscripts; run with: pytest -m slow"]

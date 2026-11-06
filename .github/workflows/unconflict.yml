@@ -1,0 +1,92 @@
+name: Unconflict
+
+# Merges main into an agent PR with a merge conflict when git solves the conflict alone (#280). GitHub ignores
+# `merge=union` in .gitattributes, so a new line in docs/LEARNINGS.md or docs/DESIGN.md on both sides makes the PR
+# "dirty" and GitHub starts no CI. A push with GITHUB_TOKEN starts no workflow: this job starts CI on the branch,
+# and Automerge accepts that CI run.
+# A PR whose CI failed while main was red waited for a takeover only to merge main (#3685): when main is green again,
+# this job merges main into it too, and starts CI.
+# Two new lines at one place of a table (`TECHS` in game/train.py) are a conflict for git too: `framework/tools/unconflict.py`
+# keeps both sides when no side changes a base line (#1864), and CI checks the result.
+# `framework/tools/unconflict_pick.py` finds the PRs with git (merge-tree, log) and 3 to 4 API calls: the old loop read each
+# open PR, the CI run of its head and its head commit by REST, about 3 + 2 calls per PR at 38 runs an hour.
+on:
+  schedule:
+    - cron: "*/20 * * * *"     # dirty PRs get no CI event, so they wait for this job
+  workflow_dispatch:      # Automerge starts it after each merge and after each failed merge
+
+permissions:
+  contents: write         # push the merge commit
+  pull-requests: write
+  issues: write           # label and comment
+  actions: write          # gh workflow run
+
+concurrency:
+  group: unconflict
+  cancel-in-progress: false
+
+jobs:
+  merge-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5    # pip for ruff (#2631): the system Python of the runner refuses it
+        with:
+          python-version: "3.12"
+      - name: Merge main into the conflicted agent PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R: ${{ github.repository }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config merge.conflictStyle diff3     # framework/tools/unconflict.py needs the base of each hunk
+          cp framework/tools/unconflict.py framework/tools/merge_jsonl.py "$RUNNER_TEMP/"   # main's copy: an older PR branch does not have it
+          git config merge.jsonl.driver "python3 $RUNNER_TEMP/merge_jsonl.py %O %A %B"   # game/data/*.jsonl (#2004)
+          python3 -m pip install -q "$(grep '^ruff' requirements-dev.txt)"   # checks a "keep both sides" merge (#2631)
+          # The PRs to merge main into, with git and 3 to 4 API calls (framework/tools/unconflict_pick.py, 2026-10-29): one line
+          # "<number> <branch> <sha> <label 1|0> <dirty|red>". It reads main's tools: the loop checks out PR branches.
+          GITHUB_TOKEN="$GH_TOKEN" python3 framework/tools/unconflict_pick.py > picks.txt
+          while read -r n branch sha label why <&3; do   # fd 3: a command in the loop cannot read the list
+            [ "$label" = 1 ] && label=true || label=false
+            how='git solved the conflict alone (`merge=union`)'
+            [ "$why" = red ] && how='its CI failed while main was red, and main is green again (#3685)'
+            git fetch -q origin "$branch"
+            git checkout -q -B "$branch" "origin/$branch"
+            if ! git merge -q --no-edit origin/main; then
+              if python3 "$RUNNER_TEMP/unconflict.py" && git commit -q --no-edit; then
+                how='both sides only added lines, `framework/tools/unconflict.py` kept both (#1864)'
+                py=$(git diff --name-only --diff-filter=d origin/main -- '*.py')
+                if [ -n "$py" ] && ! ruff check $py; then   # for example a function that both sides define (#2631)
+                  git reset -q --hard "origin/$branch"
+                  [ "$label" = true ] || gh api "repos/$R/issues/$n/labels" -f "labels[]=conflict" >/dev/null || true
+                  echo "#$n: the merge with both sides fails ruff: the runs solve it (autopilot step 6.10)"; continue
+                fi
+              else
+                git merge --abort
+                [ "$label" = true ] || gh api "repos/$R/issues/$n/labels" -f "labels[]=conflict" >/dev/null || true   # takeover after 10 min, not 30 (claim.py)
+                echo "#$n: a real conflict: the runs solve it (autopilot step 6.10)"; continue
+              fi
+            fi
+            if [ "$(git rev-parse HEAD)" = "$sha" ]; then
+              echo "#$n: main is in the branch already"; continue
+            fi
+            if ! git push -q origin "HEAD:$branch"; then   # for example a change of .github/workflows on main
+              echo "#$n: the push failed"; continue
+            fi
+            echo "#$n: merged main into $branch"
+            gh api "repos/$R/issues/$n/labels/conflict" -X DELETE >/dev/null 2>&1 || true
+            printf 'Merged `main` into the branch: %s. CI runs again (#280).\n' "$how" > body.md
+            gh api "repos/$R/issues/$n/comments" -F body=@body.md >/dev/null
+            # GitHub can start the pull_request run of this push itself: then a dispatch runs the fast suite twice on
+            # one commit and fills the CI queue (#4809). The pull_request run of github-actions[bot] starts the sweep.
+            # Only a run that is queued, runs or is green counts: GitHub holds the bot run with 0 jobs (`action_required`,
+            # then `failure`: 29 of 29 runs), and a PR with no real run waited for a takeover (#4981).
+            new=$(git rev-parse HEAD); sleep 20
+            got=$(gh api "repos/$R/actions/workflows/ci.yml/runs?event=pull_request&head_sha=$new" \
+              --jq '[.workflow_runs[] | select(.conclusion == null or .conclusion == "success")] | length' || echo 0)
+            [ "$got" != 0 ] && echo "#$n: GitHub started the pull_request run" || gh workflow run ci.yml --repo "$R" --ref "$branch"
+          done 3< picks.txt

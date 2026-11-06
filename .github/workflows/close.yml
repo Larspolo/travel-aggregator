@@ -1,0 +1,69 @@
+name: Close
+
+# Closes each open issue with the label `close` as completed (#1740). The auto mode denies an agent the close of an
+# issue (#862, #1323, #1641), so a run adds the label after its evidence comment, and this job does the close.
+# An epic whose last epic check ends with `Close this epic when #N merges.` gets the label here when #N merged (#835).
+on:
+  issues:
+    types: [labeled, closed]
+  schedule:
+    - cron: "17 * * * *"     # each hour: labels that an event missed
+  workflow_dispatch:      # automerge.yml after a merge: a close by GITHUB_TOKEN starts no `issues: closed` event
+
+permissions:
+  contents: read         # checkout: framework/tools/epic_autoclose.py
+  issues: write          # labels, comments, close
+  actions: write         # gh workflow run claims.yml
+
+concurrency:
+  group: close
+  cancel-in-progress: false
+
+jobs:
+  close:
+    if: github.event_name != 'issues' || github.event.action == 'closed' || github.event.label.name == 'close'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Label the epics whose last ticket merged
+        id: epics
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          # Before this step, a deep run started only to add the label (#835). An error must not stop the close below.
+          epics=$(python3 framework/tools/epic_autoclose.py --apply | tr '\n' ' ') || echo "::warning::epic_autoclose failed"
+          echo "numbers=$epics" >> "$GITHUB_OUTPUT"
+      - name: Close the issues with the label close
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R: ${{ github.repository }}
+          EV: ${{ github.event.issue.number }}
+          EPICS: ${{ steps.epics.outputs.numbers }}
+        run: |
+          n=0
+          # The issue of the event and the epics of the step above first: the label filter of the list lags some
+          # seconds after the label (#5575).
+          for i in $({ echo "$EV"; tr ' ' '\n' <<<"$EPICS"; gh api --paginate "repos/$R/issues?state=open&labels=close&per_page=100" \
+                       --jq '.[] | select(.pull_request | not) | .number'; } | grep -x '[0-9][0-9]*' | awk '!s[$0]++'); do
+            labels=$(gh api "repos/$R/issues/$i" --jq '[.state, .labels[].name] | join(" ")')
+            if [[ " $labels " != " open "* || " $labels " != *" close "* ]]; then echo "skip #$i: closed or no label close"; continue; fi
+            if [[ " $labels " == *" agent-status "* ]]; then echo "skip #$i: the status issue"; continue; fi
+            for l in close needs-human in-progress; do
+              gh api "repos/$R/issues/$i/labels/$l" -X DELETE > /dev/null 2>&1 || true
+            done
+            gh api "repos/$R/issues/$i/comments" -f body="Closed by the Close workflow (label \`close\`, #1740)." > /dev/null
+            gh api "repos/$R/issues/$i" -X PATCH -f state=closed -f state_reason=completed > /dev/null
+            # The copy PRs of this ticket: main has its fix, so close them too (#4342). Same first-closing-line rule as automerge.yml (#984).
+            for p in $(gh api --paginate "repos/$R/pulls?state=open&per_page=100" | jq -r --arg i "$i" '.[]
+                       | select(.head.ref | test("^(claude/|agent/|ccr-)"))
+                       | select((first((.body // "") | match("(close[sd]?|fix(e[sd])?|resolve[sd]?) #([0-9]+)"; "i").captures[-1].string) // "") == $i)
+                       | .number'); do
+              gh api "repos/$R/issues/$p/comments" -f body="Closed by the Close workflow: its ticket #$i closed with no merge of this PR." > /dev/null
+              gh api "repos/$R/pulls/$p" -X PATCH -f state=closed > /dev/null
+              echo "closed PR #$p"
+            done
+            echo "closed #$i"; n=$((n + 1))
+          done
+          # A close by GITHUB_TOKEN starts no workflow: delete the claim refs now, and release a closed release epic.
+          if [ "$n" -gt 0 ]; then gh workflow run claims.yml --repo "$R" || true; gh workflow run release.yml --repo "$R" || true; fi

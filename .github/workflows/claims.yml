@@ -1,0 +1,34 @@
+name: Claims
+
+# Deletes the claim refs (claim/N, claim/N-2 ...) of a closed ticket (framework/tools/claim.py, #211).
+# The runs cannot do it: the session proxy gives 403 for branch deletes.
+# It also deletes the comment locks (claim/comment-ID, #320), the review locks (claim/review-*, claim/roadmap-*, #898)
+# and the "Fix main" locks (claim/fixmain-SHA, #3480) older than one day, and the refill locks of closed epics or
+# older than 7 days (`claim.LOCK_DAYS`). `claim.py 0 --prune` lists, dates and deletes the refs with git and reads the
+# open issues with one API call: the old script read each ref and each ticket by REST, about 60 calls a run at 44
+# runs an hour, and the token of all workflows ran out of its hourly limit (2026-10-29).
+on:
+  issues:
+    types: [closed]
+  schedule:
+    - cron: "53 5 * * *"     # once a day: the comment locks, and refs that an event missed
+  workflow_dispatch:        # Automerge starts it after each merge (a close by GITHUB_TOKEN starts no workflow)
+
+permissions:
+  contents: write    # delete refs
+  issues: read       # the open issues and PRs (one API read): the claims of open tickets stay
+
+concurrency:
+  group: claims              # one run at a time: parallel runs delete the same refs (#560)
+  cancel-in-progress: false
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4   # git with the token: the fetch and the delete of the claim refs
+      - name: Delete the claim refs of closed tickets and old locks
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 framework/tools/claim.py 0 --prune

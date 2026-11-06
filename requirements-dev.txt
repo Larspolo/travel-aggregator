@@ -1,0 +1,4 @@
+numpy         # framework/tools/health.py
+pytest
+pytest-xdist  # -n auto
+ruff

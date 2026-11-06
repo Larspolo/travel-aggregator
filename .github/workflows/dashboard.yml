@@ -1,0 +1,31 @@
+name: Dashboard
+
+# Writes the dashboard in the body of the status issue (#1) from the labels, comments and PRs.
+# Only on a schedule, not on each issue or PR event (#2168): one run makes 30 to 50 API calls, and 225 event runs an
+# hour used the rate limit of the workflow token, so Unconflict, Claims and Automerge failed. GitHub fires the cron a
+# few times a day: the pacer loop (pacer.yml) starts it in each cycle. Automerge started it after each merge too (about
+# 35 runs an hour) until 2026-10-29.
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # the labels, claims and stalled PRs change all the time: 6 runs an hour
+  workflow_dispatch:
+
+permissions:
+  contents: read     # checkout needs it
+  issues: write
+  pull-requests: read   # the pulls API (open PRs, merged PRs) gives 403 without it
+
+concurrency:
+  group: dashboard
+  cancel-in-progress: true
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update the status issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 framework/tools/dashboard.py

@@ -1,0 +1,31 @@
+# name|color|description   (the Labels workflow creates or updates these labels on main)
+P0|b60205|Do next
+P1|d93f0b|High priority
+P2|fbca04|Normal priority
+P3|c5def5|Later
+size:S|e6f4ea|One short PR
+size:M|bfe5c8|One PR, up to about 400 lines
+size:L|7fc98f|Too large: the agent splits it first
+bug|d73a4a|Something works wrong
+feature|a2eeef|New function
+tooling|5319e7|Tests and tools for the agent
+design|f9d0c4|Look of buildings and objects
+docs|0075ca|Documentation
+cleanup|cfd3d7|Code cleanup without new function
+needs-human|e99695|Waits for the owner
+blocked|000000|Waits for another ticket
+in-progress|0e8a16|The agent works on it now
+epic|3e4b9e|Parent ticket with sub-issues
+agent-status|1d76db|The dashboard of the agent
+paused|b60205|On the status issue: the agent stops
+muted|d4c5f9|Muted by the owner: the agents skip it and the dashboard hides it
+after-release|d4c5f9|Held until the next release (tag v*): agents skip it, the After release workflow removes it
+rank|d4c5f9|After a release: waits until a deep run ranks the released tickets (P1 to P3)
+release|0e8a16|The epic "Release vX.Y.Z" (its milestone holds the scope): the Release workflow tags it
+hold|fbca04|On a PR: the Automerge workflow does not merge it
+automerge|0e8a16|On a PR: the Automerge workflow merges it when CI is green, on any branch
+conflict|b60205|On a PR: the Automerge workflow could not merge it
+lane:deep|5319e7|A hard ticket for a run at the default effort (ticket skill, "Model lanes")
+lane:haiku|c2e0c6|A clear, templated ticket for a Haiku run (ticket skill, "Model lanes")
+process|5319e7|Improves the agent system itself: the loop, the tools, the setup
+close|0e8a16|The Close workflow closes this issue as completed (#1740)

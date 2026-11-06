@@ -1,0 +1,28 @@
+name: Ticket
+description: A task for the agent (bug, feature, idea or change).
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What must change? One or two sentences are enough. The agent adds the details.
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: P0 = do next. P1 = high. P2 = normal. P3 = later.
+      options:
+        - P2
+        - P0
+        - P1
+        - P3
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details (optional)
+      description: Examples, screenshots, links, ideas for the solution.

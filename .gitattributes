@@ -1,0 +1,2 @@
+# Ticket runs only add lines here, so a merge keeps the new lines of both sides.
+docs/LEARNINGS.md merge=union

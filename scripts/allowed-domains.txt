@@ -1,0 +1,4 @@
+# The hosts that the cloud environment allows beyond the package managers (docs/ENVIRONMENT.md, "Network").
+# One host per line. The owner pastes this file into the network settings of the environment.
+# Never add a travel site (P1 in steering/project/PRINCIPLES.md): the agents do not send requests to them.
+github.com
