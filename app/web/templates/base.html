@@ -17,6 +17,11 @@
     .badge { display: inline-block; padding: 0 .4em; border-radius: .6em; background: #2e7d32; color: #fff; font-size: .8em; }
     .weights { display: flex; gap: 2rem; flex-wrap: wrap; margin: .5rem 0 1rem; }
     .scroll { overflow-x: auto; }
+    @media (max-width: 40rem) {
+      body { padding: .5rem; }
+      .weights { flex-direction: column; gap: .5rem; }
+      input, select, textarea { max-width: 100%; box-sizing: border-box; }
+    }
   </style>
 </head>
 <body{% block body_attrs %}{% endblock %}>
