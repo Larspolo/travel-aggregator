@@ -19,7 +19,9 @@ open epics have no goal left that an agent can do.
 3. In that goal, take the first missing feature without an epic. Grep the code for it first: when the code does it
    already, mark it `[x]` in the next PR and take the next one.
 4. Make the epic with the `ticket` skill: the goal (what the user sees), the sub-items of the feature as acceptance
-   criteria, a criterion that checks the whole feature, the line "Roadmap: `<key>`", and the labels `epic`, `feature`,
+   criteria, a criterion that checks the whole feature, the criterion "`README.md` describes what this epic added, and
+   `python3 -m pytest -m readme` passes" (one README PR at the end, `steering/project/PRINCIPLES.md`, "Try a
+   feature"), the line "Roadmap: `<key>`", and the labels `epic`, `feature`,
    `size:L`, `P3`. Compare it with `steering/project/PRINCIPLES.md`. A choice with no single best option, or in an
    area of "Owner involvement", gets a decision ticket first (`ticket` skill, "Decision tickets").
 5. Make its first 3 to 5 sub-issues (`size:S` or `size:M`, `P3`). The first one is small and useful alone.
