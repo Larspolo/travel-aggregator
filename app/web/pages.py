@@ -2,9 +2,10 @@
 untrusted (P5)."""
 
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
@@ -114,13 +115,15 @@ async def edit_trip(request: Request, trip_id: int, session: Session = Depends(g
 
 
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
+              hour_markup: Decimal = Query(Weights.hour_markup, ge=0, le=100),
+              transfer_markup: Decimal = Query(Weights.transfer_markup, ge=0, le=100)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
                                   .options(selectinload(Itinerary.legs), selectinload(Itinerary.fares))).all()
-    weights = Weights()  # the default profile; the score is computed here and never stored
+    weights = Weights(hour_markup, transfer_markup)  # the score is computed here and never stored
     rows = []
     for it in itineraries:
         if not it.fares:
@@ -129,5 +132,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights)
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))
-    return templates.TemplateResponse(request, "trip.html", {"trip": trip, "rows": rows,
-                                                              "format_breakdown": format_breakdown})
+    context = {"trip": trip, "rows": rows, "weights": weights, "format_breakdown": format_breakdown}
+    if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
+        return templates.TemplateResponse(request, "trip_rows.html", context)
+    return templates.TemplateResponse(request, "trip.html", context)

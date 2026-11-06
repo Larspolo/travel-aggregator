@@ -1,9 +1,11 @@
 """The FastAPI app of travel-aggregator."""
 
 import secrets
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api import health, ingest, trips
@@ -37,3 +39,4 @@ app.include_router(health.router, prefix="/api")
 app.include_router(ingest.router, prefix="/api")
 app.include_router(trips.router, prefix="/api")
 app.include_router(pages.router)
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "web" / "static"), name="static")

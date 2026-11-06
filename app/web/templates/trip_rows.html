@@ -1,0 +1,14 @@
+  {% for it, fare, cost in rows %}
+    {% set first, last = it.legs[0], it.legs[-1] %}
+    <tr>
+      <td>{{ first.from_name }} → {{ last.to_name }}
+        <div class="muted">{{ it.mode_summary }}, {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }},
+          {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }}</div></td>
+      <td>{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }}</td>
+      <td>{{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%a %d %b %H:%M") }}</td>
+      <td>{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+      <td>{{ fare.fare_name or "" }}<div class="muted">{{ fare.source }}</div></td>
+      <td class="price">{{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }}</td>
+      <td class="cost">{{ format_breakdown(cost) }}</td>
+    </tr>
+  {% endfor %}
