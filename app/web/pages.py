@@ -247,6 +247,35 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
                 for f in fares), key=lambda fc: (fc[1].total, fc[0].latest_price))
 
 
+def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: datetime):
+    """The chosen offer of one direction (#342): booked, else pinned, else any; the lowest effective cost in the group.
+    Hidden offers never count. None when the direction has no visible offer with a fare."""
+    stale_before = now - timedelta(hours=weights.stale_hours)
+    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
+                          .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
+    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before)) for it in its if it.fares]
+    if not rows:
+        return None
+    return min(rows, key=lambda r: (not r[0].booked, not r[0].pinned, r[2].total, r[0].depart_at))
+
+
+def journey(session: Session, trip: Trip, weights: Weights, places, now: datetime):
+    """The journey box (#342): the chosen offer of each direction and the total effective cost, or None when the trip
+    has no link. The present direction uses the page weights; the other one its own profile."""
+    other = trip.return_of or trip.return_trip
+    if other is None:
+        return None
+    other_weights, _ = resolve_weights(session, other, {}, None)
+    present = (trip, _chosen_offer(session, trip, weights, places, now))
+    linked = (other, _chosen_offer(session, other, other_weights, places, now))
+    outbound, back = (linked, present) if trip.return_of_id is not None else (present, linked)
+    total = early = None
+    if outbound[1] is not None and back[1] is not None:
+        total = outbound[1][2].total + back[1][2].total
+        early = back[1][0].depart_at < outbound[1][0].arrive_at
+    return {"directions": [("Outbound", *outbound), ("Return", *back)], "total": total, "early": early}
+
+
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
               overrides: dict = Depends(weight_query),
@@ -336,6 +365,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
+    context["journey"] = journey(session, trip, weights, places, now)
     return templates.TemplateResponse(request, "trip.html", context)
 
 
