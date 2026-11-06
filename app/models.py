@@ -4,7 +4,8 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
-    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, func,
+    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint,
+    func, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -52,6 +53,7 @@ class Itinerary(Base):
     last_seen_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     pinned: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    booked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     note: Mapped[str | None] = mapped_column(Text)
 
     trip: Mapped[Trip] = relationship(back_populates="itineraries")
@@ -152,3 +154,24 @@ class AccessTime(Base):
     kind: Mapped[str] = mapped_column(String(10))
     minutes: Mapped[int] = mapped_column(Integer)
     cost: Mapped[Decimal] = mapped_column(Money)
+
+
+class ScoreProfile(Base):
+    """A named set of weights (#229). Only one row can be the default: a partial unique index."""
+    __tablename__ = "score_profiles"
+    __table_args__ = (
+        Index("uq_score_profiles_default", "is_default", unique=True, postgresql_where=text("is_default")),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    config_json: Mapped[dict] = mapped_column(JSON)
+
+
+class Setting(Base):
+    """A value that the owner sets on the settings page (#207)."""
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)

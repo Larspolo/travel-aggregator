@@ -67,10 +67,40 @@ def test_make_links_the_new_numbers():
                      "#103 Make the second part (sub-issue of #101)"]
 
 
-def test_a_later_ticket_cannot_be_named():
+def spec(title, extra="", body="g"):
+    return f"# {title}\n{extra}\n## Goal\n{body}\n\n## Acceptance criteria\n- [ ] c\n\n"
+
+
+def test_a_body_names_a_later_ticket_and_is_patched_once():
+    text = spec("A", body="See #new3.") + spec("B") + spec("C")
     api, calls = fake_api()
-    with pytest.raises(ValueError, match="#new2 in ticket 1"):
-        new_tickets.make(new_tickets.parse("# A\n\n## Goal\ng\n\n## Acceptance criteria\n- [ ] c\nDepends on: #new2\n\n# B\n\n## Goal\ng\n\n## Acceptance criteria\n- [ ] c\n"), api=api, out=lambda s: None)
+    new_tickets.make(new_tickets.parse(text), api=api, out=lambda s: None)
+    assert len([c for c in calls if c[0] == "issues"]) == 3
+    patches = [c for c in calls if c[1] == "PATCH"]
+    assert len(patches) == 1 and patches[0][0] == "issues/101"
+    assert "See #103." in patches[0][2]["body"] and "#new3" not in patches[0][2]["body"]
+
+
+def test_a_number_beyond_the_file_makes_no_call(tmp_path, monkeypatch, capsys):
+    path = tmp_path / "t.md"
+    path.write_text(spec("A", body="See #new9.") + spec("B") + spec("C"))
+    monkeypatch.setattr(new_tickets.dashboard, "api", lambda *a, **k: pytest.fail("a call was made"))
+    assert new_tickets.main([str(path), "--dry-run"]) == 1
+    assert "#new9 in ticket 1" in capsys.readouterr().err
+    assert capsys.readouterr().out == ""
+
+
+def test_a_later_parent_stops_all():
+    api, calls = fake_api()
+    with pytest.raises(ValueError, match="parent: #new2 in ticket 1"):
+        new_tickets.make(new_tickets.parse(spec("A", "parent: #new2") + spec("B")), api=api, out=lambda s: None)
+    assert calls == []
+
+
+def test_a_self_reference_stops_all():
+    api, calls = fake_api()
+    with pytest.raises(ValueError, match="#new1 in ticket 1"):
+        new_tickets.make(new_tickets.parse(spec("A", body="See #new1.") + spec("B")), api=api, out=lambda s: None)
     assert calls == []
 
 

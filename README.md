@@ -93,32 +93,76 @@ The preview is for test data.
 ### The production instance
 
 For your real data, use the release images. [`deploy/production/`](deploy/production/) runs the image
-`ghcr.io/larspolo/travel-aggregator:latest`, with its own database volume and its own scoped watchtower. The watchtower
-checks the registry every 5 minutes. `:latest` changes only when an epic closes, so the production instance does not
-follow each merge.
+`ghcr.io/larspolo/travel-aggregator:latest`, with its own database volume and its own scoped watchtower. `:latest`
+changes only when an epic closes, so the production instance does not follow each merge.
 
-1. Copy `deploy/production/docker-compose.yml` and `deploy/production/.env.example` to a folder on the server. Rename the
-   second file to `.env`, and set the values as in the preview steps above (`POSTGRES_PASSWORD`, `DATABASE_URL`,
-   `SECRET_KEY`, `OWNER_PASSWORD_HASH`). The production file has no basic auth: the app has its own login.
-2. Put a reverse proxy in front of `127.0.0.1:8000`. The app is published on localhost only. Pick one:
-   - Traefik: copy `deploy/traefik/docker-compose.override.yml` to `deploy/production/docker-compose.override.yml`, and
-     change the host name `travel.example.com` in it. Traefik must run on the external network `proxy`.
-   - Caddy: copy `deploy/caddy/Caddyfile` to `/etc/caddy/Caddyfile` and change the host name. Caddy gets the HTTPS
-     certificate itself.
-   - nginx: copy `deploy/nginx/travel-aggregator.conf` to `/etc/nginx/conf.d/`, change the host name and the
-     certificate paths.
-   All three examples set `X-Forwarded-Proto` and forward `/api` too. The app trusts these headers.
-3. `docker compose up -d`, then make an API token: `docker compose exec app python -m app.tokens create laptop`.
+Follow these steps from an empty server to a first captured offer. Do the check after each step before you continue.
+
+#### What the server needs
+
+- Docker with the compose plugin. Check: `docker compose version` shows a version.
+- A DNS name (for example `travel.example.com`) that points to the server. Check: `dig +short travel.example.com`
+  shows the IP address of the server.
+- The ports 80 and 443 open from the internet (the reverse proxy gets the HTTPS certificate on them).
+
+#### 1. Install
+
+Copy `deploy/production/docker-compose.yml` and `deploy/production/.env.example` to a folder on the server. Rename
+the second file to `.env`. In `.env`, set random values for `POSTGRES_PASSWORD` (also in `DATABASE_URL`) and
+`SECRET_KEY` (`openssl rand -hex 24`). Set `OWNER_PASSWORD_HASH` to the hash of your login password
+(`docker run --rm --entrypoint python ghcr.io/larspolo/travel-aggregator:latest -m app.auth 'PASSWORD'`), in single
+quotes. Then start it: `docker compose up -d`.
+
+Check: `curl http://127.0.0.1:8000/api/health` on the server shows `"status"` and the commit that runs. The app is
+published on localhost only.
+
+#### 2. Reverse proxy with HTTPS
+
+Put a reverse proxy in front of `127.0.0.1:8000`. Pick one:
+
+- Traefik: copy `deploy/traefik/docker-compose.override.yml` to `deploy/production/docker-compose.override.yml`, and
+  change the host name `travel.example.com` in it. Traefik must run on the external network `proxy`.
+- Caddy: copy `deploy/caddy/Caddyfile` to `/etc/caddy/Caddyfile` and change the host name. Caddy gets the HTTPS
+  certificate itself.
+- nginx: copy `deploy/nginx/travel-aggregator.conf` to `/etc/nginx/conf.d/`, change the host name and the
+  certificate paths.
+
+All three examples set `X-Forwarded-Proto` and forward `/api` too. The app trusts these headers.
+
+Check: `curl https://<host>/api/health` from your computer shows the same answer as in step 1.
+
+#### 3. Log in
+
+Open `https://<host>/` in your browser and log in with the password of step 1.
+
+Check: the page shows the trips list ("You have no trips." on a new server).
+
+#### 4. Make an API token
+
+Open the `/tokens` page, type a name (for example `laptop`) and make a token. Copy the token: the page shows it only
+once. (On the server, `docker compose exec app python -m app.tokens create laptop` does the same.)
+
+Check: the token is in the list on the `/tokens` page.
+
+#### 5. Install the userscript
+
+Install the browser extension Tampermonkey. Add the file `userscripts/bahn.user.js` of this repository to
+Tampermonkey as a new script. In the Tampermonkey menu, use `Set server URL` (`https://<host>`) and `Set API token`
+(the token of step 4).
+
+Check: the Tampermonkey dashboard shows the script as on.
+
+#### 6. Capture a first offer
+
+On the trips page, make a trip. On bahn.de, choose that trip in the panel and search for a connection.
+
+Check: the panel shows `Captured N offers → sent ✓`, and the trip page shows the offers.
+
+#### 7. Backup and restore
 
 Before each migration that changes data, the container writes a `pg_dump` backup to the volume `backups-production`
-(mounted at `/backups`). If the backup fails, the migration and the start of the app stop.
-
-Each closed epic makes a release: the workflow `.github/workflows/release.yml` pushes the git tag `vX.Y.Z` and the
-images `:vX.Y.Z` and `:latest`. `GET /api/health` shows the commit that runs.
-
-### Backups
-
-The app writes a `pg_dump` backup to `BACKUP_DIR` (in the container: `/backups`, a Docker volume). Make one at any time:
+(mounted at `/backups`). If the backup fails, the migration and the start of the app stop. Make a backup at any time,
+and restore one:
 
 ```bash
 make backup                                   # or: docker compose exec app python -m app.backup --now
@@ -128,6 +172,16 @@ make restore FILE=/backups/<file>.dump        # or: docker compose exec app pyth
 A restore gives back the trips, the offers and the price history of the dump. It runs in one transaction: if the file
 is missing or bad, the command stops with an error and the database does not change. The backups hold private data
 (your trips and offers). They stay in the volume: copy them only to a place that you trust.
+
+Check: `docker compose exec app ls /backups` shows the new `.dump` file.
+
+#### 8. Update
+
+The scoped watchtower checks the registry every 5 minutes and installs each new `:latest` image. Each closed epic
+makes a release: the workflow `.github/workflows/release.yml` pushes the git tag `vX.Y.Z` and the images `:vX.Y.Z` and
+`:latest`. To update at once: `docker compose pull && docker compose up -d`.
+
+Check: `curl https://<host>/api/health` shows the commit of the new release.
 
 ## Configuration
 
@@ -139,7 +193,9 @@ is missing or bad, the command stops with an error and the database does not cha
 | `OWNER_PASSWORD_HASH` | The hash of the login password: `python -m app.auth 'PASSWORD'` |
 | `APP_PORT` | The port on your computer for `docker compose up` (default `8000`) |
 | `TRAVEL_AUTH_USERS` | Server only: the Traefik basic auth line for the pages |
-| `GIT_SHA` | Set by the image build: the commit that `/api/health` shows |
+
+The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a setting): the commit that
+`/api/health` shows.
 
 ## API
 
@@ -152,6 +208,10 @@ is missing or bad, the command stops with an error and the database does not cha
 
 `POST /api/ingest` stores each offer by its journey. The same journey sent twice gives one itinerary. A changed price
 adds a price row; the same price adds none and counts as `unchanged`. Each offer is stored in its own transaction.
+
+The body can also have the field `raw`: the original response of the travel site, as sent by the userscript. The app
+stores it as a capture, so a later parser fix can run again on it (see "Reparse a capture" below). A body with `raw`
+and no `offers` is valid. The app reports a connection that the parser cannot read in `errors`.
 
 All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
 limited to 5 MB.
@@ -168,6 +228,7 @@ limited to 5 MB.
 | `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
+| `/trips/{id}/captures` | The captures of a trip, with the action "reparse capture" (see below) |
 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
@@ -179,6 +240,15 @@ An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
 Click a column header to sort by it. Click it again to reverse the order.
 The Mode and Source lists show only one mode or one source.
+
+The hard filters hide the offers that do not match. A penalty does not hide an offer: it only adds to its cost.
+Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
+- `max_transfers`: the most transfers (0 to 10).
+- `max_duration_min`: the longest duration in minutes.
+- `earliest_depart`: the first leg departs at or after this local time.
+- `latest_arrive`: the last leg arrives by this local time, on the day of its departure.
+- `exclude_mode`: a mode (train, bus or flight) hides each offer with one of its legs.
+- `exclude_carrier`: a carrier hides each offer with one of its legs.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
 
@@ -202,6 +272,24 @@ when the offers reached your server, or an error message.
   Make the token on the `/tokens` page.
 - **Not sent.** When a send fails, the offers stay in the queue. With auto-send on, the userscript sends them again
   later.
+
+### bahn.de userscript
+
+The bahn.de userscript captures the search results of bahn.de: the connections, their times and their fares.
+It reads only the responses that the bahn.de page itself gets. It sends no request to bahn.de.
+
+To install it, add the file `userscripts/bahn.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On bahn.de, search for a connection. The panel
+shows the number of captured offers.
+
+The parser reads the fare name with its class and its BahnCard discount. It gives each station its own timezone. A
+connection with no price goes to the errors of the capture and is not stored as an offer.
+
+### Reparse a capture
+
+Open `/trips/{id}/captures` and press "reparse capture" on a capture. The app runs the current parser on the stored raw
+data of that capture and shows how many offers it read. Use this after the parser of a source is fixed. The button
+does not send a request to the travel site. A capture with no raw data, or a source with no parser, cannot be reparsed.
 
 ## Ranking
 

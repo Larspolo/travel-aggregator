@@ -1,11 +1,28 @@
   {% for it, fare, cost in rows %}
     {% set first, last = it.legs[0], it.legs[-1] %}
     <tr>
-      <td>{{ first.from_name }} → {{ last.to_name }}
+      <td>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/hide">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button type="submit">{{ "Unhide" if it.hidden else "Hide" }}</button>
+          {% if it.hidden %}<span class="muted">hidden</span>{% endif %}
+        </form>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/pin">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button type="submit">{{ "Unpin" if it.pinned else "Pin" }}</button>
+          {% if it.pinned %}<span class="muted">pinned</span>{% endif %}
+        </form>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/booked">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button type="submit">{{ "Not booked" if it.booked else "Mark as booked" }}</button>
+        </form>
+      {{ first.from_name }} → {{ last.to_name }}
+        {% if it.booked %}<span class="badge">booked</span>{% endif %}
         {% for b in view.badges.get(it.id, []) %}<span class="badge">{{ b }}</span> {% endfor %}
         <div class="modes">{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{{ m | mode_icon }}</span> {% endfor %}</div>
         <div class="muted">{{ it.mode_summary }}, {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }},
-          {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }}</div></td>
+          {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }}</div>
+        {% if it.note %}<div class="muted">{{ it.note }}</div>{% endif %}</td>
       <td>{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }}</td>
       {% set days = (last.arrive_at | local(last.arrive_offset_min)) | day_gap(first.depart_at | local(first.depart_offset_min)) %}
       <td>{{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%a %d %b %H:%M") }}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}</td>
@@ -31,6 +48,12 @@
             {% if f.booking_url %}<a href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">Book</a>{% endif %}</li>
         {% endfor %}
         </ul>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/note">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <textarea name="note" maxlength="2000">{{ it.note or "" }}</textarea>
+          <button type="submit">Save note</button>
+        </form>
+        <div hx-get="/trips/{{ trip.id }}/itineraries/{{ it.id }}/history" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"></div>
       </details></td>
     </tr>
   {% endfor %}

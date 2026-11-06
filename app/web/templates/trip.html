@@ -6,16 +6,19 @@
 <p class="muted">{{ trip.origin_text or "?" }} → {{ trip.destination_text or "?" }}</p>
 {% endif %}
 <p><a href="/trips/{{ trip.id }}/offers/new">Add an offer by hand</a> · <a href="/trips/{{ trip.id }}/captures">Captures</a></p>
-{% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.max_transfers is not none or view.max_duration_min is not none %}
+{% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
   <label>Hour markup €<output name="hour_value">{{ weights.hour_markup }}</output>
     <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
   <label>Transfer markup €<output name="transfer_value">{{ weights.transfer_markup }}</output>
     <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
+  <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
   <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
   <label>Mode <select name="mode"><option value="">All</option>
     {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
+  <label>Earliest departure <input type="time" name="earliest_depart" value="{{ view.earliest_depart }}"></label>
+  <label>Latest arrival <input type="time" name="latest_arrive" value="{{ view.latest_arrive }}"></label>
   <label>Source <select name="source"><option value="">All</option>
     {% for s in view.sources %}<option value="{{ s }}"{% if s == view.source %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
   <label>Max transfers <input type="number" name="max_transfers" min="0" max="10" step="1" value="{{ view.max_transfers if view.max_transfers is not none else '' }}"></label>
@@ -47,6 +50,10 @@
       <input type="number" name="night_adjust" min="-1000" max="1000" step="0.01" value="{{ weights.night_adjust }}"></label>
     <label>Night hour markup €/h
       <input type="number" name="night_hour_markup" min="0" max="100" step="0.01" value="{{ weights.night_hour_markup if weights.night_hour_markup is not none else weights.hour_markup }}"></label>
+    <label>Short transfer minutes
+      <input type="number" name="short_transfer_min" min="0" max="240" step="1" value="{{ weights.short_transfer_min }}"></label>
+    <label>Short transfer penalty €
+      <input type="number" name="short_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.short_transfer_penalty }}"></label>
     <label>Train markup € (negative = discount)
       <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
     <label>Bus markup €
@@ -63,7 +70,15 @@
       <input type="number" name="flex_flexible" min="-1000" max="1000" step="0.01" value="{{ weights.flex_flexible }}"></label>
     <label>Self-transfer €
       <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
+    <label>Profile name <input type="text" name="name" form="save-profile" required maxlength="100"></label>
+    <button type="submit" form="save-profile">Save as profile</button>
   </details>
+</form>
+<form id="save-profile" method="post" action="/profiles">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <input type="hidden" name="trip_id" value="{{ trip.id }}">
+  {% for k, v in sort_query.items() if k in weights.__dataclass_fields__ %}<input type="hidden" name="{{ k }}" value="{{ v }}">
+  {% endfor %}
 </form>
 <div class="scroll" id="table">
 {% include "trip_table.html" %}
