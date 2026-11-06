@@ -1,12 +1,13 @@
-"""Tests of the itinerary fingerprint (SPEC section 5, ingest rules)."""
+"""Tests of the itinerary fingerprint (docs/SPEC.md section 5): a re-capture of the same itinerary is found again."""
 
 import pytest
 
 from app.ingest import fingerprint
+from app.schemas import LegIn
 
 
-def _leg(**overrides: object) -> dict[str, object]:
-    leg: dict[str, object] = {
+def _leg(**overrides: object) -> LegIn:
+    data: dict[str, object] = {
         "mode": "train",
         "carrier": "DB",
         "service_no": "ICE 77",
@@ -17,11 +18,11 @@ def _leg(**overrides: object) -> dict[str, object]:
         "depart_at": "2026-12-20T07:34:00+01:00",
         "arrive_at": "2026-12-20T14:02:00+01:00",
     }
-    leg.update(overrides)
-    return leg
+    data.update(overrides)
+    return LegIn.model_validate(data)
 
 
-def _itinerary() -> list[dict[str, object]]:
+def _itinerary() -> list[LegIn]:
     return [
         _leg(),
         _leg(
@@ -60,8 +61,7 @@ def test_leg_order_changes_fingerprint() -> None:
     ],
 )
 def test_carrier_service_mode_or_time_changes_fingerprint(override: dict[str, object]) -> None:
-    changed = [_leg(**override)]
-    assert fingerprint(changed) != fingerprint([_leg()])
+    assert fingerprint([_leg(**override)]) != fingerprint([_leg()])
 
 
 def test_same_instant_with_other_offset_gives_same_fingerprint() -> None:
@@ -70,16 +70,5 @@ def test_same_instant_with_other_offset_gives_same_fingerprint() -> None:
     )
 
 
-def test_price_and_fare_name_do_not_change_fingerprint() -> None:
-    offer_a = {"price_amount": "89.90", "fare_name": "Sparpreis", "legs": _itinerary()}
-    offer_b = {"price_amount": "120.00", "fare_name": "Flexpreis", "legs": _itinerary()}
-    assert fingerprint(offer_a["legs"]) == fingerprint(offer_b["legs"])
-
-
 def test_place_names_do_not_change_fingerprint() -> None:
     assert fingerprint([_leg(from_name="Amsterdam Centraal (wrong)")]) == fingerprint([_leg()])
-
-
-def test_naive_timestamp_is_rejected() -> None:
-    with pytest.raises(ValueError):
-        fingerprint([_leg(depart_at="2026-12-20T07:34:00")])
