@@ -20,7 +20,8 @@ optional head lines, then the body (the `ticket` skill form):
 
 `parent: E` links the ticket as a sub-issue of epic E. `#newK` (in the body and in `parent:`) is the number of the
 K-th ticket of the same file, so a chain or a new epic with its sub-issues fits in one file: make the earlier ticket
-first. Each body needs the sections `## Goal` and `## Acceptance criteria` (the `ticket` skill; the hook
+first. A body (not `parent:`) may name a later ticket of the file (for example an epic's `## Owner checks` names its
+sub-issues): the tool makes that ticket, then patches the body once with the number. Each body needs the sections `## Goal` and `## Acceptance criteria` (the `ticket` skill; the hook
 `guard-body.sh` checks the same for the MCP tool): the tool checks all tickets before it makes one. A failure stops the
 tool; the lines of the tickets that it made are already printed.
 """
@@ -33,6 +34,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import dashboard  # noqa: E402
 
 NEW = re.compile(r"#new(\d+)\b")
+PARENT_NEW = re.compile(r"new(\d+)$")
 HEAD = re.compile(r"^(labels|parent):\s*(.*)$")
 
 
@@ -68,27 +70,45 @@ def parse(text):
     return out
 
 
-def resolve(text, made, k):
-    """Replace each `#newK` with the number of the K-th ticket made. Only earlier tickets of the file have one."""
+def check(tickets):
+    """Raise ValueError for a `#newK` that names no other ticket of the file, or a `parent:` that is not earlier."""
+    total = len(tickets)
+    for k, t in enumerate(tickets, 1):
+        for m in NEW.finditer(t["body"]):
+            i = int(m[1])
+            if not 1 <= i <= total or i == k:
+                raise ValueError(f"#new{i} in ticket {k}: only another ticket of the file (1 to {total}) can be named")
+        p = PARENT_NEW.match(t["parent"] or "")
+        if p and not 1 <= int(p[1]) < k:
+            raise ValueError(f"parent: #new{p[1]} in ticket {k}: only an earlier ticket of the file can be the parent")
+
+
+def resolve(text, made, k, later=False):
+    """Replace each `#newK` with the number of the K-th ticket made. With `later`, a `#newK` of a later ticket stays."""
     def one(m):
         i = int(m[1])
-        if not 1 <= i < k or i > len(made):
-            raise ValueError(f"#new{i} in ticket {k}: only an earlier ticket of the file can be named")
+        if later and i >= k:
+            return m[0]
         return f"#{made[i - 1]['number']}"
     return NEW.sub(one, text)
 
 
 def make(tickets, api=dashboard.api, out=print):
-    """Make the tickets in order; returns the made issues."""
-    made = []
+    """Make the tickets in order; returns the made issues. A body that names a later ticket is patched once at the end."""
+    check(tickets)
+    made, patch = [], []
     for k, t in enumerate(tickets, 1):
-        body = resolve(t["body"], made, k)
+        body = resolve(t["body"], made, k, later=True)
         parent = resolve(f"#{t['parent']}", made, k).lstrip("#") if t["parent"] else None
         issue = api("issues", "POST", {"title": t["title"], "body": body, "labels": t["labels"]})
         made.append(issue)
+        if NEW.search(body):
+            patch.append(k)
         if parent:
             api(f"issues/{int(parent)}/sub_issues", "POST", {"sub_issue_id": issue["id"]})
         out(f"#{issue['number']} {t['title']}" + (f" (sub-issue of #{parent})" if parent else ""))
+    for k in patch:
+        api(f"issues/{made[k - 1]['number']}", "PATCH", {"body": resolve(tickets[k - 1]["body"], made, k)})
     return made
 
 
@@ -98,7 +118,12 @@ def main(argv=None):
     ap.add_argument("--dry-run", action="store_true", help="print the tickets, make nothing")
     a = ap.parse_args(argv)
     with open(a.file) as f:
-        tickets = parse(f.read())
+        try:
+            tickets = parse(f.read())
+            check(tickets)                              # before any print or call: a bad reference stops all
+        except ValueError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
     if a.dry_run:
         for k, t in enumerate(tickets, 1):
             print(f"#new{k} {t['title']} · labels {', '.join(t['labels']) or '-'} · parent {t['parent'] or '-'}")
