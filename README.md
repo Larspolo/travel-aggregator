@@ -29,13 +29,45 @@ ranked list, with a breakdown of each score ("€90 price + €62 time + €30 t
 
 You need Docker with Docker Compose.
 
-```bash
-cp .env.example .env    # then set POSTGRES_PASSWORD (also in DATABASE_URL) and SECRET_KEY
-docker compose up --build
-```
+1. Make the settings file: `cp .env.example .env`. Set `POSTGRES_PASSWORD` (also in `DATABASE_URL`) and
+   `SECRET_KEY` to random values (`openssl rand -hex 24`).
+2. Make the hash of your login password and put it in `.env` as `OWNER_PASSWORD_HASH`, in single quotes:
 
-Open `http://localhost:8000/api/health`. It answers `{"status": "ok", "commit": "dev"}`. Set `APP_PORT` in `.env`
-to use another port.
+   ```bash
+   docker compose build app && docker compose run --rm --no-deps --entrypoint python app -m app.auth 'YOUR-PASSWORD'
+   ```
+
+3. Start the app. It runs the database migrations first:
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+4. Make an API token for your browser (the token shows only once; `list` and `revoke ID` also work):
+
+   ```bash
+   docker compose exec app python -m app.tokens create laptop
+   ```
+
+5. Make a trip and send an offer to it (the userscripts do this later):
+
+   ```bash
+   TOKEN=...   # the token of step 4
+   curl -s -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+     -d '{"title": "Amsterdam – Zürich"}' http://localhost:8000/api/trips
+   curl -s -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{
+     "trip_id": 1, "source": "manual", "captured_at": "2026-11-06T10:00:00Z",
+     "offers": [{"price_amount": "89.90", "price_currency": "EUR", "fare_name": "Sparpreis",
+       "legs": [{"mode": "train", "carrier": "DB", "service_no": "ICE 105",
+         "from_name": "Amsterdam Centraal", "to_name": "Basel SBB",
+         "depart_at": "2026-12-20T07:34:00+01:00", "arrive_at": "2026-12-20T14:02:00+01:00"}]}]
+   }' http://localhost:8000/api/ingest
+   ```
+
+6. Log in at `http://localhost:8000/login` and open `http://localhost:8000/trips/1`.
+
+`http://localhost:8000/api/health` shows `{"status": "ok", "commit": "dev"}`. Set `APP_PORT` in `.env` to use
+another port.
 
 ## Run it on a server
 
@@ -46,13 +78,15 @@ installs each new image within 5 minutes.
 1. Copy `deploy/preview/docker-compose.yml` and `deploy/preview/.env.example` to a folder on the server. Rename the
    second file to `.env`.
 2. In `.env`, set random values for `POSTGRES_PASSWORD` (also in `DATABASE_URL`) and `SECRET_KEY`
-   (`openssl rand -hex 24`), and set `TRAVEL_AUTH_USERS` to a basic auth line
-   (`docker run --rm httpd:2.4-alpine htpasswd -nbB USER 'PASSWORD'`, in single quotes).
+   (`openssl rand -hex 24`). Set `TRAVEL_AUTH_USERS` to a basic auth line
+   (`docker run --rm httpd:2.4-alpine htpasswd -nbB USER 'PASSWORD'`) and `OWNER_PASSWORD_HASH` to the hash of your
+   login password (`docker run --rm --entrypoint python ghcr.io/larspolo/travel-aggregator:preview -m app.auth 'PASSWORD'`),
+   both in single quotes.
 3. Change the host name `travel-preview.larspolo.nl` in the compose file to your own.
-4. `docker compose up -d`.
+4. `docker compose up -d`, then make an API token: `docker compose exec app python -m app.tokens create laptop`.
 
-The pages need the basic auth login until the app has its own login. `/api` needs no basic auth: the API has its
-own tokens. `GET /api/health` shows the commit that runs.
+The pages need the basic auth login and then the login of the app. `/api` needs no basic auth: the API has its own
+tokens. `GET /api/health` shows the commit that runs.
 
 The preview is for test data. A release image for your real data follows later (roadmap item `host:deploy`).
 
@@ -62,7 +96,8 @@ The preview is for test data. A release image for your real data follows later (
 |---|---|
 | `DATABASE_URL` | The PostgreSQL URL of the app, for example `postgresql+psycopg://travel:PASSWORD@db:5432/travel` |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | The settings of the `db` container |
-| `SECRET_KEY` | The session key of the login (a long random value) |
+| `SECRET_KEY` | The key that signs the login session (a long random value; with none, each restart ends the sessions) |
+| `OWNER_PASSWORD_HASH` | The hash of the login password: `python -m app.auth 'PASSWORD'` |
 | `APP_PORT` | The port on your computer for `docker compose up` (default `8000`) |
 | `TRAVEL_AUTH_USERS` | Server only: the Traefik basic auth line for the pages |
 | `GIT_SHA` | Set by the image build: the commit that `/api/health` shows |
@@ -71,7 +106,20 @@ The preview is for test data. A release image for your real data follows later (
 
 | Method and path | Use |
 |---|---|
-| `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>"}` |
+| `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>"}`. No token. |
+| `GET /api/trips` | The trips, newest first; `?status=active` filters them |
+| `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
+| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n}`; an offer of a known journey adds a price row |
+
+All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
+limited to 5 MB.
+
+## Pages
+
+| Path | Use |
+|---|---|
+| `/login`, `/logout` | The login with `OWNER_PASSWORD_HASH` |
+| `/trips/{id}` | The offers of a trip, cheapest first |
 
 ## Development
 
