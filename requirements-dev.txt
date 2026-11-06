@@ -1,3 +1,5 @@
+-r requirements.txt
+httpx  # fastapi.testclient
 numpy         # framework/tools/health.py
 pytest
 pytest-xdist  # -n auto
