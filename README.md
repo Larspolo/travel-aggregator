@@ -233,6 +233,7 @@ limited to 5 MB.
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/trips/{id}/captures` | The captures of a trip, with the action "reparse capture" (see below) |
+| `/settings` | The capture retention period: the number of days that the raw captures are kept (see below) |
 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
@@ -305,6 +306,14 @@ connection with no price goes to the errors of the capture and is not stored as 
 Open `/trips/{id}/captures` and press "reparse capture" on a capture. The app runs the current parser on the stored raw
 data of that capture and shows how many offers it read. Use this after the parser of a source is fixed. The button
 does not send a request to the travel site. A capture with no raw data, or a source with no parser, cannot be reparsed.
+
+### Capture retention
+
+A capture is the raw data that the userscript sent to the server. The app keeps each capture for a number of days.
+Open `/settings` to set the retention period. The default is 90 days. Enter `0` to keep all captures. The maximum is
+3650 days. Each ingest deletes the captures that are older than the period. The offers and their price history stay.
+
+A deleted capture cannot be reparsed (see above). Set a longer period before you need to reparse an old capture.
 
 ## Ranking
 
