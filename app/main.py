@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.api import health, ingest
+from app.api import health, ingest, trips
 from app.config import get_settings
 from app.schemas import MAX_BODY_BYTES
 from app.web import pages
@@ -35,4 +35,5 @@ async def limit_body(request: Request, call_next):
 
 app.include_router(health.router, prefix="/api")
 app.include_router(ingest.router, prefix="/api")
+app.include_router(trips.router, prefix="/api")
 app.include_router(pages.router)
