@@ -1,8 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Add a website – travel-aggregator</title></head>
-<body>
+{% extends "base.html" %}
+{% block title %}Add a website – travel-aggregator{% endblock %}
+{% block content %}
 <h1>Add a website</h1>
 <form method="get" action="/sources/new">
   <p><label>Website <input name="site" value="{{ site }}" placeholder="www.example.com"></label>
@@ -19,5 +17,4 @@
       drag the HAR file into the text, and submit the issue. The agent then writes the userscript and the parser.</li>
 </ol>
 <p><a href="/">Back</a></p>
-</body>
-</html>
+{% endblock %}

@@ -1,8 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>New offer – travel-aggregator</title></head>
-<body>
+{% extends "base.html" %}
+{% block title %}New offer – travel-aggregator{% endblock %}
+{% block content %}
 <h1>New offer</h1>
 {% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
 <form method="post" action="/trips/{{ trip_id }}/offers/new">
@@ -24,5 +22,4 @@
   {% endfor %}
   <p><button type="submit">Save</button> <a href="/trips/{{ trip_id }}">Cancel</a></p>
 </form>
-</body>
-</html>
+{% endblock %}

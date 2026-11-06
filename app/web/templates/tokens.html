@@ -1,8 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>API tokens – travel-aggregator</title></head>
-<body>
+{% extends "base.html" %}
+{% block title %}API tokens – travel-aggregator{% endblock %}
+{% block content %}
 <h1>API tokens</h1>
 <p><a href="/">Trips</a> · <a href="/logout">Log out</a></p>
 {% if new_token %}
@@ -40,5 +38,4 @@ Set API token:  {{ new_token }}</pre>
 {% else %}
 <p>You have no API tokens.</p>
 {% endif %}
-</body>
-</html>
+{% endblock %}

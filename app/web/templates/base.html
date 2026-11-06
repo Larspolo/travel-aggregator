@@ -19,8 +19,8 @@
     .scroll { overflow-x: auto; }
   </style>
 </head>
-<body>
-  <nav class="muted"><a href="/settings">Settings</a></nav>
+<body{% block body_attrs %}{% endblock %}>
+  {% block nav %}<nav class="muted"><a href="/settings">Settings</a></nav>{% endblock %}
   {% block content %}{% endblock %}
 </body>
 </html>

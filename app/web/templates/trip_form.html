@@ -1,8 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% if trip_id %}Edit trip{% else %}New trip{% endif %} – travel-aggregator</title></head>
-<body>
+{% extends "base.html" %}
+{% block title %}{% if trip_id %}Edit trip{% else %}New trip{% endif %} – travel-aggregator{% endblock %}
+{% block content %}
 <h1>{% if trip_id %}Edit trip{% else %}New trip{% endif %}</h1>
 {% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
 <form method="post" action="{% if trip_id %}/trips/{{ trip_id }}/edit{% else %}/trips/new{% endif %}">
@@ -25,5 +23,4 @@
   <p><label>Notes <textarea name="notes" maxlength="5000">{{ values.notes or '' }}</textarea></label></p>
   <p><button type="submit">Save</button> <a href="/">Cancel</a></p>
 </form>
-</body>
-</html>
+{% endblock %}
