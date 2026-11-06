@@ -4,7 +4,7 @@
 <h1>Trips</h1>
 <p><a href="/trips/new">New trip</a> · <a href="/tokens">API tokens</a> · <a href="/places">Places</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a></p>
 {% if trips %}
-<table>
+<div class="scroll"><table>
   <thead><tr><th>Trip</th><th>Route</th><th>Dates</th><th>Offers</th><th>Best offer</th><th>Status</th></tr></thead>
   <tbody>
   {% for t in trips %}
@@ -18,7 +18,7 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
 <p>You have no trips. <a href="/trips/new">Create a trip</a>.</p>
 {% endif %}
