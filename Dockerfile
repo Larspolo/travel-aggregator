@@ -8,7 +8,8 @@ RUN /opt/venv/bin/pip install -r /tmp/requirements.txt
 
 FROM python:3.12-slim
 ARG GIT_SHA=dev
-ENV PATH=/opt/venv/bin:$PATH PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 GIT_SHA=$GIT_SHA PORT=8000
+# PYTHONPATH: the alembic program (docker-entrypoint.sh) imports app/ from /app
+ENV PATH=/opt/venv/bin:$PATH PYTHONPATH=/app PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 GIT_SHA=$GIT_SHA PORT=8000
 RUN useradd --system --uid 10001 --home-dir /app --shell /usr/sbin/nologin app
 WORKDIR /app
 COPY --from=build /opt/venv /opt/venv
