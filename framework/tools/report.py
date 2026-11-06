@@ -218,6 +218,7 @@ def main(argv=None):
     fresh = api(f"issues/{status['number']}")["body"]          # other runs change the body too: read it just before
     api(f"issues/{status['number']}", "PATCH", {"body": counted(fresh)})
     hand_off(a.ticket)
+    print(f"context {round((nums.get('peak') or 0) / 1000)}k: the peak of this run (`more.md`: the limit of a next work item)")
     return 0
 
 
