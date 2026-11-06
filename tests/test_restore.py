@@ -1,6 +1,7 @@
 """Restore a dump with python -m app.restore (#136)."""
 
 import shutil
+import subprocess
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -23,6 +24,10 @@ def pg_tools(monkeypatch):
     if not (PG_BIN / "pg_dump").exists() and not shutil.which("pg_dump"):
         pytest.skip("no pg_dump")
     monkeypatch.setenv("PATH", f"{PG_BIN}:" + __import__("os").environ["PATH"])
+    # A client newer than the server writes SET lines that the server does not know: the single transaction fails.
+    version = subprocess.run(["pg_dump", "--version"], capture_output=True, text=True).stdout
+    if " 16." not in version:
+        pytest.skip(f"needs the PostgreSQL 16 client, found: {version.strip()}")
 
 
 def _offer(n):

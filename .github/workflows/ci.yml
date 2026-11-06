@@ -32,6 +32,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: python3 -m pip install --quiet --disable-pip-version-check --root-user-action=ignore -r requirements-dev.txt
+      - name: PostgreSQL 16 client (the restore test needs the version of the server)
+        run: sudo apt-get install -y --no-install-recommends postgresql-client-16
       - name: Lint
         run: ruff check .
       - name: Fast tests
