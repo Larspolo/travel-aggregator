@@ -1,6 +1,7 @@
 """Effective cost of one fare (docs/SPEC.md, section 7.1)."""
 
 from dataclasses import dataclass
+from datetime import time
 from decimal import ROUND_HALF_EVEN, Decimal
 
 CENT = Decimal("0.01")
@@ -16,6 +17,10 @@ class Weights:
     airport_before_min: int = 120
     airport_after_min: int = 30
     baggage_fee: Decimal = Decimal("0")
+    # The time-of-day penalty (#141): local times; a penalty of 0 disables it.
+    early_limit: time = time(6, 0)
+    late_limit: time = time(23, 30)
+    time_window_penalty: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
