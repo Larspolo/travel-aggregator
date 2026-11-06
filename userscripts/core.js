@@ -12,6 +12,7 @@
     },
     request: (details) =>
       typeof GM_xmlhttpRequest === "function" ? GM_xmlhttpRequest(details) : undefined,
+    info: () => (typeof GM_info === "object" && GM_info ? GM_info : {}),
     menu: (name, fn) => {
       if (typeof GM_registerMenuCommand === "function") GM_registerMenuCommand(name, fn);
     },
@@ -74,8 +75,18 @@
   }
 
   const panel = createPanel();
+  // With no server set, the server that installed the script (#392): the origin of its @downloadURL, when it is https
+  // and not GitHub. A server that the owner sets keeps priority.
+  const defaultServer = () => {
+    try {
+      const u = new URL(String(gm.info().script?.downloadURL || ""));
+      return u.protocol === "https:" && u.hostname !== "raw.githubusercontent.com" ? u.origin : "";
+    } catch (e) {
+      return "";
+    }
+  };
   const config = () => ({
-    server: String(gm.getValue("server", "") || "").replace(/\/+$/, ""),
+    server: String(gm.getValue("server", "") || defaultServer()).replace(/\/+$/, ""),
     token: String(gm.getValue("token", "") || ""),
   });
   const loadQueue = () => {
@@ -210,6 +221,7 @@
   const core = {
     gm,
     countRaw: null,
+    server: () => config().server,
     panel,
     report(n) { panel.setStatus(`Captured ${n} offers`, "info"); },
     sent(n) { panel.setStatus(`Captured ${n} offers → sent ✓`, "ok"); },
