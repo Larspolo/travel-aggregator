@@ -210,6 +210,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               flex_partly_refundable: Decimal = Query(Weights.flex_partly_refundable, ge=-1000, le=1000),
               flex_flexible: Decimal = Query(Weights.flex_flexible, ge=-1000, le=1000),
               self_transfer_penalty: Decimal = Query(Weights.self_transfer_penalty, ge=0, le=1000),
+              stale_hours: int = Query(Weights.stale_hours, ge=1, le=720),
               sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
               dir: str = Query("asc", pattern="^(asc|desc)$"),
               mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
@@ -243,7 +244,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                       flex_non_refundable=flex_non_refundable, flex_partly_refundable=flex_partly_refundable,
                       flex_flexible=flex_flexible, self_transfer_penalty=self_transfer_penalty,
                       train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
-                      ferry_markup=ferry_markup)  # the score is computed here and never stored
+                      ferry_markup=ferry_markup, stale_hours=stale_hours)  # the score is computed here and never stored
     rows, modes, sources, carriers = [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
@@ -296,6 +297,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              "flex_non_refundable": flex_non_refundable, "flex_partly_refundable": flex_partly_refundable,
              "train_markup": train_markup, "bus_markup": bus_markup, "flight_markup": flight_markup,
              "short_transfer_min": short_transfer_min, "short_transfer_penalty": short_transfer_penalty,
+             "stale_hours": stale_hours,
              **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
              **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
              **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
@@ -304,8 +306,10 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     if show_hidden:
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
+    now = datetime.now(timezone.utc)
+    stale_before = now - timedelta(hours=stale_hours)  # a row older than this is stale (#275)
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
-               "now": datetime.now(timezone.utc)}
+               "now": now, "stale_before": stale_before}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     return templates.TemplateResponse(request, "trip.html", context)
@@ -352,6 +356,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       flex_partly_refundable: Decimal = Form(Weights.flex_partly_refundable, ge=-1000, le=1000),
                       flex_flexible: Decimal = Form(Weights.flex_flexible, ge=-1000, le=1000),
                       self_transfer_penalty: Decimal = Form(Weights.self_transfer_penalty, ge=0, le=1000),
+                      stale_hours: int = Form(Weights.stale_hours, ge=1, le=720),
                       session: Session = Depends(get_session)) -> RedirectResponse:
     """Store the present weights of the trip page as a named profile (#229); the same ranges as `trip_page`."""
     if session.get(Trip, trip_id) is None:
@@ -365,7 +370,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
                       ferry_markup=ferry_markup, flex_non_refundable=flex_non_refundable,
                       flex_partly_refundable=flex_partly_refundable, flex_flexible=flex_flexible,
-                      self_transfer_penalty=self_transfer_penalty)
+                      self_transfer_penalty=self_transfer_penalty, stale_hours=stale_hours)
     save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 

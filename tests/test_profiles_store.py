@@ -20,7 +20,7 @@ CHANGED = {"hour_markup": "22.5", "transfer_markup": "7", "airport_before_min": 
            "night_hour_markup": "4", "short_transfer_min": "12", "short_transfer_penalty": "30",
            "train_markup": "-5", "bus_markup": "3", "flight_markup": "40", "ferry_markup": "2",
            "flex_non_refundable": "8", "flex_partly_refundable": "4", "flex_flexible": "-6",
-           "self_transfer_penalty": "15"}
+           "self_transfer_penalty": "15", "stale_hours": "48"}
 
 
 def _expected(name, raw):

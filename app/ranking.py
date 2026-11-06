@@ -42,6 +42,8 @@ class Weights:
     flex_flexible: Decimal = Decimal("0")
     # The penalty per self-transfer of a fare (#176); 0 disables it.
     self_transfer_penalty: Decimal = Decimal("0")
+    # The age in hours after which a row is stale (#275): a display flag only, not part of the cost.
+    stale_hours: int = 24
 
 
 @dataclass(frozen=True)
