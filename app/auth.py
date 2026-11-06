@@ -70,6 +70,7 @@ class LoginLimiter:
     GLOBAL_MAX = 20
     GLOBAL_WINDOW = 60 * 60
     LOCK = 15 * 60
+    LABEL = "failed login"
 
     def __init__(self, clock: Callable[[], float] = time.monotonic) -> None:
         self.clock = clock
@@ -89,7 +90,7 @@ class LoginLimiter:
 
     def failure(self, address: str) -> None:
         now = self.clock()
-        log.warning("failed login from %s", address)
+        log.warning("%s from %s", self.LABEL, address)
         own = self.failures[address]
         own.append(now)
         while own and own[0] <= now - self.WINDOW:
@@ -112,6 +113,20 @@ class LoginLimiter:
 
 
 login_limiter = LoginLimiter()
+
+
+class TokenLimiter(LoginLimiter):
+    """Limits the bad API tokens per address (#412): 20 in 15 minutes lock that address for 15 minutes.
+
+    Per address only: the global limit is off, so that one address cannot lock the API for all others.
+    """
+
+    ADDRESS_MAX = 20
+    GLOBAL_MAX = sys.maxsize
+    LABEL = "bad API token"
+
+
+token_limiter = TokenLimiter()
 
 
 def require_login(request: Request) -> None:
@@ -182,16 +197,26 @@ class ApiLimiter:
 api_limiter = ApiLimiter()
 
 
-def require_token(credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
+def require_token(request: Request,
+                  credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
                   session: Session = Depends(get_session)) -> ApiToken:
-    """The valid, not revoked token of the request, else 401. Never log the token."""
+    """The valid, not revoked token of the request, else 401. Never log the token.
+
+    An address with too many bad tokens (#412) gets 429 first, also with a valid token."""
+    address = request.client.host if request.client else "unknown"
+    wait = token_limiter.retry_after(address)
+    if wait > 0:
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "too many bad API tokens",
+                            headers={"Retry-After": str(wait)})
     unauthorized = HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid or missing API token",
                                  headers={"WWW-Authenticate": "Bearer"})
     if credentials is None or not credentials.credentials:
+        token_limiter.failure(address)
         raise unauthorized
     digest = hash_token(credentials.credentials)
     token = session.scalar(select(ApiToken).where(ApiToken.token_hash == digest, ApiToken.revoked_at.is_(None)))
     if token is None or not hmac.compare_digest(token.token_hash, digest):
+        token_limiter.failure(address)
         raise unauthorized
     wait = api_limiter.hit(token.id)
     if wait > 0:
