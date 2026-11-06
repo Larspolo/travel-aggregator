@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session, subqueryload
 from app.web.userscripts import userscript_list
 from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
 from app.config import get_settings
-from app.currency import load_rates, to_eur
+from app.currency import by_eur, load_rates, to_eur
 from app.db import get_session
 from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
@@ -93,6 +93,7 @@ def ago(t: datetime, now: datetime) -> str:
 templates.env.filters["mode_icon"] = mode_icon
 templates.env.filters["day_gap"] = day_gap
 templates.env.filters["ago"] = ago
+templates.env.filters["by_eur"] = by_eur
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -392,7 +393,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if chosen is not None:
         query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
-               "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id}
+               "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
+               "rates": rates}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     context["drops"] = trip_drops(session, trip_id)  # the drops since the last full view (#355)
