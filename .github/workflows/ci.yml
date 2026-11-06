@@ -73,6 +73,44 @@ jobs:
       - if: failure()
         run: docker compose logs --tail 40 || true
 
+  # The criterion of host:deploy (#88): the production compose (deploy/production) starts behind the Caddy example
+  # (deploy/caddy) and answers over HTTPS. The image is built here and tagged :latest, so the job pulls no app image.
+  # Caddy gets `tls internal` and the host localhost in the job only. It sends no request to a travel site (P1).
+  production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      IMAGE: ghcr.io/larspolo/travel-aggregator:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image as :latest
+        run: docker build --build-arg GIT_SHA=${{ github.sha }} -t "$IMAGE" .
+      - name: Start the production compose
+        working-directory: deploy/production
+        run: |
+          cp .env.example .env
+          sed -i 's/change-me/ci-secret/g; /^OWNER_PASSWORD_HASH=/d' .env
+          hash=$(docker run --rm --entrypoint python "$IMAGE" -m app.auth 'ci-password')
+          printf "OWNER_PASSWORD_HASH='%s'\n" "$hash" >> .env
+          docker compose up -d app db   # the pull policy "missing" keeps the local :latest
+          for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/api/health >/dev/null && break; sleep 2; done
+      - name: Start Caddy with the example Caddyfile
+        run: |
+          sed 's/^travel\.example\.com {/localhost {\n\ttls internal/' deploy/caddy/Caddyfile > "$RUNNER_TEMP/Caddyfile"
+          cat "$RUNNER_TEMP/Caddyfile"
+          docker run -d --name caddy --network host -v "$RUNNER_TEMP/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2
+      - name: Health over HTTPS, and a redirect to the login
+        run: |
+          for i in $(seq 30); do curl -fsS --insecure https://localhost/api/health && break; sleep 2; done
+          curl -fsS --insecure https://localhost/api/health | grep -q '"status":"ok"'
+          out=$(curl -s --insecure -o /dev/null -w '%{http_code} %{redirect_url}' https://localhost/)
+          echo "$out"
+          [ "$out" = "303 https://localhost/login" ]
+      - if: failure()
+        run: |
+          (cd deploy/production && docker compose logs --tail 40) || true
+          docker logs --tail 40 caddy || true
+
   # The preview image: after green checks on main, push ghcr.io/larspolo/travel-aggregator:preview (and :sha-<commit>);
   # the owner's server runs it (deploy/preview/, watchtower within 5 minutes). It is a job of CI, not a workflow of its
   # own: Automerge merges with GITHUB_TOKEN and starts CI on main itself, and a run of GITHUB_TOKEN starts no
