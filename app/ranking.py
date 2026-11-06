@@ -22,14 +22,24 @@ class Breakdown:
     time_cost: Decimal
     transfer_cost: Decimal
     total: Decimal
+    extras: tuple[tuple[str, Decimal], ...] = ()
 
 
 def _cents(value: Decimal) -> Decimal:
     return value.quantize(CENT, rounding=ROUND_HALF_EVEN)
 
 
-def effective_cost(price: Decimal, duration_min: int, transfers: int, weights: Weights) -> Breakdown:
-    """Give the effective cost of one fare and its parts."""
+def effective_cost(
+    price: Decimal,
+    duration_min: int,
+    transfers: int,
+    weights: Weights,
+    extras: tuple[tuple[str, Decimal], ...] = (),
+) -> Breakdown:
+    """Give the effective cost of one fare and its parts.
+
+    An extra is a (label, amount) part. An amount may be negative (a bonus).
+    """
     values = {
         "price": price,
         "duration_min": duration_min,
@@ -43,7 +53,9 @@ def effective_cost(price: Decimal, duration_min: int, transfers: int, weights: W
     price_part = _cents(Decimal(price))
     time_part = _cents(Decimal(duration_min) * weights.hour_markup / 60)  # multiply first: exact halves
     transfer_part = _cents(Decimal(transfers) * weights.transfer_markup)
-    return Breakdown(price_part, time_part, transfer_part, price_part + time_part + transfer_part)
+    extra_parts = tuple((label, _cents(Decimal(amount))) for label, amount in extras)
+    total = price_part + time_part + transfer_part + sum((amount for _, amount in extra_parts), Decimal("0"))
+    return Breakdown(price_part, time_part, transfer_part, total, extra_parts)
 
 
 def _amount(value: Decimal) -> str:
@@ -58,7 +70,7 @@ def format_breakdown(b: Breakdown) -> str:
 
     A part that is 0 is left out. The text is plain: the template escapes it (P5).
     """
-    labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost))
+    labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost)) + b.extras
     parts = [f"{_amount(value)} {label}" for label, value in labels if value != 0]
     if not parts:
         return _amount(b.total)
