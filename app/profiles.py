@@ -4,7 +4,8 @@ import dataclasses
 from datetime import time
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import ScoreProfile
@@ -51,3 +52,45 @@ def save(session: Session, name: str, weights: Weights) -> ScoreProfile:
     profile.config_json = to_config(weights)
     session.commit()
     return profile
+
+
+def list_profiles(session: Session) -> list[ScoreProfile]:
+    """All profiles in the order of their creation (#233)."""
+    return list(session.scalars(select(ScoreProfile).order_by(ScoreProfile.id)).all())
+
+
+def set_default(session: Session, profile_id: int) -> bool:
+    """Make `profile_id` the only default, in one transaction (#233). False when the profile does not exist."""
+    profile = session.get(ScoreProfile, profile_id)
+    if profile is None:
+        return False
+    session.execute(update(ScoreProfile).where(ScoreProfile.is_default).values(is_default=False))
+    profile.is_default = True
+    session.commit()
+    return True
+
+
+def rename(session: Session, profile_id: int, name: str) -> bool:
+    """Give the profile a new name (#233). False when another profile has the name; nothing changes then."""
+    taken = session.scalars(select(ScoreProfile.id).where(ScoreProfile.name == name,
+                                                          ScoreProfile.id != profile_id)).first()
+    if taken is not None:
+        return False
+    profile = session.get(ScoreProfile, profile_id)
+    profile.name = name
+    try:
+        session.commit()
+    except IntegrityError:  # a name that another request stored in the meantime
+        session.rollback()
+        return False
+    return True
+
+
+def delete(session: Session, profile_id: int) -> bool:
+    """Remove the profile (#233). False when it does not exist."""
+    profile = session.get(ScoreProfile, profile_id)
+    if profile is None:
+        return False
+    session.delete(profile)
+    session.commit()
+    return True
