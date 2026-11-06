@@ -224,12 +224,17 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               earliest_depart: str = Query("", pattern=CLOCK_PATTERN), latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
-              show_hidden: bool = Query(False), hide_stale: bool = Query(False)) -> HTMLResponse:
+              show_hidden: bool = Query(False), hide_stale: bool = Query(False),
+              profile: int | None = Query(None)) -> HTMLResponse:
     # the weights of the URL; None = not in the URL, the default profile gives the value (#230)
     overrides = {k: v for k, v in locals().items() if k in WEIGHT_NAMES}
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    # the profile of the URL wins over the default one; an unknown id gives the default profile (#231)
+    chosen = session.get(ScoreProfile, profile) if profile is not None else None
+    profiles = list_profiles(session)
+    active_id = chosen.id if chosen is not None else next((p.id for p in profiles if p.is_default), None)
     # an empty box of the form is no limit (#180); a number is capped to its range
     limit_transfers = min(int(max_transfers), 10) if max_transfers.isdigit() else None
     limit_duration = min(int(max_duration_min), 10080) if max_duration_min.isdigit() else None
@@ -241,7 +246,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, *hidden_filter)
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
-    weights = active_weights(default_weights(session), overrides)  # the score is computed here and never stored
+    base = from_config(chosen.config_json) if chosen is not None else default_weights(session)
+    weights = active_weights(base, overrides)  # the score is computed here and never stored
     now = datetime.now(timezone.utc)
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
     rows, modes, sources, carriers = [], set(), set(), set()
@@ -298,8 +304,10 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
     if hide_stale:
         query["hide_stale"] = True  # the sort links keep it (#277)
+    if chosen is not None:
+        query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
-               "now": now, "stale_before": stale_before}
+               "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     return templates.TemplateResponse(request, "trip.html", context)
