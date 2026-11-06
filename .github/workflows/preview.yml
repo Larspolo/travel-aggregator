@@ -3,12 +3,14 @@ name: Preview image
 # After each green CI on main: build the image and push ghcr.io/larspolo/travel-aggregator:preview (and :sha-<commit>).
 # The owner's server runs the preview from it (deploy/preview/): its watchtower pulls the new image within 5 minutes.
 # Only the newest commit of main pushes :preview, so an old run that ends late cannot replace a newer image.
+# The CI runs on main come from a push of a person or from Automerge, which merges with GITHUB_TOKEN and then starts
+# CI itself (event workflow_dispatch): both count. A start by hand builds the newest main.
 # GitHub Actions terms: this is the publication of the project. It sends no request to a travel site (P1).
 on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,18 +22,21 @@ concurrency:
 
 jobs:
   image:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' &&
+       contains(fromJSON('["push", "workflow_dispatch"]'), github.event.workflow_run.event))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - name: Skip until the Dockerfile exists, and skip an old commit
         id: gate
         env:
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
           head=$(gh api "repos/${{ github.repository }}/commits/main" --jq .sha)
           if [ ! -f Dockerfile ]; then echo "No Dockerfile yet (capture:skeleton adds it)."; echo "go=false" >> "$GITHUB_OUTPUT"
@@ -50,9 +55,9 @@ jobs:
         with:
           context: .
           push: true
-          build-args: GIT_SHA=${{ github.event.workflow_run.head_sha }}   # /api/health shows it
+          build-args: GIT_SHA=${{ github.event.workflow_run.head_sha || github.sha }}   # /api/health shows it
           tags: |
             ghcr.io/larspolo/travel-aggregator:preview
-            ghcr.io/larspolo/travel-aggregator:sha-${{ github.event.workflow_run.head_sha }}
+            ghcr.io/larspolo/travel-aggregator:sha-${{ github.event.workflow_run.head_sha || github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
