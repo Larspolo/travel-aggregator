@@ -32,6 +32,8 @@ class Weights:
     flex_non_refundable: Decimal = Decimal("0")
     flex_partly_refundable: Decimal = Decimal("0")
     flex_flexible: Decimal = Decimal("0")
+    # The penalty per self-transfer of a fare (#176); 0 disables it.
+    self_transfer_penalty: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
