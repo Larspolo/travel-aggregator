@@ -29,7 +29,7 @@ class Trip(Base):
     date_from: Mapped[date | None] = mapped_column(Date)
     date_to: Mapped[date | None] = mapped_column(Date)
     travelers: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
-    status: Mapped[str] = mapped_column(String(20), default="active", server_default="active")
+    status: Mapped[str] = mapped_column(String(20), default="planning", server_default="planning")
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
 

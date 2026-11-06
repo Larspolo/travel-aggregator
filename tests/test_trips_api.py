@@ -20,10 +20,10 @@ def test_create_and_list_trips(client):
                                    "destination_text": "Zürich", "date_from": "2026-12-20"}, headers=auth)
     assert r.status_code == 201
     trip = r.json()
-    assert trip["title"] == "Amsterdam – Zürich" and trip["travelers"] == 1 and trip["status"] == "active"
+    assert trip["title"] == "Amsterdam – Zürich" and trip["travelers"] == 1 and trip["status"] == "planning"
     second = c.post("/api/trips", json={"title": "Utrecht – Berlin"}, headers=auth).json()
     assert [t["id"] for t in c.get("/api/trips", headers=auth).json()] == [second["id"], trip["id"]]
-    assert len(c.get("/api/trips?status=active", headers=auth).json()) == 2
+    assert len(c.get("/api/trips?status=planning", headers=auth).json()) == 2
     assert c.get("/api/trips?status=archived", headers=auth).json() == []
 
 
