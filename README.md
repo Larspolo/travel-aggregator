@@ -290,6 +290,17 @@ A pinned offer whose price went down since the last view of its trip page shows 
 Opening the trip page ends the mark: the next view shows no mark, unless the price drops again.
 An unpinned offer or a hidden offer gives no mark.
 
+### Round trips
+
+A round trip is two trips that are linked: an outbound trip and its return trip.
+- The trip page of a one-way trip has the button "Make the return trip". It makes a linked trip with the origin and the destination swapped, and it opens the edit form of that trip. A return trip cannot have a return trip.
+- The trips list shows each return trip directly under its outbound trip, with the text "Return of" and the name of the outbound trip. The line "Journey total" shows the two best prices. It shows no total when one direction has no offer or when the currencies differ.
+- The box "Journey" on the trip page of each direction has a link to the other direction. It shows the chosen offer of each direction (the booked offer, else the pinned offer, else the offer with the best effective cost) and the total effective cost.
+- The mark "The return departs before the outbound arrives" shows when the return departs before the outbound trip arrives.
+- Deleting the outbound trip keeps the return trip. The link between the two trips goes away.
+
+Each direction is a normal trip. The userscripts capture offers into it when you choose the trip in the dropdown of the panel. Trips with more than two cities are not supported.
+
 ### Compare offers side by side
 
 To compare 2 to 4 offers of a trip:
