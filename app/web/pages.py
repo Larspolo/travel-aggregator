@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from pydantic import ValidationError
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, subqueryload
 
 from app.auth import SESSION_KEY, check_password, csrf_token, require_login, verify_csrf
 from app.config import get_settings
@@ -153,8 +153,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    # subqueryload: one statement per relation; selectinload adds one per 500 offers (#115)
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
-                                  .options(selectinload(Itinerary.legs), selectinload(Itinerary.fares))).all()
+                                  .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee)  # the score is computed here and never stored
     rows = []
