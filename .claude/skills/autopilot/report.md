@@ -44,9 +44,9 @@ When your PR closes the last ticket of a line `- After #a, #b: ...` in the secti
 make that `needs-human` ticket now (`ticket` skill), so the owner can check when the merge is live (owner, 2026-11-06). `framework/tools/health.py` counts the `pr #n` lines by the present PR state (#902).
 `framework/tools/report.py` puts the output of `python3 tools/release.py` (the release bar of each goal, #879) above the
 `Usage:` line, when the project has that tool (#1963).
-Below the metrics lines, put the output of `python3 framework/tools/tokens.py` (one `Tokens:` line for the run: the tokens of
-this session and its largest sinks; run it just before the comment). `report.py` adds it, the `Calls:` line and the `Run:` line
-(the session, the start, the model, the eq of each phase and ticket, the lane). `framework/tools/health.py` adds these lines, and the
+Below the metrics lines, `report.py` adds the `Tokens:` line (the tokens of this session and its largest sinks), the
+`Calls:` line and the `Run:` line (the session, the start, the model, the eq of each phase and ticket, the lane): do not
+run `tokens.py` yourself (owner, 2026-11-06: one call fewer at the end of the run, where each call costs the most). `framework/tools/health.py` adds these lines, and the
 `improve` skill uses them as one source to find the bottleneck.
 Put the `Usage:` line of step 1.2 (or of the brief of the pacer) above the metrics lines, unchanged: `framework/tools/health.py` measures the quota use of one
 run per hour from pairs of these lines, and `framework/tools/usage.py --target` uses that value (#462).

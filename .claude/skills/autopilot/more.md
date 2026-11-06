@@ -29,7 +29,8 @@ that also names a deleted branch fails as a whole). The scheduled task allows th
 Push it with `git push -u origin <session branch>-<k>`, and check that the output shows `-> <session branch>-<k>`.
 The open PR of the last ticket needs no wait: Automerge merges it when CI is green, and `unconflict.yml` merges `main`
 into it. Never force-push: the auto mode denies it ("Git Destructive"; 33 runs lost a step on it on 2026-10-26).
-Start a next work item only when the context is below 120k tokens (`python3 framework/tools/tokens.py` prints it as `peak`),
+Start a next work item only when the context is below 120k tokens (the `context` line that `report.py --post` prints;
+do not run `tokens.py` for it, owner 2026-11-06),
 or below the `context:` line of the brief of the pacer (`pacer.context_limit`: higher while the task is near its hourly
 start limit, so that no fresh run can start, #4190).
 A work item is a ticket, a takeover of a stuck PR, a refill, an epic check, a roadmap review or a process review: two
