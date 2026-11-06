@@ -1,13 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Captures · {{ trip.title }} · travel-aggregator{% endblock %}
+{% block title %}Captures{% if trip %} · {{ trip.title }}{% endif %} · travel-aggregator{% endblock %}
 {% block content %}
+{% if trip %}
 <h1>Captures of {{ trip.title }}</h1>
 <p><a href="/trips/{{ trip.id }}">Back to the trip</a></p>
+{% else %}
+<h1>Captures of all trips</h1>
+{% endif %}
 {% if captures %}
 <table>
-  <tr><th>Captured</th><th>Source</th><th>Parser</th><th>Raw</th><th></th></tr>
+  <tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Raw</th><th></th></tr>
   {% for c in captures %}
   <tr>
+    {% if not trip %}<td><a href="/trips/{{ c.trip_id }}">{{ trip_titles[c.trip_id] }}</a></td>{% endif %}
     <td>{{ c.captured_at.strftime('%Y-%m-%d %H:%M') }} UTC</td><td>{{ c.source }}</td><td>{{ c.parser_version or "-" }}</td>
     <td>{{ "yes" if c.raw_gz is not none else "no" }}</td>
     <td id="reparse-{{ c.id }}"><button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
