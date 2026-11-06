@@ -6,7 +6,7 @@
 <p class="muted">{{ trip.origin_text or "?" }} → {{ trip.destination_text or "?" }}</p>
 {% endif %}
 <p><a href="/trips/{{ trip.id }}/offers/new">Add an offer by hand</a></p>
-{% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier %}
+{% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.max_transfers is not none or view.max_duration_min is not none %}
 <form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
   <label>Hour markup €<output name="hour_value">{{ weights.hour_markup }}</output>
@@ -18,6 +18,8 @@
     {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
   <label>Source <select name="source"><option value="">All</option>
     {% for s in view.sources %}<option value="{{ s }}"{% if s == view.source %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+  <label>Max transfers <input type="number" name="max_transfers" min="0" max="10" step="1" value="{{ view.max_transfers if view.max_transfers is not none else '' }}"></label>
+  <label>Max duration (min) <input type="number" name="max_duration_min" min="0" max="10080" step="1" value="{{ view.max_duration_min if view.max_duration_min is not none else '' }}"></label>
   <details class="exclude"><summary>Exclude</summary>
     {% for m in view.modes %}<label><input type="checkbox" name="exclude_mode" value="{{ m }}"{% if m in view.exclude_mode %} checked{% endif %}> {{ m }}</label>{% endfor %}
     {% for c in view.carriers %}<label><input type="checkbox" name="exclude_carrier" value="{{ c }}"{% if c in view.exclude_carrier %} checked{% endif %}> {{ c }}</label>{% endfor %}
