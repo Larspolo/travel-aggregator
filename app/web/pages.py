@@ -16,6 +16,7 @@ from app.config import get_settings
 from app.db import get_session
 from app.models import Itinerary, Trip
 from app.schemas import TripForm
+from app.ranking import Weights, effective_cost, format_breakdown
 from app.trips import list_trips
 
 router = APIRouter()
@@ -119,6 +120,14 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
                                   .options(selectinload(Itinerary.legs), selectinload(Itinerary.fares))).all()
-    rows = [(it, min(it.fares, key=lambda f: f.latest_price)) for it in itineraries if it.fares]
-    rows.sort(key=lambda r: (r[1].latest_price, r[0].depart_at))   # ranking comes with rank:base
-    return templates.TemplateResponse(request, "trip.html", {"trip": trip, "rows": rows})
+    weights = Weights()  # the default profile; the score is computed here and never stored
+    rows = []
+    for it in itineraries:
+        if not it.fares:
+            continue  # an itinerary with no fare has no cost: it is not a row
+        fare = min(it.fares, key=lambda f: f.latest_price)
+        cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights)
+        rows.append((it, fare, cost))
+    rows.sort(key=lambda r: (r[2].total, r[0].depart_at))
+    return templates.TemplateResponse(request, "trip.html", {"trip": trip, "rows": rows,
+                                                              "format_breakdown": format_breakdown})
