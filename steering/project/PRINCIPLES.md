@@ -62,3 +62,6 @@ How the owner tries a new feature. The agents make what this needs for each feat
 - The README at the end of each epic (owner): before the epic closes, one PR updates `README.md` for all that the
   epic added (setup, commands, settings, API, what a user can do), and `python3 -m pytest -m readme` passes. The epic
   waits for it. Ticket PRs do not change `README.md`.
+- The deployed preview at the end of each epic: after the last merge of the epic, `scripts/preview_check.sh` passes
+  (the preview runs the newest `main`, and the API works with a real database). The epic waits for it. A failure is
+  a bug ticket. The agents never test the pages on the preview: the passwords are only the owner's.

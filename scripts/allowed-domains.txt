@@ -2,3 +2,5 @@
 # One host per line. The owner pastes this file into the network settings of the environment.
 # Never add a travel site (P1 in steering/project/PRINCIPLES.md): the agents do not send requests to them.
 github.com
+# The owner's preview server (scripts/preview_check.sh): /api/health, and /api with the token of the network secret.
+travel-preview.larspolo.nl

@@ -42,3 +42,12 @@ For each changed page: a Playwright screenshot at 1280 px and at 390 px width (`
 data. Read each image (Read tool) and check the layout: no horizontal scroll at 390 px, no overlap, no raw HTML
 from captured data. The CI job `screenshots` (the first page ticket adds it) uploads the same images as an artifact. Describe each image in the PR
 body and link the run: the REST API cannot upload images.
+
+## Level 5: the deployed preview (at the end of an epic)
+
+    scripts/preview_check.sh            # waits up to 15 minutes until the preview runs origin/main
+
+It checks `/api/health` (the commit) and the API with a test trip and offer, through the network secret of the
+environment. "HTTP 401" means the environment has no network secret: say so in the epic and stop. Never ask for a
+password or a token, and never test the pages there (basic auth and the login are the owner's): levels 2 and 4 test
+them locally.
