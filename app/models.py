@@ -52,6 +52,7 @@ class Itinerary(Base):
     last_seen_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     pinned: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    booked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     note: Mapped[str | None] = mapped_column(Text)
 
     trip: Mapped[Trip] = relationship(back_populates="itineraries")
