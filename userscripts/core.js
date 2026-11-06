@@ -49,7 +49,15 @@
       <label><input type="checkbox" class="autosend"> auto-send</label>
       <button type="button" class="send">Send</button>`;
     shadow.append(style, controls, box);
-    (document.body || document.documentElement).appendChild(host);
+    // At document-start the page can have no root element yet (#155): mount when it comes.
+    const mount = () => (document.body || document.documentElement).appendChild(host);
+    if (document.documentElement) mount();
+    else {
+      const watch = new MutationObserver(() => {
+        if (document.documentElement) { watch.disconnect(); mount(); }
+      });
+      watch.observe(document, { childList: true });
+    }
     return {
       host,
       select: controls.querySelector(".trip"),
@@ -79,7 +87,15 @@
     return Number.isInteger(id) && id > 0 ? id : null;
   };
   const autoSend = () => gm.getValue("autosend", true) !== false;
-  const count = (payload) => (payload && Array.isArray(payload.offers) ? payload.offers.length : 0);
+  // The offers of a payload; a raw capture asks the counter of its site userscript (core.countRaw).
+  const count = (payload) => {
+    if (!payload) return 0;
+    if (Array.isArray(payload.offers) && payload.offers.length) return payload.offers.length;
+    if (payload.raw !== undefined && typeof core.countRaw === "function") {
+      try { return Number(core.countRaw(payload.raw)) || 0; } catch (e) { return 0; }
+    }
+    return 0;
+  };
   let busy = false;
 
   // POST one payload to the configured server only (P1). Resolves "ok", "retry" or "drop".
@@ -193,6 +209,7 @@
 
   const core = {
     gm,
+    countRaw: null,
     panel,
     report(n) { panel.setStatus(`Captured ${n} offers`, "info"); },
     sent(n) { panel.setStatus(`Captured ${n} offers → sent ✓`, "ok"); },

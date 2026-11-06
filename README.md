@@ -116,6 +116,19 @@ Before each migration that changes data, the container writes a `pg_dump` backup
 Each closed epic makes a release: the workflow `.github/workflows/release.yml` pushes the git tag `vX.Y.Z` and the
 images `:vX.Y.Z` and `:latest`. `GET /api/health` shows the commit that runs.
 
+### Backups
+
+The app writes a `pg_dump` backup to `BACKUP_DIR` (in the container: `/backups`, a Docker volume). Make one at any time:
+
+```bash
+make backup                                   # or: docker compose exec app python -m app.backup --now
+make restore FILE=/backups/<file>.dump        # or: docker compose exec app python -m app.restore /backups/<file>.dump
+```
+
+A restore gives back the trips, the offers and the price history of the dump. It runs in one transaction: if the file
+is missing or bad, the command stops with an error and the database does not change. The backups hold private data
+(your trips and offers). They stay in the volume: copy them only to a place that you trust.
+
 ## Configuration
 
 | Variable | Use |
@@ -245,6 +258,8 @@ python3 -m pip install -r requirements-dev.txt
 ruff check .
 python3 -m pytest -n auto
 ```
+
+The `Makefile` has these targets: `up`, `down`, `logs`, `test`, `migrate`, `backup` and `restore` (`FILE=<backup file>`).
 
 The code: `app/` (FastAPI), `tests/` (pytest). The planned layout is in [`CLAUDE.md`](CLAUDE.md), section "Code map".
 

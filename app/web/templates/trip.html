@@ -55,6 +55,12 @@
       <input type="number" name="flight_markup" min="-1000" max="1000" step="0.01" value="{{ weights.flight_markup }}"></label>
     <label>Ferry markup €
       <input type="number" name="ferry_markup" min="-1000" max="1000" step="0.01" value="{{ weights.ferry_markup }}"></label>
+    <label>Non-refundable fare € (negative = bonus)
+      <input type="number" name="flex_non_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_non_refundable }}"></label>
+    <label>Partly refundable fare € (negative = bonus)
+      <input type="number" name="flex_partly_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_partly_refundable }}"></label>
+    <label>Flexible fare € (negative = bonus)
+      <input type="number" name="flex_flexible" min="-1000" max="1000" step="0.01" value="{{ weights.flex_flexible }}"></label>
     <label>Self-transfer €
       <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
   </details>
