@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Profiles – travel-aggregator{% endblock %}
+{% block content %}
+<h1>Score profiles</h1>
+<p><a href="/">Trips</a> · <a href="/places">Places</a> · <a href="/tokens">API tokens</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a></p>
+<p class="muted">One profile is the default. Save a profile on a trip page under "Advanced".</p>
+{% if error %}<p role="alert" class="badge">{{ error }}</p>{% endif %}
+{% if rows %}
+<table>
+  <thead><tr><th>Name</th><th>Hour markup</th><th>Transfer markup</th><th></th><th></th></tr></thead>
+  <tbody>
+  {% for p, w in rows %}
+  <tr>
+    <td>{{ p.name }}{% if p.is_default %} <span class="badge">default</span>{% endif %}</td>
+    <td class="price">€{{ w.hour_markup }}/h</td>
+    <td class="price">€{{ w.transfer_markup }}</td>
+    <td>{% if not p.is_default %}<form method="post" action="/profiles/{{ p.id }}/default">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button type="submit">Set default</button>
+    </form>{% endif %}</td>
+    <td>
+      <form method="post" action="/profiles/{{ p.id }}/rename">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <label>Name <input name="name" required maxlength="100" value="{{ p.name }}"></label>
+        <button type="submit">Rename</button>
+      </form>
+      <form method="post" action="/profiles/{{ p.id }}/delete">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <button type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>You have no profiles.</p>
+{% endif %}
+{% endblock %}
