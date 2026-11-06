@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg
+from app.retention import RETENTION_DAYS, delete_old_captures
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 
 
@@ -111,5 +112,10 @@ def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers
 
 
 def store(session: Session, body: IngestIn) -> dict[str, int]:
-    """Store the offers of the body. Returns the counts {"created", "updated", "unchanged"}."""
-    return upsert_offers(session, body.trip_id, None, body.offers, source=body.source, captured_at=body.captured_at)
+    """Store the offers of the body, then delete the captures past the retention period (app/retention.py).
+    Returns the counts {"created", "updated", "unchanged"}."""
+    counts = upsert_offers(session, body.trip_id, None, body.offers, source=body.source,
+                           captured_at=body.captured_at)
+    delete_old_captures(session, RETENTION_DAYS, datetime.now(UTC))
+    session.commit()
+    return counts
