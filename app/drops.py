@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.models import Fare, Itinerary
@@ -35,6 +35,22 @@ def trip_drops(session: Session, trip_id: int) -> list[Drop]:
         .order_by(amount.desc(), Fare.id)).all()
     return [Drop(f.itinerary_id, f.id, f.source, f.fare_name, f.currency, f.seen_price, f.latest_price, a, d, m)
             for f, d, m, a in rows]
+
+
+def drops_by_trip(session: Session) -> dict[int, tuple[str, Decimal]]:
+    """The largest price drop of each trip (trip id to currency and amount), for the trips list (#356)."""
+    amount = func.max(Fare.seen_price - Fare.latest_price)
+    rows = session.execute(
+        select(Itinerary.trip_id, Fare.currency, amount.label("amount"))
+        .join(Itinerary, Fare.itinerary_id == Itinerary.id)
+        .where(Itinerary.pinned, Itinerary.hidden.is_(False),
+               Fare.seen_price.is_not(None), Fare.latest_price < Fare.seen_price)
+        .group_by(Itinerary.trip_id, Fare.currency)
+        .order_by(Itinerary.trip_id, amount.desc(), Fare.currency)).all()
+    result: dict[int, tuple[str, Decimal]] = {}
+    for trip_id, currency, drop in rows:
+        result.setdefault(trip_id, (currency, drop))  # the first row of a trip is its largest drop
+    return result
 
 
 def mark_seen(session: Session, trip_id: int) -> None:

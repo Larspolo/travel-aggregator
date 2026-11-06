@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session, subqueryload
 from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
-from app.drops import mark_seen, trip_drops
+from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.history import chart
@@ -123,7 +123,8 @@ def logout(request: Request) -> RedirectResponse:
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def index(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
-    return templates.TemplateResponse(request, "trips.html", {"lines": in_journeys(list_trips(session))})
+    return templates.TemplateResponse(request, "trips.html",
+                                      {"lines": in_journeys(list_trips(session)), "drops": drops_by_trip(session)})
 
 
 FORM_FIELDS = tuple(TripForm.model_fields)
