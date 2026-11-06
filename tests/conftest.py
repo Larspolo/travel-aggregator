@@ -94,3 +94,13 @@ def sessions(migrated_url):
     yield maker
     app.dependency_overrides.pop(get_session, None)
     engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def _reset_login_limiter():
+    """Each test starts with no failed logins (the limiter of #145 is global state)."""
+    from app.auth import login_limiter
+
+    login_limiter.reset()
+    yield
+    login_limiter.reset()

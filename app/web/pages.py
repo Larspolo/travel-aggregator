@@ -1,6 +1,7 @@
 """The web pages: login, logout, the trips list, the trip page, the API tokens and the access and egress places. Jinja2 escapes all output: captured text is
 untrusted (P5)."""
 
+import math
 from datetime import datetime, time, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -12,7 +13,7 @@ from sqlalchemy import select
 from pydantic import ValidationError
 from sqlalchemy.orm import Session, subqueryload
 
-from app.auth import SESSION_KEY, check_password, csrf_token, require_login, verify_csrf
+from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
 from app.door import door_extras, flight_extras
@@ -70,11 +71,19 @@ def login_form(request: Request) -> HTMLResponse:
 
 @router.post("/login", response_class=HTMLResponse, dependencies=[Depends(verify_csrf)])
 def login(request: Request, password: str = Form("")) -> HTMLResponse:
+    address = request.client.host if request.client else "unknown"
+    wait = login_limiter.retry_after(address)
+    if wait:
+        minutes = math.ceil(wait / 60)
+        return HTMLResponse(f"Too many attempts. Try again in {minutes} minutes.", status_code=429,
+                            headers={"Retry-After": str(wait)})
     if check_password(password, get_settings().owner_password_hash):
+        login_limiter.success(address)
         request.session.clear()
         request.session[SESSION_KEY] = True
         csrf_token(request)  # a new token after the login
         return RedirectResponse("/", status_code=303)
+    login_limiter.failure(address)
     return templates.TemplateResponse(request, "login.html", {"error": "Wrong password."}, status_code=401)
 
 
