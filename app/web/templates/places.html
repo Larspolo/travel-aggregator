@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Places – travel-aggregator{% endblock %}
+{% block content %}
+<h1>Access and egress places</h1>
+<p><a href="/">Trips</a> · <a href="/logout">Log out</a></p>
+<p class="muted">Access: from a place to the first station. Egress: from the last station to a place.</p>
+<form method="post" action="/places">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <label>Place <input name="place_text" required maxlength="200" placeholder="home → Amsterdam Centraal"></label>
+  <label>Kind <select name="kind">{% for k in kinds %}<option value="{{ k }}">{{ k }}</option>{% endfor %}</select></label>
+  <label>Minutes <input name="minutes" type="number" min="0" step="1" required></label>
+  <label>Cost (€) <input name="cost" type="number" min="0" step="0.01" value="0"></label>
+  <button type="submit">Add place</button>
+</form>
+{% if places %}
+<table>
+  <thead><tr><th>Place</th><th>Kind</th><th>Minutes</th><th>Cost</th><th></th></tr></thead>
+  <tbody>
+  {% for p in places %}
+  <tr>
+    <td>{{ p.place_text }}</td>
+    <td>{{ p.kind }}</td>
+    <td>{{ p.minutes }} min</td>
+    <td class="price">€{{ p.cost }}</td>
+    <td><form method="post" action="/places/{{ p.id }}/delete">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button type="submit">Delete</button>
+    </form></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>You have no places.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Add a website – travel-aggregator{% endblock %}
+{% block content %}
+<h1>Add a website</h1>
+<form method="get" action="/sources/new">
+  <p><label>Website <input name="site" value="{{ site }}" placeholder="www.example.com"></label>
+  <button>Update the link</button></p>
+</form>
+<ol>
+  <li>Open the website and do a search for a trip.</li>
+  <li>Open the developer tools (F12) and select the tab "Network".</li>
+  <li>Reload the page and wait until the results show.</li>
+  <li>Right-click a request and select "Save all as HAR". Use the option "sanitized" if your browser has it.</li>
+  <li>Open the HAR file in a text editor and remove cookies, tokens, names, e-mail addresses and booking codes.
+      The issue is public.</li>
+  <li><a id="issue-link" href="{{ issue_url }}" target="_blank" rel="noopener">Open a new GitHub issue</a>,
+      drag the HAR file into the text, and submit the issue. The agent then writes the userscript and the parser.</li>
+</ol>
+<p><a href="/">Back</a></p>
+{% endblock %}

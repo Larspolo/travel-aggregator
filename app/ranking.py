@@ -1,6 +1,7 @@
 """Effective cost of one fare (docs/SPEC.md, section 7.1)."""
 
 from dataclasses import dataclass
+from datetime import time
 from decimal import ROUND_HALF_EVEN, Decimal
 
 CENT = Decimal("0.01")
@@ -12,6 +13,39 @@ class Weights:
 
     hour_markup: Decimal = Decimal("15")
     transfer_markup: Decimal = Decimal("10")
+    # The "Advanced" values (P2) of a flight (#99); 0 disables each.
+    airport_before_min: int = 120
+    airport_after_min: int = 30
+    baggage_fee: Decimal = Decimal("0")
+    # The time-of-day penalty (#141): local times; a penalty of 0 disables it.
+    early_limit: time = time(6, 0)
+    late_limit: time = time(23, 30)
+    time_window_penalty: Decimal = Decimal("0")
+    # The night travel adjustment (#142): a signed amount (negative = bonus); 0 disables it.
+    night_start: time = time(23, 0)
+    night_end: time = time(6, 0)
+    night_min: int = 240
+    night_adjust: Decimal = Decimal("0")
+    # The hour markup inside the night window (#143); None = the same as hour_markup.
+    night_hour_markup: Decimal | None = None
+    # The short-transfer penalty (#173): a transfer shorter than the minimum; a penalty of 0 disables it.
+    short_transfer_min: int = 10
+    short_transfer_penalty: Decimal = Decimal("0")
+    # The mode markups (#174): a flat amount per itinerary that uses the mode; a negative amount is a discount.
+    train_markup: Decimal = Decimal("0")
+    bus_markup: Decimal = Decimal("0")
+    flight_markup: Decimal = Decimal("0")
+    ferry_markup: Decimal = Decimal("0")
+    # The flexibility amounts per tier (#175): signed (negative = bonus); 0 disables each.
+    flex_non_refundable: Decimal = Decimal("0")
+    flex_partly_refundable: Decimal = Decimal("0")
+    flex_flexible: Decimal = Decimal("0")
+    # The penalty per self-transfer of a fare (#176); 0 disables it.
+    self_transfer_penalty: Decimal = Decimal("0")
+    # The age in hours after which a row is stale (#275): a display flag only, not part of the cost.
+    stale_hours: int = 24
+    # The penalty of a stale row (#276): added to its cost; 0 disables it.
+    stale_penalty: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
@@ -22,14 +56,24 @@ class Breakdown:
     time_cost: Decimal
     transfer_cost: Decimal
     total: Decimal
+    extras: tuple[tuple[str, Decimal], ...] = ()
 
 
 def _cents(value: Decimal) -> Decimal:
     return value.quantize(CENT, rounding=ROUND_HALF_EVEN)
 
 
-def effective_cost(price: Decimal, duration_min: int, transfers: int, weights: Weights) -> Breakdown:
-    """Give the effective cost of one fare and its parts."""
+def effective_cost(
+    price: Decimal,
+    duration_min: int,
+    transfers: int,
+    weights: Weights,
+    extras: tuple[tuple[str, Decimal], ...] = (),
+) -> Breakdown:
+    """Give the effective cost of one fare and its parts.
+
+    An extra is a (label, amount) part. An amount may be negative (a bonus).
+    """
     values = {
         "price": price,
         "duration_min": duration_min,
@@ -43,7 +87,9 @@ def effective_cost(price: Decimal, duration_min: int, transfers: int, weights: W
     price_part = _cents(Decimal(price))
     time_part = _cents(Decimal(duration_min) * weights.hour_markup / 60)  # multiply first: exact halves
     transfer_part = _cents(Decimal(transfers) * weights.transfer_markup)
-    return Breakdown(price_part, time_part, transfer_part, price_part + time_part + transfer_part)
+    extra_parts = tuple((label, _cents(Decimal(amount))) for label, amount in extras)
+    total = price_part + time_part + transfer_part + sum((amount for _, amount in extra_parts), Decimal("0"))
+    return Breakdown(price_part, time_part, transfer_part, total, extra_parts)
 
 
 def _amount(value: Decimal) -> str:
@@ -58,7 +104,7 @@ def format_breakdown(b: Breakdown) -> str:
 
     A part that is 0 is left out. The text is plain: the template escapes it (P5).
     """
-    labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost))
+    labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost)) + b.extras
     parts = [f"{_amount(value)} {label}" for label, value in labels if value != 0]
     if not parts:
         return _amount(b.total)

@@ -37,6 +37,10 @@ This is a scheduled, unattended run. Other runs can work at the same time. The p
    finish stalled PRs of other runs (autopilot step 2), then stop without a new ticket. b) After each PR that you
    open: run it again; if M is more than N, stop instead of taking a new ticket.
 
+No one reads the chat of a scheduled run: all results go to GitHub (owner, 2026-11-06). Write no text between the
+tool calls, and end each turn with one short line. Each word of output costs 5 times an input token, and each later
+call reads it again (`tokens.py --json`: `text`).
+
 The owner (`owner` in `agent.toml`) asks you to do this work without questions: create a branch and a pull request for
 each ticket. Do not merge by hand: the Automerge workflow merges the pull request when its quick CI is green. Use the
 branch that this session names, if it names one. For each later ticket of the run, you may create and push the branch

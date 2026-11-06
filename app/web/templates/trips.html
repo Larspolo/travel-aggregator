@@ -1,28 +1,29 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trips – travel-aggregator</title></head>
-<body>
+{% extends "base.html" %}
+{% block title %}Trips – travel-aggregator{% endblock %}
+{% block content %}
 <h1>Trips</h1>
-<p><a href="/logout">Log out</a></p>
-{% if trips %}
-<table>
+<p><a href="/trips/new">New trip</a> · <a href="/tokens">API tokens</a> · <a href="/places">Places</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a></p>
+{% if lines %}
+<div class="scroll"><table>
   <thead><tr><th>Trip</th><th>Route</th><th>Dates</th><th>Offers</th><th>Best offer</th><th>Status</th></tr></thead>
   <tbody>
-  {% for t in trips %}
-    <tr>
-      <td>{{ t.title }}</td>
+  {% for kind, t, note in lines %}
+    {% if kind == "total" %}
+    <tr class="total"><td colspan="6">Journey total: {{ note }}</td></tr>
+    {% else %}
+    <tr{% if kind == "return" %} class="return"{% endif %}>
+      <td>{% if kind == "return" %}<span class="muted">Return of {{ note }}</span><br>{% endif %}{{ t.title }}</td>
       <td>{{ t.origin_text or "?" }} → {{ t.destination_text or "?" }}</td>
       <td>{{ t.date_from or "" }}{% if t.date_to %} – {{ t.date_to }}{% endif %}</td>
       <td>{{ t.offer_count }}</td>
-      <td>{% if t.best_price is not none %}{{ t.best_currency }} {{ t.best_price }}{% else %}no offers yet{% endif %}</td>
-      <td>{{ t.status }}</td>
+      <td>{% if t.best_price is not none %}{{ t.best_currency }} {{ t.best_price }}{% if t.id in drops %} <span class="drop">price dropped {{ drops[t.id][0] }} {{ drops[t.id][1] }}</span>{% endif %}{% else %}no offers yet{% endif %}</td>
+      <td>{{ t.status }} <a href="/trips/{{ t.id }}/edit">Edit</a></td>
     </tr>
+    {% endif %}
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
 <p>You have no trips. <a href="/trips/new">Create a trip</a>.</p>
 {% endif %}
-</body>
-</html>
+{% endblock %}

@@ -343,6 +343,25 @@ def release_scope(epic, issues, milestones=()):
     return m.get("closed_issues", 0), m.get("closed_issues", 0) + m.get("open_issues", 0), left
 
 
+def waiting(wait, comments, audience=None):
+    """The lines of "Waiting for you", grouped by the label of `[audience]` in `agent.toml` (#72: `for-lars` for the
+    system, `for-jeroen` for the project). A ticket with no such label comes last, under "Other"."""
+    audience = CONFIG.get("audience", {}) if audience is None else audience
+    line = lambda i: f"- #{i['number']} {i['title']} – {question(comments.get(i['number'], []))}"
+    if not wait:
+        return ["- nothing"]
+    if not audience:
+        return [line(i) for i in wait]
+    out, rest = [], [i for i in wait if not set(audience) & labels(i)]
+    for label, login in audience.items():
+        group = [i for i in wait if label in labels(i)]
+        if group:
+            out += [f"**For {login}** (`{label}`):"] + [line(i) for i in group]
+    if rest:
+        out += ["**Other** (no `" + "` or `".join(audience) + "` label):"] + [line(i) for i in rest]
+    return out
+
+
 def render(old_body, issues, comments, open_prs, closed_issues, closed_prs, now, unanswered=None, nxt=None, accounts=None,
            insights=None, releases=None):
     """The new body of the status issue. comments: {issue number: comments} for the needs-human and
@@ -360,7 +379,7 @@ def render(old_body, issues, comments, open_prs, closed_issues, closed_prs, now,
 
     out += ["", "### Waiting for you"]
     wait = [i for i in sorted(issues, key=lambda i: i["number"]) if "needs-human" in labels(i) and MUTED not in labels(i)]
-    out += [f"- #{i['number']} {i['title']} – {question(comments.get(i['number'], []))}" for i in wait] or ["- nothing"]
+    out += waiting(wait, comments)
     muted = sum(MUTED in labels(i) for i in issues)
     if muted:
         out.append(f"- Muted: {muted} ticket{'s' * (muted != 1)} (label `{MUTED}`: no agent works on them; remove the label to bring one back)")

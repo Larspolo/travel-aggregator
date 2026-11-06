@@ -6,9 +6,14 @@ Make it with: python3 -m app.auth 'PASSWORD'
 
 import hashlib
 import hmac
+import logging
+import math
 import os
 import secrets
 import sys
+import time
+from collections import defaultdict, deque
+from collections.abc import Callable
 from datetime import UTC, datetime
 
 from fastapi import Depends, HTTPException, Request, status
@@ -24,6 +29,8 @@ ITERATIONS = 600_000
 SESSION_KEY = "owner"
 CSRF_KEY = "csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
+
+log = logging.getLogger(__name__)
 
 
 class LoginRequired(HTTPException):
@@ -49,6 +56,62 @@ def check_password(password: str, stored_hash: str) -> bool:
         return hmac.compare_digest(digest, bytes.fromhex(digest_hex))
     except ValueError:
         return False
+
+
+class LoginLimiter:
+    """Limits the failed logins in memory (one uvicorn process; a restart resets the counts).
+
+    Per address: ADDRESS_MAX failures in WINDOW lock that address for LOCK seconds.
+    All addresses together: GLOBAL_MAX failures in GLOBAL_WINDOW lock the login for LOCK seconds.
+    """
+
+    ADDRESS_MAX = 5
+    WINDOW = 15 * 60
+    GLOBAL_MAX = 20
+    GLOBAL_WINDOW = 60 * 60
+    LOCK = 15 * 60
+
+    def __init__(self, clock: Callable[[], float] = time.monotonic) -> None:
+        self.clock = clock
+        self.reset()
+
+    def reset(self) -> None:
+        self.failures: dict[str, deque[float]] = defaultdict(deque)
+        self.all_failures: deque[float] = deque()
+        self.locked_until: dict[str, float] = {}
+        self.global_locked_until = 0.0
+
+    def retry_after(self, address: str) -> int:
+        """The seconds until the login is open for the address, 0 when it is open now."""
+        now = self.clock()
+        until = max(self.locked_until.get(address, 0.0), self.global_locked_until)
+        return math.ceil(until - now) if until > now else 0
+
+    def failure(self, address: str) -> None:
+        now = self.clock()
+        log.warning("failed login from %s", address)
+        own = self.failures[address]
+        own.append(now)
+        while own and own[0] <= now - self.WINDOW:
+            own.popleft()
+        self.all_failures.append(now)
+        while self.all_failures and self.all_failures[0] <= now - self.GLOBAL_WINDOW:
+            self.all_failures.popleft()
+        if len(own) >= self.ADDRESS_MAX:
+            self.locked_until[address] = now + self.LOCK
+            own.clear()
+            log.warning("login locked for %s for %d minutes", address, self.LOCK // 60)
+        if len(self.all_failures) >= self.GLOBAL_MAX:
+            self.global_locked_until = now + self.LOCK
+            self.all_failures.clear()
+            log.warning("login locked for all addresses for %d minutes (last address %s)", self.LOCK // 60, address)
+
+    def success(self, address: str) -> None:
+        self.failures.pop(address, None)
+        self.locked_until.pop(address, None)
+
+
+login_limiter = LoginLimiter()
 
 
 def require_login(request: Request) -> None:
