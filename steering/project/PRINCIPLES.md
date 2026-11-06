@@ -59,3 +59,6 @@ How the owner tries a new feature. The agents make what this needs for each feat
 - A release image per epic: each closed epic makes a tagged Docker image on GHCR and moves `:latest`; the owner's
   real instance with the real data follows `:latest` (`host:deploy`). The preview never uses the real data.
 - The owner tests on a phone or a tablet only after a feature works on a computer.
+- The README at the end of each epic (owner): before the epic closes, one PR updates `README.md` for all that the
+  epic added (setup, commands, settings, API, what a user can do), and `python3 -m pytest -m readme` passes. The epic
+  waits for it. Ticket PRs do not change `README.md`.
