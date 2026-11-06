@@ -5,7 +5,7 @@
 {% if trip.origin_text or trip.destination_text %}
 <p class="muted">{{ trip.origin_text or "?" }} → {{ trip.destination_text or "?" }}</p>
 {% endif %}
-<p><a href="/trips/{{ trip.id }}/offers/new">Add an offer by hand</a></p>
+<p><a href="/trips/{{ trip.id }}/offers/new">Add an offer by hand</a> · <a href="/trips/{{ trip.id }}/captures">Captures</a></p>
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.max_transfers is not none or view.max_duration_min is not none %}
 <form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
@@ -51,6 +51,22 @@
       <input type="number" name="short_transfer_min" min="0" max="240" step="1" value="{{ weights.short_transfer_min }}"></label>
     <label>Short transfer penalty €
       <input type="number" name="short_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.short_transfer_penalty }}"></label>
+    <label>Train markup € (negative = discount)
+      <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
+    <label>Bus markup €
+      <input type="number" name="bus_markup" min="-1000" max="1000" step="0.01" value="{{ weights.bus_markup }}"></label>
+    <label>Flight markup €
+      <input type="number" name="flight_markup" min="-1000" max="1000" step="0.01" value="{{ weights.flight_markup }}"></label>
+    <label>Ferry markup €
+      <input type="number" name="ferry_markup" min="-1000" max="1000" step="0.01" value="{{ weights.ferry_markup }}"></label>
+    <label>Non-refundable fare € (negative = bonus)
+      <input type="number" name="flex_non_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_non_refundable }}"></label>
+    <label>Partly refundable fare € (negative = bonus)
+      <input type="number" name="flex_partly_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_partly_refundable }}"></label>
+    <label>Flexible fare € (negative = bonus)
+      <input type="number" name="flex_flexible" min="-1000" max="1000" step="0.01" value="{{ weights.flex_flexible }}"></label>
+    <label>Self-transfer €
+      <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
   </details>
 </form>
 <div class="scroll" id="table">

@@ -31,6 +31,17 @@ class Weights:
     # The short-transfer penalty (#173): a transfer shorter than the minimum; a penalty of 0 disables it.
     short_transfer_min: int = 10
     short_transfer_penalty: Decimal = Decimal("0")
+    # The mode markups (#174): a flat amount per itinerary that uses the mode; a negative amount is a discount.
+    train_markup: Decimal = Decimal("0")
+    bus_markup: Decimal = Decimal("0")
+    flight_markup: Decimal = Decimal("0")
+    ferry_markup: Decimal = Decimal("0")
+    # The flexibility amounts per tier (#175): signed (negative = bonus); 0 disables each.
+    flex_non_refundable: Decimal = Decimal("0")
+    flex_partly_refundable: Decimal = Decimal("0")
+    flex_flexible: Decimal = Decimal("0")
+    # The penalty per self-transfer of a fare (#176); 0 disables it.
+    self_transfer_penalty: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
