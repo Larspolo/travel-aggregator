@@ -117,7 +117,8 @@ jobs:
               echo "pacer is not \"workflow\" in [pacing] (steering/system/system.toml): stop the loop"; stop=1; exit 0; }
             # a failed call (HTTP 401, 500): red now, and the next run after one cycle
             python3 framework/tools/pacer.py --log "$RUNNER_TEMP/pacer.jsonl" || exit 1
-            gh workflow run dashboard-site.yml --repo "$GITHUB_REPOSITORY" --ref main || true   # the dashboard, fresh each cycle
+            # the dashboard site, fresh each cycle; a project without it (a new project) skips the call (HTTP 404 each cycle)
+            [ ! -f .github/workflows/dashboard-site.yml ] || gh workflow run dashboard-site.yml --repo "$GITHUB_REPOSITORY" --ref main || true
             # the status issue: 6 runs an hour, not one after each merge (35 an hour, 30 to 50 API calls each, 2026-10-29)
             gh workflow run dashboard.yml --repo "$GITHUB_REPOSITORY" --ref main || true
             # the status comments and the cycle records to the branch metrics: the cron of metrics.yml fires a few times a day
