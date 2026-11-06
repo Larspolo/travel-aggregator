@@ -11,7 +11,7 @@ want=${1:-$(git rev-parse origin/main)}
 json() { python3 -c "import json, sys; print(json.load(sys.stdin)$1)"; }
 
 got=
-for _ in $(seq 60); do        # CI, the workflow "Preview image" and watchtower: about 10 minutes, at most 15
+for _ in $(seq 60); do        # CI with its job preview, then watchtower: about 10 minutes, at most 15
   got=$(curl -fsS "$url/api/health" 2>/dev/null | json '["commit"]') || got=
   [ "$got" = "$want" ] && break
   sleep 15

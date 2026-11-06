@@ -16,7 +16,7 @@ skill runs on the owner's computer. A cloud session has no window: stop there an
    `[owner_tasks]` in `agent.toml`).
 3. The preview server runs the newest green `main`: `https://travel-preview.larspolo.nl` (`deploy/preview/`).
    Compare the `commit` of `https://travel-preview.larspolo.nl/api/health` with `git rev-parse origin/main`; when
-   they differ, wait up to 10 minutes (CI, the workflow "Preview image", then watchtower). Give the owner the address
+   they differ, wait up to 10 minutes (CI with its job `preview`, then watchtower). Give the owner the address
    and, per new feature, 1 to 3 steps to try it. Only when the owner asks for a local run: start `dev` of
    `[commands]` in `agent.toml` in the background and wait for its ready line.
 
@@ -32,4 +32,4 @@ While the owner tries the features:
 
 Stop a local server, if you started one. Comment "Tried: <date>" on the status issue, with the list of new tickets.
 When the preview does not show the newest commit, or it does not answer, make a bug ticket for it first: each other
-try depends on it (the run of "Preview image", then the owner's `docker compose logs` on the server).
+try depends on it (the job `preview` of the CI run on `main`, then the owner's `docker compose logs` on the server).
