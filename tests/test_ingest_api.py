@@ -50,7 +50,8 @@ def body(trip_id, **change):
 def test_a_valid_post_stores_itinerary_legs_fare_and_price(setup, sessions):
     client, auth, trip_id = setup
     r = client.post("/api/ingest", json=body(trip_id), headers=auth)
-    assert r.status_code == 200 and r.json() == {"created": 1, "updated": 0, "unchanged": 0}
+    assert r.status_code == 200 and r.json() == {"created": 1, "updated": 0, "unchanged": 0, "rejected": 0,
+                                                 "errors": []}
     with sessions() as s:
         it = s.scalar(select(Itinerary))
         assert (it.trip_id, it.transfers, it.duration_min, it.mode_summary) == (trip_id, 1, 472, "train")
@@ -68,7 +69,8 @@ def test_the_same_journey_again_adds_a_price_row_not_an_itinerary(setup, session
     client.post("/api/ingest", json=body(trip_id), headers=auth)
     later = body(trip_id, captured_at="2026-11-04T08:00:00Z")
     later["offers"][0]["price_amount"] = "79.90"
-    assert client.post("/api/ingest", json=later, headers=auth).json() == {"created": 0, "updated": 1, "unchanged": 0}
+    assert client.post("/api/ingest", json=later, headers=auth).json() == {"created": 0, "updated": 1, "unchanged": 0,
+                                                                                 "rejected": 0, "errors": []}
     with sessions() as s:
         assert s.scalar(select(func.count()).select_from(Itinerary)) == 1
         assert s.scalar(select(func.count()).select_from(FarePrice)) == 2
@@ -98,16 +100,11 @@ def _bad(trip_id, path, value):
 
 
 @pytest.mark.parametrize("path, value", [
-    (("offers", 0, "legs", 0, "depart_at"), "2026-12-20T07:34:00"),       # a naive time
     (("captured_at",), "2026-11-03T19:41:00"),                               # a naive time
-    (("offers", 0, "price_amount"), "89.999"),                               # more than 2 decimals
-    (("offers", 0, "price_amount"), "a lot"),
-    (("offers", 0, "price_currency"), "euro"),
-    (("offers", 0, "legs"), []),
-    (("offers", 0, "legs", 0, "mode"), "rocket"),
-    (("offers", 0, "booking_url"), "javascript:alert(1)"),
-    (("offers", 0, "legs", 1, "depart_at"), "2026-12-20T13:00:00+01:00"),  # departs before the leg before arrives
     (("offers",), []),                                                       # no raw and no offers
+    (("offers",), "not a list"),
+    (("trip_id",), 0),
+    (("source",), ""),
 ])
 def test_bad_input_gets_422(setup, sessions, path, value):
     client, auth, trip_id = setup
@@ -128,7 +125,7 @@ def test_too_many_offers_get_422_and_a_too_large_body_413(setup):
 def test_raw_only_stores_one_capture_and_no_itinerary(setup, sessions):
     client, auth, trip_id = setup
     r = client.post("/api/ingest", json=body(trip_id, offers=[], raw={"journeys": []}), headers=auth)
-    assert r.status_code == 200 and r.json() == {"created": 0, "updated": 0, "unchanged": 0}
+    assert r.status_code == 200 and r.json() == {"created": 0, "updated": 0, "unchanged": 0, "rejected": 0, "errors": []}
     with sessions() as s:
         assert s.scalar(select(func.count()).select_from(Capture)) == 1
         assert s.scalar(select(func.count()).select_from(Itinerary)) == 0

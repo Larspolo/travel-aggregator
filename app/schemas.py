@@ -5,7 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 MAX_OFFERS = 500           # offers per batch
 MAX_LEGS = 20              # legs per offer
@@ -62,12 +62,44 @@ class IngestIn(BaseModel):
     search_context: dict[str, Any] | None = None
     raw: Any = None
     offers: list[OfferIn] = Field(default_factory=list, max_length=MAX_OFFERS)
+    # One entry {"index", "reason"} per rejected offer (#54). Set only by `_split_offers`, never by the client.
+    offer_errors: list[dict[str, Any]] = Field(default_factory=list, exclude=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _split_offers(cls, data: Any) -> Any:
+        """Validate each offer on its own: a bad offer is rejected, the other offers stay (docs/SPEC.md section 5).
+        A list that is not a list or is too long stays for the field check (422 for the envelope)."""
+        if not isinstance(data, dict):
+            return data
+        data = {**data, "offer_errors": []}
+        offers = data.get("offers")
+        if not isinstance(offers, list) or len(offers) > MAX_OFFERS:
+            return data
+        good = []
+        for i, raw in enumerate(offers):
+            if isinstance(raw, OfferIn):
+                good.append(raw)
+                continue
+            try:
+                good.append(OfferIn.model_validate(raw))
+            except ValidationError as e:
+                data["offer_errors"].append({"index": i, "reason": _short_reason(e)})
+        data["offers"] = good
+        return data
 
     @model_validator(mode="after")
     def _raw_or_offers(self) -> "IngestIn":
-        if self.raw is None and not self.offers:
+        if self.raw is None and not self.offers and not self.offer_errors:
             raise ValueError("the body needs raw or offers")
         return self
+
+
+def _short_reason(e: ValidationError) -> str:
+    """The location and message of the first error, with no input value: the offer is untrusted (P5)."""
+    err = e.errors(include_input=False, include_url=False)[0]
+    loc = ".".join(str(x) for x in err["loc"])
+    return f"{loc}: {err['msg']}"[:200] if loc else err["msg"][:200]
 
 
 def utc_offset_min(t: datetime) -> int:
