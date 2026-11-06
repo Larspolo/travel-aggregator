@@ -32,6 +32,7 @@ class Trip(Base):
     travelers: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     status: Mapped[str] = mapped_column(String(20), default="planning", server_default="planning")
     notes: Mapped[str | None] = mapped_column(Text)
+    profile_id: Mapped[int | None] = mapped_column(ForeignKey("score_profiles.id", ondelete="SET NULL"))  # #232
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
 
     itineraries: Mapped[list["Itinerary"]] = relationship(back_populates="trip", cascade="all, delete-orphan")

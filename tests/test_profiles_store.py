@@ -94,7 +94,7 @@ def test_migration_0008_up_and_down(empty_database_url):
     engine = create_engine(empty_database_url)
     try:
         assert "score_profiles" in inspect(engine).get_table_names()
-        command.downgrade(cfg, "-1")
+        command.downgrade(cfg, "0007")  # one step below 0008: the head is 0009 now (#232)
         assert "score_profiles" not in inspect(engine).get_table_names()
         command.upgrade(cfg, "head")
     finally:
