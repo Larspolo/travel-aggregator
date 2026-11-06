@@ -44,6 +44,8 @@ class Weights:
     self_transfer_penalty: Decimal = Decimal("0")
     # The age in hours after which a row is stale (#275): a display flag only, not part of the cost.
     stale_hours: int = 24
+    # The penalty of a stale row (#276): added to its cost; 0 disables it.
+    stale_penalty: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
