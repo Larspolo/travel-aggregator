@@ -6,5 +6,6 @@ select = ["F"]                  # the copied tools pass these rules; add more ru
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "framework/tests"]
-addopts = "-q -m 'not slow' --import-mode=importlib"  # tests/ and framework/tests/ can have the same file names
-markers = ["slow: Playwright browser tests of the pages and the userscripts; run with: pytest -m slow"]
+addopts = "-q -m 'not slow and not readme' --import-mode=importlib"  # tests/ and framework/tests/ can have the same file names
+markers = ["slow: Playwright browser tests of the pages and the userscripts; run with: pytest -m slow",
+           "readme: README.md covers the routes and the settings; only at the end of an epic: pytest -m readme"]

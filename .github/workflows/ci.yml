@@ -37,8 +37,9 @@ jobs:
       - name: Fast tests
         run: python3 -m pytest -n auto
 
-  # The image: build it, start it with no database (before the migrations exist) and check /api/health. The cloud
-  # sessions have no Docker daemon, so this job is the check of Dockerfile and docker-entrypoint.sh.
+  # The image: build it, start it with a PostgreSQL 16 container as on the server (the start runs the migrations), and
+  # check /api/health. The cloud sessions have no Docker daemon, so this job is the check of Dockerfile and
+  # docker-entrypoint.sh.
   docker:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -48,11 +49,15 @@ jobs:
         run: docker build --build-arg GIT_SHA=${{ github.sha }} -t travel-aggregator:ci .
       - name: Start and check /api/health
         run: |
-          docker run -d --name app -p 8000:8000 travel-aggregator:ci
+          docker network create ci
+          docker run -d --name db --network ci -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test -e POSTGRES_DB=test postgres:16
+          for i in $(seq 30); do docker exec db pg_isready -U test -d test -h 127.0.0.1 && break; sleep 1; done
+          docker run -d --name app --network ci -p 8000:8000 \
+            -e DATABASE_URL=postgresql+psycopg://test:test@db:5432/test travel-aggregator:ci
           for i in $(seq 30); do curl -fsS http://127.0.0.1:8000/api/health && break; sleep 1; done
           curl -fsS http://127.0.0.1:8000/api/health | grep -q '"commit":"${{ github.sha }}"'
           [ "$(docker exec app id -u)" != 0 ]          # not root
           for i in $(seq 40); do [ "$(docker inspect -f '{{.State.Health.Status}}' app)" = healthy ] && break; sleep 2; done
           docker inspect -f '{{.State.Health.Status}}' app | grep -qx healthy
       - if: failure()
-        run: docker logs app || true
+        run: docker logs app || true; docker logs db | tail -20 || true

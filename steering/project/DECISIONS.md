@@ -16,3 +16,4 @@ the owner chose another option, `-`: no recommendation) · principle (`P<n>`, or
 - 2026-11-06 · setup · Roadmap of 4 goals (capture, rank, trip, host), as drafted · taken · -
 - 2026-11-06 · setup · A preview server at travel-preview.larspolo.nl follows each green main (`:preview`, scoped watchtower, own database); the real instance follows `:latest` per epic · taken · -
 - 2026-11-06 · setup · The preview pages get Traefik basic auth until the login exists; `/api` keeps its token only · taken · P5
+- 2026-11-06 · setup · Add a README; update it only at the end of each epic, in one PR, not in each ticket PR · changed · new
