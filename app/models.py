@@ -169,6 +169,18 @@ class AccessTime(Base):
     cost: Mapped[Decimal] = mapped_column(Money)
 
 
+class CurrencyRate(Base):
+    """The rate of one currency to EUR: `eur_per_unit` EUR for one unit of `code` (#383)."""
+    __tablename__ = "currency_rates"
+    __table_args__ = (
+        CheckConstraint("eur_per_unit > 0", name="ck_currency_rates_positive"),
+    )
+
+    code: Mapped[str] = mapped_column(String(3), primary_key=True)
+    eur_per_unit: Mapped[Decimal] = mapped_column(Numeric(14, 6))
+    updated_at: Mapped[datetime] = mapped_column(_tz())
+
+
 class ScoreProfile(Base):
     """A named set of weights (#229). Only one row can be the default: a partial unique index."""
     __tablename__ = "score_profiles"
