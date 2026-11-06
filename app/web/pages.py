@@ -197,52 +197,76 @@ SORT_KEYS = {  # the sort keys of the trip table columns (#112); None sorts as t
 }
 
 
-@router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
-              hour_markup: Decimal | None = Query(None, ge=0, le=100),
-              transfer_markup: Decimal | None = Query(None, ge=0, le=100),
-              airport_before_min: int | None = Query(None, ge=0, le=1440),
-              airport_after_min: int | None = Query(None, ge=0, le=1440),
-              baggage_fee: Decimal | None = Query(None, ge=0, le=1000),
-              early_limit: time | None = Query(None),
-              late_limit: time | None = Query(None),
-              time_window_penalty: Decimal | None = Query(None, ge=0, le=1000),
-              night_start: time | None = Query(None), night_end: time | None = Query(None),
-              night_min: int | None = Query(None, ge=0, le=1440),
-              night_adjust: Decimal | None = Query(None, ge=-1000, le=1000),
-              night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
-              short_transfer_min: int | None = Query(None, ge=0, le=240),
-              short_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
-              flex_non_refundable: Decimal | None = Query(None, ge=-1000, le=1000),
-              flex_partly_refundable: Decimal | None = Query(None, ge=-1000, le=1000),
-              flex_flexible: Decimal | None = Query(None, ge=-1000, le=1000),
-              self_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
-              stale_hours: int | None = Query(None, ge=1, le=720),
-              stale_penalty: Decimal | None = Query(None, ge=0, le=1000),
-              sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
-              dir: str = Query("asc", pattern="^(asc|desc)$"),
-              mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
-              train_markup: Decimal | None = Query(None, ge=-1000, le=1000),
-              bus_markup: Decimal | None = Query(None, ge=-1000, le=1000),
-              flight_markup: Decimal | None = Query(None, ge=-1000, le=1000),
-              ferry_markup: Decimal | None = Query(None, ge=-1000, le=1000),
-              max_transfers: str = Query("", max_length=5), max_duration_min: str = Query("", max_length=6),
-              earliest_depart: str = Query("", pattern=CLOCK_PATTERN), latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
-              exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
-              exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
-              show_hidden: bool = Query(False), hide_stale: bool = Query(False),
-              profile: int | None = Query(None)) -> HTMLResponse:
-    # the weights of the URL; None = not in the URL, the default profile gives the value (#230)
-    overrides = {k: v for k, v in locals().items() if k in WEIGHT_NAMES}
-    trip = session.get(Trip, trip_id)
-    if trip is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
-    # the order (#232): a weight in the URL, the profile of the URL (#231), the profile of the trip, the default one;
-    # an unknown id in the URL gives the default profile, no error
+def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
+                 transfer_markup: Decimal | None = Query(None, ge=0, le=100),
+                 airport_before_min: int | None = Query(None, ge=0, le=1440),
+                 airport_after_min: int | None = Query(None, ge=0, le=1440),
+                 baggage_fee: Decimal | None = Query(None, ge=0, le=1000),
+                 early_limit: time | None = Query(None),
+                 late_limit: time | None = Query(None),
+                 time_window_penalty: Decimal | None = Query(None, ge=0, le=1000),
+                 night_start: time | None = Query(None),
+                 night_end: time | None = Query(None),
+                 night_min: int | None = Query(None, ge=0, le=1440),
+                 night_adjust: Decimal | None = Query(None, ge=-1000, le=1000),
+                 night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
+                 short_transfer_min: int | None = Query(None, ge=0, le=240),
+                 short_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
+                 flex_non_refundable: Decimal | None = Query(None, ge=-1000, le=1000),
+                 flex_partly_refundable: Decimal | None = Query(None, ge=-1000, le=1000),
+                 flex_flexible: Decimal | None = Query(None, ge=-1000, le=1000),
+                 self_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
+                 stale_hours: int | None = Query(None, ge=1, le=720),
+                 stale_penalty: Decimal | None = Query(None, ge=0, le=1000),
+                 train_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 bus_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 flight_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 ferry_markup: Decimal | None = Query(None, ge=-1000, le=1000)) -> dict:
+    """The weights of the URL; None = not in the URL, the profile gives the value (#230)."""
+    return dict(locals())
+
+
+def resolve_weights(session: Session, trip: Trip, overrides: dict, profile: int | None):
+    """The active weights and the chosen profile (#232): a weight in the URL, the profile of the URL (#231), the
+    profile of the trip, the default one. An unknown id in the URL gives the default profile, no error."""
     if profile is not None:
         chosen = session.get(ScoreProfile, profile)
     else:
         chosen = session.get(ScoreProfile, trip.profile_id) if trip.profile_id is not None else None
+    base = from_config(chosen.config_json) if chosen is not None else default_weights(session)
+    return active_weights(base, overrides), chosen  # the score is computed here and never stored
+
+
+def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datetime):
+    """The main fare of one itinerary and its effective cost: the lowest cost, a tie goes to the lowest price (#175)."""
+    base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
+            + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
+            + transfer_extras(it, weights) + stale_extras(it, weights, stale_before))
+    return min(((f, effective_cost(f.latest_price, it.duration_min, it.transfers, weights,
+                                   base + flexibility_extras(f, weights) + self_transfer_extras(f, weights)))
+                for f in fares), key=lambda fc: (fc[1].total, fc[0].latest_price))
+
+
+@router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
+              overrides: dict = Depends(weight_query),
+              sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
+              dir: str = Query("asc", pattern="^(asc|desc)$"),
+              mode: str = Query("", max_length=50),
+              source: str = Query("", max_length=50),
+              max_transfers: str = Query("", max_length=5),
+              max_duration_min: str = Query("", max_length=6),
+              earliest_depart: str = Query("", pattern=CLOCK_PATTERN),
+              latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
+              exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
+              exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
+              show_hidden: bool = Query(False),
+              hide_stale: bool = Query(False),
+              profile: int | None = Query(None)) -> HTMLResponse:
+    trip = session.get(Trip, trip_id)
+    if trip is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    weights, chosen = resolve_weights(session, trip, overrides, profile)
     profiles = list_profiles(session)
     active_id = chosen.id if chosen is not None else next((p.id for p in profiles if p.is_default), None)
     # an empty box of the form is no limit (#180); a number is capped to its range
@@ -256,8 +280,6 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, *hidden_filter)
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
-    base = from_config(chosen.config_json) if chosen is not None else default_weights(session)
-    weights = active_weights(base, overrides)  # the score is computed here and never stored
     now = datetime.now(timezone.utc)
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
     rows, modes, sources, carriers = [], set(), set(), set()
@@ -280,13 +302,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # the time limits hide this row (#181)
         if hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before:
             continue  # "hide stale" hides a row whose newest capture is stale (#277)
-        base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
-                + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
-                + transfer_extras(it, weights) + stale_extras(it, weights, stale_before))
-        # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
-        fare, cost = min(((f, effective_cost(f.latest_price, it.duration_min, it.transfers, weights,
-                                             base + flexibility_extras(f, weights) + self_transfer_extras(f, weights)))
-                          for f in fares), key=lambda fc: (fc[1].total, fc[0].latest_price))
+        fare, cost = row_cost(it, fares, places, weights, stale_before)
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
@@ -540,3 +556,33 @@ def save_settings(retention: str = Form(""), session: Session = Depends(get_sess
     session.merge(Setting(key=RETENTION_KEY, value=str(int(value))))
     session.commit()
     return RedirectResponse("/settings", status_code=303)
+
+
+COMPARE_ERROR = "Select 2 to 4 offers of this trip."
+
+
+@router.get("/trips/{trip_id}/compare", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def compare_page(request: Request, trip_id: int, session: Session = Depends(get_session),
+                 overrides: dict = Depends(weight_query), profile: int | None = Query(None),
+                 it: list[int] = Query([])) -> HTMLResponse:
+    """2 to 4 itineraries of a trip side by side, with the same effective cost as the trip table (#292)."""
+    trip = _get_trip(session, trip_id)
+    weights, chosen = resolve_weights(session, trip, overrides, profile)
+    ids = list(dict.fromkeys(it))  # distinct, in the order of the URL
+    found = {i.id: i for i in session.scalars(
+        select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.id.in_(ids))
+        .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()} if ids else {}
+    query = {k: v for k, v in to_config(weights).items() if v is not None}
+    if chosen is not None:
+        query["profile"] = chosen.id
+    context = {"trip": trip, "columns": [], "error": None, "sort_qs": urlencode(query, doseq=True),
+               "format_breakdown": format_breakdown}
+    if not 2 <= len(ids) <= 4 or any(i not in found or not found[i].fares for i in ids):
+        context["error"] = COMPARE_ERROR
+        return templates.TemplateResponse(request, "compare.html", context, status_code=400)
+    places = session.scalars(select(AccessTime)).all()
+    stale_before = datetime.now(timezone.utc) - timedelta(hours=weights.stale_hours)
+    for i in ids:
+        fare, cost = row_cost(found[i], found[i].fares, places, weights, stale_before)
+        context["columns"].append((found[i], fare, cost))
+    return templates.TemplateResponse(request, "compare.html", context)
