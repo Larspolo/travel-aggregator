@@ -66,7 +66,7 @@ def test_page(engine, monkeypatch):
     _seed(engine)
     html = _client(monkeypatch).get("/").text
     assert "Utrecht → Berlin" in html and "2026-12-01 – 2026-12-05" in html
-    assert "EUR 45.50" in html and "active" in html
+    assert "EUR 45.50" in html and "planning" in html
     assert "no offers yet" in html and "<td>0</td>" in html
     assert "<script>alert" not in html and "&lt;script&gt;alert(1)&lt;/script&gt;" in html
 

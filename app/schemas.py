@@ -106,7 +106,7 @@ def utc_offset_min(t: datetime) -> int:
     return int(t.utcoffset().total_seconds() // 60)
 
 
-TripStatus = Literal["active", "planning", "booked", "archived"]
+TripStatus = Literal["planning", "booked", "archived"]
 
 
 class TripForm(BaseModel):
