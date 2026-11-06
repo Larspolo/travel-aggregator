@@ -1,19 +1,31 @@
-"""The web pages: login, logout, the trips list and the trip page. Jinja2 escapes all output: captured text is
+"""The web pages: login, logout, the trips list, the trip page, the API tokens and the access and egress places. Jinja2 escapes all output: captured text is
 untrusted (P5)."""
 
-from datetime import datetime, timedelta, timezone
+import math
+from datetime import datetime, time, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
+from typing import Annotated
+from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
+from pydantic import Field, ValidationError
+from sqlalchemy.orm import Session, subqueryload
 
-from app.auth import SESSION_KEY, check_password, csrf_token, require_login, verify_csrf
+from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
-from app.models import Itinerary, Trip
+from app.door import door_extras, flight_extras
+from app.flexibility import flexibility_extras
+from app.risk import mode_extras, self_transfer_extras
+from app.models import AccessTime, ApiToken, Itinerary, Trip
+from app.schemas import TripForm
+from app.ranking import Weights, effective_cost, format_breakdown
+from app.timeofday import night_extras, night_time_extras, time_extras
+from app.tokens import create as create_token, revoke as revoke_token
 from app.trips import list_trips
 
 router = APIRouter()
@@ -28,6 +40,33 @@ def local(t: datetime, offset_min: int) -> datetime:
 
 templates.env.filters["local"] = local
 
+MODE_ICONS = {"train": "🚆", "bus": "🚌", "flight": "✈️"}
+
+
+def mode_icon(mode: str) -> str:
+    """The icon of one leg mode (a mode with no icon gets a dot)."""
+    return MODE_ICONS.get(mode, "•")
+
+
+def day_gap(arrive_local: datetime, depart_local: datetime) -> int:
+    """How many local calendar days later the arrival is than the departure."""
+    return (arrive_local.date() - depart_local.date()).days
+
+
+def ago(t: datetime, now: datetime) -> str:
+    """The age of a capture, for example '2 h ago'."""
+    seconds = max(0, int((now - t).total_seconds()))
+    if seconds < 3600:
+        return f"{seconds // 60} min ago"
+    if seconds < 48 * 3600:
+        return f"{seconds // 3600} h ago"
+    return f"{seconds // 86400} days ago"
+
+
+templates.env.filters["mode_icon"] = mode_icon
+templates.env.filters["day_gap"] = day_gap
+templates.env.filters["ago"] = ago
+
 
 @router.get("/login", response_class=HTMLResponse)
 def login_form(request: Request) -> HTMLResponse:
@@ -36,11 +75,19 @@ def login_form(request: Request) -> HTMLResponse:
 
 @router.post("/login", response_class=HTMLResponse, dependencies=[Depends(verify_csrf)])
 def login(request: Request, password: str = Form("")) -> HTMLResponse:
+    address = request.client.host if request.client else "unknown"
+    wait = login_limiter.retry_after(address)
+    if wait:
+        minutes = math.ceil(wait / 60)
+        return HTMLResponse(f"Too many attempts. Try again in {minutes} minutes.", status_code=429,
+                            headers={"Retry-After": str(wait)})
     if check_password(password, get_settings().owner_password_hash):
+        login_limiter.success(address)
         request.session.clear()
         request.session[SESSION_KEY] = True
         csrf_token(request)  # a new token after the login
         return RedirectResponse("/", status_code=303)
+    login_limiter.failure(address)
     return templates.TemplateResponse(request, "login.html", {"error": "Wrong password."}, status_code=401)
 
 
@@ -55,17 +102,179 @@ def index(request: Request, session: Session = Depends(get_session)) -> HTMLResp
     return templates.TemplateResponse(request, "trips.html", {"trips": list_trips(session)})
 
 
-@router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+FORM_FIELDS = tuple(TripForm.model_fields)
+
+
+def _form_page(request: Request, values: dict, errors: list[str], trip_id: int | None, code: int = 200):
+    return templates.TemplateResponse(request, "trip_form.html",
+                                      {"values": values, "errors": errors, "trip_id": trip_id}, status_code=code)
+
+
+async def _save(request: Request, session: Session, trip: Trip | None):
+    form = await request.form()
+    values = {k: str(form.get(k, "")) for k in FORM_FIELDS}
+    try:
+        data = TripForm.model_validate(values)
+    except ValidationError as e:
+        errors = [f"{'.'.join(map(str, err['loc'])) or 'form'}: {err['msg']}" for err in e.errors()]
+        return _form_page(request, values, errors, trip.id if trip else None, 422)
+    if trip is None:
+        trip = Trip()
+        session.add(trip)
+    for k, v in data.model_dump().items():
+        setattr(trip, k, v)
+    session.commit()
+    return RedirectResponse("/", status_code=303)
+
+
+def _get_trip(session: Session, trip_id: int) -> Trip:
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    return trip
+
+
+@router.get("/trips/new", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def new_trip_form(request: Request) -> HTMLResponse:
+    return _form_page(request, {"travelers": 1, "status": "planning"}, [], None)
+
+
+@router.post("/trips/new", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def new_trip(request: Request, session: Session = Depends(get_session)):
+    return await _save(request, session, None)
+
+
+@router.get("/trips/{trip_id}/edit", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def edit_trip_form(request: Request, trip_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+    trip = _get_trip(session, trip_id)
+    values = {k: ("" if getattr(trip, k) is None else getattr(trip, k)) for k in FORM_FIELDS}
+    return _form_page(request, values, [], trip_id)
+
+
+@router.post("/trips/{trip_id}/edit", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def edit_trip(request: Request, trip_id: int, session: Session = Depends(get_session)):
+    return await _save(request, session, _get_trip(session, trip_id))
+
+
+SORT_KEYS = {  # the sort keys of the trip table columns (#112); None sorts as the empty text
+    "route": lambda r: (r[0].legs[0].from_name or "", r[0].legs[-1].to_name or ""),
+    "depart": lambda r: r[0].depart_at,
+    "arrive": lambda r: r[0].arrive_at,
+    "carrier": lambda r: [leg.carrier or "" for leg in r[0].legs],
+    "fare": lambda r: (r[1].fare_name or "", r[1].source),
+    "price": lambda r: r[1].latest_price,
+    "cost": lambda r: r[2].total,
+}
+
+
+@router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
+              hour_markup: Decimal = Query(Weights.hour_markup, ge=0, le=100),
+              transfer_markup: Decimal = Query(Weights.transfer_markup, ge=0, le=100),
+              airport_before_min: int = Query(Weights.airport_before_min, ge=0, le=1440),
+              airport_after_min: int = Query(Weights.airport_after_min, ge=0, le=1440),
+              baggage_fee: Decimal = Query(Weights.baggage_fee, ge=0, le=1000),
+              early_limit: time = Query(Weights.early_limit),
+              late_limit: time = Query(Weights.late_limit),
+              time_window_penalty: Decimal = Query(Weights.time_window_penalty, ge=0, le=1000),
+              night_start: time = Query(Weights.night_start), night_end: time = Query(Weights.night_end),
+              night_min: int = Query(Weights.night_min, ge=0, le=1440),
+              night_adjust: Decimal = Query(Weights.night_adjust, ge=-1000, le=1000),
+              night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
+              flex_non_refundable: Decimal = Query(Weights.flex_non_refundable, ge=-1000, le=1000),
+              flex_partly_refundable: Decimal = Query(Weights.flex_partly_refundable, ge=-1000, le=1000),
+              flex_flexible: Decimal = Query(Weights.flex_flexible, ge=-1000, le=1000),
+              self_transfer_penalty: Decimal = Query(Weights.self_transfer_penalty, ge=0, le=1000),
+              sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
+              dir: str = Query("asc", pattern="^(asc|desc)$"),
+              mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
+              train_markup: Decimal = Query(Weights.train_markup, ge=-1000, le=1000),
+              bus_markup: Decimal = Query(Weights.bus_markup, ge=-1000, le=1000),
+              flight_markup: Decimal = Query(Weights.flight_markup, ge=-1000, le=1000),
+              ferry_markup: Decimal = Query(Weights.ferry_markup, ge=-1000, le=1000),
+              max_transfers: str = Query("", max_length=5), max_duration_min: str = Query("", max_length=6),
+              exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
+              exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([])) -> HTMLResponse:
+    trip = session.get(Trip, trip_id)
+    if trip is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    # an empty box of the form is no limit (#180); a number is capped to its range
+    limit_transfers = min(int(max_transfers), 10) if max_transfers.isdigit() else None
+    limit_duration = min(int(max_duration_min), 10080) if max_duration_min.isdigit() else None
+    # subqueryload: one statement per relation; selectinload adds one per 500 offers (#115)
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
-                                  .options(selectinload(Itinerary.legs), selectinload(Itinerary.fares))).all()
-    rows = [(it, min(it.fares, key=lambda f: f.latest_price)) for it in itineraries if it.fares]
-    rows.sort(key=lambda r: (r[1].latest_price, r[0].depart_at))   # ranking comes with rank:base
-    rows.sort(key=lambda r: not r[0].pinned)   # stable: the pinned rows first, in their order
-    return templates.TemplateResponse(request, "trip.html", {"trip": trip, "rows": rows})
+                                  .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
+    places = session.scalars(select(AccessTime)).all()  # once per request
+    weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
+                      early_limit, late_limit, time_window_penalty,
+                      night_start, night_end, night_min, night_adjust, night_hour_markup,
+                      flex_non_refundable=flex_non_refundable, flex_partly_refundable=flex_partly_refundable,
+                      flex_flexible=flex_flexible, self_transfer_penalty=self_transfer_penalty,
+                      train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
+                      ferry_markup=ferry_markup)  # the score is computed here and never stored
+    rows, modes, sources, carriers = [], set(), set(), set()
+    for it in itineraries:
+        if not it.fares:
+            continue  # an itinerary with no fare has no cost: it is not a row
+        it_modes = {m for m in (it.mode_summary or "").split("+") if m}
+        modes |= it_modes
+        sources |= {f.source for f in it.fares}
+        carriers |= {leg.carrier for leg in it.legs if leg.carrier}
+        fares = [f for f in it.fares if not source or f.source == source]
+        if not fares or (mode and mode not in it_modes):
+            continue  # the filter hides this row (#112)
+        if (limit_transfers is not None and it.transfers > limit_transfers) or (
+                limit_duration is not None and it.duration_min > limit_duration):
+            continue  # the limits of transfers and duration hide this row
+        if any(leg.mode in exclude_mode or leg.carrier in exclude_carrier for leg in it.legs):
+            continue  # an excluded mode or carrier hides each offer with one of its legs
+        base = (door_extras(it, places, hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
+                + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights))
+        # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
+        fare, cost = min(((f, effective_cost(f.latest_price, it.duration_min, it.transfers, weights,
+                                             base + flexibility_extras(f, weights) + self_transfer_extras(f, weights)))
+                          for f in fares), key=lambda fc: (fc[1].total, fc[0].latest_price))
+        rows.append((it, fare, cost))
+    rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
+    badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
+    if rows:
+        for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[1].latest_price),
+                          ("fastest", lambda r: r[0].duration_min)):
+            badges.setdefault(min(rows, key=key)[0].id, []).append(name)
+    if sort != "cost" or dir == "desc":
+        rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
+    rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
+    view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges,
+            "max_transfers": limit_transfers, "max_duration_min": limit_duration,
+            "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
+            "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
+    query = {"hour_markup": hour_markup, "transfer_markup": transfer_markup, "airport_before_min": airport_before_min,
+             "airport_after_min": airport_after_min, "baggage_fee": baggage_fee,
+             "early_limit": early_limit.strftime("%H:%M"), "late_limit": late_limit.strftime("%H:%M"),
+             "time_window_penalty": time_window_penalty,
+             "night_start": night_start.strftime("%H:%M"), "night_end": night_end.strftime("%H:%M"),
+             "night_min": night_min, "night_adjust": night_adjust, "self_transfer_penalty": self_transfer_penalty,
+             "ferry_markup": ferry_markup,
+             "flex_flexible": flex_flexible,
+             "flex_non_refundable": flex_non_refundable, "flex_partly_refundable": flex_partly_refundable,
+             "train_markup": train_markup, "bus_markup": bus_markup, "flight_markup": flight_markup,
+             **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
+             **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
+             **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
+             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
+    context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
+               "now": datetime.now(timezone.utc)}
+    if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
+        return templates.TemplateResponse(request, "trip_table.html", context)
+    return templates.TemplateResponse(request, "trip.html", context)
+
+
+def _tokens_page(request: Request, session: Session, new_token: str | None = None, code: int = 200) -> HTMLResponse:
+    tokens = session.scalars(select(ApiToken).order_by(ApiToken.created_at.desc(), ApiToken.id.desc())).all()
+    server_url = str(request.base_url).rstrip("/")
+    return templates.TemplateResponse(request, "tokens.html", {"tokens": tokens, "new_token": new_token,
+                                                               "server_url": server_url}, status_code=code)
 
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/pin",
@@ -77,3 +286,59 @@ def toggle_pin(trip_id: int, itinerary_id: int, session: Session = Depends(get_s
     it.pinned = not it.pinned
     session.commit()
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+@router.get("/tokens", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def tokens_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return _tokens_page(request, session)
+
+
+@router.post("/tokens", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
+def new_token(request: Request, name: str = Form(""), session: Session = Depends(get_session)) -> HTMLResponse:
+    name = name.strip()[:100]
+    if not name:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "a token needs a name")
+    # The value shows only in this response; the database keeps only its hash (P5).
+    return _tokens_page(request, session, create_token(session, name))
+
+
+@router.post("/tokens/{token_id}/revoke", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def revoke(token_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    revoke_token(session, token_id)
+    return RedirectResponse("/tokens", status_code=303)
+
+
+PLACE_KINDS = ("access", "egress")
+
+
+@router.get("/places", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def places_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    places = session.scalars(select(AccessTime).order_by(AccessTime.kind, AccessTime.place_text, AccessTime.id)).all()
+    return templates.TemplateResponse(request, "places.html", {"places": places, "kinds": PLACE_KINDS})
+
+
+@router.post("/places", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def new_place(place_text: str = Form(""), kind: str = Form(""), minutes: str = Form(""), cost: str = Form(""),
+              session: Session = Depends(get_session)) -> RedirectResponse:
+    place_text = place_text.strip()
+    try:
+        minutes_value = int(minutes)
+        cost_value = Decimal(cost.strip() or "0")
+    except (ValueError, InvalidOperation):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "minutes and cost must be numbers")
+    if (not place_text or len(place_text) > 200 or kind not in PLACE_KINDS or minutes_value < 0
+            or not cost_value.is_finite() or cost_value < 0 or cost_value >= Decimal("100000000")):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "a place needs a text, a kind and values >= 0")
+    session.add(AccessTime(place_text=place_text, kind=kind, minutes=minutes_value,
+                           cost=cost_value.quantize(Decimal("0.01"))))
+    session.commit()
+    return RedirectResponse("/places", status_code=303)
+
+
+@router.post("/places/{place_id}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def delete_place(place_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    place = session.get(AccessTime, place_id)
+    if place is not None:
+        session.delete(place)
+        session.commit()
+    return RedirectResponse("/places", status_code=303)

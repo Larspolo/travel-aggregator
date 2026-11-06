@@ -1,0 +1,9 @@
+# Caddy in front of travel-aggregator (deploy/production). Copy to /etc/caddy/Caddyfile on the server.
+# Change only the hostname on the first line: travel.example.com -> your own host. Caddy gets the HTTPS certificate itself.
+travel.example.com {
+	# All paths, /api too: the app has its own login, and the userscript sends its own Bearer token.
+	reverse_proxy 127.0.0.1:8000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-For {remote_host}
+	}
+}

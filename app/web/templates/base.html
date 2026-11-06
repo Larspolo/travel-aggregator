@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}travel-aggregator{% endblock %}</title>
+  <script src="/static/htmx.min.js"></script>
   <style>
     :root { color-scheme: light dark; --line: #8884; }
     body { font-family: system-ui, sans-serif; margin: 0 auto; max-width: 70rem; padding: 1rem; line-height: 1.4; }
@@ -11,6 +12,8 @@
     th, td { border-bottom: 1px solid var(--line); padding: .4rem .5rem; text-align: left; vertical-align: top; }
     td.price { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .muted { opacity: .7; font-size: .9em; }
+    .badge { display: inline-block; padding: 0 .4em; border-radius: .6em; background: #2e7d32; color: #fff; font-size: .8em; }
+    .weights { display: flex; gap: 2rem; flex-wrap: wrap; margin: .5rem 0 1rem; }
     .scroll { overflow-x: auto; }
   </style>
 </head>

@@ -1,0 +1,3156 @@
+{
+ "url": "https://int.bahn.de/web/api/angebote/fahrplan",
+ "method": "POST",
+ "request": {
+  "abfahrtsHalt": "A=1@O=Amsterdam Centraal@X=4899427@Y=52379191@U=80@L=8400058@p=1793814919@i=U×008400058@",
+  "anfrageZeitpunkt": "2026-11-20T06:48:00",
+  "ankunftsHalt": "A=1@O=ZURICH@X=8540534@Y=47378968@U=80@L=8596008@p=1793814919@",
+  "ankunftSuche": "ABFAHRT",
+  "klasse": "KLASSE_2",
+  "produktgattungen": [
+   "ICE",
+   "EC_IC",
+   "IR",
+   "REGIONAL",
+   "SBAHN",
+   "BUS",
+   "SCHIFF",
+   "UBAHN",
+   "TRAM",
+   "ANRUFPFLICHTIG"
+  ],
+  "reisende": [
+   {
+    "typ": "ERWACHSENER",
+    "ermaessigungen": [
+     {
+      "art": "KEINE_ERMAESSIGUNG",
+      "klasse": "KLASSENLOS"
+     }
+    ],
+    "alter": [],
+    "anzahl": 1
+   }
+  ],
+  "schnelleVerbindungen": true,
+  "autonomeReservierungOnly": false,
+  "bikeCarriage": false,
+  "reservierungsKontingenteVorhanden": false,
+  "nurFahrbareVerbindungen": false,
+  "nurDeutschlandTicketVerbindungen": false,
+  "deutschlandTicketVorhanden": false
+ },
+ "response": {
+  "verbindungen": [
+   {
+    "tripId": "5ef735b4_3",
+    "ctxRecon": "¶HKI¶T$A=1@O=Amsterdam Centraal@X=4899427@Y=52379191@L=8400058@a=128@$A=1@O=Utrecht Centraal@X=5109864@Y=52089397@L=8400621@a=128@$202611200654$202611200721$IC           3021$$1$$$$$$§T$A=1@O=Utrecht Centraal@X=5109864@Y=52089397@L=8400621@a=128@$A=1@O=Venlo@X=6171841@Y=51364408@L=8400644@a=128@$202611200724$202611200858$IC           3521$$1$$$$$$§T$A=1@O=Venlo@X=6171841@Y=51364408@L=8400644@a=128@$A=1@O=Düsseldorf Hbf@X=6794317@Y=51219960@L=8000085@a=128@$202611200905$202611201009$            20073$$1$$$$$$§T$A=1@O=Düsseldorf Hbf@X=6794317@Y=51219960@L=8000085@a=128@$A=1@O=Zürich HB@X=8540211@Y=47378177@L=8503000@a=128@$202611201024$202611201600$ICE           105$$1$$$$$$¶KC¶#VE#2#CF#100#CA#0#CM#0#SICT#0#AM#81#AM2#0#RT#7#¶KCC¶I1ZFIzEjRVJHIzgxOTYjSElOIzAjRUNLIzQ5NDM1MHw0OTQzMzR8NDk0ODgwfDQ5NDg4MHwwfDB8ODg1fDQ5NDMyNXwxfDB8MnwwfDB8LTIxNDc0ODM2NDgjR0FNIzIwMTEyNjA2NTQjClojVk4jMSNTVCMxNzkzODE0OTE5I1BJIzAjWkkjNTkzMDI0I1RBIzAjREEjMjAxMTI2IzFTIzg0MDAzMDYjMVQjNjAyI0xTIzg0MDA0NzAjTFQjODE3I1BVIzgwI1JUIzEjQ0EjSUNhI1pFIzMwMjEjWkIjSUMgICAgICAgICAgIDMwMjEjUEMjMSNGUiM4NDAwMDU4I0ZUIzY1NCNUTyM4NDAwNjIxI1RUIzcyMSMKWiNWTiMxI1NUIzE3OTM4MTQ5MTkjUEkjMCNaSSM1OTUyMzcjVEEjMCNEQSMyMDExMjYjMVMjODQwMDUzMCMxVCM1NTYjTFMjODQwMDY0NCNMVCM4NTgjUFUjODAjUlQjMSNDQSNJQ2EjWkUjMzUyMSNaQiNJQyAgICAgICAgICAgMzUyMSNQQyMxI0ZSIzg0MDA2MjEjRlQjNzI0I1RPIzg0MDA2NDQjVFQjODU4IwpaI1ZOIzEjU1QjMTc5MzgxNDkxOSNQSSMwI1pJIzM0NTAxNCNUQSMwI0RBIzIwMTEyNiMxUyM4NDAwNjQ0IzFUIzkwNSNMUyM4MDAwMTQ5I0xUIzExMzQjUFUjODAjUlQjMSNDQSNEUkIjWkUjMjAwNzMjWkIjICAgICAgICAgICAgMjAwNzMjUEMjMyNGUiM4NDAwNjQ0I0ZUIzkwNSNUTyM4MDAwMDg1I1RUIzEwMDkjClojVk4jMSNTVCMxNzkzODE0OTE5I1BJIzAjWkkjMzI0MjM4I1RBIzAjREEjMjAxMTI2IzFTIzgwMDI1NTMjMVQjNjI2I0xTIzg1MDkwMDAjTFQjMTcyMiNQVSM4MCNSVCMxI0NBI0lDRSNaRSMxMDUjWkIjSUNFICAgICAgICAgICAxMDUjUEMjMCNGUiM4MDAwMDg1I0ZUIzEwMjQjVE8jODUwMzAwMCNUVCMxNjAwIw==¶KRCC¶#VE#1#¶SC¶1_H4sIAAAAAAACA22P72qDMBTFX2Xcz64kGjURBFulrKNsUtqxP+xDqGnniNrFWCbS59gD7cUWlY6N7VvOuSfnd28HR6EgADxhFCwQ79qIZDa5SybYNoYSbxB0UDbFHALX6h8zCJAFVaMTroVJ28j2MLYRDOY6L3oTeYSi3toNDZfYgteynUutlhA8daDbQx9LV7eJCRVV1qvFTWzEkcumVxjZDpyeh6Xil/1YbMiZOCyr7Vgj88wkpyGObsNpUWuhMl5cxKLUinMZ3YeEMkZsP3oIXdvxGWY42oQURcuQEoSQS6NDiH3mUEzMMMrDzecHQueZ2abW45XzYRWu1L/sx81qEV8ZHnUJch1ieMR3fMo8+s1zmWeaf/P+APZCJ6s1BFo1YlBpJVuZlyax47IeveuqUaVoZ1VTZvXPQcrrWua1Pv8X2yrlihcm1J1Opy8MlpZ67QEAAA==",
+    "verbindungsAbschnitte": [
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [
+       {
+        "prioritaet": "NIEDRIG",
+        "text": "No seats available for reservation",
+        "textLang": "No seats available for reservation",
+        "code": "MDA-REMO-MSG-3003"
+       }
+      ],
+      "abfahrtsOrt": "Amsterdam Centraal",
+      "startHalt": {
+       "extId": "8400058",
+       "name": "Amsterdam Centraal",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T06:54:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8400621",
+       "name": "Utrecht Centraal",
+       "ankunft": {
+        "sollzeit": "2026-11-20T07:21:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8400058",
+      "abschnittsDauer": 1620,
+      "abschnittsAnteil": 5.18,
+      "ankunftsOrt": "Utrecht Centraal",
+      "ankunftsOrtExtId": "8400621",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 0
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 0
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T06:54:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T07:21:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Amsterdam Centraal@X=4899427@Y=52379191@U=80@L=8400058@i=U×008400058@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T06:54:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "4b",
+        "haltTyp": "PL",
+        "name": "Amsterdam Centraal",
+        "risNotizen": [],
+        "extId": "8400058",
+        "adminID": "840100",
+        "routeIdx": 11,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Amsterdam Amstel@X=4917594@Y=52346443@U=80@L=8400057@i=U×008400057@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T07:02:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T07:01:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Amsterdam Amstel",
+        "risNotizen": [],
+        "extId": "8400057",
+        "adminID": "840100",
+        "routeIdx": 12,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Utrecht Centraal@X=5109864@Y=52089397@U=80@L=8400621@i=U×008400621@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T07:21:00"
+        },
+        "gleis": "19",
+        "haltTyp": "PL",
+        "name": "Utrecht Centraal",
+        "risNotizen": [],
+        "extId": "8400621",
+        "adminID": "840100",
+        "routeIdx": 13,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 0,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#593024#TA#0#DA#201126#1S#8400306#1T#602#LS#8400470#LT#817#PU#80#RT#1#CA#ICa#ZE#3021#ZB#IC           3021#PC#1#FR#8400306#FT#602#TO#8400470#TT#817#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "EC_IC",
+       "kategorie": "ICa",
+       "name": "IC 3021",
+       "nummer": "3021",
+       "richtung": "Nijmegen",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "Nederlandse Spoorwegen"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited",
+         "teilstreckenHinweis": "(Amsterdam Centraal - Utrecht Centraal)"
+        }
+       ],
+       "kurzText": "IC",
+       "mittelText": "IC 3021",
+       "langText": "IC 3021"
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [
+       {
+        "prioritaet": "NIEDRIG",
+        "text": "No seats available for reservation",
+        "textLang": "No seats available for reservation",
+        "code": "MDA-REMO-MSG-3003"
+       }
+      ],
+      "abfahrtsOrt": "Utrecht Centraal",
+      "startHalt": {
+       "extId": "8400621",
+       "name": "Utrecht Centraal",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T07:24:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8400644",
+       "name": "Venlo",
+       "ankunft": {
+        "sollzeit": "2026-11-20T08:58:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8400621",
+      "abschnittsDauer": 5640,
+      "abschnittsAnteil": 18.04,
+      "ankunftsOrt": "Venlo",
+      "ankunftsOrtExtId": "8400644",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 0
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 0
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T07:24:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T08:58:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Utrecht Centraal@X=5109864@Y=52089397@U=80@L=8400621@i=U×008400621@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T07:24:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "18",
+        "haltTyp": "PL",
+        "name": "Utrecht Centraal",
+        "risNotizen": [],
+        "extId": "8400621",
+        "adminID": "840100",
+        "routeIdx": 9,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O='s-Hertogenbosch@X=5293721@Y=51690545@U=80@L=8400319@i=U×008400319@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T07:54:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T07:51:00"
+        },
+        "gleis": "6a",
+        "haltTyp": "PL",
+        "name": "'s-Hertogenbosch",
+        "risNotizen": [],
+        "extId": "8400319",
+        "adminID": "840100",
+        "routeIdx": 10,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Eindhoven Centraal@X=5479573@Y=51443018@U=80@L=8400206@i=U×008400206@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:19:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:14:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Eindhoven Centraal",
+        "risNotizen": [],
+        "extId": "8400206",
+        "adminID": "840100",
+        "routeIdx": 11,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Helmond@X=5661928@Y=51475478@U=80@L=8400313@i=U×008400313@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:29:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:28:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Helmond",
+        "risNotizen": [],
+        "extId": "8400313",
+        "adminID": "840100",
+        "routeIdx": 12,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Deurne@X=5787920@Y=51456098@U=80@L=8400172@i=U×008400172@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:36:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:36:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Deurne",
+        "risNotizen": [],
+        "extId": "8400172",
+        "adminID": "840100",
+        "routeIdx": 13,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Horst-Sevenum@X=6043115@Y=51426047@U=80@L=8400339@i=U×008400339@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:47:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:47:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Horst-Sevenum",
+        "risNotizen": [],
+        "extId": "8400339",
+        "adminID": "840100",
+        "routeIdx": 14,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Blerick@X=6155355@Y=51372435@U=80@L=8400117@i=U×008400117@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:55:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:55:00"
+        },
+        "gleis": "1",
+        "haltTyp": "PL",
+        "name": "Blerick",
+        "risNotizen": [],
+        "extId": "8400117",
+        "adminID": "840100",
+        "routeIdx": 15,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Venlo@X=6171841@Y=51364408@U=80@L=8400644@i=U×008400644@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:58:00"
+        },
+        "gleis": "3",
+        "haltTyp": "PL",
+        "name": "Venlo",
+        "risNotizen": [],
+        "extId": "8400644",
+        "adminID": "840100",
+        "routeIdx": 16,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 1,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#595237#TA#0#DA#201126#1S#8400530#1T#556#LS#8400644#LT#858#PU#80#RT#1#CA#ICa#ZE#3521#ZB#IC           3521#PC#1#FR#8400530#FT#556#TO#8400644#TT#858#",
+      "samePlatform": true,
+      "verkehrsmittel": {
+       "produktGattung": "EC_IC",
+       "kategorie": "ICa",
+       "name": "IC 3521",
+       "nummer": "3521",
+       "richtung": "Venlo",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "Nederlandse Spoorwegen"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited",
+         "teilstreckenHinweis": "(Utrecht Centraal - Venlo)"
+        }
+       ],
+       "kurzText": "IC",
+       "mittelText": "IC 3521",
+       "langText": "IC 3521"
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdDestination": "1401",
+      "abfahrtsOrt": "Venlo",
+      "startHalt": {
+       "extId": "8400644",
+       "name": "Venlo",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T09:05:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8000085",
+       "name": "Düsseldorf Hbf",
+       "ankunft": {
+        "sollzeit": "2026-11-20T10:09:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8400644",
+      "abschnittsDauer": 3840,
+      "abschnittsAnteil": 12.28,
+      "ankunftsOrt": "Düsseldorf Hbf",
+      "ankunftsOrtExtId": "8000085",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 0
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 0
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T09:05:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T10:09:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Venlo@X=6171841@Y=51364408@U=80@L=8400644@i=U×008400644@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:05:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "1a",
+        "haltTyp": "PL",
+        "name": "Venlo",
+        "risNotizen": [],
+        "extId": "8400644",
+        "adminID": "R2RE",
+        "routeIdx": 0,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Kaldenkirchen@X=6203222@Y=51327183@U=80@L=8000190@i=U×008015130@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:10:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:09:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Kaldenkirchen",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3087",
+        "extId": "8000190",
+        "adminID": "R2RE",
+        "routeIdx": 2,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Breyell@X=6241175@Y=51294615@U=80@L=8001180@i=U×008015129@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:14:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:13:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Breyell",
+        "risNotizen": [],
+        "bahnhofsInfoId": "0883",
+        "extId": "8001180",
+        "adminID": "R2RE",
+        "routeIdx": 3,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Boisheim@X=6274587@Y=51274327@U=80@L=8001072@i=U×008015128@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:17:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:16:00"
+        },
+        "gleis": "1",
+        "haltTyp": "PL",
+        "name": "Boisheim",
+        "risNotizen": [],
+        "bahnhofsInfoId": "0757",
+        "extId": "8001072",
+        "adminID": "R2RE",
+        "routeIdx": 4,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Dülken@X=6337934@Y=51257148@U=80@L=8001571@i=U×008015125@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:21:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:20:00"
+        },
+        "gleis": "1",
+        "haltTyp": "PL",
+        "name": "Dülken",
+        "risNotizen": [],
+        "bahnhofsInfoId": "1389",
+        "extId": "8001571",
+        "adminID": "R2RE",
+        "routeIdx": 5,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Viersen@X=6403897@Y=51254946@U=80@L=8000174@i=U×008015122@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:27:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:26:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Viersen",
+        "risNotizen": [],
+        "bahnhofsInfoId": "6415",
+        "extId": "8000174",
+        "adminID": "R2RE",
+        "routeIdx": 6,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Mönchengladbach Hbf@X=6446111@Y=51196579@U=80@L=8000253@i=U×008015165@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:45:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:36:00"
+        },
+        "gleis": "7",
+        "haltTyp": "PL",
+        "name": "Mönchengladbach Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "4162",
+        "extId": "8000253",
+        "adminID": "R2RE",
+        "routeIdx": 7,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Neuss Hbf@X=6684523@Y=51204355@U=80@L=8000274@i=U×008015149@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:57:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:56:00"
+        },
+        "gleis": "5",
+        "haltTyp": "PL",
+        "name": "Neuss Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "4440",
+        "extId": "8000274",
+        "adminID": "R2RE",
+        "routeIdx": 8,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Düsseldorf-Bilk@X=6775574@Y=51207995@U=80@L=8001585@i=U×008008327@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T10:06:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T10:05:00"
+        },
+        "gleis": "3",
+        "haltTyp": "PL",
+        "name": "Düsseldorf-Bilk",
+        "risNotizen": [],
+        "bahnhofsInfoId": "1405",
+        "extId": "8001585",
+        "adminID": "R2RE",
+        "routeIdx": 9,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Düsseldorf Hbf@X=6794317@Y=51219960@U=80@L=8000085@i=U×008008094@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T10:09:00"
+        },
+        "gleis": "7",
+        "haltTyp": "PL",
+        "name": "Düsseldorf Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "1401",
+        "extId": "8000085",
+        "adminID": "R2RE",
+        "routeIdx": 10,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 2,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#345014#TA#0#DA#201126#1S#8400644#1T#905#LS#8000149#LT#1134#PU#80#RT#1#CA#DRB#ZE#20073#ZB#            20073#PC#3#FR#8400644#FT#905#TO#8000149#TT#1134#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "REGIONAL",
+       "kategorie": "DRB",
+       "name": "20073",
+       "nummer": "20073",
+       "richtung": "Hamm(Westf)Hbf",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "eurobahn"
+        },
+        {
+         "kategorie": "BARRIEREFREI",
+         "key": "EA",
+         "value": "Behindertengerechte Ausstattung"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "EH",
+         "value": "Wheelchair boarding: station/train staff-assisted, registration rec."
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "LS",
+         "value": "power sockets for laptop"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "KL",
+         "value": "air conditioning"
+        }
+       ],
+       "kurzText": "ERB",
+       "mittelText": "RE13",
+       "langText": "RE13 (20073)"
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdOrigin": "1401",
+      "abfahrtsOrt": "Düsseldorf Hbf",
+      "startHalt": {
+       "extId": "8000085",
+       "name": "Düsseldorf Hbf",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T10:24:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8503000",
+       "name": "Zürich HB",
+       "ankunft": {
+        "sollzeit": "2026-11-20T16:00:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8000085",
+      "abschnittsDauer": 20160,
+      "abschnittsAnteil": 64.49,
+      "ankunftsOrt": "Zürich HB",
+      "ankunftsOrtExtId": "8503000",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 3
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 3
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T10:24:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T16:00:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Düsseldorf Hbf@X=6794317@Y=51219960@U=80@L=8000085@i=U×008008094@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T10:24:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "16",
+        "haltTyp": "PL",
+        "name": "Düsseldorf Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "1401",
+        "extId": "8000085",
+        "adminID": "80",
+        "routeIdx": 10,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Köln Hbf@X=6958730@Y=50943029@U=80@L=8000207@i=U×008015458@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T10:54:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T10:48:00"
+        },
+        "gleis": "6",
+        "haltTyp": "PL",
+        "name": "Köln Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3320",
+        "extId": "8000207",
+        "adminID": "80",
+        "routeIdx": 11,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Frankfurt(M) Flughafen Fernbf@X=8570181@Y=50053169@U=80@L=8070003@i=U×008061676@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:51:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T11:49:00"
+        },
+        "gleis": "Fern 5",
+        "haltTyp": "PL",
+        "name": "Frankfurt(M) Flughafen Fernbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "7982",
+        "extId": "8070003",
+        "adminID": "80",
+        "routeIdx": 12,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Mannheim Hbf@X=8468917@Y=49479352@U=80@L=8000244@i=U×008014008@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T12:37:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T12:26:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Mannheim Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3925",
+        "extId": "8000244",
+        "adminID": "80",
+        "routeIdx": 13,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Karlsruhe Hbf@X=8402181@Y=48993512@U=80@L=8000191@i=U×008014228@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T13:01:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T12:59:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Karlsruhe Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3107",
+        "extId": "8000191",
+        "adminID": "80",
+        "routeIdx": 14,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Baden-Baden@X=8190827@Y=48790329@U=80@L=8000774@i=U×008014277@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T13:20:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T13:18:00"
+        },
+        "gleis": "7",
+        "haltTyp": "PL",
+        "name": "Baden-Baden",
+        "risNotizen": [],
+        "bahnhofsInfoId": "0371",
+        "extId": "8000774",
+        "adminID": "80",
+        "routeIdx": 15,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Freiburg(Breisgau) Hbf@X=7841174@Y=47997696@U=80@L=8000107@i=U×008014350@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T14:06:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T14:03:00"
+        },
+        "gleis": "3",
+        "haltTyp": "PL",
+        "name": "Freiburg(Breisgau) Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "1893",
+        "extId": "8000107",
+        "adminID": "80",
+        "routeIdx": 16,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Basel Bad Bf@X=7607805@Y=47567292@U=80@L=8000026@i=U×008014431@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T14:41:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T14:36:00"
+        },
+        "gleis": "3",
+        "haltTyp": "PL",
+        "name": "Basel Bad Bf",
+        "risNotizen": [],
+        "extId": "8000026",
+        "adminID": "80",
+        "routeIdx": 17,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Basel SBB@X=7589566@Y=47547408@U=80@L=8500010@i=U×008500010@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:07:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T14:48:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Basel SBB",
+        "risNotizen": [],
+        "extId": "8500010",
+        "adminID": "80",
+        "routeIdx": 18,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Zürich HB@X=8540211@Y=47378177@U=80@L=8503000@i=U×008503000@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T16:00:00"
+        },
+        "gleis": "6",
+        "haltTyp": "PL",
+        "name": "Zürich HB",
+        "risNotizen": [],
+        "extId": "8503000",
+        "adminID": "80",
+        "routeIdx": 19,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 3,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#324238#TA#0#DA#201126#1S#8002553#1T#626#LS#8509000#LT#1722#PU#80#RT#1#CA#ICE#ZE#105#ZB#ICE           105#PC#0#FR#8002553#FT#626#TO#8509000#TT#1722#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "ICE",
+       "name": "ICE 105",
+       "nummer": "105",
+       "richtung": "Chur",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "DB Fernverkehr AG, Schweizerische Bundesbahnen"
+        },
+        {
+         "kategorie": "BORDBISTRO",
+         "key": "BR",
+         "value": "Bordrestaurant",
+         "teilstreckenHinweis": "(Düsseldorf Hbf - Zürich HB)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FR",
+         "value": "Bicycles conveyed - subject to reservation",
+         "teilstreckenHinweis": "(Düsseldorf Hbf - Zürich HB)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited",
+         "teilstreckenHinweis": "(Düsseldorf Hbf - Zürich HB)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "CK",
+         "value": "Komfort Check-in possible (visit bahn.de/kci for more information)",
+         "teilstreckenHinweis": "(Düsseldorf Hbf - Basel SBB)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "EH",
+         "value": "Wheelchair boarding: station/train staff-assisted, registration rec.",
+         "teilstreckenHinweis": "(Düsseldorf Hbf - Zürich HB)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "WV",
+         "value": "Wifi available",
+         "teilstreckenHinweis": "(Basel SBB - Zürich HB)"
+        }
+       ],
+       "kurzText": "ICE",
+       "mittelText": "ICE 105",
+       "langText": "ICE 105"
+      }
+     }
+    ],
+    "umstiegsAnzahl": 3,
+    "verbindungsDauerInSeconds": 32760,
+    "isAlternativeVerbindung": false,
+    "auslastungsmeldungen": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3
+     }
+    ],
+    "auslastungstexte": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     }
+    ],
+    "risNotizen": [],
+    "priorisierteMeldungen": [],
+    "reservierungsMeldungen": [],
+    "isAngebotseinholungNachgelagert": false,
+    "isAlterseingabeErforderlich": true,
+    "serviceDays": [
+     {
+      "lastDateInPeriod": "2026-11-20",
+      "regular": "not every day",
+      "irregular": "12. until 20. Nov 2026 Mo - Fr; not 13. Nov 2026",
+      "planningPeriodBegin": "2025-12-14",
+      "planningPeriodEnd": "2027-12-11",
+      "weekdays": [
+       "FR"
+      ]
+     }
+    ],
+    "ereignisZusammenfassung": {
+     "prioritaet": "NIEDRIG"
+    },
+    "angebotsPreis": {
+     "betrag": 130.99,
+     "waehrung": "EUR",
+     "mwst": []
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "abPreisInfo": {},
+    "hasTeilpreis": false,
+    "reiseAngebote": [],
+    "hinRueckPauschalpreis": false,
+    "isReservierungAusserhalbVorverkaufszeitraum": false,
+    "gesamtAngebotsbeziehungList": []
+   },
+   {
+    "tripId": "8b0c5658_3",
+    "ctxRecon": "¶HKI¶T$A=1@O=Amsterdam Centraal@X=4899427@Y=52379191@L=8400058@a=128@$A=1@O=Paris Nord@X=2354931@Y=48880886@L=8700014@a=128@$202611200810$202611201141$EUR          9322$$1$$$$$$§TF$A=1@O=Paris Nord@X=2354931@Y=48880886@L=8700014@a=128@$A=1@O=Paris Gare de Lyon@X=2374069@Y=48844839@L=8700012@a=128@$202611201141$202611201221$$$1$$$$$$§T$A=1@O=Paris Gare de Lyon@X=2374069@Y=48844839@L=8700012@a=128@$A=1@O=Zürich HB@X=8540211@Y=47378177@L=8503000@a=128@$202611201222$202611201626$TGV          9213$$1$$$$$$¶KC¶#VE#2#CF#100#CA#0#CM#0#SICT#0#AM#81#AM2#0#RT#7#¶KCC¶I1ZFIzEjRVJHIzQ1MzE1I0hJTiMwI0VDSyM0OTQ0MzF8NDk0NDEwfDQ5NDkwNnw0OTQ5MDZ8MHwwfDU2NXw0OTQzNTF8M3wwfDh8MHwwfC0yMTQ3NDgzNjQ4I0dBTSMyMDExMjYwODEwIwpaI1ZOIzEjU1QjMTc5MzgxNDkxOSNQSSMwI1pJIzQxMDY1NiNUQSMwI0RBIzIwMTEyNiMxUyM4NDAwMDU4IzFUIzgxMCNMUyM4NzAwMDE0I0xUIzExNDEjUFUjODAjUlQjMSNDQSNUSEEjWkUjOTMyMiNaQiNFVVIgICAgICAgICAgOTMyMiNQQyMwI0ZSIzg0MDAwNTgjRlQjODEwI1RPIzg3MDAwMTQjVFQjMTE0MSMKRiNWTiMwI1NUIzE3OTM4MTQ5MTkjUEkjMCNQVSM4MCNaSSMyNDE1OTUyNjkzI0RBIzIwMTEyNiNGUiM4NzAwMDE0I1RPIzg3MDAwMTIjRlQjMTE0MSNUVCMxMjIxI1RTIzAjRkYjI0ZWIzEjClojVk4jMSNTVCMxNzkzODE0OTE5I1BJIzAjWkkjMzQzMjU3I1RBIzAjREEjMjAxMTI2IzFTIzg3MDAwMTIjMVQjMTIyMiNMUyM4NTAzMDAwI0xUIzE2MjYjUFUjODAjUlQjMSNDQSNUR0ojWkUjOTIxMyNaQiNUR1YgICAgICAgICAgOTIxMyNQQyMwI0ZSIzg3MDAwMTIjRlQjMTIyMiNUTyM4NTAzMDAwI1RUIzE2MjYj¶KRCC¶#VE#1#¶SC¶1_H4sIAAAAAAACA22P72qDMBTFX2Xcz64kGjURBFulrKNsUtqxP+xDqGnniNrFWCbS59gD7cUWlY6N7VvOuSfnd28HR6EgADxhFCwQ79qIZDa5SybYNoYSbxB0UDbFHALX6h8zCJAFVaMTroVJ28j2MLYRDOY6L3oTeYSi3toNDZfYgteynUutlhA8daDbQx9LV7eJCRVV1qvFTWzEkcumVxjZDpyeh6Xil/1YbMiZOCyr7Vgj88wkpyGObsNpUWuhMl5cxKLUinMZ3YeEMkZsP3oIXdvxGWY42oQURcuQEoSQS6NDiH3mUEzMMMrDzecHQueZ2abW45XzYRWu1L/sx81qEV8ZHnUJch1ieMR3fMo8+s1zmWeaf/P+APZCJ6s1BFo1YlBpJVuZlyax47IeveuqUaVoZ1VTZvXPQcrrWua1Pv8X2yrlihcm1J1Opy8MlpZ67QEAAA==",
+    "verbindungsAbschnitte": [
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "reservierungspflichtigNote": "Subject to compulsory reservation",
+      "abfahrtsOrt": "Amsterdam Centraal",
+      "startHalt": {
+       "extId": "8400058",
+       "name": "Amsterdam Centraal",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T08:10:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8700014",
+       "name": "Paris Nord",
+       "ankunft": {
+        "sollzeit": "2026-11-20T11:41:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8400058",
+      "abschnittsDauer": 12660,
+      "abschnittsAnteil": 42.63,
+      "ankunftsOrt": "Paris Nord",
+      "ankunftsOrtExtId": "8700014",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 0
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 0
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T08:10:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T11:41:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Amsterdam Centraal@X=4899427@Y=52379191@U=80@L=8400058@i=U×008400058@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:10:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "15a",
+        "haltTyp": "PL",
+        "name": "Amsterdam Centraal",
+        "risNotizen": [],
+        "extId": "8400058",
+        "adminID": "3018",
+        "routeIdx": 0,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Schiphol (Airport)@X=4761487@Y=52308787@U=80@L=8400561@i=U×008400561@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:27:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:24:00"
+        },
+        "gleis": "5-6",
+        "haltTyp": "PL",
+        "name": "Schiphol (Airport)",
+        "risNotizen": [
+         {
+          "key": "text.realtime.stop.exit.disabled",
+          "value": "Enter only, no exiting allowed"
+         }
+        ],
+        "extId": "8400561",
+        "adminID": "3018",
+        "routeIdx": 1,
+        "priorisierteMeldungen": [
+         {
+          "prioritaet": "NIEDRIG",
+          "text": "Enter only, no exiting allowed",
+          "type": "RIS_NOTE"
+         }
+        ]
+       },
+       {
+        "id": "A=1@O=Rotterdam Centraal@X=4468771@Y=51924804@U=80@L=8400530@i=U×008400530@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:58:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:53:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Rotterdam Centraal",
+        "risNotizen": [],
+        "extId": "8400530",
+        "adminID": "3018",
+        "routeIdx": 2,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Antwerpen Centraal@X=4421165@Y=51215807@U=80@L=8800007@i=U×008821006@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:33:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:30:00"
+        },
+        "name": "Antwerpen Centraal",
+        "risNotizen": [],
+        "extId": "8800007",
+        "adminID": "3018",
+        "routeIdx": 4,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Bruxelles Midi@X=4335695@Y=50835375@U=80@L=8800004@i=U×008814001@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T10:13:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T10:06:00"
+        },
+        "name": "Bruxelles Midi",
+        "risNotizen": [],
+        "extId": "8800004",
+        "adminID": "3018",
+        "routeIdx": 5,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Paris Nord@X=2354931@Y=48880886@U=80@L=8700014@i=U×008727100@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T11:41:00"
+        },
+        "name": "Paris Nord",
+        "risNotizen": [],
+        "extId": "8700014",
+        "adminID": "3018",
+        "routeIdx": 6,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 0,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#410656#TA#0#DA#201126#1S#8400058#1T#810#LS#8700014#LT#1141#PU#80#RT#1#CA#THA#ZE#9322#ZB#EUR          9322#PC#0#FR#8400058#FT#810#TO#8700014#TT#1141#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "THA",
+       "name": "EUR 9322",
+       "nummer": "9322",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "EUROSTAR"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "RP",
+         "value": "Subject to compulsory reservation"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "GP",
+         "value": "Global price"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "55",
+         "value": "Non-smoker train"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "BW",
+         "value": "Bar"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "P ",
+         "value": "Premium Class"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "SA",
+         "value": "compartment for nursing mothers"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "97",
+         "value": "Compartment for disabled travellers"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "WV",
+         "value": "Wifi available"
+        }
+       ],
+       "kurzText": "EUR",
+       "mittelText": "EUR 9322",
+       "langText": "EUR 9322"
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "transferNotes": [
+       {
+        "key": "UD",
+        "value": "Continue by RER D"
+       }
+      ],
+      "priorisierteMeldungen": [],
+      "abfahrtsOrt": "Paris Nord",
+      "startHalt": {
+       "extId": "8700014",
+       "name": "Paris Nord",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T11:41:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8700012",
+       "name": "Paris Gare de Lyon",
+       "ankunft": {
+        "sollzeit": "2026-11-20T12:21:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8700014",
+      "abschnittsDauer": 2400,
+      "abschnittsAnteil": 8.08,
+      "ankunftsOrt": "Paris Gare de Lyon",
+      "ankunftsOrtExtId": "8700012",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 0
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 0
+       }
+      ],
+      "distanz": 4248,
+      "abfahrt": {
+       "sollzeit": "2026-11-20T11:41:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T12:21:00"
+      },
+      "halte": [],
+      "idx": 1,
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "name": "Transfer",
+       "typ": "TRANSFER",
+       "zugattribute": [
+        {
+         "kategorie": "INFORMATION",
+         "key": "UD",
+         "value": "Continue by RER D"
+        }
+       ]
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "reservierungspflichtigNote": "Subject to compulsory reservation",
+      "abfahrtsOrt": "Paris Gare de Lyon",
+      "startHalt": {
+       "extId": "8700012",
+       "name": "Paris Gare de Lyon",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T12:22:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8503000",
+       "name": "Zürich HB",
+       "ankunft": {
+        "sollzeit": "2026-11-20T16:26:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8700012",
+      "abschnittsDauer": 14640,
+      "abschnittsAnteil": 49.29,
+      "ankunftsOrt": "Zürich HB",
+      "ankunftsOrtExtId": "8503000",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 0
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 0
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T12:22:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T16:26:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Paris Gare de Lyon@X=2374069@Y=48844839@U=80@L=8700012@i=U×008768600@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T12:22:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "name": "Paris Gare de Lyon",
+        "risNotizen": [],
+        "extId": "8700012",
+        "adminID": "87",
+        "routeIdx": 0,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Dijon Ville@X=5026130@Y=47322912@U=80@L=8700021@i=U×008771304@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T14:01:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T13:57:00"
+        },
+        "name": "Dijon Ville",
+        "risNotizen": [],
+        "extId": "8700021",
+        "adminID": "87",
+        "routeIdx": 1,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Mulhouse Ville@X=7343045@Y=47741953@U=80@L=8700031@i=U×008718206@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:05:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:02:00"
+        },
+        "name": "Mulhouse Ville",
+        "risNotizen": [],
+        "extId": "8700031",
+        "adminID": "87",
+        "routeIdx": 2,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Basel SBB@X=7589566@Y=47547408@U=80@L=8500010@i=U×008500010@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:33:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:26:00"
+        },
+        "gleis": "14",
+        "haltTyp": "PL",
+        "name": "Basel SBB",
+        "risNotizen": [],
+        "extId": "8500010",
+        "adminID": "87",
+        "routeIdx": 3,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Zürich HB@X=8540211@Y=47378177@U=80@L=8503000@i=U×008503000@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T16:26:00"
+        },
+        "gleis": "13",
+        "haltTyp": "PL",
+        "name": "Zürich HB",
+        "risNotizen": [],
+        "extId": "8503000",
+        "adminID": "87",
+        "routeIdx": 4,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 2,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#343257#TA#0#DA#201126#1S#8700012#1T#1222#LS#8503000#LT#1626#PU#80#RT#1#CA#TGJ#ZE#9213#ZB#TGV          9213#PC#0#FR#8700012#FT#1222#TO#8503000#TT#1626#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "TGJ",
+       "name": "TGV 9213",
+       "nummer": "9213",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "SNCF, Schweizerische Bundesbahnen"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "RP",
+         "value": "Subject to compulsory reservation",
+         "teilstreckenHinweis": "(Paris Gare de Lyon - Basel SBB)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "GP",
+         "value": "Global price",
+         "teilstreckenHinweis": "(Paris Gare de Lyon - Basel SBB)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "55",
+         "value": "Non-smoker train",
+         "teilstreckenHinweis": "(Paris Gare de Lyon - Basel SBB)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "WV",
+         "value": "Wifi available",
+         "teilstreckenHinweis": "(Paris Gare de Lyon - Basel SBB)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "text.journeystop.product.or.direction.changes.journey.message",
+         "value": "From Basel SBB as TGV 9213 heading towards Zürich HB"
+        }
+       ],
+       "kurzText": "TGV",
+       "mittelText": "TGV 9213",
+       "langText": "TGV 9213"
+      }
+     }
+    ],
+    "umstiegsAnzahl": 1,
+    "verbindungsDauerInSeconds": 29760,
+    "isAlternativeVerbindung": false,
+    "auslastungsmeldungen": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 0
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 0
+     }
+    ],
+    "auslastungstexte": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     }
+    ],
+    "risNotizen": [],
+    "priorisierteMeldungen": [],
+    "reservierungsMeldungen": [],
+    "isAngebotseinholungNachgelagert": true,
+    "isAlterseingabeErforderlich": true,
+    "serviceDays": [
+     {
+      "lastDateInPeriod": "2026-12-11",
+      "regular": "not every day",
+      "irregular": "10. Nov until 11. Dec 2026 Tu - Fr",
+      "planningPeriodBegin": "2025-12-14",
+      "planningPeriodEnd": "2027-12-11",
+      "weekdays": [
+       "DI",
+       "MI",
+       "DO",
+       "FR"
+      ]
+     }
+    ],
+    "hasTeilpreis": false,
+    "reiseAngebote": [],
+    "hinRueckPauschalpreis": false,
+    "isReservierungAusserhalbVorverkaufszeitraum": false,
+    "gesamtAngebotsbeziehungList": []
+   },
+   {
+    "tripId": "999f060d_3",
+    "ctxRecon": "¶HKI¶T$A=1@O=Amsterdam Centraal@X=4899427@Y=52379191@L=8400058@a=128@$A=1@O=Mannheim Hbf@X=8468917@Y=49479352@L=8000244@a=128@$202611200831$202611201253$ICE           225$$1$$$$$$§T$A=1@O=Mannheim Hbf@X=8468917@Y=49479352@L=8000244@a=128@$A=1@O=Basel SBB@X=7589566@Y=47547408@L=8500010@a=128@$202611201300$202611201521$ECE             5$$1$$$$$$§T$A=1@O=Basel SBB@X=7589566@Y=47547408@L=8500010@a=128@$A=1@O=Zürich HB@X=8540211@Y=47378177@L=8503000@a=128@$202611201533$202611201626$TGV          9213$$1$$$$$$¶KC¶#VE#2#CF#100#CA#0#CM#0#SICT#0#AM#81#AM2#0#RT#7#¶KCC¶I1ZFIzEjRVJHIzMjSElOIzAjRUNLIzQ5NDQzMXw0OTQ0MzF8NDk0OTA2fDQ5NDkwNnwwfDB8NTY1fDQ5NDM1MXw0fDB8MTh8MHwwfC0yMTQ3NDgzNjQ4I0dBTSMyMDExMjYwODMxIwpaI1ZOIzEjU1QjMTc5MzgxNDkxOSNQSSMwI1pJIzMyOTg4NyNUQSMwI0RBIzIwMTEyNiMxUyM4NDAwMDU4IzFUIzgzMSNMUyM4MDAwMjYxI0xUIzE1NDAjUFUjODAjUlQjMSNDQSNJQ0UjWkUjMjI1I1pCI0lDRSAgICAgICAgICAgMjI1I1BDIzAjRlIjODQwMDA1OCNGVCM4MzEjVE8jODAwMDI0NCNUVCMxMjUzIwpaI1ZOIzEjU1QjMTc5MzgxNDkxOSNQSSMwI1pJIzE3NDkxNCNUQSMwI0RBIzIwMTEyNiMxUyM4MDAyNTQ4IzFUIzgyMSNMUyM4NTAwMDEwI0xUIzE1MjEjUFUjODAjUlQjMSNDQSNFQ0UjWkUjNSNaQiNFQ0UgICAgICAgICAgICAgNSNQQyMwI0ZSIzgwMDAyNDQjRlQjMTMwMCNUTyM4NTAwMDEwI1RUIzE1MjEjClojVk4jMSNTVCMxNzkzODE0OTE5I1BJIzAjWkkjMzQzMjU3I1RBIzAjREEjMjAxMTI2IzFTIzg3MDAwMTIjMVQjMTIyMiNMUyM4NTAzMDAwI0xUIzE2MjYjUFUjODAjUlQjMSNDQSNUR0ojWkUjOTIxMyNaQiNUR1YgICAgICAgICAgOTIxMyNQQyMwI0ZSIzg1MDAwMTAjRlQjMTUzMyNUTyM4NTAzMDAwI1RUIzE2MjYj¶KRCC¶#VE#1#¶SC¶1_H4sIAAAAAAACA22P72qDMBTFX2Xcz64kGjURBFulrKNsUtqxP+xDqGnniNrFWCbS59gD7cUWlY6N7VvOuSfnd28HR6EgADxhFCwQ79qIZDa5SybYNoYSbxB0UDbFHALX6h8zCJAFVaMTroVJ28j2MLYRDOY6L3oTeYSi3toNDZfYgteynUutlhA8daDbQx9LV7eJCRVV1qvFTWzEkcumVxjZDpyeh6Xil/1YbMiZOCyr7Vgj88wkpyGObsNpUWuhMl5cxKLUinMZ3YeEMkZsP3oIXdvxGWY42oQURcuQEoSQS6NDiH3mUEzMMMrDzecHQueZ2abW45XzYRWu1L/sx81qEV8ZHnUJch1ieMR3fMo8+s1zmWeaf/P+APZCJ6s1BFo1YlBpJVuZlyax47IeveuqUaVoZ1VTZvXPQcrrWua1Pv8X2yrlihcm1J1Opy8MlpZ67QEAAA==",
+    "verbindungsAbschnitte": [
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdDestination": "3925",
+      "abfahrtsOrt": "Amsterdam Centraal",
+      "startHalt": {
+       "extId": "8400058",
+       "name": "Amsterdam Centraal",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T08:31:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8000244",
+       "name": "Mannheim Hbf",
+       "ankunft": {
+        "sollzeit": "2026-11-20T12:53:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8400058",
+      "abschnittsDauer": 15720,
+      "abschnittsAnteil": 57.46,
+      "ankunftsOrt": "Mannheim Hbf",
+      "ankunftsOrtExtId": "8000244",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 3
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 3
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T08:31:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T12:53:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Amsterdam Centraal@X=4899427@Y=52379191@U=80@L=8400058@i=U×008400058@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T08:31:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Amsterdam Centraal",
+        "risNotizen": [],
+        "extId": "8400058",
+        "adminID": "84",
+        "routeIdx": 0,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Utrecht Centraal@X=5109864@Y=52089397@U=80@L=8400621@i=U×008400621@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:02:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T08:57:00"
+        },
+        "gleis": "18",
+        "haltTyp": "PL",
+        "name": "Utrecht Centraal",
+        "risNotizen": [],
+        "extId": "8400621",
+        "adminID": "84",
+        "routeIdx": 1,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Arnhem Centraal@X=5901005@Y=51984780@U=80@L=8400071@i=U×008400071@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T09:34:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T09:32:00"
+        },
+        "gleis": "8",
+        "haltTyp": "PL",
+        "name": "Arnhem Centraal",
+        "risNotizen": [],
+        "extId": "8400071",
+        "adminID": "84",
+        "routeIdx": 2,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Oberhausen Hbf@X=6851587@Y=51474876@U=80@L=8000286@i=U×008010263@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T10:25:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T10:24:00"
+        },
+        "gleis": "12",
+        "haltTyp": "PL",
+        "name": "Oberhausen Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "4648",
+        "extId": "8000286",
+        "adminID": "84",
+        "routeIdx": 5,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Duisburg Hbf@X=6775907@Y=51429786@U=80@L=8000086@i=U×008010316@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T10:33:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T10:32:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Duisburg Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "1374",
+        "extId": "8000086",
+        "adminID": "84",
+        "routeIdx": 6,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Düsseldorf Hbf@X=6794317@Y=51219960@U=80@L=8000085@i=U×008008094@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T10:47:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T10:45:00"
+        },
+        "gleis": "16",
+        "haltTyp": "PL",
+        "name": "Düsseldorf Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "1401",
+        "extId": "8000085",
+        "adminID": "84",
+        "routeIdx": 7,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Köln Hbf@X=6958730@Y=50943029@U=80@L=8000207@i=U×008015458@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:18:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T11:11:00"
+        },
+        "gleis": "6",
+        "haltTyp": "PL",
+        "name": "Köln Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3320",
+        "extId": "8000207",
+        "adminID": "84",
+        "routeIdx": 8,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Siegburg/Bonn@X=7203029@Y=50793916@U=80@L=8005556@i=U×008015588@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:32:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T11:31:00"
+        },
+        "gleis": "6",
+        "haltTyp": "PL",
+        "name": "Siegburg/Bonn",
+        "risNotizen": [],
+        "bahnhofsInfoId": "5840",
+        "extId": "8005556",
+        "adminID": "84",
+        "routeIdx": 9,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Frankfurt(M) Flughafen Fernbf@X=8570181@Y=50053169@U=80@L=8070003@i=U×008061676@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T12:21:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T12:13:00"
+        },
+        "gleis": "Fern 5",
+        "haltTyp": "PL",
+        "name": "Frankfurt(M) Flughafen Fernbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "7982",
+        "extId": "8070003",
+        "adminID": "84",
+        "routeIdx": 10,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Mannheim Hbf@X=8468917@Y=49479352@U=80@L=8000244@i=U×008014008@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T12:53:00"
+        },
+        "gleis": "5",
+        "haltTyp": "PL",
+        "name": "Mannheim Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3925",
+        "extId": "8000244",
+        "adminID": "84",
+        "routeIdx": 11,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 0,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#329887#TA#0#DA#201126#1S#8400058#1T#831#LS#8000261#LT#1540#PU#80#RT#1#CA#ICE#ZE#225#ZB#ICE           225#PC#0#FR#8400058#FT#831#TO#8000261#TT#1540#",
+      "samePlatform": true,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "ICE",
+       "name": "ICE 225",
+       "nummer": "225",
+       "richtung": "München Hbf",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "Nederlandse Spoorwegen, DB Fernverkehr AG"
+        },
+        {
+         "kategorie": "BORDBISTRO",
+         "key": "BR",
+         "value": "Bordrestaurant"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FR",
+         "value": "Bicycles conveyed - subject to reservation"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "CK",
+         "value": "Komfort Check-in possible (visit bahn.de/kci for more information)",
+         "teilstreckenHinweis": "(Arnhem Centraal - Mannheim Hbf)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "RE",
+         "value": "Please reserve",
+         "teilstreckenHinweis": "(Amsterdam Centraal - Arnhem Centraal)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "FH",
+         "value": "Wheelchair boarding: train staff-assisted"
+        }
+       ],
+       "kurzText": "ICE",
+       "mittelText": "ICE 225",
+       "langText": "ICE 225"
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdOrigin": "3925",
+      "abfahrtsOrt": "Mannheim Hbf",
+      "startHalt": {
+       "extId": "8000244",
+       "name": "Mannheim Hbf",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T13:00:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8500010",
+       "name": "Basel SBB",
+       "ankunft": {
+        "sollzeit": "2026-11-20T15:21:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8000244",
+      "abschnittsDauer": 8460,
+      "abschnittsAnteil": 30.92,
+      "ankunftsOrt": "Basel SBB",
+      "ankunftsOrtExtId": "8500010",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 2
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 2
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T13:00:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T15:21:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Mannheim Hbf@X=8468917@Y=49479352@U=80@L=8000244@i=U×008014008@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T13:00:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Mannheim Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3925",
+        "extId": "8000244",
+        "adminID": "80",
+        "routeIdx": 7,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Karlsruhe Hbf@X=8402181@Y=48993512@U=80@L=8000191@i=U×008014228@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T13:26:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T13:23:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Karlsruhe Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3107",
+        "extId": "8000191",
+        "adminID": "80",
+        "routeIdx": 8,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Offenburg@X=7946725@Y=48476479@U=80@L=8000290@i=U×008014309@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T14:00:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T13:58:00"
+        },
+        "gleis": "1",
+        "haltTyp": "PL",
+        "name": "Offenburg",
+        "risNotizen": [],
+        "bahnhofsInfoId": "4745",
+        "extId": "8000290",
+        "adminID": "80",
+        "routeIdx": 9,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Freiburg(Breisgau) Hbf@X=7841174@Y=47997696@U=80@L=8000107@i=U×008014350@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 1
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T14:33:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T14:31:00"
+        },
+        "gleis": "3",
+        "haltTyp": "PL",
+        "name": "Freiburg(Breisgau) Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "1893",
+        "extId": "8000107",
+        "adminID": "80",
+        "routeIdx": 10,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Basel Bad Bf@X=7607805@Y=47567292@U=80@L=8000026@i=U×008014431@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:14:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:01:00"
+        },
+        "gleis": "3",
+        "haltTyp": "PL",
+        "name": "Basel Bad Bf",
+        "risNotizen": [],
+        "extId": "8000026",
+        "adminID": "80",
+        "routeIdx": 11,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Basel SBB@X=7589566@Y=47547408@U=80@L=8500010@i=U×008500010@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:21:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Basel SBB",
+        "risNotizen": [],
+        "extId": "8500010",
+        "adminID": "80",
+        "routeIdx": 12,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 1,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#174914#TA#0#DA#201126#1S#8002548#1T#821#LS#8500010#LT#1521#PU#80#RT#1#CA#ECE#ZE#5#ZB#ECE             5#PC#0#FR#8002548#FT#821#TO#8500010#TT#1521#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "ECE",
+       "name": "ECE 5",
+       "nummer": "5",
+       "richtung": "Basel SBB",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "DB Fernverkehr AG"
+        },
+        {
+         "kategorie": "BORDBISTRO",
+         "key": "BR",
+         "value": "Bordrestaurant",
+         "teilstreckenHinweis": "(Mannheim Hbf - Basel SBB)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FR",
+         "value": "Bicycles conveyed - subject to reservation",
+         "teilstreckenHinweis": "(Mannheim Hbf - Basel SBB)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited",
+         "teilstreckenHinweis": "(Mannheim Hbf - Basel SBB)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "RZ",
+         "value": "Wheelchair boarding: self/train staff-assisted",
+         "teilstreckenHinweis": "(Mannheim Hbf - Basel SBB)"
+        }
+       ],
+       "kurzText": "ECE",
+       "mittelText": "ECE 5",
+       "langText": "ECE 5"
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [
+       {
+        "prioritaet": "NIEDRIG",
+        "text": "No seats available for reservation",
+        "textLang": "No seats available for reservation",
+        "code": "MDA-REMO-MSG-3003"
+       }
+      ],
+      "abfahrtsOrt": "Basel SBB",
+      "startHalt": {
+       "extId": "8500010",
+       "name": "Basel SBB",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T15:33:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8503000",
+       "name": "Zürich HB",
+       "ankunft": {
+        "sollzeit": "2026-11-20T16:26:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8500010",
+      "abschnittsDauer": 3180,
+      "abschnittsAnteil": 11.62,
+      "ankunftsOrt": "Zürich HB",
+      "ankunftsOrtExtId": "8503000",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 0
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 0
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T15:33:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T16:26:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Basel SBB@X=7589566@Y=47547408@U=80@L=8500010@i=U×008500010@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:33:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "14",
+        "haltTyp": "PL",
+        "name": "Basel SBB",
+        "risNotizen": [],
+        "extId": "8500010",
+        "adminID": "85",
+        "routeIdx": 3,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Zürich HB@X=8540211@Y=47378177@U=80@L=8503000@i=U×008503000@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T16:26:00"
+        },
+        "gleis": "13",
+        "haltTyp": "PL",
+        "name": "Zürich HB",
+        "risNotizen": [],
+        "extId": "8503000",
+        "adminID": "85",
+        "routeIdx": 4,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 2,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#343257#TA#0#DA#201126#1S#8700012#1T#1222#LS#8503000#LT#1626#PU#80#RT#1#CA#TGJ#ZE#9213#ZB#TGV          9213#PC#0#FR#8700012#FT#1222#TO#8503000#TT#1626#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "TGJ",
+       "name": "TGV 9213",
+       "nummer": "9213",
+       "richtung": "Zürich HB",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "Schweizerische Bundesbahnen"
+        },
+        {
+         "kategorie": "BORDBISTRO",
+         "key": "BR",
+         "value": "Bordrestaurant",
+         "teilstreckenHinweis": "(Basel SBB - Zürich HB)"
+        }
+       ],
+       "kurzText": "TGV",
+       "mittelText": "TGV 9213",
+       "langText": "TGV 9213"
+      }
+     }
+    ],
+    "umstiegsAnzahl": 2,
+    "verbindungsDauerInSeconds": 28500,
+    "isAlternativeVerbindung": false,
+    "auslastungsmeldungen": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3
+     }
+    ],
+    "auslastungstexte": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     }
+    ],
+    "risNotizen": [],
+    "priorisierteMeldungen": [],
+    "reservierungsMeldungen": [],
+    "isAngebotseinholungNachgelagert": false,
+    "isAlterseingabeErforderlich": true,
+    "serviceDays": [
+     {
+      "lastDateInPeriod": "2026-12-12",
+      "regular": "not every day",
+      "irregular": "6. Nov until 12. Dec 2026; not 7., 8. Nov 2026, 10. until 16. Nov 2026",
+      "planningPeriodBegin": "2025-12-14",
+      "planningPeriodEnd": "2027-12-11",
+      "weekdays": [
+       "MO",
+       "DI",
+       "MI",
+       "DO",
+       "FR",
+       "SA",
+       "SO"
+      ]
+     }
+    ],
+    "ereignisZusammenfassung": {
+     "prioritaet": "NIEDRIG"
+    },
+    "angebotsPreis": {
+     "betrag": 283.3,
+     "waehrung": "EUR",
+     "mwst": []
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "abPreisInfo": {},
+    "hasTeilpreis": false,
+    "reiseAngebote": [],
+    "hinRueckPauschalpreis": false,
+    "isReservierungAusserhalbVorverkaufszeitraum": false,
+    "gesamtAngebotsbeziehungList": []
+   }
+  ],
+  "verbindungReference": {
+   "earlier": "3|OB|MTµ14µ494350µ494334µ494880µ494880µ0µ0µ885µ494325µ1µ0µ2µ0µ0µ-2147483648µ1µ2|PDHµ24d891fe962c9a3b2b58a0a9f8038471|RDµ20112026|RTµ64800|USµ0|RSµINIT",
+   "later": "3|OF|MTµ14µ494454µ494454µ495000µ495000µ0µ0µ885µ494432µ5µ0µ18µ0µ0µ-2147483648µ1µ2|PDHµ24d891fe962c9a3b2b58a0a9f8038471|RDµ20112026|RTµ64800|USµ0|RSµINIT"
+  }
+ }
+}

@@ -46,6 +46,10 @@ of behavior only for a change of code, with test data or the expected value from
 older ticket of the same epic when that ticket changed only data. Never write a criterion "a test checks that the data file (or a workflow, `agent.toml`, a skill)
 holds X": no test checks the content of a data or configuration file (owner, 2026-10-29, `docs/extend.md`).
 
+Make two or more tickets in one call: write them to one file and run `python3 framework/tools/new_tickets.py FILE.md`
+(its docstring has the form: `labels:`, `parent:` and `#newK` for a ticket of the same file). One MCP call per ticket
+reads the full context again each time: a refill with 6 to 10 such calls paid about 5k eq per call (owner, 2026-11-06).
+
 Labels: one priority (`P0`-`P3`), one kind (`bug`, `feature`, `tooling`, `design`, `docs`, `cleanup`),
 one size (`size:S`, `size:M`, `size:L`), and the lane (`lane:haiku`, none or `lane:deep`, section "Model lanes";
 a `bug` with a named cause and fix is Haiku). Add `needs-human` when only the owner can do it.
@@ -63,8 +67,9 @@ name each file and function that the ticket changes, and no others (tools that o
 
 ## Split an L ticket
 
-1. Make S or M sub-issues (`gh api repos/OWNER/NAME/issues/E/sub_issues -F sub_issue_id=<id of the child, not its number>`,
-   or "Depends on" lines in a local session). Not the MCP `sub_issue_write`: each call returns the whole parent issue
+1. Make S or M sub-issues, all in one call with `new_tickets.py` (`parent: E`; else `gh api
+   repos/OWNER/NAME/issues/E/sub_issues -F sub_issue_id=<id of the child, not its number>`, or "Depends on" lines in a
+   local session). Not the MCP `sub_issue_write`: each call returns the whole parent issue
    and its repository (about 4k tokens; 5 calls cost 20k tokens in one refill).
    Make the first sub-issue small and useful alone.
 2. Give the sub-issues the priority of the parent and the order of the work (lower number = first).
@@ -76,8 +81,16 @@ name each file and function that the ticket changes, and no others (tools that o
 
 ## needs-human tickets
 
+Add one label of `[audience]` in `agent.toml` too (#72): `for-lars` for the agent system (Claude, Docker, the
+server, CI, the GitHub settings), `for-jeroen` for the project (decisions, features, the roadmap, and the payload captures of a
+new source: Kind `outside`, owner Larspolo on #122). Mention the login
+of that label in the comment. The status issue shows one list per label.
 The owner reads them on a phone. Give numbered steps, the exact names of settings or files, and what the
 owner must reply. One ticket per decision.
+Make them early, but only when the owner can do them at once (owner, 2026-11-06): when you make an epic, make its
+owner inputs (payloads, settings, decisions) too (the `roadmap` skill, "Owner steps first"). Never make a
+`needs-human` ticket that waits for agent work: a check that needs agent work first is a line of the section
+`## Owner checks` of its epic, and the run that closes its last ticket makes it.
 Each `needs-human` ticket (also when you add the label to an existing ticket: add the section to the body or to
 your comment) has a section `## For the owner`, so that the `human` skill (`/human` on the owner's computer, #983)
 can prepare and guide it:
@@ -146,6 +159,10 @@ does not say?
 | Deep (Opus, high effort) | `lane:deep` | A choice where a wrong answer can pass the tests and cost later: a bug with an unknown cause, a race or shared state, a new structure, a change to how the runs decide or plan, a ticket that failed before (red CI after 3 tries, a takeover, reopened), a `size:L` ticket to split. | 4.5 times or more the tokens of a main run |
 
 - The kind label does not choose the lane: a clear `process` ticket can be Haiku or main.
+- Trial (owner, 2026-11-06, decision #158, option A): each `size:S` ticket gets `lane:haiku`, also when the 3 rules of
+  the Haiku row are not all true, unless it needs a render, a screenshot or a judgment of a look. In the queue refill,
+  also give `lane:haiku` to the ready `size:S` tickets with no lane that meet this rule. The trial ends after 30
+  merged `size:S` PRs: its measure ticket then keeps or ends this rule.
 - Not sure between Haiku and main: Haiku (owner, 2026-10-28). A Haiku run that finds the ticket unclear removes the
   label (`autopilot` skill, `queue.md`). Not sure between main and deep: main.
 - Write tickets for Haiku (owner, 2026-10-29: 40 % of the closed tickets had `lane:haiku`, but 2 of 25 ready ones).

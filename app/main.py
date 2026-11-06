@@ -1,15 +1,17 @@
 """The FastAPI app of travel-aggregator."""
 
 import secrets
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api import health, ingest, trips
 from app.config import get_settings
 from app.schemas import MAX_BODY_BYTES
-from app.web import pages
+from app.web import manual, pages, reparse
 
 app = FastAPI(title="travel-aggregator")
 # With no SECRET_KEY, a random key: the sessions then end at each restart.
@@ -37,3 +39,6 @@ app.include_router(health.router, prefix="/api")
 app.include_router(ingest.router, prefix="/api")
 app.include_router(trips.router, prefix="/api")
 app.include_router(pages.router)
+app.include_router(manual.router)
+app.include_router(reparse.router)
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "web" / "static"), name="static")

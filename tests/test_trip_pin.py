@@ -108,3 +108,13 @@ def _cheap_id(sessions, trip_id):
 
 def _expensive_id(sessions, trip_id):
     return _itinerary_at(sessions, trip_id, "119.90")
+
+
+@pytest.mark.parametrize("query", ["sort=cost", "sort=price", "dir=desc", "sort=price&dir=desc"])
+def test_a_pinned_offer_stays_first_in_every_sort_order(trip, sessions, query):
+    client, trip_id = trip
+    expensive = _expensive_id(sessions, trip_id)
+    token = csrf(client, trip_id)
+    client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
+    page = client.get(f"/trips/{trip_id}?{query}").text
+    assert page.index("EUR 119.90") < page.index("EUR 89.90")
