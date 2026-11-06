@@ -28,8 +28,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A search on Flixbus shows its offers on the trip page
 - [ ] `capture:flight` One flight source: the one that is easiest to intercept (the agents compare and record why), userscript, server parser, trimmed fixtures
   - A flight offer and a train offer for the same trip show in one list
-- [ ] `capture:errors` The captures page shows the result of each parse: the offer count, the rejected count and the errors, with a filter for the failed captures
+- [x] `capture:errors` (#345) The captures page shows the result of each parse: the offer count, the rejected count and the errors, with a filter for the failed captures
   - When a site changes its format, the failed captures show with their errors, and "reparse" after a parser fix shows the new result
+- [ ] `capture:install` Install and update the userscripts from the app: the app serves its own userscripts and `core.js`, with the install links on the tokens page
+  - A click on the install link of the tokens page installs the userscript; after a new image, Tampermonkey updates it to the version of the server
 
 ## 2. Rank offers by effective cost
 
@@ -48,6 +50,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A change of the profile re-ranks the trip page at once
 - [x] `rank:stale` (#274) Offers that were not captured again for N hours get a "stale" flag and an optional penalty
   - A stale offer shows "stale, price may have changed"
+- [ ] `rank:currency` Prices in other currencies: exchange rates to EUR in Settings, and the score uses the EUR value
+  - A CHF offer ranks by its EUR value, and its breakdown shows the CHF price and the EUR price; an offer in a currency with no rate shows "no rate for CHF"
 
 ## 3. Plan a trip in one place
 
@@ -64,10 +68,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [ ] `trip:mobile` A responsive layout of all pages
   - All pages work at a phone width of 390 px with no horizontal scroll (agents check with screenshots; the owner then tests on a phone)
 - [ ] `trip:links` Search links per source, filled with the values of the trip (they only open a page; they fetch nothing)
-- [ ] `trip:return` Round trips: an outbound and a return trip linked as one journey (`docs/SPEC.md`, section 13)
+- [x] `trip:return` (#339) Round trips: an outbound and a return trip linked as one journey (`docs/SPEC.md`, section 13)
   - "Add return trip" makes the linked trip with the swapped places, and each trip page links to the other
   - The trips list shows the two trips together, with the sum of their best offers
-- [ ] `trip:drops` Price-drop marks for pinned offers: a new capture with a lower price of a pinned fare shows a mark (in the app; e-mail or push later)
+- [x] `trip:drops` (#354) Price-drop marks for pinned offers: a new capture with a lower price of a pinned fare shows a mark (in the app; e-mail or push later)
   - The trips list and the trip page show "price dropped €X" for a pinned fare until the owner opens it
 
 ## 4. Run it on my home server
@@ -79,5 +83,5 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A restore of a backup gives back all trips and the price history
 - [x] `host:retention` (#205) Cleanup of raw captures after the retention period, with the setting in the UI
   - A capture older than the period is deleted; its offers and prices stay
-- [ ] `host:docs` Setup guide: install, reverse proxy, userscripts, tokens, backup
+- [x] `host:docs` (#245) Setup guide: install, reverse proxy, userscripts, tokens, backup
   - A new user can follow the guide from an empty server to a first captured offer
