@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Captures · {{ trip.title }} · travel-aggregator{% endblock %}
+{% block content %}
+<h1>Captures of {{ trip.title }}</h1>
+<p><a href="/trips/{{ trip.id }}">Back to the trip</a></p>
+{% if captures %}
+<table>
+  <tr><th>Captured</th><th>Source</th><th>Parser</th><th>Raw</th><th></th></tr>
+  {% for c in captures %}
+  <tr>
+    <td>{{ c.captured_at.strftime('%Y-%m-%d %H:%M') }} UTC</td><td>{{ c.source }}</td><td>{{ c.parser_version or "-" }}</td>
+    <td>{{ "yes" if c.raw_gz is not none else "no" }}</td>
+    <td id="reparse-{{ c.id }}"><button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
+      hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse capture</button></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No captures yet.</p>
+{% endif %}
+{% endblock %}

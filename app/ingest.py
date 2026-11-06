@@ -128,6 +128,23 @@ def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None]:
     return result.offers, result.errors, None
 
 
+def reparse(session: Session, capture: Capture) -> dict | None:
+    """Run the current parser of the source again on the stored raw of the capture (after a parser fix), and upsert
+    its offers with the capture id and time. None when the capture has no raw or the source has no parser. Returns
+    the counts as `store`, and "unreadable" (the reason, or None)."""
+    raw, parser = load_raw(capture), get_parser(capture.source)
+    if raw is None or parser is None:
+        return None
+    try:
+        result = parser.parse(raw)
+    except ValueError as e:
+        log.warning("capture %s: reparse of %s raw payload failed: %s", capture.id, capture.source, e)
+        return {"created": 0, "updated": 0, "unchanged": 0, "rejected": 0, "unreadable": str(e)[:200]}
+    counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
+                           captured_at=capture.captured_at)
+    return {**counts, "rejected": len(result.errors), "unreadable": None}
+
+
 def store(session: Session, body: IngestIn) -> dict:
     """Store the capture of the body (with its raw, if any), then its valid offers; each price row links to the
     capture. The offers of a raw payload come from its parser (`app/parsers`); one bad connection is an entry of
