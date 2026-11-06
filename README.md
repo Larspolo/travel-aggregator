@@ -159,6 +159,16 @@ limited to 5 MB.
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
 
+### Compare offers in the trip table
+
+The table of `/trips/{id}` has one row per offer. Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
+An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on).
+Under the fare name, the age of the newest capture shows, for example "2 h ago".
+Click a column header to sort by it. Click it again to reverse the order.
+The Mode and Source lists show only one mode or one source.
+The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
+Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
+
 ## Userscript panel
 
 Each userscript shows a small panel at the bottom right of the travel site. The panel shows `Captured N offers → sent ✓`
