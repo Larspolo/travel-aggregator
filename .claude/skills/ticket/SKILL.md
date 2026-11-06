@@ -46,6 +46,10 @@ of behavior only for a change of code, with test data or the expected value from
 older ticket of the same epic when that ticket changed only data. Never write a criterion "a test checks that the data file (or a workflow, `agent.toml`, a skill)
 holds X": no test checks the content of a data or configuration file (owner, 2026-10-29, `docs/extend.md`).
 
+Make two or more tickets in one call: write them to one file and run `python3 framework/tools/new_tickets.py FILE.md`
+(its docstring has the form: `labels:`, `parent:` and `#newK` for a ticket of the same file). One MCP call per ticket
+reads the full context again each time: a refill with 6 to 10 such calls paid about 5k eq per call (owner, 2026-11-06).
+
 Labels: one priority (`P0`-`P3`), one kind (`bug`, `feature`, `tooling`, `design`, `docs`, `cleanup`),
 one size (`size:S`, `size:M`, `size:L`), and the lane (`lane:haiku`, none or `lane:deep`, section "Model lanes";
 a `bug` with a named cause and fix is Haiku). Add `needs-human` when only the owner can do it.
@@ -63,8 +67,9 @@ name each file and function that the ticket changes, and no others (tools that o
 
 ## Split an L ticket
 
-1. Make S or M sub-issues (`gh api repos/OWNER/NAME/issues/E/sub_issues -F sub_issue_id=<id of the child, not its number>`,
-   or "Depends on" lines in a local session). Not the MCP `sub_issue_write`: each call returns the whole parent issue
+1. Make S or M sub-issues, all in one call with `new_tickets.py` (`parent: E`; else `gh api
+   repos/OWNER/NAME/issues/E/sub_issues -F sub_issue_id=<id of the child, not its number>`, or "Depends on" lines in a
+   local session). Not the MCP `sub_issue_write`: each call returns the whole parent issue
    and its repository (about 4k tokens; 5 calls cost 20k tokens in one refill).
    Make the first sub-issue small and useful alone.
 2. Give the sub-issues the priority of the parent and the order of the work (lower number = first).

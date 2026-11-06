@@ -68,7 +68,8 @@ epic), and only 1 when no open ticket is less than 60 minutes old (`usage.new_ti
 It starts none when R >= N and no epic or release check waits (`usage.refill_need`, #3547), and none when R < N and the
 refill has no source: no such check, no roadmap feature with no epic and no fallback (#3560). A due process or roadmap
 review starts one too (deep locks), also while refill runs are live: a review has its own lock (owner, 2026-10-29).
-Give each new ticket its lane (`ticket` skill, "Model lanes").
+Give each new ticket its lane (`ticket` skill, "Model lanes"). Make all tickets of the refill (an epic and its
+sub-issues too) in one call: `python3 framework/tools/new_tickets.py FILE.md` (`ticket` skill).
 Also lock each epic E with `python3 framework/tools/claim.py E --refill` before you make its tickets (exit 1: skip that epic, #505).
 A `muted` or `after-release` ticket or epic (the owner holds it until later, 2026-10-26, #4175) is out of all these steps: no split, no check, no
 new sub-issues, no `needs-human`. Still answer an owner comment on it (step 3).
