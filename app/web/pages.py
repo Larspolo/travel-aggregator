@@ -585,4 +585,10 @@ def compare_page(request: Request, trip_id: int, session: Session = Depends(get_
     for i in ids:
         fare, cost = row_cost(found[i], found[i].fares, places, weights, stale_before)
         context["columns"].append((found[i], fare, cost))
+    # the best column of each line: a tie marks every column with the lowest value (#294)
+    lines = {"price": [f.latest_price for _, f, _ in context["columns"]],
+             "duration": [it.duration_min for it, _, _ in context["columns"]],
+             "transfers": [it.transfers for it, _, _ in context["columns"]],
+             "cost": [c.total for _, _, c in context["columns"]]}
+    context["best"] = {k: {n for n, v in enumerate(vals) if v == min(vals)} for k, vals in lines.items()}
     return templates.TemplateResponse(request, "compare.html", context)
