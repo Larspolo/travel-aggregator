@@ -224,7 +224,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               earliest_depart: str = Query("", pattern=CLOCK_PATTERN), latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
-              show_hidden: bool = Query(False)) -> HTMLResponse:
+              show_hidden: bool = Query(False), hide_stale: bool = Query(False)) -> HTMLResponse:
     # the weights of the URL; None = not in the URL, the default profile gives the value (#230)
     overrides = {k: v for k, v in locals().items() if k in WEIGHT_NAMES}
     trip = session.get(Trip, trip_id)
@@ -242,6 +242,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
     weights = active_weights(default_weights(session), overrides)  # the score is computed here and never stored
+    now = datetime.now(timezone.utc)
+    stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
     rows, modes, sources, carriers = [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
@@ -260,6 +262,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # an excluded mode or carrier hides each offer with one of its legs
         if it.legs and not in_time_window(it, limit_depart, limit_arrive):
             continue  # the time limits hide this row (#181)
+        if hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before:
+            continue  # "hide stale" hides a row whose newest capture is stale (#277)
         base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
                 + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
                 + transfer_extras(it, weights))
@@ -282,7 +286,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
-            "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
+            "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale}
     # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
     query = {**{k: v for k, v in to_config(weights).items() if v is not None}, "mode": mode, "source": source,
              **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
@@ -292,8 +296,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     if show_hidden:
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
-    now = datetime.now(timezone.utc)
-    stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
+    if hide_stale:
+        query["hide_stale"] = True  # the sort links keep it (#277)
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "now": now, "stale_before": stale_before}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
