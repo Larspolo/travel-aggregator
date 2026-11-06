@@ -6,5 +6,5 @@ select = ["F"]                  # the copied tools pass these rules; add more ru
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "framework/tests"]
-addopts = "-q -m 'not slow'"
+addopts = "-q -m 'not slow' --import-mode=importlib"  # tests/ and framework/tests/ can have the same file names
 markers = ["slow: Playwright browser tests of the pages and the userscripts; run with: pytest -m slow"]
