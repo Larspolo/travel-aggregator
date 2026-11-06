@@ -5,6 +5,7 @@
 {% if trip.origin_text or trip.destination_text %}
 <p class="muted">{{ trip.origin_text or "?" }} → {{ trip.destination_text or "?" }}</p>
 {% endif %}
+<p><a href="/trips/{{ trip.id }}/offers/new">Add an offer by hand</a></p>
 {% if rows or view.mode or view.source %}
 <form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
