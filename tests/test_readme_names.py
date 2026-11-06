@@ -68,11 +68,6 @@ def find_missing(readme: str, root: pathlib.Path) -> list[str]:
     return missing
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="README Configuration names GIT_SHA, a Dockerfile build ARG that is in no .env.example nor app/config.py; "
-           "the README PR at the end of the epic fixes it, then this marker goes",
-)
 def test_each_readme_name_exists():
     readme = (ROOT / "README.md").read_text()
     assert find_missing(readme, ROOT) == [], "names of README.md that do not exist (fix the README at the epic's end)"
