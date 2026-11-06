@@ -29,7 +29,8 @@ def test_the_cheapest_fare_is_the_main_row(trip):  # noqa: F811
     client, auth, trip_id = trip
     ingest(client, auth, trip_id, [offer("119.90", fare="Flexpreis"), offer("89.90", fare="Sparpreis")])
     page = client.get(f"/trips/{trip_id}").text
-    assert "= €217.90" in page and "Flexpreis" not in page
+    main_row = page[:page.index('<tr class="detail">')]  # the details list all fares (#114)
+    assert "= €217.90" in page and "Flexpreis" not in main_row
 
 
 def test_an_itinerary_with_no_fare_does_not_break_the_page(trip, sessions):  # noqa: F811
