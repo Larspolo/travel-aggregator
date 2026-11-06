@@ -1,0 +1,17 @@
+# Only the app goes into the image: no agent system, no tests, no secrets.
+.git
+.github
+.claude
+framework
+steering
+scripts
+docs
+tests
+deploy
+out
+.env
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+.venv
