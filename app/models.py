@@ -167,3 +167,11 @@ class ScoreProfile(Base):
     name: Mapped[str] = mapped_column(String(100), unique=True)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     config_json: Mapped[dict] = mapped_column(JSON)
+
+
+class Setting(Base):
+    """A value that the owner sets on the settings page (#207)."""
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)

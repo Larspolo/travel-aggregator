@@ -1,5 +1,5 @@
 """The score profiles (#229): "Save as profile" on the trip page stores the weights, a load gives the same weights,
-and the migration 0007 upgrades and downgrades."""
+and the migration 0008 upgrades and downgrades."""
 
 import dataclasses
 from datetime import time
@@ -88,7 +88,7 @@ def test_none_stays_none_and_an_unknown_and_a_missing_key_load():
     assert from_config(config) == Weights()
 
 
-def test_migration_0007_up_and_down(empty_database_url):
+def test_migration_0008_up_and_down(empty_database_url):
     cfg = _alembic(empty_database_url)
     command.upgrade(cfg, "head")
     engine = create_engine(empty_database_url)

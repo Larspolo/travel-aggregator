@@ -1,7 +1,7 @@
 """The score profiles (#229).
 
-Revision ID: 0007
-Revises: 0006
+Revision ID: 0008
+Revises: 0007
 
 No data change: the upgrade adds the table `score_profiles`; the downgrade drops it (and the saved profiles).
 """
@@ -9,8 +9,8 @@ No data change: the upgrade adds the table `score_profiles`; the downgrade drops
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0007"
-down_revision = "0006"
+revision = "0008"
+down_revision = "0007"
 branch_labels = None
 depends_on = None
 
