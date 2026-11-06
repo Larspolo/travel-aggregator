@@ -151,6 +151,37 @@ def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+class ApiLimiter:
+    """Limits the API requests per token in memory (one uvicorn process; a restart resets the counts).
+
+    MAX requests in WINDOW seconds per token. A request over the limit gets the seconds to wait.
+    """
+
+    MAX = 120
+    WINDOW = 60
+
+    def __init__(self, clock: Callable[[], float] = time.monotonic) -> None:
+        self.clock = clock
+        self.reset()
+
+    def reset(self) -> None:
+        self.hits: dict[str, deque[float]] = defaultdict(deque)
+
+    def hit(self, key: str) -> int:
+        """Counts a request of the key. Returns the seconds to wait, 0 when the request may go."""
+        now = self.clock()
+        own = self.hits[key]
+        while own and own[0] <= now - self.WINDOW:
+            own.popleft()
+        if len(own) >= self.MAX:
+            return math.ceil(own[0] + self.WINDOW - now)
+        own.append(now)
+        return 0
+
+
+api_limiter = ApiLimiter()
+
+
 def require_token(credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
                   session: Session = Depends(get_session)) -> ApiToken:
     """The valid, not revoked token of the request, else 401. Never log the token."""
@@ -162,6 +193,11 @@ def require_token(credentials: HTTPAuthorizationCredentials | None = Depends(bea
     token = session.scalar(select(ApiToken).where(ApiToken.token_hash == digest, ApiToken.revoked_at.is_(None)))
     if token is None or not hmac.compare_digest(token.token_hash, digest):
         raise unauthorized
+    wait = api_limiter.hit(token.id)
+    if wait > 0:
+        log.warning("API request limit reached for token %s", token.id)
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "too many requests",
+                            headers={"Retry-After": str(wait)})
     token.last_used_at = datetime.now(UTC)
     session.commit()
     return token
