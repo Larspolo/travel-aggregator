@@ -57,6 +57,8 @@
       <input type="number" name="short_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.short_transfer_penalty }}"></label>
     <label>Stale after hours
       <input type="number" name="stale_hours" min="1" max="720" step="1" value="{{ weights.stale_hours }}"></label>
+    <label>Stale penalty €
+      <input type="number" name="stale_penalty" min="0" max="1000" step="0.01" value="{{ weights.stale_penalty }}"></label>
     <label>Train markup € (negative = discount)
       <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
     <label>Bus markup €

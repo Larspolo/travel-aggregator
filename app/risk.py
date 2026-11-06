@@ -37,6 +37,19 @@ def transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], .
     return (("short transfer", penalty * short),)
 
 
+def stale_extras(it, weights: Weights, stale_before) -> tuple[tuple[str, Decimal], ...]:
+    """Add one part "stale" when the newest capture of the itinerary is older than `stale_before` (#276).
+
+    A penalty of 0 adds no part.
+    """
+    penalty = Decimal(weights.stale_penalty)
+    if penalty == 0 or not it.fares:
+        return ()
+    if max(f.latest_captured_at for f in it.fares) < stale_before:
+        return (("stale", penalty),)
+    return ()
+
+
 def self_transfer_extras(fare, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """Add the penalty for each self-transfer of the fare (#176): one part with the sum. A penalty of 0 adds no part.
 
