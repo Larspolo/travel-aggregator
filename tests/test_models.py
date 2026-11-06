@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Base, Fare, FarePrice, Itinerary, Leg, Trip
 
-TABLES = {"trips", "itineraries", "legs", "fares", "fare_prices", "api_tokens"}
+TABLES = {"trips", "itineraries", "legs", "fares", "fare_prices", "api_tokens", "captures"}
 
 
 def _alembic(url: str) -> Config:
