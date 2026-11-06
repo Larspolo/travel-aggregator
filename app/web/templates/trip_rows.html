@@ -2,6 +2,7 @@
     {% set first, last = it.legs[0], it.legs[-1] %}
     <tr>
       <td>
+        <input type="checkbox" name="it" value="{{ it.id }}" form="compare" aria-label="Compare">
         <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/hide">
           <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
           <button type="submit">{{ "Unhide" if it.hidden else "Hide" }}</button>

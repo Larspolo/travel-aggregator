@@ -93,6 +93,7 @@
   {% for k, v in sort_query.items() if k in weights.__dataclass_fields__ %}<input type="hidden" name="{{ k }}" value="{{ v }}">
   {% endfor %}
 </form>
+{% with oob = false %}{% include "compare_form.html" %}{% endwith %}
 <div class="scroll" id="table">
 {% include "trip_table.html" %}
 </div>
