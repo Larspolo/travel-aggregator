@@ -146,11 +146,20 @@ Check: the token is in the list on the `/tokens` page.
 
 #### 5. Install the userscript
 
-Install the browser extension Tampermonkey. Add the file `userscripts/bahn.user.js` of this repository to
-Tampermonkey as a new script. In the Tampermonkey menu, use `Set server URL` (`https://<host>`) and `Set API token`
-(the token of step 4).
+Install the browser extension Tampermonkey. On the `/tokens` page, open the install link of each userscript
+(the `Install` link of the list "Userscripts"). Tampermonkey shows the install dialog: confirm it.
+
+The userscript knows its server: the address of the page that installed it is the default server URL. You do not
+need to set a server URL. The userscript updates itself: Tampermonkey checks the server for a new version of the
+script, so you do not install the userscript again after an update.
+
+In the Tampermonkey menu, use `Set API token` (the token of step 4). Use `Set server URL` only when the server
+differs from the address that installed the userscript.
 
 Check: the Tampermonkey dashboard shows the script as on.
+
+The repository also has the userscripts (`userscripts/bahn.user.js`, `userscripts/ns.user.js`). To install from the
+repository instead, add the file as a new script in Tampermonkey and set the server URL (`https://<host>`).
 
 #### 6. Capture a first offer
 
