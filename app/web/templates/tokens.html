@@ -12,6 +12,15 @@
 Set API token:  {{ new_token }}</pre>
 </section>
 {% endif %}
+<section class="userscripts">
+  <h2>Userscripts</h2>
+  <p>Install a userscript in Tampermonkey:</p>
+  <ul>
+  {% for s in userscripts %}
+    <li>{{ s.name }} {{ s.version }} – <a href="/userscripts/{{ s.file }}">Install</a></li>
+  {% endfor %}
+  </ul>
+</section>
 <form method="post" action="/tokens">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <label>Name <input name="name" required maxlength="100"></label>
