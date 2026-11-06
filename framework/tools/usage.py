@@ -161,17 +161,30 @@ def refill_live(lines, now, minutes=REFILL_MINUTES):
     return len(runs)
 
 
-def refill_count(ready, target, live, epics, new=True, per=REFILL_TICKETS, most=REFILL):
+def refill_count(ready, target, live, epics, new=True, per=REFILL_TICKETS, most=REFILL, whole=True):
     """The refill runs that the pacer starts now, from the tickets that the queue misses (owner, 2026-11-06): one run
     for each `per` tickets of `target - ready`, at least 1 (the caller has refill work: `refill_need`), less the `live`
-    refill runs (`refill_live`). At most `most`, and at most one run per refill source: the whole refill (one lock
-    per 10 minutes) and each open epic (one lock each, #505). Only 1 when no ticket is new (`new_ticket`).
+    refill runs (`refill_live`). At most `most`, and at most one run per refill source with work (`refill_sources`):
+    the whole refill when `whole` (one lock per 10 minutes) and each of the `epics` (one lock each, #505). 0 when no
+    source has work: a due review gets its run from the caller. Only 1 when no ticket is new (`new_ticket`).
+    One epic check with 6 open epics started 3 runs, and 2 of them found no work (#378).
     A fixed count with a 60-minute gap left the queue at 0 to 2 ready tickets in 31 of 33 cycles for a target of up
     to 16 runs, and the 5-hour window ended at 43 % (2026-11-06). 16 of 30 deep runs found the lock taken or nothing
     to refill (2026-10-29): so no more runs than sources."""
     want = max(1, math.ceil(max(0, (target or 0) - ready) / max(per, 1)))
-    cap = min(most, 1 + max(epics, 0)) if new else 1
+    cap = min(most, int(whole) + max(epics, 0)) if new else min(1, int(whole) + max(epics, 0))
     return max(0, min(want, cap) - live)
+
+
+def refill_sources(ready, target, issues, due=lambda: [], free=lambda: [], now=None, closing=lambda e: False):
+    """(epics, whole): the refill sources with work for `refill_count` (#378). epics: the epics that wait for an epic
+    check (`epic_checks`, not `closing`); an epic whose open sub-issues wait for the owner has no refill work. whole:
+    True when the whole refill has work: `rank` tickets, a release check with no ticket (`due`), or R < N and a free
+    source (`free`, `free_sources`). The arguments are those of `refill_need`."""
+    import dashboard
+    epics = sum(not closing(n) for n in epic_checks(issues, now))
+    rank = any(dashboard.RANK in dashboard.labels(i) for i in issues if "pull_request" not in i)
+    return epics, bool(rank or due() or (target is not None and ready < target and free()))
 
 
 def pending(started, lines, now, minutes=PENDING, refill_lane="deep"):
@@ -516,15 +529,17 @@ def fire(usage, now, burn=BURN, burn7=None, skip=(), status=None, started=None, 
     weights, source = health.lane_weights(comments)
     eq = claims if lanes is None else health.opus_equivalent(claims, lanes, weights)   # in Opus runs (#1727)
     target = target_runs(usage, now, burn, burn7=burn7) if target is None else target
+    free, due, closing = functools.cache(free_sources), functools.cache(release_due), functools.cache(autoclosing)
     reviews = functools.cache(lambda: due_reviews(starved=lambda: target is not None and ready < target
-                                                  and not free_sources()))
-    need = refill_need(ready, target, open_all, release_due, free=free_sources, reviews=reviews,
-                       now=now.timestamp() if hasattr(now, "timestamp") else now, closing=autoclosing)   # reviews after checks
+                                                  and not free()))
     stamp = now.timestamp() if hasattr(now, "timestamp") else now
+    need = refill_need(ready, target, open_all, due, free=free, reviews=reviews, now=stamp, closing=closing)   # reviews after checks
     live = refill_live(refs, stamp)
-    epics = sum("epic" in dashboard.labels(i) and not {dashboard.MUTED, dashboard.AFTER, "needs-human"} & dashboard.labels(i)
-                for i in open_all if "pull_request" not in i)
-    refill = refill_count(ready, target, live, epics, new_ticket(open_all, stamp)) if need else 0   # #3547: no work, no run
+    if need:                                                # #3547: no work, no run; #378: no run for a source with no work
+        epics, whole = refill_sources(ready, target, open_all, due, free=free, now=stamp, closing=closing)
+        refill = refill_count(ready, target, live, epics, new_ticket(open_all, stamp), whole=whole)
+    else:
+        refill = 0
     if need and not refill:
         # The live refill runs make the tickets. A due review has its own lock (owner, 2026-10-29): one run takes it,
         # and `pending` counts the started run until it claims.
