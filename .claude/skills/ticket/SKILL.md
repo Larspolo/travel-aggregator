@@ -83,7 +83,9 @@ name each file and function that the ticket changes, and no others (tools that o
 
 Add one label of `[audience]` in `agent.toml` too (#72): `for-lars` for the agent system (Claude, Docker, the
 server, CI, the GitHub settings), `for-jeroen` for the project (decisions, features, the roadmap, and the payload captures of a
-new source: Kind `outside`, owner Larspolo on #122). Mention the login
+new source: Kind `outside`, owner Larspolo on #122). A payload capture of a travel site also has the lines
+`Capture: <start page URL>`, `Keep: <URL part of the requests to keep>` and `Branch: owner/<name>-captures` after the
+`Kind:` line, and steps that need no login: the `capture` skill on Jeroen's computer does it in his browser. Mention the login
 of that label in the comment. The status issue shows one list per label.
 The owner reads them on a phone. Give numbered steps, the exact names of settings or files, and what the
 owner must reply. One ticket per decision.
