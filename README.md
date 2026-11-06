@@ -119,7 +119,20 @@ limited to 5 MB.
 | Path | Use |
 |---|---|
 | `/login`, `/logout` | The login with `OWNER_PASSWORD_HASH` |
-| `/trips/{id}` | The offers of a trip, cheapest first |
+| `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
+
+## Ranking
+
+The trip page `/trips/{id}` ranks the offers by effective cost, lowest first:
+
+```
+effective cost = price + hours × hour markup + transfers × transfer markup
+```
+
+Each row shows the breakdown of its cost, for example `€90 price + €62 time + €30 transfers = €182`. A part that is
+0 is not shown. Two sliders above the list set the hour markup (default €15) and the transfer markup (default €10),
+from €0 to €100. When you move a slider, the list ranks again at once.
+The values are not stored: a link such as `/trips/1?hour_markup=20&transfer_markup=5` opens the page with them.
 
 ## Development
 
