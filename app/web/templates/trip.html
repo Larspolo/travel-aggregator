@@ -100,6 +100,16 @@
   <input type="hidden" name="trip_id" value="{{ trip.id }}">
 </form>
 {% with oob = false %}{% include "compare_form.html" %}{% endwith %}
+{% if drops %}
+<section class="drops" id="drops">
+<h2>Price drops</h2>
+<ul>
+{% for d in drops %}
+<li>{{ d.depart_at.strftime("%Y-%m-%d %H:%M") if d.depart_at else "" }} {{ d.mode_summary or "" }} · {{ d.source }}: {{ d.fare_name or "" }} · price dropped {{ d.currency }} {{ d.amount }} · now {{ d.currency }} {{ d.latest_price }}</li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
 <div class="scroll" id="table">
 {% include "trip_table.html" %}
 </div>

@@ -83,6 +83,8 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
                                                           offer.self_transfers)
         return result
     if captured_at >= fare.latest_captured_at:
+        if offer.price_currency != fare.currency:
+            fare.seen_price = None  # a drop in another currency is not a drop (#355)
         fare.latest_price, fare.currency, fare.latest_captured_at = (offer.price_amount, offer.price_currency,
                                                                       captured_at)
     fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
