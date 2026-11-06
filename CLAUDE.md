@@ -45,6 +45,9 @@ A new source is one userscript and one server parser, with its fixtures, and not
   `steering/project/PRINCIPLES.md`.
 - All times are timezone-aware: store UTC and the original offset. Money is `Decimal`, never `float`.
 - The score is computed at query time from the active profile; derived values (duration, transfers) at ingest.
+- `README.md` is the guide for users: a PR that changes the setup, a command, a setting, the API or what a user can
+  do updates `README.md` in the same PR. It describes only what works on `main`; the status of the features is only
+  in the roadmap. `tests/test_readme.py` fails for an API route or a setting with no README line.
 - Each merge goes live: a green `main` becomes the image `:preview` at `travel-preview.larspolo.nl` within 5 minutes
   (`deploy/preview/`). Its migrations run with no person in the loop: each migration needs a working `downgrade`,
   and one that drops or changes data says so in the PR. Keep the variable names of `deploy/preview/.env.example`.

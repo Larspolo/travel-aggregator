@@ -19,7 +19,8 @@ Select the levels from the type of change. Each level also needs the levels befo
     ruff check .
     python3 -m pytest tests/test_<topic>.py ...
 
-Both must pass before the commit. Run only the tests of the change: the quick CI runs all fast tests.
+Both must pass before the commit. A change of the setup, a command, a setting, the API or what a user can do:
+update `README.md` in the same commit (`tests/test_readme.py` checks the routes and the settings). Run only the tests of the change: the quick CI runs all fast tests.
 A parser change: run its fixture tests (`tests/fixtures/<source>/`). A model change: an Alembic migration with it
 (`alembic upgrade head` on an empty database, then `alembic check`).
 
