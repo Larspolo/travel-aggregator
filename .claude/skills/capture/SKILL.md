@@ -1,7 +1,7 @@
 ---
 name: capture
 description: Do the browser capture tickets of travel-aggregator for Jeroen, with no person in the loop. Find the open needs-human tickets for Jeroen that ask for a payload or a HAR of a travel site, do the search of each ticket in Jeroen's own Chrome (Claude in Chrome), save the responses of the page as a HAR, remove the personal data, push the HAR to the capture branch, comment on the ticket and remove needs-human. Only for a local Claude Code session with --chrome on Jeroen's computer, started with "/capture". Argument - one ticket number (default all capture tickets).
-allowed-tools: mcp__claude-in-chrome, Bash(python3 tools/capture.py:*), Bash(gh issue:*), Bash(gh auth status:*), Bash(git fetch:*), Bash(git pull:*), Bash(git switch:*), Bash(git status:*), Bash(git worktree:*), Bash(ls:*), Bash(rm -f:*), Bash(mkdir:*)
+allowed-tools: mcp__claude-in-chrome, Bash(python3 tools/capture.py:*), Bash(gh issue:*), Bash(gh auth status:*), Bash(git fetch:*), Bash(git pull:*), Bash(git branch:*), Bash(git status:*), Bash(git worktree:*), Bash(ls:*), Bash(rm -f:*), Bash(mkdir:*)
 ---
 
 # Capture tickets in the browser
@@ -28,7 +28,7 @@ The setup steps are in issue "Try the capture skill" (`for-jeroen`); `/chrome` s
 1. A cloud session (`CLAUDE_CODE_REMOTE` is `true`) or a session with no browser tools: stop and say so. The
    browser tools come from `claude --chrome` (the tool `tabs_context_mcp` of `claude-in-chrome` answers).
 2. `gh auth status` must show a login. With no login: stop and say "Run `gh auth login`".
-3. When `git status --porcelain` is empty: `git switch main && git pull --ff-only`. Else keep the checkout.
+3. When the branch is `main` and `git status --porcelain` is empty: `git pull --ff-only`. Else keep the checkout.
 4. The download folder: `$CAPTURE_DOWNLOADS`, else `~/Downloads`. The work folder: `mkdir -p ~/.cache/ta-capture`.
 
 ## 2. Find the tickets
