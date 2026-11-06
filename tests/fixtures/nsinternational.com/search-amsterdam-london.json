@@ -1,0 +1,715 @@
+{
+  "request": {
+    "origin": "NLASC",
+    "destination": "GBSPX",
+    "travelers": [
+      {
+        "ageType": "A"
+      }
+    ],
+    "outboundDatetime": {
+      "datetime": "2026-11-26T07:00:00",
+      "timetype": "DEPARTURE"
+    }
+  },
+  "response": {
+    "status": "success",
+    "data": {
+      "messages": [],
+      "travelOffers": [
+        {
+          "id": "e5ee71256a9f43617c0a44ef6e427920bed38752763db747b74c5e944f35dee4",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "London St. Pancras International",
+              "code": "GBSPX",
+              "alias": "Londen Centraal",
+              "country": "GB",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T09:57:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT",
+              "sepaCode": null
+            },
+            "duration": "PT4H17M",
+            "id": "e5ee71256a9f43617c0a44ef6e427920bed38752763db747b74c5e944f35dee4",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "EUR",
+                "name": "Eurostar",
+                "number": "9115",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 0,
+            "origin": {
+              "name": "Amsterdam Centraal Eurostar",
+              "code": "NLASC",
+              "alias": "Amsterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T06:40:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_MF_202611260640_e5c7ad75f2bb2f688e0b61b229576ed648bc77df172384a12f7ad70c57cfe14e",
+              "name": "Standard Premier",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 155.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 155.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 155.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Ruime zitplaats, meer rust, lichte maaltijd aan stoel, toegang NS International lounge, Check-in tot 30 min. voor vertrek, 2 koffers en 1 handbagage, gratis tijdschriften"
+                  ],
+                  "carrierCode": "EUR",
+                  "carrierName": "Eurostar",
+                  "label": "Standard Premier"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202611260640_2437e54bb6c5c73d0afec5736aa6504a0b319533ad4f56e1a5628147e6f8228f",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 90.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 90.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 90.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611260640_cc144bdcb12f615ac1fafb920838a0c8159bceb128d6f71089d036b26fc3388e",
+              "name": "Business Premier",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 367.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 367.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 367.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Luxe maaltijd aan stoel, toegang lounges, Express check-in tot 10 min. voor vertrek, 1 extra koffer, gratis kranten/tijdschriften"
+                  ],
+                  "carrierCode": "EUR",
+                  "carrierName": "Eurostar",
+                  "label": "Business Premier"
+                }
+              ]
+            }
+          ],
+          "messages": []
+        },
+        {
+          "id": "0911974ba66205f97e6fb8757fbfc32439dd56e5b21ddbaf0cffbb296cdc734e",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "London St. Pancras International",
+              "code": "GBSPX",
+              "alias": "Londen Centraal",
+              "country": "GB",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T11:57:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT",
+              "sepaCode": null
+            },
+            "duration": "PT5H9M",
+            "id": "0911974ba66205f97e6fb8757fbfc32439dd56e5b21ddbaf0cffbb296cdc734e",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "R84",
+                "name": "SPR",
+                "number": "8227",
+                "features": []
+              },
+              {
+                "type": "TRAIN",
+                "code": "Eurocity Direct",
+                "name": "Eurocity Direct",
+                "number": "9520",
+                "features": []
+              },
+              {
+                "type": "TRANSFER",
+                "code": null,
+                "name": null,
+                "number": null,
+                "features": []
+              },
+              {
+                "type": "TRAIN",
+                "code": "EUR",
+                "name": "Eurostar",
+                "number": "9123",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 2,
+            "origin": {
+              "name": "Amsterdam Centraal",
+              "code": "NLASC",
+              "alias": "Amsterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T07:48:00",
+                "delay": "PT0S",
+                "platform": "11a",
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_MF_202611260748_5a72294724700ef5c01936f44ddaf9ac67b7d1933f4fbecf050efb2c73753845",
+              "name": "Business Premier",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 405.2,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 405.2,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCBEBMI",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 61.2,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_BEBMIGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 344.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Luxe maaltijd aan stoel, toegang lounges, Express check-in tot 10 min. voor vertrek, 1 extra koffer, gratis kranten/tijdschriften"
+                  ],
+                  "carrierCode": "EUR",
+                  "carrierName": "Eurostar",
+                  "label": "Business Premier"
+                }
+              ]
+            },
+            {
+              "id": "1_MF_202611260748_260be9742ea93c1a108aee17fc24ca7762114710e0fc310e82d90a87e437d71a",
+              "name": "Standard Premier",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 285.2,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 285.2,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCBEBMI",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 61.2,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_BEBMIGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 224.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Ruime zitplaats, meer rust, lichte maaltijd aan stoel, toegang NS International lounge, Check-in tot 30 min. voor vertrek, 2 koffers en 1 handbagage, gratis tijdschriften"
+                  ],
+                  "carrierCode": "EUR",
+                  "carrierName": "Eurostar",
+                  "label": "Standard Premier"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202611260748_3fd4235cb7b2526fdd74b84dc6afd6039cbe552f8109728dcba454cf799c6484",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 193.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 193.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCBEBMI",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 34.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_BEBMIGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 159.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611260748_f1795314bd85d1e5b38812571e42048a893225d8f6381cb990db56ada4d846ec",
+              "name": "Business Premier",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 444.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 444.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCBEBMI",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 100.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_BEBMIGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 344.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Luxe maaltijd aan stoel, toegang lounges, Express check-in tot 10 min. voor vertrek, 1 extra koffer, gratis kranten/tijdschriften"
+                  ],
+                  "carrierCode": "EUR",
+                  "carrierName": "Eurostar",
+                  "label": "Business Premier"
+                }
+              ]
+            }
+          ],
+          "messages": []
+        },
+        {
+          "id": "fb50c11374795bed17ce920c334597eae05e1347df2c865ee7b16043e5991d35",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "London St. Pancras International",
+              "code": "GBSPX",
+              "alias": "Londen Centraal",
+              "country": "GB",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T13:57:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT",
+              "sepaCode": null
+            },
+            "duration": "PT4H17M",
+            "id": "fb50c11374795bed17ce920c334597eae05e1347df2c865ee7b16043e5991d35",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "EUR",
+                "name": "Eurostar",
+                "number": "9133",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 0,
+            "origin": {
+              "name": "Amsterdam Centraal Eurostar",
+              "code": "NLASC",
+              "alias": "Amsterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T10:40:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_MF_202611261040_e5c7ad75f2bb2f688e0b61b229576ed648bc77df172384a12f7ad70c57cfe14e",
+              "name": "Standard Premier",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 198.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 198.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 198.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Ruime zitplaats, meer rust, lichte maaltijd aan stoel, toegang NS International lounge, Check-in tot 30 min. voor vertrek, 2 koffers en 1 handbagage, gratis tijdschriften"
+                  ],
+                  "carrierCode": "EUR",
+                  "carrierName": "Eurostar",
+                  "label": "Standard Premier"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202611261040_2437e54bb6c5c73d0afec5736aa6504a0b319533ad4f56e1a5628147e6f8228f",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 168.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 168.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 168.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611261040_cc144bdcb12f615ac1fafb920838a0c8159bceb128d6f71089d036b26fc3388e",
+              "name": "Business Premier",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 367.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 367.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCGBSPX",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 367.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Luxe maaltijd aan stoel, toegang lounges, Express check-in tot 10 min. voor vertrek, 1 extra koffer, gratis kranten/tijdschriften"
+                  ],
+                  "carrierCode": "EUR",
+                  "carrierName": "Eurostar",
+                  "label": "Business Premier"
+                }
+              ]
+            }
+          ],
+          "messages": []
+        }
+      ],
+      "scroll": {
+        "searchId": "travel_e3a10d4e-c206-4998-b174-18c6a1ddc00b",
+        "earlier": "PREV_DEPARTURE",
+        "later": "NEXT_DEPARTURE"
+      },
+      "newOutboundTravelOfferId": null,
+      "newOutboundOfferId": null
+    }
+  }
+}

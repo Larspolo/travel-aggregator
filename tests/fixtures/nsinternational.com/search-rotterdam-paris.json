@@ -1,0 +1,588 @@
+{
+  "request": {
+    "origin": "NLRTC",
+    "destination": "FRPAR",
+    "travelers": [
+      {
+        "ageType": "A"
+      }
+    ],
+    "outboundDatetime": {
+      "datetime": "2026-11-26T07:00:00",
+      "timetype": "DEPARTURE"
+    }
+  },
+  "response": {
+    "status": "success",
+    "data": {
+      "messages": [],
+      "travelOffers": [
+        {
+          "id": "3d2a22c5ecf6b410d952c1d2ab57b545f00c5ed5205307972de7366b02c9624e",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "Paris Nord",
+              "code": "FRPNO",
+              "alias": "Parijs Centraal",
+              "country": "FR",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T09:37:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "duration": "PT2H40M",
+            "id": "3d2a22c5ecf6b410d952c1d2ab57b545f00c5ed5205307972de7366b02c9624e",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "Eurostar",
+                "name": "Eurostar",
+                "number": "9310",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 0,
+            "origin": {
+              "name": "Rotterdam Centraal",
+              "code": "NLRTC",
+              "alias": "Rotterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T06:57:00",
+                "delay": "PT0S",
+                "platform": "2",
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_MF_202611260657_eccbc49840cd962833d79d9d8c97bd85ae780f3c4056258033b762e3d98ce317",
+              "name": " Comfort",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 93.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 93.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 93.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Ruime zitplaats, wifi+, toegang tot NS International lounge"
+                  ],
+                  "carrierCode": "Eurostar",
+                  "carrierName": "Eurostar",
+                  "label": "Comfort"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202611260657_9e2333d9f4860ea79ae99d71b56755a2b8982b86377c6936817e5a9215a1046b",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 74.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 74.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 74.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611260657_ba7eb0a27fe5cbb53c99e4a695093d8db4f41f9879ab0e7c0db329c7ad454932",
+              "name": " Premium",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 215.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 215.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 215.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Catering, krant/tijdschrift, toegang lounges, ruime zitplaats, wifi+, meer flexibiliteit"
+                  ],
+                  "carrierCode": "Eurostar",
+                  "carrierName": "Eurostar",
+                  "label": "Premium"
+                }
+              ]
+            }
+          ],
+          "messages": []
+        },
+        {
+          "id": "fa2b60543625af7bfeaa4dfbf4e4734df4fadd47d42854ebb666a30411dd1191",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "Paris Nord",
+              "code": "FRPNO",
+              "alias": "Parijs Centraal",
+              "country": "FR",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T10:38:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "duration": "PT2H40M",
+            "id": "fa2b60543625af7bfeaa4dfbf4e4734df4fadd47d42854ebb666a30411dd1191",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "Eurostar",
+                "name": "Eurostar",
+                "number": "9316",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 0,
+            "origin": {
+              "name": "Rotterdam Centraal",
+              "code": "NLRTC",
+              "alias": "Rotterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T07:58:00",
+                "delay": "PT0S",
+                "platform": "2",
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_MF_202611260758_eccbc49840cd962833d79d9d8c97bd85ae780f3c4056258033b762e3d98ce317",
+              "name": " Comfort",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 131.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 131.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 131.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Ruime zitplaats, wifi+, toegang tot NS International lounge"
+                  ],
+                  "carrierCode": "Eurostar",
+                  "carrierName": "Eurostar",
+                  "label": "Comfort"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202611260758_9e2333d9f4860ea79ae99d71b56755a2b8982b86377c6936817e5a9215a1046b",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 89.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 89.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 89.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611260758_ba7eb0a27fe5cbb53c99e4a695093d8db4f41f9879ab0e7c0db329c7ad454932",
+              "name": " Premium",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 215.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 215.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 215.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Catering, krant/tijdschrift, toegang lounges, ruime zitplaats, wifi+, meer flexibiliteit"
+                  ],
+                  "carrierCode": "Eurostar",
+                  "carrierName": "Eurostar",
+                  "label": "Premium"
+                }
+              ]
+            }
+          ],
+          "messages": []
+        },
+        {
+          "id": "cab12ddd5d58509cd1d7e950ed7975643a74eab2f14ed79253cad12ee54043ab",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "Paris Nord",
+              "code": "FRPNO",
+              "alias": "Parijs Centraal",
+              "country": "FR",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T10:38:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "duration": "PT2H40M",
+            "id": "cab12ddd5d58509cd1d7e950ed7975643a74eab2f14ed79253cad12ee54043ab",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "Eurostar",
+                "name": "Eurostar",
+                "number": "9416",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 0,
+            "origin": {
+              "name": "Rotterdam Centraal",
+              "code": "NLRTC",
+              "alias": "Rotterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T07:58:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_MF_202611260758_eccbc49840cd962833d79d9d8c97bd85ae780f3c4056258033b762e3d98ce317",
+              "name": " Comfort",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 131.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 131.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 131.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Ruime zitplaats, wifi+, toegang tot NS International lounge"
+                  ],
+                  "carrierCode": "Eurostar",
+                  "carrierName": "Eurostar",
+                  "label": "Comfort"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202611260758_9e2333d9f4860ea79ae99d71b56755a2b8982b86377c6936817e5a9215a1046b",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 89.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 89.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 89.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611260758_ba7eb0a27fe5cbb53c99e4a695093d8db4f41f9879ab0e7c0db329c7ad454932",
+              "name": " Premium",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 215.0,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 215.0,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLRTCFRPNO",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 215.0,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "<strong>voor Eurostar:</strong> Catering, krant/tijdschrift, toegang lounges, ruime zitplaats, wifi+, meer flexibiliteit"
+                  ],
+                  "carrierCode": "Eurostar",
+                  "carrierName": "Eurostar",
+                  "label": "Premium"
+                }
+              ]
+            }
+          ],
+          "messages": []
+        }
+      ],
+      "scroll": {
+        "searchId": "travel_867f0070-e304-48ec-8f4b-ed28fb72886d",
+        "earlier": "PREV_DEPARTURE",
+        "later": "NEXT_DEPARTURE"
+      },
+      "newOutboundTravelOfferId": null,
+      "newOutboundOfferId": null
+    }
+  }
+}
