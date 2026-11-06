@@ -20,7 +20,7 @@ from app.door import door_extras, flight_extras
 from app.models import AccessTime, ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
-from app.timeofday import time_extras
+from app.timeofday import night_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trips import list_trips
 
@@ -174,6 +174,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               early_limit: time = Query(Weights.early_limit),
               late_limit: time = Query(Weights.late_limit),
               time_window_penalty: Decimal = Query(Weights.time_window_penalty, ge=0, le=1000),
+              night_start: time = Query(Weights.night_start), night_end: time = Query(Weights.night_end),
+              night_min: int = Query(Weights.night_min, ge=0, le=1440),
+              night_adjust: Decimal = Query(Weights.night_adjust, ge=-1000, le=1000),
               sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
               dir: str = Query("asc", pattern="^(asc|desc)$"),
               mode: str = Query("", max_length=50), source: str = Query("", max_length=50)) -> HTMLResponse:
@@ -185,7 +188,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
-                      early_limit, late_limit, time_window_penalty)  # the score is computed here and never stored
+                      early_limit, late_limit, time_window_penalty,
+                      night_start, night_end, night_min, night_adjust)  # the score is computed here and never stored
     rows, modes, sources = [], set(), set()
     for it in itineraries:
         if not it.fares:
@@ -199,7 +203,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         fare = min(fares, key=lambda f: f.latest_price)
         cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights,
                               door_extras(it, places, hour_markup) + flight_extras(it, weights)
-                              + time_extras(it, weights))
+                              + time_extras(it, weights) + night_extras(it, weights))
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
@@ -214,7 +218,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     query = {"hour_markup": hour_markup, "transfer_markup": transfer_markup, "airport_before_min": airport_before_min,
              "airport_after_min": airport_after_min, "baggage_fee": baggage_fee,
              "early_limit": early_limit.strftime("%H:%M"), "late_limit": late_limit.strftime("%H:%M"),
-             "time_window_penalty": time_window_penalty, "mode": mode, "source": source}
+             "time_window_penalty": time_window_penalty,
+             "night_start": night_start.strftime("%H:%M"), "night_end": night_end.strftime("%H:%M"),
+             "night_min": night_min, "night_adjust": night_adjust, "mode": mode, "source": source}
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "format_breakdown": format_breakdown,
                "now": datetime.now(timezone.utc)}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)

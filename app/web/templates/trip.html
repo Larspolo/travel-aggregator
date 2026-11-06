@@ -31,6 +31,14 @@
       <input type="time" name="late_limit" value="{{ weights.late_limit.strftime('%H:%M') }}"></label>
     <label>Early or late penalty €
       <input type="number" name="time_window_penalty" min="0" max="1000" step="0.01" value="{{ weights.time_window_penalty }}"></label>
+    <label>Night start (local)
+      <input type="time" name="night_start" value="{{ weights.night_start.strftime('%H:%M') }}"></label>
+    <label>Night end (local)
+      <input type="time" name="night_end" value="{{ weights.night_end.strftime('%H:%M') }}"></label>
+    <label>Night minutes
+      <input type="number" name="night_min" min="0" max="1440" step="1" value="{{ weights.night_min }}"></label>
+    <label>Night travel € (negative = bonus)
+      <input type="number" name="night_adjust" min="-1000" max="1000" step="0.01" value="{{ weights.night_adjust }}"></label>
   </details>
 </form>
 <div class="scroll" id="table">
