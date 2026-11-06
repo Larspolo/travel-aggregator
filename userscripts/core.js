@@ -12,7 +12,11 @@
     },
     request: (details) =>
       typeof GM_xmlhttpRequest === "function" ? GM_xmlhttpRequest(details) : undefined,
+    menu: (name, fn) => {
+      if (typeof GM_registerMenuCommand === "function") GM_registerMenuCommand(name, fn);
+    },
   };
+  const RETRY_MS = 60000;
 
   const STYLE = `
     :host { all: initial; }
@@ -48,10 +52,81 @@
   }
 
   const panel = createPanel();
-  root.TACore = {
+  const config = () => ({
+    server: String(gm.getValue("server", "") || "").replace(/\/+$/, ""),
+    token: String(gm.getValue("token", "") || ""),
+  });
+  const loadQueue = () => {
+    const q = gm.getValue("queue", []);
+    return Array.isArray(q) ? q : [];
+  };
+  const count = (payload) => (payload && Array.isArray(payload.offers) ? payload.offers.length : 0);
+  let busy = false;
+
+  // POST one payload to the configured server only (P1). Resolves "ok", "retry" or "drop".
+  function post(payload) {
+    const { server, token } = config();
+    if (!/^https?:\/\//.test(server)) {
+      panel.setStatus("Set the server URL in the menu", "error");
+      return Promise.resolve("retry");
+    }
+    return new Promise((resolve) => {
+      const fail = () => { panel.setStatus("Send failed: kept in the queue", "error"); resolve("retry"); };
+      gm.request({
+        method: "POST",
+        url: server + "/api/ingest",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        data: JSON.stringify(payload),
+        onload: (r) => {
+          if (r.status >= 200 && r.status < 300) { core.sent(count(payload)); resolve("ok"); }
+          else if (r.status === 401) { panel.setStatus("Check the API token", "error"); resolve("retry"); }
+          else if (r.status >= 500) fail();
+          else { panel.setStatus(`Send rejected (${r.status}): payload dropped`, "error"); resolve("drop"); }
+        },
+        onerror: fail,
+        ontimeout: fail,
+      });
+    });
+  }
+
+  // Send the queue oldest first; stop at the first failure so the order stays.
+  async function flush() {
+    if (busy) return;
+    busy = true;
+    try {
+      let q = loadQueue();
+      while (q.length) {
+        const result = await post(q[0]);
+        if (result === "retry") break;
+        q = loadQueue().slice(1);
+        gm.setValue("queue", q);
+      }
+    } finally {
+      busy = false;
+    }
+  }
+
+  const core = {
     gm,
     panel,
-    report(count) { panel.setStatus(`Captured ${count} offers`, "info"); },
-    sent(count) { panel.setStatus(`Captured ${count} offers → sent ✓`, "ok"); },
+    report(n) { panel.setStatus(`Captured ${n} offers`, "info"); },
+    sent(n) { panel.setStatus(`Captured ${n} offers → sent ✓`, "ok"); },
+    queue: loadQueue,
+    flush,
+    send(payload) {
+      gm.setValue("queue", loadQueue().concat([payload]));
+      return flush();
+    },
   };
+  root.TACore = core;
+  gm.menu("Set server URL", () => {
+    const v = root.prompt("travel-aggregator server URL", config().server);
+    if (v !== null) gm.setValue("server", v.trim());
+  });
+  gm.menu("Set API token", () => {
+    const v = root.prompt("travel-aggregator API token", "");
+    if (v !== null) gm.setValue("token", v.trim());
+  });
+  flush();
+  setInterval(flush, RETRY_MS);
 })(typeof unsafeWindow !== "undefined" ? unsafeWindow : window);
