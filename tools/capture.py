@@ -41,6 +41,7 @@ HOOK = r"""(() => {
   if (w.__taCap) { w.__taCap.match = MATCH; return JSON.stringify({installed: true, again: true, entries: w.__taCap.entries.length}); }
   const cap = {match: MATCH, entries: [], size: 0};
   w.__taCap = cap;
+  const seen = new WeakSet();
   const add = (method, url, reqType, reqText, status, statusText, resType, resText, t0) => {
     try {
       const abs = new URL(String(url), location.href).href;
@@ -48,7 +49,7 @@ HOOK = r"""(() => {
       if (cap.size + resText.length > MAX) return;
       cap.size += resText.length;
       const q = [...new URL(abs).searchParams].map(([name, value]) => ({name, value}));
-      const request = {method: String(method || "GET").toUpperCase(), url: abs, httpVersion: "", cookies: [],
+      const request = {method: method === null ? "" : String(method || "GET").toUpperCase(), url: abs, httpVersion: "", cookies: [],
         headers: reqType ? [{name: "content-type", value: reqType}] : [], queryString: q, headersSize: -1,
         bodySize: reqText ? reqText.length : 0};
       if (typeof reqText === "string") request.postData = {mimeType: reqType || "", text: reqText};
@@ -60,6 +61,9 @@ HOOK = r"""(() => {
         cache: {}, timings: {send: 0, wait: Date.now() - t0, receive: 0}});
     } catch (e) { /* the page must not break */ }
   };
+  const RP = w.Response && w.Response.prototype;
+  const plainText = RP && RP.text;
+  const readText = (r) => (plainText ? plainText.call(r) : r.text());
   const origFetch = w.fetch;
   if (typeof origFetch === "function") {
     const hooked = function (input, init) {
@@ -71,14 +75,43 @@ HOOK = r"""(() => {
         const body = init && typeof init.body === "string" ? init.body : null;
         let reqType = "";
         try { reqType = new Headers((init && init.headers) || {}).get("content-type") || ""; } catch (e) { /* ignore */ }
-        promise.then((res) => res.clone().text().then((text) =>
-          add(method, url, reqType, body, res.status, res.statusText, res.headers.get("content-type"), text, t0)),
-          () => {}).catch(() => {});
+        promise.then((res) => {
+          seen.add(res);
+          return readText(res.clone()).then((text) =>
+            add(method, url, reqType, body, res.status, res.statusText, res.headers.get("content-type"), text, t0));
+        }, () => {}).catch(() => {});
       } catch (e) { /* ignore */ }
       return promise;
     };
     hooked.__taCap = true;
     w.fetch = hooked;
+  }
+  // The page may keep its own fetch reference: record a response when the page reads it (#399). The request is
+  // unknown here (method ""). A response that the fetch wrapper recorded is not recorded again.
+  let response = false;
+  if (RP) {
+    for (const name of ["text", "json", "arrayBuffer"]) {
+      const read = RP[name];
+      if (typeof read !== "function") continue;
+      const wrapped = function () {
+        let copy = null;
+        const t0 = Date.now();
+        try {
+          const abs = new URL(String(this.url), location.href).href;
+          if (cap.match.test(abs) && !seen.has(this) && !this.bodyUsed) copy = this.clone();
+        } catch (e) { copy = null; }
+        const promise = read.apply(this, arguments);
+        if (copy) {
+          seen.add(this);
+          const res = this;
+          readText(copy).then((text) => add(null, res.url, "", null, res.status, res.statusText,
+            res.headers.get("content-type"), text, t0), () => {}).catch(() => {});
+        }
+        return promise;
+      };
+      try { RP[name] = wrapped; } catch (e) { /* the page keeps its own method */ }
+      if (RP[name] === wrapped) response = true;
+    }
   }
   const X = w.XMLHttpRequest && w.XMLHttpRequest.prototype;
   if (X) {
@@ -113,7 +146,7 @@ HOOK = r"""(() => {
     a.remove();
     return JSON.stringify({saved: a.download, entries: cap.entries.length, bytes: blob.size});
   };
-  return JSON.stringify({installed: true, again: false, fetch: !!(w.fetch && w.fetch.__taCap), xhr: !!X});
+  return JSON.stringify({installed: true, again: false, fetch: !!(w.fetch && w.fetch.__taCap), xhr: !!X, response});
 })()"""
 
 
