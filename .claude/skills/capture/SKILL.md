@@ -56,7 +56,9 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
 2. Run `python3 tools/capture.py hook --match '<URL part as a regular expression>'` and give its output to the
    browser tool that runs JavaScript in the page (`javascript_tool`). It must answer `"installed":true` with
    `"fetch":true`. When the address of the tab changes with a full page load, the hook is gone: before such a step,
-   save (step 5) with a part name (`<site>-<N>-1`), and after it install the hook again.
+   save (step 5) with a part name (`<site>-<N>-1`), and after it install the hook again. When the results came before
+   the hook (after a full page load), do the search one more time inside the page (for example a change in the search
+   form of the results page), and count it in the 3 searches.
 3. Do the steps of the ticket: type the stations and select them from the list, set the date and the options, click
    the search button, and the buttons that the ticket names (for example the button that shows all fare classes of
    a connection). Wait for the result after each click. Take a screenshot only when a step fails.

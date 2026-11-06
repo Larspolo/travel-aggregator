@@ -53,7 +53,7 @@ def page_requests(pg):
 
 def test_hook_records_the_page_responses_and_saves_a_har(page, tmp_path):
     state = json.loads(page.evaluate(capture.hook(r"/web/api/angebote/")))
-    assert state == {"installed": True, "again": False, "fetch": True, "xhr": True}
+    assert state == {"installed": True, "again": False, "fetch": True, "xhr": True, "response": True}
     page_requests(page)
     page.wait_for_function("window.__taCap.entries.length === 2")
     listed = json.loads(page.evaluate("window.__taCap.list()"))
