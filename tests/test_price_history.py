@@ -54,7 +54,8 @@ def test_two_captures_show_two_rows_newest_first(trip, sessions):
     assert '<table class="history">' in r.text
     assert "Sparpreis" in r.text
     assert r.text.count("<tr><td>") == 2
-    assert r.text.index("EUR 85.00") < r.text.index("EUR 89.90")
+    table = r.text[r.text.index('<table class="history">'):]  # the chart above the table has the same prices
+    assert table.index("EUR 85.00") < table.index("EUR 89.90")
     assert "<html" not in r.text  # a fragment, no page
 
 
