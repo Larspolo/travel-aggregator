@@ -22,12 +22,14 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [ ] `capture:bahn` bahn.de: JSON interception, server parser, trimmed fixtures, fail-soft parsing, "reparse capture"
   - A search on bahn.de shows all fare classes on the trip page within seconds, with no manual step
   - After a parser fix, "reparse" of a stored capture gives the correct offers
-- [ ] `capture:ns` NS International: userscript, server parser, trimmed fixtures
+- [x] `capture:ns` (#210) NS International: userscript, server parser, trimmed fixtures
   - A search on NS International shows its fares on the trip page
 - [ ] `capture:flixbus` Flixbus: userscript, server parser, trimmed fixtures
   - A search on Flixbus shows its offers on the trip page
 - [ ] `capture:flight` One flight source: the one that is easiest to intercept (the agents compare and record why), userscript, server parser, trimmed fixtures
   - A flight offer and a train offer for the same trip show in one list
+- [ ] `capture:errors` The captures page shows the result of each parse: the offer count, the rejected count and the errors, with a filter for the failed captures
+  - When a site changes its format, the failed captures show with their errors, and "reparse" after a parser fix shows the new result
 
 ## 2. Rank offers by effective cost
 
@@ -38,13 +40,13 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A flight and a train for the same trip compare on door-to-door effective cost
 - [x] `rank:time` (#140) Night travel bonus or penalty, time-of-day penalty windows, different hour values for day and night
   - A departure before the early limit shows its penalty in the breakdown
-- [ ] `rank:risk` Penalties for short transfers and self-transfers, flexibility tiers, mode preference
+- [x] `rank:risk` (#172) Penalties for short transfers and self-transfers, flexibility tiers, mode preference
   - A transfer shorter than N minutes shows its penalty in the breakdown
-- [ ] `rank:filters` Hard filters: max transfers, max duration, earliest departure, latest arrival, excluded carriers and modes
+- [x] `rank:filters` (#179) Hard filters: max transfers, max duration, earliest departure, latest arrival, excluded carriers and modes
   - An excluded offer does not show in the list; a penalized offer shows lower
-- [ ] `rank:profiles` Named profiles, one default, an override per trip, "save as profile"
+- [x] `rank:profiles` (#228) Named profiles, one default, an override per trip, "save as profile"
   - A change of the profile re-ranks the trip page at once
-- [ ] `rank:stale` Offers that were not captured again for N hours get a "stale" flag and an optional penalty
+- [x] `rank:stale` (#274) Offers that were not captured again for N hours get a "stale" flag and an optional penalty
   - A stale offer shows "stale, price may have changed"
 
 ## 3. Plan a trip in one place
@@ -54,14 +56,19 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [x] `trip:table` (#110) The full ranked table: mode icons, "+1 day" mark, freshness, sort, filters, highlights (cheapest, fastest, best value), expandable rows (legs, transfer times, all fares, booking and search links)
   - The trip page stays fast with 1,000 offers
   - An expanded row shows all fares of all sources of its itinerary
-- [ ] `trip:manage` Pin, hide, mark as booked, a note per itinerary
+- [x] `trip:manage` (#198) Pin, hide, mark as booked, a note per itinerary
   - A pinned itinerary stays at the top; a hidden one shows only with "show hidden"
-- [ ] `trip:history` A price history chart per fare
+- [x] `trip:history` (#239) A price history chart per fare
   - Two captures with different prices show as two points of the chart
-- [ ] `trip:compare` Compare 2 to 4 offers side by side
+- [x] `trip:compare` (#291) Compare 2 to 4 offers side by side
 - [ ] `trip:mobile` A responsive layout of all pages
   - All pages work at a phone width of 390 px with no horizontal scroll (agents check with screenshots; the owner then tests on a phone)
 - [ ] `trip:links` Search links per source, filled with the values of the trip (they only open a page; they fetch nothing)
+- [ ] `trip:return` Round trips: an outbound and a return trip linked as one journey (`docs/SPEC.md`, section 13)
+  - "Add return trip" makes the linked trip with the swapped places, and each trip page links to the other
+  - The trips list shows the two trips together, with the sum of their best offers
+- [ ] `trip:drops` Price-drop marks for pinned offers: a new capture with a lower price of a pinned fare shows a mark (in the app; e-mail or push later)
+  - The trips list and the trip page show "price dropped €X" for a pinned fare until the owner opens it
 
 ## 4. Run it on my home server
 
@@ -70,7 +77,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A migration that drops or changes data makes a backup first
 - [x] `host:backup` (#134) `pg_dump` backup and restore, a `Makefile` (up, down, logs, test, migrate, backup)
   - A restore of a backup gives back all trips and the price history
-- [ ] `host:retention` Cleanup of raw captures after the retention period, with the setting in the UI
+- [x] `host:retention` (#205) Cleanup of raw captures after the retention period, with the setting in the UI
   - A capture older than the period is deleted; its offers and prices stay
 - [ ] `host:docs` Setup guide: install, reverse proxy, userscripts, tokens, backup
   - A new user can follow the guide from an empty server to a first captured offer
