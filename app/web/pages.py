@@ -268,6 +268,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             badges.setdefault(min(rows, key=key)[0].id, []).append(name)
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
+    rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
     view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges,
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive,
@@ -301,6 +302,17 @@ def _tokens_page(request: Request, session: Session, new_token: str | None = Non
     server_url = str(request.base_url).rstrip("/")
     return templates.TemplateResponse(request, "tokens.html", {"tokens": tokens, "new_token": new_token,
                                                                "server_url": server_url}, status_code=code)
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/pin",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def toggle_pin(trip_id: int, itinerary_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    it.pinned = not it.pinned
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
 @router.get("/tokens", response_class=HTMLResponse, dependencies=[Depends(require_login)])
