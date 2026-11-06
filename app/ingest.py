@@ -5,6 +5,7 @@ The counts of each case and the raw capture come with `capture:upsert`."""
 import gzip
 import hashlib
 import json
+import logging
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -14,7 +15,10 @@ from sqlalchemy.orm import Session
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg
+from app.parsers import get_parser
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
+
+log = logging.getLogger(__name__)
 
 
 def fingerprint(legs: list[LegIn]) -> str:
@@ -110,12 +114,36 @@ def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers
     return counts
 
 
+def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None]:
+    """The offers and the rejected connections of the raw payload, by the parser of the source (none when the source
+    has no parser). The third value is the reason when the parser cannot read the payload as a whole (P3): the
+    capture is stored anyway, with the offers of the body."""
+    parser = get_parser(body.source)
+    if body.raw is None or parser is None:
+        return [], [], None
+    try:
+        result = parser.parse(body.raw)
+    except ValueError as e:
+        return [], [], str(e)[:200]
+    return result.offers, result.errors, None
+
+
 def store(session: Session, body: IngestIn) -> dict:
     """Store the capture of the body (with its raw, if any), then its valid offers; each price row links to the
-    capture. Returns {"created", "updated", "unchanged", "rejected", "errors"}: the errors are the offers that the
-    schema rejected, with their index (#54)."""
+    capture. The offers of a raw payload come from its parser (`app/parsers`); one bad connection is an entry of
+    the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors"}: the
+    errors are the offers that the schema or the parser rejected, with their index (#54). Each failure is logged
+    with the capture id (P3)."""
     capture = store_capture(session, body.trip_id, body)
     session.commit()
-    counts = upsert_offers(session, body.trip_id, capture.id, body.offers, source=body.source,
+    raw_offers, raw_errors, unreadable = parse_raw(body)
+    if unreadable is not None:
+        log.warning("capture %s: %s raw payload not read: %s", capture.id, body.source, unreadable)
+    offers = list(body.offers) + raw_offers
+    errors = list(body.offer_errors) + raw_errors
+    for err in errors:
+        log.warning("capture %s: %s %s rejected at index %s: %s", capture.id, body.source,
+                    body.parser_version or "-", err.get("index"), err.get("reason"))
+    counts = upsert_offers(session, body.trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at)
-    return {**counts, "rejected": len(body.offer_errors), "errors": body.offer_errors}
+    return {**counts, "rejected": len(errors), "errors": errors}
