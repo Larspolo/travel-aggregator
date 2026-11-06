@@ -252,6 +252,17 @@ Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
 
+### Pin, hide, book and note an offer
+
+Each row of the trip table has buttons at its left side:
+- "Pin" keeps the offer at the top of the table, in every sort order. "Unpin" removes the pin.
+- "Hide" removes the offer from the table and marks it "hidden". "Unhide" shows it again.
+  The table does not show hidden offers, unless you tick "show hidden" above the table.
+- "Mark as booked" adds a "booked" badge to the row. "Not booked" removes it.
+
+To write a note on an offer, open "Legs and fares" in its row, change the text in the box and click "Save note".
+A note has at most 2000 characters. The row shows the note under its route.
+
 ### Add an offer by hand
 
 The trip page has a link "Add an offer by hand" above the offer table. It opens the form `/trips/{id}/offers/new`.
