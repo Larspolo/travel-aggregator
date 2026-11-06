@@ -2,10 +2,11 @@
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Log in – travel-aggregator</title></head>
-<body>
+<body hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>
 <h1>Log in</h1>
 {% if error %}<p role="alert">{{ error }}</p>{% endif %}
 <form method="post" action="/login">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <label>Password <input type="password" name="password" autocomplete="current-password" required autofocus></label>
   <button type="submit">Log in</button>
 </form>

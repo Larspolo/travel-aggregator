@@ -15,6 +15,8 @@ from fastapi import HTTPException, Request
 ALGORITHM = "pbkdf2_sha256"
 ITERATIONS = 600_000
 SESSION_KEY = "owner"
+CSRF_KEY = "csrf_token"
+CSRF_HEADER = "X-CSRF-Token"
 
 
 class LoginRequired(HTTPException):
@@ -45,6 +47,30 @@ def check_password(password: str, stored_hash: str) -> bool:
 def require_login(request: Request) -> None:
     if not request.session.get(SESSION_KEY):
         raise LoginRequired()
+
+
+def csrf_token(request: Request) -> str:
+    """The CSRF token of the session. It makes a new random token when the session has none."""
+    token = request.session.get(CSRF_KEY)
+    if not token:
+        token = secrets.token_urlsafe(32)
+        request.session[CSRF_KEY] = token
+    return token
+
+
+async def verify_csrf(request: Request) -> None:
+    """A dependency of the state-changing web forms: 403 when the token is missing or wrong.
+
+    It reads the form field csrf_token or the header X-CSRF-Token (htmx sends it from hx-headers).
+    """
+    expected = request.session.get(CSRF_KEY)
+    sent = request.headers.get(CSRF_HEADER)
+    if not sent:
+        form = await request.form()
+        value = form.get(CSRF_KEY)
+        sent = value if isinstance(value, str) else None
+    if not expected or not sent or not hmac.compare_digest(sent.encode(), expected.encode()):
+        raise HTTPException(status_code=403, detail="CSRF token missing or wrong")
 
 
 if __name__ == "__main__":
