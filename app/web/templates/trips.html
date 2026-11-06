@@ -1,8 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trips – travel-aggregator</title></head>
-<body>
+{% extends "base.html" %}
+{% block title %}Trips – travel-aggregator{% endblock %}
+{% block content %}
 <h1>Trips</h1>
 <p><a href="/trips/new">New trip</a> · <a href="/tokens">API tokens</a> · <a href="/places">Places</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a></p>
 {% if trips %}
@@ -24,5 +22,4 @@
 {% else %}
 <p>You have no trips. <a href="/trips/new">Create a trip</a>.</p>
 {% endif %}
-</body>
-</html>
+{% endblock %}
