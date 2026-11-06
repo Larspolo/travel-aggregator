@@ -20,6 +20,7 @@ from app.config import get_settings
 from app.db import get_session
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
+from app.history import chart
 from app.risk import mode_extras, self_transfer_extras, transfer_extras
 from app.models import AccessTime, ApiToken, Itinerary, Setting, Trip
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
@@ -357,7 +358,8 @@ def price_history(trip_id: int, itinerary_id: int, request: Request,
     it = session.get(Itinerary, itinerary_id)
     if it is None or it.trip_id != trip_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
-    return templates.TemplateResponse(request, "price_history.html", {"fares": it.fares})
+    return templates.TemplateResponse(request, "price_history.html",
+                                      {"fares": it.fares, "chart": chart(it.fares)})
 
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/hide",
