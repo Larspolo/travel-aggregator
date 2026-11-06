@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 2;
+const CORE_VERSION = 3;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -132,6 +132,7 @@ const CORE_VERSION = 2;
         onload: (r) => {
           if (r.status >= 200 && r.status < 300) { core.sent(count(payload)); resolve("ok"); }
           else if (r.status === 401) { panel.setStatus("Check the API token", "error"); resolve("retry"); }
+          else if (r.status === 429) { panel.setStatus("Server busy: kept in the queue", "error"); resolve("retry"); }
           else if (r.status >= 500) fail();
           else { panel.setStatus(`Send rejected (${r.status}): payload dropped`, "error"); resolve("drop"); }
         },
