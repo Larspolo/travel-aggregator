@@ -21,6 +21,11 @@ class Weights:
     early_limit: time = time(6, 0)
     late_limit: time = time(23, 30)
     time_window_penalty: Decimal = Decimal("0")
+    # The night travel adjustment (#142): a signed amount (negative = bonus); 0 disables it.
+    night_start: time = time(23, 0)
+    night_end: time = time(6, 0)
+    night_min: int = 240
+    night_adjust: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
