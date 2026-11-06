@@ -64,7 +64,7 @@ You need Docker with Docker Compose.
    }' http://localhost:8000/api/ingest
    ```
 
-6. Log in at `http://localhost:8000/login` and open `http://localhost:8000/trips/1`.
+6. Log in at `http://localhost:8000/login`. The trips list opens; click a trip to see its offers.
 
 `http://localhost:8000/api/health` shows `{"status": "ok", "commit": "dev"}`. Set `APP_PORT` in `.env` to use
 another port.
@@ -88,7 +88,46 @@ installs each new image within 5 minutes.
 The pages need the basic auth login and then the login of the app. `/api` needs no basic auth: the API has its own
 tokens. `GET /api/health` shows the commit that runs.
 
-The preview is for test data. A release image for your real data follows later (roadmap item `host:deploy`).
+The preview is for test data.
+
+### The production instance
+
+For your real data, use the release images. [`deploy/production/`](deploy/production/) runs the image
+`ghcr.io/larspolo/travel-aggregator:latest`, with its own database volume and its own scoped watchtower. The watchtower
+checks the registry every 5 minutes. `:latest` changes only when an epic closes, so the production instance does not
+follow each merge.
+
+1. Copy `deploy/production/docker-compose.yml` and `deploy/production/.env.example` to a folder on the server. Rename the
+   second file to `.env`, and set the values as in the preview steps above (`POSTGRES_PASSWORD`, `DATABASE_URL`,
+   `SECRET_KEY`, `OWNER_PASSWORD_HASH`). The production file has no basic auth: the app has its own login.
+2. Put a reverse proxy in front of `127.0.0.1:8000`. The app is published on localhost only. Pick one:
+   - Traefik: copy `deploy/traefik/docker-compose.override.yml` to `deploy/production/docker-compose.override.yml`, and
+     change the host name `travel.example.com` in it. Traefik must run on the external network `proxy`.
+   - Caddy: copy `deploy/caddy/Caddyfile` to `/etc/caddy/Caddyfile` and change the host name. Caddy gets the HTTPS
+     certificate itself.
+   - nginx: copy `deploy/nginx/travel-aggregator.conf` to `/etc/nginx/conf.d/`, change the host name and the
+     certificate paths.
+   All three examples set `X-Forwarded-Proto` and forward `/api` too. The app trusts these headers.
+3. `docker compose up -d`, then make an API token: `docker compose exec app python -m app.tokens create laptop`.
+
+Before each migration that changes data, the container writes a `pg_dump` backup to the volume `backups-production`
+(mounted at `/backups`). If the backup fails, the migration and the start of the app stop.
+
+Each closed epic makes a release: the workflow `.github/workflows/release.yml` pushes the git tag `vX.Y.Z` and the
+images `:vX.Y.Z` and `:latest`. `GET /api/health` shows the commit that runs.
+
+### Backups
+
+The app writes a `pg_dump` backup to `BACKUP_DIR` (in the container: `/backups`, a Docker volume). Make one at any time:
+
+```bash
+make backup                                   # or: docker compose exec app python -m app.backup --now
+make restore FILE=/backups/<file>.dump        # or: docker compose exec app python -m app.restore /backups/<file>.dump
+```
+
+A restore gives back the trips, the offers and the price history of the dump. It runs in one transaction: if the file
+is missing or bad, the command stops with an error and the database does not change. The backups hold private data
+(your trips and offers). They stay in the volume: copy them only to a place that you trust.
 
 ## Configuration
 
@@ -109,7 +148,10 @@ The preview is for test data. A release image for your real data follows later (
 | `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>"}`. No token. |
 | `GET /api/trips` | The trips, newest first; `?status=active` filters them |
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
-| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n}`; an offer of a known journey adds a price row |
+| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` |
+
+`POST /api/ingest` stores each offer by its journey. The same journey sent twice gives one itinerary. A changed price
+adds a price row; the same price adds none and counts as `unchanged`. Each offer is stored in its own transaction.
 
 All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
 limited to 5 MB.
@@ -118,8 +160,94 @@ limited to 5 MB.
 
 | Path | Use |
 |---|---|
-| `/login`, `/logout` | The login with `OWNER_PASSWORD_HASH` |
-| `/trips/{id}` | The offers of a trip, cheapest first |
+| `/login` | The login form: the password of `OWNER_PASSWORD_HASH`. The session is signed with `SECRET_KEY` |
+| `/logout` | Ends the login session |
+| `/` | The list of your trips, with a link to each trip |
+| `/trips/new` | The form to make a trip |
+| `/trips/{id}/edit` | The form to change a trip |
+| `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
+| `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
+| `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
+
+All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
+gets the answer 403.
+
+### Compare offers in the trip table
+
+The table of `/trips/{id}` has one row per offer. Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
+An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on).
+Under the fare name, the age of the newest capture shows, for example "2 h ago".
+Click a column header to sort by it. Click it again to reverse the order.
+The Mode and Source lists show only one mode or one source.
+The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
+Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
+
+### Add an offer by hand
+
+The trip page has a link "Add an offer by hand" above the offer table. It opens the form `/trips/{id}/offers/new`.
+The form has a price (required), a currency (EUR by default), an optional fare name and the UTC offset of the times.
+Each leg has a mode, a from and to place, a departure and an arrival. The form has up to four legs. A leg with no field filled in is left out.
+The app saves the offer with the source `manual`. Save returns you to the trip page, where the offer is ranked with the others.
+
+## Userscript panel
+
+Each userscript shows a small panel at the bottom right of the travel site. The panel shows `Captured N offers → sent ✓`
+when the offers reached your server, or an error message.
+
+- **Trip.** The dropdown chooses the trip that receives the offers. `+ new trip` makes a trip with the title that you
+  type. The app remembers the chosen trip.
+- **Auto-send.** This check box is on by default. With it on, the offers are sent at once. With it off, the offers wait
+  in the queue until you press Send.
+- **Settings.** Set the server URL and the API token once, in the Tampermonkey menu (`Set server URL`, `Set API token`).
+  Make the token on the `/tokens` page.
+- **Not sent.** When a send fails, the offers stay in the queue. With auto-send on, the userscript sends them again
+  later.
+
+## Ranking
+
+The trip page `/trips/{id}` ranks the offers by effective cost, lowest first:
+
+```
+effective cost = price + hours × hour markup + transfers × transfer markup + door-to-door parts
+```
+
+The door-to-door parts are described below.
+
+Each row shows the breakdown of its cost, for example `€90 price + €62 time + €30 transfers = €182`. A part that is
+0 is not shown. Two sliders above the list set the hour markup (default €15) and the transfer markup (default €10),
+from €0 to €100. When you move a slider, the list ranks again at once.
+The values are not stored: a link such as `/trips/1?hour_markup=20&transfer_markup=5` opens the page with them.
+
+### Door-to-door
+
+The effective cost also counts the time and cost outside the vehicle. The breakdown shows each part on its own.
+
+- **Access and egress places.** `/places` lists the places that you set. A place has a text, a kind, minutes and a cost.
+  Kind `access` is the way from the place to the first station; kind `egress` is the way from the last station to the
+  place. A leg matches a place when its station name has the same text (case and outer spaces do not count). An offer
+  with a matching access place adds the parts `access time` (minutes × hour markup) and `access cost`. An offer with a
+  matching egress place adds `egress time` and `egress cost`. An offer with no matching place adds nothing.
+- **Airport time and baggage (flights).** An offer with a flight leg adds two parts. `airport time` is the minutes before
+  departure plus the minutes after landing, at the hour markup. `baggage` is the baggage fee.
+  The **Advanced** section under the sliders sets them. The defaults are 120 minutes before departure, 30 minutes after
+  landing and a baggage fee of €0. A value of 0 removes that part from the ranking.
+
+### Time of day and night
+
+The **Advanced** section under the sliders also sets the time of day. Each setting has a default. The times are local
+times of the stored offset.
+
+- **Early limit (local)**, default `06:00`. A first leg that departs before this time adds the part `early departure`.
+- **Late limit (local)**, default `23:30`. A last leg that arrives after this time adds the part `late arrival`.
+- **Early or late penalty €**, default `0`. The amount of each of these two parts. A value of 0 removes both parts.
+- **Night start (local)**, default `23:00`, and **Night end (local)**, default `06:00`. They set the night window. A window
+  that crosses midnight is allowed.
+- **Night minutes**, default `240`. An offer that spans at least this many minutes in the night window adds the part
+  `night travel`.
+- **Night travel € (negative = bonus)**, default `0`. The amount of the `night travel` part. A negative value is a bonus.
+  A value of 0 removes the part.
+- **Night hour markup €/h**, default empty. Empty means the same as the hour markup. A value sets the hour markup inside
+  the night window. The difference to the hour markup adds the part `night hours` for the night minutes.
 
 ## Development
 
@@ -130,6 +258,8 @@ python3 -m pip install -r requirements-dev.txt
 ruff check .
 python3 -m pytest -n auto
 ```
+
+The `Makefile` has these targets: `up`, `down`, `logs`, `test`, `migrate`, `backup` and `restore` (`FILE=<backup file>`).
 
 The code: `app/` (FastAPI), `tests/` (pytest). The planned layout is in [`CLAUDE.md`](CLAUDE.md), section "Code map".
 

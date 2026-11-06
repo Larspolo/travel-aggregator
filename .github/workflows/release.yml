@@ -1,0 +1,65 @@
+name: Release
+
+# When an epic closes as completed, release the newest main (#86): push the git tag vX.Y.Z (one minor step after the
+# newest v0.* tag, tools/release_version.py) and the images :vX.Y.Z and :latest to GHCR. :preview does not change.
+# A tag of GITHUB_TOKEN starts no workflow, so this workflow starts after-release.yml on the tag.
+# It sends no request to a travel site (P1).
+on:
+  issues:
+    types: [closed]
+  workflow_dispatch:     # a release by hand
+
+permissions:
+  contents: write        # the git tag
+  packages: write        # GHCR
+  actions: write         # start after-release.yml
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (contains(github.event.issue.labels.*.name, 'epic') && github.event.issue.state_reason == 'completed')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Version
+        id: v
+        run: |
+          git fetch --tags --force origin
+          v=$(git tag --list 'v*' | python3 tools/release_version.py)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "Release $v at $(git rev-parse HEAD)"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: GIT_SHA=${{ steps.v.outputs.sha }}   # /api/health shows it
+          tags: |
+            ghcr.io/larspolo/travel-aggregator:${{ steps.v.outputs.version }}
+            ghcr.io/larspolo/travel-aggregator:latest
+          cache-from: type=gha
+      - name: Push the git tag
+        env:
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          git tag "$V" "${{ steps.v.outputs.sha }}"
+          git push origin "refs/tags/$V"
+      - name: Start after-release.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run after-release.yml --ref "${{ steps.v.outputs.version }}" --repo "${{ github.repository }}"

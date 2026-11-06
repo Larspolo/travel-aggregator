@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
-    JSON, Boolean, Date, DateTime, ForeignKey, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, func,
+    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, func,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -29,7 +29,7 @@ class Trip(Base):
     date_from: Mapped[date | None] = mapped_column(Date)
     date_to: Mapped[date | None] = mapped_column(Date)
     travelers: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
-    status: Mapped[str] = mapped_column(String(20), default="active", server_default="active")
+    status: Mapped[str] = mapped_column(String(20), default="planning", server_default="planning")
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
 
@@ -89,6 +89,7 @@ class Fare(Base):
     source: Mapped[str] = mapped_column(String(50))
     fare_name: Mapped[str | None] = mapped_column(String(100))
     flexibility: Mapped[str | None] = mapped_column(String(50))
+    self_transfers: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # #176, derived at ingest
     booking_url: Mapped[str | None] = mapped_column(Text)
     latest_price: Mapped[Decimal] = mapped_column(Money)
     currency: Mapped[str] = mapped_column(String(3))
@@ -135,3 +136,19 @@ class ApiToken(Base):
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
     last_used_at: Mapped[datetime | None] = mapped_column(_tz())
     revoked_at: Mapped[datetime | None] = mapped_column(_tz())
+
+
+class AccessTime(Base):
+    """A way from a place to a station (`access`) or from a station to a place (`egress`), #97."""
+    __tablename__ = "access_times"
+    __table_args__ = (
+        CheckConstraint("kind IN ('access', 'egress')", name="ck_access_times_kind"),
+        CheckConstraint("minutes >= 0", name="ck_access_times_minutes"),
+        CheckConstraint("cost >= 0", name="ck_access_times_cost"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    place_text: Mapped[str] = mapped_column(String(200))
+    kind: Mapped[str] = mapped_column(String(10))
+    minutes: Mapped[int] = mapped_column(Integer)
+    cost: Mapped[Decimal] = mapped_column(Money)

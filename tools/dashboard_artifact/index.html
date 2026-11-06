@@ -1,0 +1,2050 @@
+<style>
+.ax { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+.ax-head { display: grid; gap: var(--cds-gap-xs); }
+.ax-title { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-wrap: balance; }
+.ax-lede { margin: 0; max-width: 72ch; font-size: var(--cds-font-size-body); line-height: 1.5; }
+.ax-note { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 72ch; }
+.ax-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); }
+.ax-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  padding: var(--cds-pad-xs) var(--cds-pad-sm); font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); cursor: pointer; }
+.ax-tab:hover { color: var(--color-fg); }
+.ax-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.ax-tab:focus-visible, .ax-controls select:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.ax-page { display: grid; gap: var(--cds-gap-lg); }
+.ax-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--cds-gap-md); }
+.ax-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius);
+  padding: var(--cds-pad-md); display: grid; gap: var(--cds-gap-xs); align-content: start; min-width: 0; }
+.ax-kpi-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ax-kpi-value { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title);
+  font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ax-kpi-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ax-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+.ax-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius);
+  padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
+.ax-wide { grid-column: 1 / -1; }
+.ax-card-title { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.ax-card-top { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); justify-content: space-between; align-items: flex-start; }
+.ax-card-top > div { display: grid; gap: var(--cds-gap-xs); min-width: 0; }
+.ax-controls { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
+.ax-controls label { display: flex; gap: var(--cds-gap-xs); align-items: center; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ax-controls select { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-bg);
+  border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+.ax-chart { position: relative; min-height: 230px; }
+.ax-chart-sm { min-height: 190px; }
+.ax-chart-fit { min-height: 80px; }
+.ax-chart svg { display: block; }
+.ax-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ax-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+.ax-swatch { width: 0.625rem; height: 0.625rem; border-radius: 2px; display: inline-block; }
+.ax-tip { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 2; background: var(--cds-surface-popover);
+  border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover);
+  padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; display: grid; gap: 2px; }
+.ax-tip-k { color: var(--cds-text-secondary); }
+.ax-tip-row { display: flex; align-items: center; gap: var(--cds-gap-xs); }
+.ax-table-box { max-height: 28rem; overflow: auto; }
+.ax-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.ax-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium);
+  color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+.ax-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.ax-table .ax-num { text-align: right; white-space: nowrap; }
+.ax-table .ax-nowrap { white-space: nowrap; }
+.ax-bars { display: grid; gap: var(--cds-gap-sm); min-height: 8rem; align-content: start; }
+.ax-bar-row { display: grid; grid-template-columns: 4.5rem 1fr 2.5rem; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); }
+.ax-bar-track { height: 0.875rem; position: relative; }
+.ax-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
+.ax-bar-n { text-align: right; font-variant-numeric: tabular-nums; }
+.ax-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: var(--cds-gap-sm); counter-reset: ax-step; }
+.ax-flow li { counter-increment: ax-step; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius);
+  padding: var(--cds-pad-sm) var(--cds-pad-md); display: grid; gap: var(--cds-gap-xs); align-content: start; background: var(--color-bg); }
+.ax-flow li::before { content: counter(ax-step); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.ax-flow-name { font-weight: var(--cds-font-weight-medium); }
+.ax-flow-what { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+.ax-loop { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; max-width: 72ch; line-height: 1.5; }
+.ax-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); min-height: inherit;
+  color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.ax-fail::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--color-bad); }
+.ax [data-dash-source-state=empty] { color: transparent; }
+.ax [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+.ax-goals { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--cds-gap-md); }
+.ax-goal { appearance: none; font: inherit; color: inherit; text-align: left; cursor: pointer; background: var(--color-panel);
+  border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md);
+  display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
+.ax-goal:hover { border-color: var(--color-fg-muted); }
+.ax-goal:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.ax-goal-value { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title);
+  font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ax-stack { display: flex; height: 0.75rem; border-radius: 4px; overflow: hidden; background: var(--cds-chart-muted); }
+.ax-stack > span { height: 100%; }
+.ax-sw-done { background: var(--ax-done); }
+.ax-sw-prog { background: var(--ax-prog); }
+.ax-sw-todo { background: var(--cds-chart-muted); }
+.ax-st { white-space: nowrap; }
+.ax-st::before { content: ""; display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; margin-right: 0.375rem;
+  vertical-align: middle; background: var(--ax-dot); }
+.ax-st-done { --ax-dot: var(--ax-done); }
+.ax-st-prog { --ax-dot: var(--ax-prog); }
+.ax-st-todo { --ax-dot: var(--cds-chart-muted); }
+.ax-mile { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); }
+.ax-mile-name { color: var(--color-fg-muted); }
+.ax-mile-n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ax-mini { display: flex; height: 0.375rem; border-radius: 3px; overflow: hidden; background: var(--cds-chart-muted); }
+.ax-mini > span { height: 100%; }
+.ax-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.ax-pbar { display: grid; grid-template-columns: auto 2.75rem; gap: var(--cds-gap-sm); align-items: center; justify-content: start; }
+.ax-pbar .ax-mini { height: 0.5rem; width: 4.5rem; }
+.ax-spark { display: block; cursor: crosshair; }
+.ax-pbar-n { text-align: right; font-variant-numeric: tabular-nums; }
+.ax-lanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--cds-gap-sm); }
+.ax-lane { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg);
+  padding: var(--cds-pad-sm) var(--cds-pad-md); display: grid; gap: var(--cds-gap-xs); align-content: start; min-width: 0; }
+.ax-lane-name { font-weight: var(--cds-font-weight-medium); }
+.ax-lane dl { margin: 0; display: grid; grid-template-columns: 4.5rem 1fr; gap: var(--cds-gap-xs) var(--cds-gap-sm);
+  font-size: var(--cds-font-size-caption); line-height: 1.45; }
+.ax-lane dt { color: var(--color-fg-muted); }
+.ax-lane dd { margin: 0; min-width: 0; }
+@media (max-width: 40rem) { .ax-narrow-hide { display: none; } .ax-table td:first-child { overflow-wrap: anywhere; } .ax-st { white-space: normal; } }
+</style>
+
+<div class="ax">
+  <header class="ax-head">
+    <h1 class="ax-title">travel-aggregator Autopilot</h1>
+    <p class="ax-lede">
+      <span data-source="summary" data-field="merged_total" data-row="0" class="dash-skeleton">—</span> pull requests merged since
+      <span data-source="summary" data-field="first_merge" data-row="0" class="dash-skeleton">—</span>.
+      In the last hour: <span data-source="summary" data-field="last_hour" data-row="0" class="dash-skeleton">—</span>; over the last 24 hours, an average of
+      <span data-source="summary" data-field="per_15min" data-row="0" class="dash-skeleton">—</span> merges per 15 minutes.
+    </p>
+    <p class="ax-note">Built from GitHub (<code>tools/dashboard_site.py</code>). Data up to
+      <span data-source="summary" data-field="snapshot" data-row="0" class="dash-skeleton">—</span>.</p>
+  </header>
+
+  <nav class="ax-tabs" role="tablist" aria-label="Pages">
+    <button class="ax-tab" id="tab-activity" role="tab" aria-controls="activity" aria-selected="true" data-page="activity">Activity</button>
+    <button class="ax-tab" id="tab-progress" role="tab" aria-controls="progress" aria-selected="false" data-page="progress">Progress</button>
+    <button class="ax-tab" id="tab-tickets" role="tab" aria-controls="tickets" aria-selected="false" data-page="tickets">Tickets</button>
+    <button class="ax-tab" id="tab-spend" role="tab" aria-controls="spend" aria-selected="false" data-page="spend">Usage</button>
+    <button class="ax-tab" id="tab-improvements" role="tab" aria-controls="improvements" aria-selected="false" data-page="improvements">Improvements</button>
+    <button class="ax-tab" id="tab-setup" role="tab" aria-controls="setup" aria-selected="false" data-page="setup">Setup</button>
+  </nav>
+
+  <section class="ax-page" id="activity" role="tabpanel" aria-labelledby="tab-activity">
+    <div class="ax-kpis" id="activity-figures">
+      <div class="ax-kpi"><span class="ax-kpi-label">Merges, last hour</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="last_hour" data-row="0" data-fetchpriority="high">—</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">Merges, last 24 hours</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="last_24h" data-row="0">—</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">Merges per 15 minutes</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="per_15min" data-row="0">—</span>
+        <span class="ax-kpi-sub">Mean of the last 24 hours</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">PR open to merge</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="median_open_min" data-row="0">—</span>
+        <span class="ax-kpi-sub">Median minutes, last 24 hours</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">5-hour usage</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="usage_5h" data-row="0">—</span>
+        <span class="ax-kpi-sub">At <span data-source="summary" data-field="usage_at" data-row="0">—</span>:
+          <span data-source="summary" data-field="runs_now" data-row="0">—</span> runs, <span data-source="summary" data-field="haiku_runs" data-row="0">—</span> on the Haiku lane</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">7-day usage</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="usage_7d" data-row="0">—</span>
+        <span class="ax-kpi-sub" data-source="summary" data-field="usage_7d_track" data-row="0">—</span></div>
+    </div>
+
+    <div class="ax-grid">
+      <div class="ax-card ax-wide" id="merges-card">
+        <div class="ax-card-top">
+          <div>
+            <h2 class="ax-card-title">Merged pull requests</h2>
+            <p class="ax-note">Count of merges in each block of time (UTC). Hover a bar for its count.</p>
+          </div>
+          <div class="ax-controls">
+            <label for="ax-bucket">Block
+              <select id="ax-bucket">
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="120">2 hours</option>
+                <option value="360">6 hours</option>
+                <option value="720">12 hours</option>
+                <option value="1440">1 day</option>
+              </select></label>
+            <label for="ax-range">Period
+              <select id="ax-range">
+                <option value="1h">Last hour</option>
+                <option value="3h">Last 3 hours</option>
+                <option value="6h">Last 6 hours</option>
+                <option value="12h">Last 12 hours</option>
+                <option value="24h">Last 24 hours</option>
+                <option value="3d">Last 3 days</option>
+                <option value="7d">Last 7 days</option>
+                <option value="all">All</option>
+              </select></label>
+          </div>
+        </div>
+        <div class="ax-chart" id="merge-chart" data-source="merge_buckets"></div>
+      </div>
+
+      <div class="ax-card ax-wide" id="usage-card">
+        <div>
+          <h2 class="ax-card-title">5-hour and 7-day usage</h2>
+          <p class="ax-note">From the <code>Usage:</code> line of each run report. A vertical dashed line is a reset of the 5-hour window. The second line is the 7-day usage, and the dashed line next to it is the even pace (the share of the week that has passed). Block and period as in the first chart.</p>
+        </div>
+        <div class="ax-chart ax-chart-sm" id="usage-chart" data-source="usage"></div>
+      </div>
+
+      <div class="ax-card ax-wide" id="per-usage-card">
+        <div>
+          <h2 class="ax-card-title">Merges per point of 7-day usage</h2>
+          <p class="ax-note">Each bar is a block of time (UTC): the merged pull requests divided by the rise of the 7-day usage in percentage points. Higher is better: more work for the same quota. A drop of the 7-day usage (a reset, or a change of the plan) starts a new base. Block and period as in the first chart. Hover a bar for its numbers.</p>
+        </div>
+        <div class="ax-chart ax-chart-sm" id="per-usage-chart" data-source="per_usage"></div>
+      </div>
+
+      <div class="ax-card ax-wide" id="per-pr-card">
+        <div>
+          <h2 class="ax-card-title">Usage per merged PR</h2>
+          <p class="ax-note">Each bar is a block of time (UTC): the tokens of the run reports (the <code>Tokens:</code> line, in million eq) divided by their PRs (the <code>Metrics:</code> lines with merged or pr #N). Lower is better: the same work for less quota. Runs without a PR count their tokens too. The line is the share of the base (system prompt, tools, CLAUDE.md), which each call reads again. Block and period as in the first chart. Hover a bar for its numbers.</p>
+        </div>
+        <div class="ax-chart ax-chart-sm" id="per-pr-chart" data-source="per_pr"></div>
+      </div>
+
+      <div class="ax-card ax-wide" id="recent-card">
+        <div>
+          <h2 class="ax-card-title">Recent merges</h2>
+          <p class="ax-note">The last 40 merged pull requests, newest first.</p>
+        </div>
+        <div class="ax-table-box">
+          <table class="ax-table" id="recent-table" data-source="merges" data-row-key="number">
+            <thead><tr>
+              <th data-field="number" class="ax-num">PR</th>
+              <th data-field="title">Title</th>
+              <th data-field="merged_at" class="ax-nowrap">Merged (UTC)</th>
+              <th data-field="minutes_open" class="ax-num">Minutes open</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ax-page" id="progress" role="tabpanel" aria-labelledby="tab-progress" hidden>
+    <div class="ax-card" id="release-about">
+      <p class="ax-lede">100 % is the full roadmap of each goal: each feature of steering/project/ROADMAP.md with the
+        tickets of its epics. A feature is Done when the roadmap checks it or all its epics are closed.</p>
+      <p class="ax-note">Progress = closed tickets ÷ (closed tickets + tickets left). A feature with no epic yet counts
+        the median size of the closed epics as tickets left (5 before the first epic closes). New tickets and epics lower it.</p>
+    </div>
+    <div class="ax-goals" id="goal-overview">
+      <button class="ax-goal" type="button" data-goal="capture" aria-label="Capture offers while I browse: show the items">
+        <span class="ax-kpi-label">Capture offers while I browse</span>
+        <span class="ax-goal-value"><span class="dash-skeleton" data-source="release_goals" data-where="goal=capture" data-field="percent">—</span> of the full roadmap</span>
+        <span class="ax-stack" data-source="release_goals" data-stack="capture"></span>
+        <span class="ax-kpi-sub">About <span data-source="release_goals" data-where="goal=capture" data-field="left">—</span> tickets left ·
+          <span data-source="goal_counts" data-where="goal=capture" data-field="done">—</span> of
+          <span data-source="goal_counts" data-where="goal=capture" data-field="total">—</span> roadmap features done</span>
+      </button>
+      <button class="ax-goal" type="button" data-goal="rank" aria-label="Rank offers by effective cost: show the items">
+        <span class="ax-kpi-label">Rank offers by effective cost</span>
+        <span class="ax-goal-value"><span class="dash-skeleton" data-source="release_goals" data-where="goal=rank" data-field="percent">—</span> of the full roadmap</span>
+        <span class="ax-stack" data-source="release_goals" data-stack="rank"></span>
+        <span class="ax-kpi-sub">About <span data-source="release_goals" data-where="goal=rank" data-field="left">—</span> tickets left ·
+          <span data-source="goal_counts" data-where="goal=rank" data-field="done">—</span> of
+          <span data-source="goal_counts" data-where="goal=rank" data-field="total">—</span> roadmap features done</span>
+      </button>
+      <button class="ax-goal" type="button" data-goal="trip" aria-label="Plan a trip in one place: show the items">
+        <span class="ax-kpi-label">Plan a trip in one place</span>
+        <span class="ax-goal-value"><span class="dash-skeleton" data-source="release_goals" data-where="goal=trip" data-field="percent">—</span> of the full roadmap</span>
+        <span class="ax-stack" data-source="release_goals" data-stack="trip"></span>
+        <span class="ax-kpi-sub">About <span data-source="release_goals" data-where="goal=trip" data-field="left">—</span> tickets left ·
+          <span data-source="goal_counts" data-where="goal=trip" data-field="done">—</span> of
+          <span data-source="goal_counts" data-where="goal=trip" data-field="total">—</span> roadmap features done</span>
+      </button>
+      <button class="ax-goal" type="button" data-goal="host" aria-label="Run it on my home server: show the items">
+        <span class="ax-kpi-label">Run it on my home server</span>
+        <span class="ax-goal-value"><span class="dash-skeleton" data-source="release_goals" data-where="goal=host" data-field="percent">—</span> of the full roadmap</span>
+        <span class="ax-stack" data-source="release_goals" data-stack="host"></span>
+        <span class="ax-kpi-sub">About <span data-source="release_goals" data-where="goal=host" data-field="left">—</span> tickets left ·
+          <span data-source="goal_counts" data-where="goal=host" data-field="done">—</span> of
+          <span data-source="goal_counts" data-where="goal=host" data-field="total">—</span> roadmap features done</span>
+      </button>
+    </div>
+    <div class="ax-card" id="history-card">
+      <div>
+        <h2 class="ax-card-title">Progress over time</h2>
+        <p class="ax-note">The full-roadmap percent of each goal at each hour, by the rules above, from the open and close times of the tickets (UTC).
+          The graph in each row below is the same for one feature: hover it for the value at a time.</p>
+      </div>
+      <div class="ax-legend" id="history-legend" data-source="goal_history"></div>
+      <div class="ax-chart" id="history-chart" data-source="goal_history"></div>
+    </div>
+    <div class="ax-card" id="goal-capture">
+      <div>
+        <h2 class="ax-card-title">Capture offers while I browse</h2>
+        <p class="ax-note">100 % means: each source of the roadmap captures its offers with no manual step, and the trip page shows them.</p>
+      </div>
+      <div class="ax-table-box">
+        <table class="ax-table" id="release-capture" data-source="release" data-row-key="id">
+          <thead><tr>
+            <th data-field="item">Feature</th>
+            <th data-field="status">Status</th>
+            <th data-field="epics" class="ax-narrow-hide">Epic</th>
+            <th data-field="progress">Progress</th>
+            <th data-field="tickets" class="ax-num ax-narrow-hide">Tickets done / all</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="ax-card" id="goal-rank">
+      <div>
+        <h2 class="ax-card-title">Rank offers by effective cost</h2>
+        <p class="ax-note">100 % means: each weight, filter and profile of the specification works and explains itself in the breakdown.</p>
+      </div>
+      <div class="ax-table-box">
+        <table class="ax-table" id="release-rank" data-source="release" data-row-key="id">
+          <thead><tr>
+            <th data-field="item">Feature</th>
+            <th data-field="status">Status</th>
+            <th data-field="epics" class="ax-narrow-hide">Epic</th>
+            <th data-field="progress">Progress</th>
+            <th data-field="tickets" class="ax-num ax-narrow-hide">Tickets done / all</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="ax-card" id="goal-trip">
+      <div>
+        <h2 class="ax-card-title">Plan a trip in one place</h2>
+        <p class="ax-note">100 % means: the trips list, the ranked table, compare, history and the mobile layout all work.</p>
+      </div>
+      <div class="ax-table-box">
+        <table class="ax-table" id="release-trip" data-source="release" data-row-key="id">
+          <thead><tr>
+            <th data-field="item">Feature</th>
+            <th data-field="status">Status</th>
+            <th data-field="epics" class="ax-narrow-hide">Epic</th>
+            <th data-field="progress">Progress</th>
+            <th data-field="tickets" class="ax-num ax-narrow-hide">Tickets done / all</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="ax-card" id="goal-host">
+      <div>
+        <h2 class="ax-card-title">Run it on my home server</h2>
+        <p class="ax-note">100 % means: a release image, backups, retention and the setup guide let you run it on your server.</p>
+      </div>
+      <div class="ax-table-box">
+        <table class="ax-table" id="release-host" data-source="release" data-row-key="id">
+          <thead><tr>
+            <th data-field="item">Feature</th>
+            <th data-field="status">Status</th>
+            <th data-field="epics" class="ax-narrow-hide">Epic</th>
+            <th data-field="progress">Progress</th>
+            <th data-field="tickets" class="ax-num ax-narrow-hide">Tickets done / all</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="ax-page" id="tickets" role="tabpanel" aria-labelledby="tab-tickets" hidden>
+    <div class="ax-kpis" id="ticket-figures">
+      <div class="ax-kpi"><span class="ax-kpi-label">Open tickets</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="open_tickets" data-row="0">—</span>
+        <span class="ax-kpi-sub">Not counting epics</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">In progress</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="in_progress" data-row="0">—</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">Waiting for you</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="needs_human" data-row="0">—</span>
+        <span class="ax-kpi-sub">Label needs-human, not muted</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">Muted</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="muted" data-row="0">—</span>
+        <span class="ax-kpi-sub">Parked until later</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">Open epics</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="open_epics" data-row="0">—</span></div>
+      <div class="ax-kpi"><span class="ax-kpi-label">Haiku lane</span>
+        <span class="ax-kpi-value dash-skeleton" data-source="summary" data-field="haiku_open" data-row="0">—</span>
+        <span class="ax-kpi-sub">Open tickets with lane:haiku</span></div>
+    </div>
+
+    <div class="ax-grid">
+      <div class="ax-card ax-wide" id="flow-card">
+        <div>
+          <h2 class="ax-card-title">Tickets made and closed per hour</h2>
+          <p class="ax-note">All tickets except epics and the status issue (UTC).</p>
+        </div>
+        <div class="ax-legend" data-source="backlog">
+          <span><i class="ax-swatch" id="sw-made"></i>Made</span>
+          <span><i class="ax-swatch" id="sw-closed"></i>Closed</span>
+        </div>
+        <div class="ax-chart" id="flow-chart" data-source="backlog"></div>
+      </div>
+
+      <div class="ax-card" id="open-card">
+        <div>
+          <h2 class="ax-card-title">Open tickets over time</h2>
+          <p class="ax-note">Open at the end of each hour, epics not counted. The colors show the priority that each ticket has now.</p>
+        </div>
+        <div class="ax-chart ax-chart-sm" id="open-chart" data-source="backlog"></div>
+        <div class="ax-legend" id="open-legend" data-source="backlog"></div>
+      </div>
+
+      <div class="ax-card" id="priority-card">
+        <div>
+          <h2 class="ax-card-title">Open tickets by priority</h2>
+          <p class="ax-note">Epics not counted. P0 is the most urgent.</p>
+        </div>
+        <div class="ax-bars" id="priority-bars" data-source="open_by_priority"></div>
+      </div>
+
+      <div class="ax-card ax-wide" id="epics-card">
+        <div>
+          <h2 class="ax-card-title">Open epics</h2>
+          <p class="ax-note">Closed sub-issues of each open epic. An epic with all sub-issues closed waits for a run to check it and close it.</p>
+        </div>
+        <div class="ax-table-box">
+          <table class="ax-table" id="epics-table" data-source="open_epics" data-row-key="number">
+            <thead><tr>
+              <th data-field="number" class="ax-num">Epic</th>
+              <th data-field="title">Title</th>
+              <th data-field="priority">Priority</th>
+              <th data-field="subs_done" class="ax-num">Done</th>
+              <th data-field="subs_total" class="ax-num">Sub-issues</th>
+              <th data-field="share">Progress</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ax-page" id="spend" role="tabpanel" aria-labelledby="tab-spend" hidden>
+    <div class="ax-card ax-wide" id="spend-card">
+      <div class="ax-card-top">
+        <div>
+          <h2 class="ax-card-title">Usage per lane and type of work</h2>
+          <p class="ax-note">From the run reports (the <code>Tokens:</code>, <code>Metrics:</code> and <code>Run:</code> lines). Type: the size of the ticket (S, M, L), <em>improve</em> for a ticket with the label <code>process</code> (an improvement job), <em>review</em> for a process review, <em>no ticket</em> for a run with no ticket (refill, triage, no ready ticket). A run with more tickets splits its usage evenly. Sum: stacked bars. Mean per run: one line per group. Hover a block for its numbers.</p>
+        </div>
+        <div class="ax-controls">
+          <label for="spend-group">Group
+            <select id="spend-group">
+              <option value="both">Lane and type</option>
+              <option value="lane">Lane</option>
+              <option value="kind">Type</option>
+            </select></label>
+          <label for="spend-measure">Value
+            <select id="spend-measure">
+              <option value="eq">Sum, million eq</option>
+              <option value="cost">Sum, cost in $</option>
+              <option value="per_run">Mean per run, million eq</option>
+            </select></label>
+          <label for="spend-block">Block
+            <select id="spend-block">
+              <option value="6">6 hours</option>
+              <option value="12">12 hours</option>
+              <option value="24">1 day</option>
+            </select></label>
+          <label for="spend-range">Period
+            <select id="spend-range">
+              <option value="3d">Last 3 days</option>
+              <option value="7d">Last 7 days</option>
+              <option value="14d">Last 14 days</option>
+            </select></label>
+        </div>
+      </div>
+      <div class="ax-chart" id="spend-chart" data-source="spend_rows"></div>
+      <div class="ax-legend" id="spend-legend"></div>
+    </div>
+    <div class="ax-card ax-wide" id="spend-split-card">
+      <div class="ax-card-top">
+        <div>
+          <h2 class="ax-card-title">Where the usage goes</h2>
+          <p class="ax-note">One bar per group (group and period as in the chart above): the share of each part of its usage. Phase: the work of the calls (read, claim, code, verify, ci, conflict, report; <code>framework/tools/tokens.py --phases</code>). Sink: what fills the context (base: the system prompt, tools and CLAUDE.md that each call reads again; output: text, thinking and tool input; a tool or command: its results, read again by each later call). <em>other</em>: the sinks that the report does not list. On the right: the sum, the runs and the mean per run. Hover a part for its numbers.</p>
+        </div>
+        <div class="ax-controls">
+          <label for="spend-split">Split
+            <select id="spend-split">
+              <option value="phases">Phase</option>
+              <option value="sinks">Sink</option>
+            </select></label>
+        </div>
+      </div>
+      <div class="ax-chart ax-chart-fit" id="spend-split-chart" data-source="spend_rows"></div>
+      <div class="ax-legend" id="spend-split-legend"></div>
+    </div>
+  </section>
+
+  <section class="ax-page" id="improvements" role="tabpanel" aria-labelledby="tab-improvements" hidden>
+    <div class="ax-card ax-wide" id="reviews-card">
+      <div>
+        <h2 class="ax-card-title">How often the process review runs</h2>
+        <p class="ax-note">Each bar is one process review of the <code>improve</code> skill (a report that starts with "Process review"). Its height is the number of pull requests that merged since the review before it: the gap of <code>framework/tools/claim.py --review</code> (a review with a change makes the next gap smaller, a review with no change makes it larger). A blue bar names PRs in its report, an orange bar names none. Hover a bar for its numbers.</p>
+      </div>
+      <div class="ax-chart ax-chart-sm" id="reviews-chart" data-source="reviews"></div>
+    </div>
+    <div class="ax-card ax-wide" id="reviews-list-card">
+      <div>
+        <h2 class="ax-card-title">What each review did</h2>
+        <p class="ax-note">The process reviews, newest first: the start of the report and the pull requests that the report names (the process changes and the PRs that it measured).</p>
+      </div>
+      <div class="ax-table-box">
+        <table class="ax-table" id="reviews-table" data-source="reviews" data-row-key="at">
+          <thead><tr>
+            <th data-field="at" class="ax-nowrap">Review (UTC)</th>
+            <th data-field="prs" class="ax-num">PRs since the last</th>
+            <th data-field="changes">PRs named</th>
+            <th data-field="text">Report</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="ax-page" id="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
+    <div class="ax-card" id="loop-card">
+      <div>
+        <h2 class="ax-card-title">How a ticket gets to main</h2>
+        <p class="ax-note">The path of one change, from your issue to the main branch.</p>
+      </div>
+      <ol class="ax-flow">
+        <li><span class="ax-flow-name">You</span><span class="ax-flow-what">Write issues and comments, set the priority labels, answer decision tickets.</span></li>
+        <li><span class="ax-flow-name">Ticket</span><span class="ax-flow-what">A run writes and sizes the ticket. A clear size:S ticket with an exact spec and a merged example gets the label lane:haiku.</span></li>
+        <li><span class="ax-flow-name">Pacer</span><span class="ax-flow-what">Reads the quota usage every 10 minutes. Starts the lane runs (haiku, deep) for their ready tickets and the refill first, then Opus runs for the rest of the target.</span></li>
+        <li><span class="ax-flow-name">Autopilot run</span><span class="ax-flow-what">An Opus run claims the top ticket, a Haiku run only a lane:haiku ticket. It writes the code and tests, verifies, and opens a pull request.</span></li>
+        <li><span class="ax-flow-name">CI and automerge</span><span class="ax-flow-what">CI quick runs lint and the fast tests against PostgreSQL; CI docker starts the app with docker compose and logs in. Automerge merges the pull request when CI is green.</span></li>
+        <li><span class="ax-flow-name">Main and preview</span><span class="ax-flow-what">CI on main builds the image :preview. Watchtower puts it on travel-preview.larspolo.nl within 5 minutes; /api/health shows the commit.</span></li>
+      </ol>
+      <p class="ax-loop">Around this path: each run refills the queue from the open epics, closes finished epics and reports on the status issue.
+        A regular process review changes the skills, tools and CI. Unconflict merges main into pull requests that have a conflict.</p>
+    </div>
+
+    <div class="ax-card" id="lanes-card">
+      <div>
+        <h2 class="ax-card-title">Model lanes</h2>
+        <p class="ax-note">Three kinds of autopilot run share the quota. Clear, templated tickets go to the cheaper Haiku runs; hard choices, epic checks and the refill go to the deep runs.
+          Now: <span data-source="summary" data-field="haiku_open" data-row="0">—</span> open lane:haiku tickets,
+          <span data-source="summary" data-field="haiku_runs" data-row="0">—</span> of <span data-source="summary" data-field="runs_now" data-row="0">—</span> runs on the Haiku lane.</p>
+      </div>
+      <div class="ax-lanes">
+        <div class="ax-lane">
+          <span class="ax-lane-name">Opus lane</span>
+          <dl>
+            <dt>Started by</dt><dd>Scheduled task “travel-aggregator autopilot” (Opus, effort low): no schedule, the pacer fires it.</dd>
+            <dt>Tickets</dt><dd>The top ready ticket. Never a lane:haiku or lane:deep ticket (reserved lanes).</dd>
+            <dt>Work</dt><dd>Feedback, triage and the tickets; the deep runs do the epic checks, the refill and the reviews.</dd>
+            <dt>Quota</dt><dd>One run counts 1 in the target of the pacer.</dd>
+          </dl>
+        </div>
+        <div class="ax-lane">
+          <span class="ax-lane-name">Haiku lane</span>
+          <dl>
+            <dt>Started by</dt><dd>Scheduled task “travel-aggregator autopilot haiku” (Haiku): only the pacer fires it, a new session each time.</dd>
+            <dt>Tickets</dt><dd>Only lane:haiku: size S, each file and value named, verify level 1. A ticket that is not clear loses the label.</dd>
+            <dt>Work</dt><dd>The tickets only. Stops when no lane:haiku ticket is ready.</dd>
+            <dt>Quota</dt><dd>One run counts 0.25 (start value in steering/system/system.toml) until <code>framework/tools/health.py</code> measures it.</dd>
+          </dl>
+        </div>
+        <div class="ax-lane">
+          <span class="ax-lane-name">Deep lane</span>
+          <dl>
+            <dt>Started by</dt><dd>Scheduled task “travel-aggregator autopilot deep” (Opus, effort high): only the pacer fires it, a new session each time.</dd>
+            <dt>Tickets</dt><dd>Only lane:deep: choices where a wrong answer can pass the tests, a new structure, a ticket that failed before.</dd>
+            <dt>Work</dt><dd>The tickets, the epic checks (README and preview check at the end of an epic), the queue refill, the roadmap and process reviews.</dd>
+            <dt>Quota</dt><dd>One run counts 4 (start value in steering/system/system.toml) until <code>framework/tools/health.py</code> measures it.</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="ax-card" id="parts-card">
+      <div>
+        <h2 class="ax-card-title">Parts of the setup</h2>
+        <p class="ax-note">Each automatic part, when it runs, and where it is defined in the repository.</p>
+      </div>
+      <div class="ax-table-box">
+        <table class="ax-table" id="setup-table" data-source="setup" data-row-key="part">
+          <thead><tr>
+            <th data-field="part">Part</th>
+            <th data-field="group" class="ax-narrow-hide">Kind</th>
+            <th data-field="when">When</th>
+            <th data-field="does">What it does</th>
+            <th data-field="where" class="ax-narrow-hide">Where</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+dash.calc('spend_rows', {
+  inputs: ['spend'],
+  title: 'Usage of each run',
+  description: 'One row per run report and type of its work: the time, the lane, the type (size S, M, L, improve, review or no ticket), the share of the run, the million eq, the cost in $, and the million eq of each phase and each sink.',
+  fn: (spend) => spend.map((r) => ({ t: Date.parse(r.at), lane: r.lane, kind: r.kind, runs: Number(r.runs),
+    eq: Number(r.eq), cost: r.cost === null || r.cost === undefined ? null : Number(r.cost),
+    phases: r.phases || {}, sinks: r.sinks || {} })).filter((r) => !isNaN(r.t) && !isNaN(r.eq)),
+});
+
+dash.calc('merge_buckets', {
+  inputs: ['merges'],
+  title: 'Merges per 15 minutes',
+  description: 'The merged pull requests counted in 15-minute blocks (UTC), from the first to the last merge; a block without a merge counts 0.',
+  fn: (merges) => {
+    const block = 15 * 60 * 1000;
+    const times = merges.map((r) => Date.parse(r.merged_at)).filter((t) => !isNaN(t));
+    if (!times.length) return [];
+    const counts = new Map();
+    for (const t of times) {
+      const k = Math.floor(t / block) * block;
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+    const first = Math.floor(Math.min(...times) / block) * block;
+    const last = Math.floor(Math.max(...times) / block) * block;
+    const out = [];
+    for (let k = first; k <= last; k += block) out.push({ start: new Date(k).toISOString(), merges: counts.get(k) || 0 });
+    return out;
+  },
+});
+
+dash.calc('per_usage', {
+  inputs: ['merges', 'usage'],
+  title: 'Merges per point of 7-day usage',
+  description: 'For each 15-minute block (UTC) of the usage data: the merged pull requests and the rise of the 7-day usage in percentage points (the sum of the rises between consecutive usage lines with the same 7-day reset; a drop, such as the plan upgrade of 2026-10-27, starts a new base and does not count). The page adds the blocks up to the chosen block size and divides: a block with a rise below 0.5 points has no value (too little usage for a ratio).',
+  fn: (merges, usage) => {
+    const block = 15 * 60 * 1000;
+    const pts = usage.filter((r) => r.week !== undefined && r.week !== null && r.week !== '')
+      .map((r) => ({ t: Date.parse(r.at), w: Number(r.week), reset: r.week_resets }))
+      .filter((p) => !isNaN(p.t) && !isNaN(p.w)).sort((a, b) => a.t - b.t);
+    if (pts.length < 2) return [];
+    const rise = new Map(), n = new Map();
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i];
+      if (a.reset === b.reset && b.w > a.w) {
+        const k = Math.floor(b.t / block) * block;
+        rise.set(k, (rise.get(k) || 0) + (b.w - a.w) * 100);
+      }
+    }
+    const first = Math.floor(pts[0].t / block) * block, last = Math.floor(pts[pts.length - 1].t / block) * block;
+    for (const r of merges) {
+      const t = Date.parse(r.merged_at);
+      if (isNaN(t) || t < first || t >= last + block) continue;
+      const k = Math.floor(t / block) * block;
+      n.set(k, (n.get(k) || 0) + 1);
+    }
+    const out = [];
+    for (let k = first; k <= last; k += block) {
+      out.push({ start: new Date(k).toISOString(), merges: n.get(k) || 0, points: Math.round((rise.get(k) || 0) * 100) / 100 });
+    }
+    return out;
+  },
+});
+
+dash.calc('per_pr', {
+  inputs: ['tokens'],
+  title: 'Usage per merged PR',
+  description: 'For each 15-minute block (UTC) of the run reports with a Tokens: line: the runs, the PRs (Metrics: lines with merged or pr #N), the tokens in million eq, and the eq of the reports that list base in their top sinks with their eq times base. The page adds the blocks up to the chosen block size: tokens per PR and the mean share of the base, weighted by eq. A block without a PR has no value.',
+  fn: (tokens) => {
+    const block = 15 * 60 * 1000;
+    const rows = tokens.map((r) => ({ t: Date.parse(r.at), eq: Number(r.eq), prs: Number(r.prs),
+      base: r.base === null || r.base === undefined || r.base === '' ? null : Number(r.base) }))
+      .filter((r) => !isNaN(r.t) && !isNaN(r.eq)).sort((a, b) => a.t - b.t);
+    if (!rows.length) return [];
+    const bins = new Map();
+    for (const r of rows) {
+      const k = Math.floor(r.t / block) * block;
+      const b = bins.get(k) || { runs: 0, prs: 0, eq: 0, beq: 0, bsum: 0 };
+      b.runs += 1; b.prs += r.prs || 0; b.eq += r.eq;
+      if (r.base !== null && !isNaN(r.base)) { b.beq += r.eq; b.bsum += r.eq * r.base; }
+      bins.set(k, b);
+    }
+    const first = Math.floor(rows[0].t / block) * block, last = Math.floor(rows[rows.length - 1].t / block) * block;
+    const out = [];
+    for (let k = first; k <= last; k += block) {
+      const b = bins.get(k) || { runs: 0, prs: 0, eq: 0, beq: 0, bsum: 0 };
+      out.push({ start: new Date(k).toISOString(), runs: b.runs, prs: b.prs, eq: Math.round(b.eq * 1000) / 1000,
+        beq: Math.round(b.beq * 1000) / 1000, bsum: Math.round(b.bsum * 1000) / 1000 });
+    }
+    return out;
+  },
+});
+
+dash.calc('summary', {
+  inputs: ['merges', 'tickets', 'usage'],
+  title: 'Headline figures',
+  description: 'Counted up to the last merge in the data: merges in the last hour and 24 hours, their mean per 15 minutes, the median minutes from open to merge, the open tickets, the open tickets with lane:haiku, the latest 5-hour usage, the latest 7-day usage with its projection to the reset (on track, ahead or behind), and the runs of the latest usage line with the runs of the Haiku lane among them.',
+  fn: (merges, tickets, usage) => {
+    const hour = 3600 * 1000;
+    const yes = (v) => v === true || v === 'true';
+    const prs = merges.map((r) => ({ at: Date.parse(r.merged_at), open: Number(r.minutes_open) })).filter((r) => !isNaN(r.at));
+    const end = Math.max(...prs.map((r) => r.at));
+    const day = prs.filter((r) => r.at > end - 24 * hour);
+    const mins = day.map((r) => r.open).sort((a, b) => a - b);
+    const median = mins.length ? (mins.length % 2 ? mins[(mins.length - 1) / 2] : (mins[mins.length / 2 - 1] + mins[mins.length / 2]) / 2) : null;
+    const open = tickets.filter((r) => r.state === 'open');
+    const work = open.filter((r) => !yes(r.epic) && !yes(r.status_issue));
+    const latest = usage.slice().sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).pop();
+    const week = usage.filter((r) => r.week !== undefined && r.week !== null && r.week !== '')
+      .sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).pop();
+    return [{
+      snapshot: new Date(end).toISOString(),
+      first_merge: new Date(Math.min(...prs.map((r) => r.at))).toISOString(),
+      merged_total: prs.length,
+      last_hour: prs.filter((r) => r.at > end - hour).length,
+      last_24h: day.length,
+      per_15min: Math.round((day.length / 96) * 10) / 10,
+      median_open_min: median,
+      open_tickets: work.length,
+      in_progress: work.filter((r) => yes(r.in_progress)).length,
+      needs_human: open.filter((r) => yes(r.needs_human) && !yes(r.muted)).length,
+      muted: open.filter((r) => yes(r.muted)).length,
+      open_epics: open.filter((r) => yes(r.epic)).length,
+      haiku_open: work.filter((r) => yes(r.haiku)).length,
+      runs_now: latest ? Number(latest.runs) : null,
+      haiku_runs: latest ? Number(latest.haiku) || 0 : null,
+      usage_5h: latest ? Number(latest.usage) : null,
+      usage_at: latest ? latest.at : null,
+      usage_7d: week ? Number(week.week) : null,
+      usage_7d_track: week && week.track ? week.track : 'Too few usage lines for a projection',
+    }];
+  },
+});
+
+dash.calc('backlog', {
+  inputs: ['tickets'],
+  title: 'Tickets per hour',
+  description: 'For each hour (UTC): the tickets made, the tickets closed, and the tickets open at the end of the hour, also for each priority label (the label that the ticket has now). Epics and the status issue do not count.',
+  fn: (tickets) => {
+    const hour = 3600 * 1000;
+    const yes = (v) => v === true || v === 'true';
+    const rows = tickets.filter((r) => !yes(r.epic) && !yes(r.status_issue))
+      .map((r) => ({ made: Date.parse(r.created_at), closed: r.closed_at ? Date.parse(r.closed_at) : Infinity, p: r.priority || 'none' }));
+    if (!rows.length) return [];
+    const end = Math.max(...rows.map((r) => Math.max(r.made, isFinite(r.closed) ? r.closed : 0)));
+    const first = Math.floor(Math.min(...rows.map((r) => r.made)) / hour) * hour;
+    const out = [];
+    for (let k = first; k <= end; k += hour) {
+      const open = rows.filter((r) => r.made < k + hour && r.closed >= k + hour);
+      const n = (p) => open.filter((r) => r.p === p).length;
+      out.push({
+        hour: new Date(k).toISOString(),
+        made: rows.filter((r) => r.made >= k && r.made < k + hour).length,
+        closed: rows.filter((r) => r.closed >= k && r.closed < k + hour).length,
+        open: open.length,
+        open_p0: n('P0'), open_p1: n('P1'), open_p2: n('P2'), open_p3: n('P3'), open_none: n('none'),
+      });
+    }
+    return out;
+  },
+});
+
+dash.calc('open_by_priority', {
+  inputs: ['tickets'],
+  title: 'Open tickets by priority',
+  description: 'The open tickets of each priority label, without epics and the status issue.',
+  fn: (tickets) => {
+    const yes = (v) => v === true || v === 'true';
+    const open = tickets.filter((r) => r.state === 'open' && !yes(r.epic) && !yes(r.status_issue));
+    return ['P0', 'P1', 'P2', 'P3', ''].map((p) => ({
+      priority: p || 'none',
+      tickets: open.filter((r) => (r.priority || '') === p).length,
+    })).filter((r) => r.tickets > 0 || r.priority !== 'none');
+  },
+});
+
+dash.calc('open_epics', {
+  inputs: ['tickets'],
+  title: 'Open epics',
+  description: 'Each open epic with its closed and total sub-issues, and the closed share; ordered by priority, then by progress.',
+  fn: (tickets) => {
+    const yes = (v) => v === true || v === 'true';
+    const rank = { P0: 0, P1: 1, P2: 2, P3: 3 };
+    return tickets.filter((r) => r.state === 'open' && yes(r.epic)).map((r) => ({
+      number: r.number,
+      title: r.title,
+      priority: r.priority || 'none',
+      subs_done: Number(r.subs_done) || 0,
+      subs_total: Number(r.subs_total) || 0,
+      share: Number(r.subs_total) ? Number(r.subs_done) / Number(r.subs_total) : 0,
+    })).sort((a, b) => (rank[a.priority] ?? 9) - (rank[b.priority] ?? 9) || b.share - a.share || a.number - b.number);
+  },
+});
+
+dash.calc('progress', {
+  inputs: ['roadmap', 'epics'],
+  title: 'Progress per feature',
+  description: 'Each feature of the roadmap with its epics (an epic whose body names the key, and the epics that the roadmap line names): In progress when one of its epics is open; Done when the roadmap checks it or all its epics are closed; else To do.',
+  fn: (roadmap, epics) => {
+    const goals = ['capture', 'rank', 'trip', 'host'];
+    const yes = (v) => v === true || v === 'true';
+    const row = (id, goal, order, feature, checked, list) => {
+      const done = list.reduce((s, e) => s + (Number(e.subs_done) || 0), 0);
+      const total = list.reduce((s, e) => s + (Number(e.subs_total) || 0), 0);
+      return {
+        id, goal, order, feature,
+        status: list.some((e) => e.state === 'open') ? 'In progress' : checked || list.length ? 'Done' : 'To do',
+        epics: list.map((e) => '#' + e.number).join(' '),
+        subs: total ? `${done} / ${total}` : '',
+        share: total ? done / total : null,
+      };
+    };
+    const out = roadmap.filter((f) => goals.includes(f.goal)).map((f) => {
+      const refs = String(f.refs || '').split(' ').filter(Boolean);
+      const list = epics.filter((e) => e.key === f.id || refs.includes(String(e.number)));
+      return row(f.id, f.goal, Number(f.order), f.feature, yes(f.checked), list);
+    });
+    const rank = { 'In progress': 0, 'To do': 1, 'Done': 2 };
+    return out.sort((a, b) => goals.indexOf(a.goal) - goals.indexOf(b.goal) || rank[a.status] - rank[b.status] || a.order - b.order);
+  },
+});
+
+dash.calc('goal_counts', {
+  inputs: ['progress'],
+  title: 'Features per goal',
+  description: 'The features of each goal that are done, in progress and to do.',
+  fn: (progress) => ['capture', 'rank', 'trip', 'host'].map((goal) => {
+    const rows = progress.filter((r) => r.goal === goal);
+    const n = (status) => rows.filter((r) => r.status === status).length;
+    return { goal, done: n('Done'), in_progress: n('In progress'), todo: n('To do'), total: rows.length };
+  }),
+});
+
+dash.calc('release', {
+  inputs: ['release_bar', 'roadmap', 'epics', 'tickets'],
+  title: 'Release items',
+  description: 'Each item of the release bar (in this project none: each roadmap feature is an item of the full roadmap, C) with its closed tickets, the tickets left and its progress (closed ÷ all; a done item with no tickets is 1), by the rules of the dashboard of aoe2mc. A roadmap feature without a row is milestone C. A feature: the closed sub-issues of its epics; left: the open ones, at least its estimate (default: the median size of the closed epics); done without an epic counts as that median. A release check: its estimate, done when its ticket is closed. The bug reserve: its share of the feature tickets left in the goal.',
+  fn: (release_bar, roadmap, epics, tickets) => {
+    const yes = (v) => v === true || v === 'true';
+    const num = (v) => Number(v) || 0;
+    const sizes = epics.filter((e) => e.state === 'closed' && num(e.subs_total) > 0).map((e) => num(e.subs_total)).sort((a, b) => a - b);
+    const n = sizes.length;
+    const median = n ? (n % 2 ? sizes[(n - 1) / 2] : (sizes[n / 2 - 1] + sizes[n / 2]) / 2) : 5;
+    const names = { B: 'B: smaller test', A: 'A: core', C: 'C: full roadmap' };
+    const features = new Map(roadmap.map((f) => [f.id, f]));
+    const byNumber = new Map(tickets.map((t) => [String(t.number), t]));
+    const out = [];
+    const rows = release_bar.concat(roadmap.filter((f) => !release_bar.some((r) => r.id === f.id))
+      .map((f) => ({ goal: f.goal, id: f.id, kind: 'feature', level: 'C', estimate: null, title: '' })));
+    rows.forEach((r, order) => {
+      if (r.kind === 'reserve') return;
+      const estimate = num(r.estimate) || median;
+      let item = r.title, status, done, left, list = [], refs = [];
+      if (r.kind === 'feature') {
+        const f = features.get(r.id);
+        refs = f ? String(f.refs || '').split(' ').filter(Boolean) : [];
+        list = epics.filter((e) => e.key === r.id || refs.includes(String(e.number)));
+        item = f ? f.feature : list.length ? list[0].title : r.id;
+        const closed = list.reduce((s, e) => s + num(e.subs_done), 0);
+        const all = list.reduce((s, e) => s + num(e.subs_total), 0);
+        const open = list.some((e) => e.state === 'open');
+        if (!open && (list.length || (f && yes(f.checked)))) {
+          status = 'Done'; done = list.length ? Math.max(closed, 1) : median; left = 0;
+        } else {
+          status = open ? 'In progress' : 'To do'; done = closed; left = Math.max(all, estimate) - closed;
+        }
+      } else {
+        const t = r.ticket ? byNumber.get(String(r.ticket)) : null;
+        const closed = !!t && t.state === 'closed';
+        status = closed ? 'Done' : t ? 'In progress' : 'To do';
+        done = closed ? estimate : 0; left = closed ? 0 : estimate;
+      }
+      out.push({ id: r.id, goal: r.goal, kind: r.kind, order, level: r.level || 'C', milestone: names[r.level || 'C'], item, status,
+        epics: list.map((e) => '#' + e.number).join(' '), done, left, tickets: `${done} / ${done + left}`,
+        estimate, ticket: r.kind === 'check' ? r.ticket || null : null, refs: refs.join(' ') });
+    });
+    release_bar.forEach((r, order) => {
+      if (r.kind !== 'reserve') return;
+      const featureLeft = out.filter((x) => x.goal === r.goal && x.kind === 'feature').reduce((s, x) => s + x.left, 0);
+      const left = Math.ceil(num(r.share) * featureLeft);
+      out.push({ id: r.id, goal: r.goal, kind: 'reserve', order, level: 'C', milestone: names.C, share: num(r.share), item: r.title,
+        status: left ? 'To do' : 'Done', epics: '', done: 0, left, tickets: `0 / ${left}`, estimate: 0, ticket: null, refs: '' });
+    });
+    out.forEach((x) => { x.progress = x.done + x.left ? x.done / (x.done + x.left) : x.status === 'Done' ? 1 : 0; });
+    const goals = ['capture', 'rank', 'trip', 'host'];
+    const kinds = { feature: 0, check: 1, reserve: 2 };
+    const rank = { 'In progress': 0, 'To do': 1, 'Done': 2 };
+    return out.sort((a, b) => goals.indexOf(a.goal) - goals.indexOf(b.goal) || kinds[a.kind] - kinds[b.kind]
+      || rank[a.status] - rank[b.status] || 'BAC'.indexOf(a.level) - 'BAC'.indexOf(b.level) || a.order - b.order);
+  },
+});
+
+dash.calc('release_goals', {
+  inputs: ['release'],
+  title: 'Release progress per goal',
+  description: 'For each goal: progress = closed ÷ (closed + left) for the full roadmap (C) and for the milestones A (core) and B (smaller test). A milestone counts its features (B is in A, A is in C), all release checks, and the reserve share of its own feature tickets left.',
+  fn: (release) => ['capture', 'rank', 'trip', 'host'].map((goal) => {
+    const rows = release.filter((r) => r.goal === goal);
+    const sum = (list, f) => list.reduce((s, r) => s + Number(r[f]), 0);
+    const share = Number((rows.find((r) => r.kind === 'reserve') || {}).share) || 0;
+    const level = (levels) => {
+      const items = rows.filter((r) => r.kind !== 'reserve' && levels.includes(r.level));
+      const done = sum(items, 'done');
+      const features = sum(items.filter((r) => r.kind === 'feature'), 'left');
+      const checks = sum(items.filter((r) => r.kind === 'check'), 'left');
+      const reserve = Math.ceil(share * features);
+      const left = features + checks + reserve;
+      if (!items.length) return { done: null, left: null, features: null, checks: null, reserve: null, percent: null };   // no item of this milestone
+      return { done, left, features, checks, reserve, percent: done + left ? done / (done + left) : 0 };
+    };
+    const full = level('BAC'), core = level('BA'), small = level('B');
+    return {
+      goal, done: full.done, left: full.left, percent: full.percent,
+      left_features: full.features, left_checks: full.checks, left_reserve: full.reserve,
+      percent_a: core.percent, left_a: core.left, percent_b: small.percent, left_b: small.left,
+    };
+  }),
+});
+
+dash.calc('release_history', {
+  inputs: ['release', 'tickets'],
+  title: 'Release items over time',
+  description: 'Each release item (no reserve) at each step of time (one hour; longer steps keep 200 steps at most), by the rules of the release items, from the open and close times of the tickets. A feature counts the sub-issues of its epics that were made and closed at that time, and it is done when all its epics made at that time were closed. A done feature without an epic is done from the close of the last ticket that its roadmap line names (from the start when it names none). A release check is done from the close of its ticket.',
+  fn: (release, tickets) => {
+    const hour = 3600 * 1000;
+    const when = (v) => (v ? Date.parse(v) : NaN);
+    const times = new Map(tickets.map((t) => [Number(t.number), { made: when(t.created_at), closed: t.closed_at ? when(t.closed_at) : Infinity }]));
+    const kids = new Map();
+    tickets.filter((t) => t.parent).forEach((t) => {
+      const k = Number(t.parent);
+      if (!kids.has(k)) kids.set(k, []);
+      kids.get(k).push(times.get(Number(t.number)));
+    });
+    const all = [...times.values()].flatMap((t) => [t.made, t.closed]).filter((v) => isFinite(v));
+    if (!all.length) return [];
+    const first = Math.floor(all.reduce((a, b) => Math.min(a, b)) / hour) * hour;
+    const end = all.reduce((a, b) => Math.max(a, b));
+    const step = Math.max(1, Math.ceil((end - first) / hour / 200)) * hour;
+    const grid = [];
+    for (let k = first; k < end; k += step) grid.push(k);
+    grid.push(end);
+    const out = [];
+    for (const r of release.filter((x) => x.kind !== 'reserve')) {
+      const estimate = Number(r.estimate) || 0;
+      let at;
+      if (r.kind === 'check') {
+        const closed = (times.get(Number(r.ticket)) || { closed: Infinity }).closed;
+        at = (T) => (closed <= T ? [estimate, 0] : [0, estimate]);
+      } else {
+        const epics = (String(r.epics || '').match(/\d+/g) || []).map(Number);
+        if (!epics.length && r.status === 'Done') {
+          const refs = String(r.refs || '').split(' ').filter(Boolean).map((n) => times.get(Number(n))).filter((t) => t && isFinite(t.closed));
+          const from = refs.length ? Math.max(...refs.map((t) => t.closed)) : -Infinity;
+          at = (T) => (from <= T ? [Number(r.done), 0] : [0, estimate]);
+        } else {
+          const list = epics.map((n) => times.get(n) || { made: -Infinity, closed: Infinity });
+          const subs = epics.flatMap((n) => kids.get(n) || []);
+          at = (T) => {
+            const closed = subs.filter((k) => k.closed <= T).length;
+            const made = list.filter((e) => e.made <= T);
+            if (made.length && made.every((e) => e.closed <= T)) return [Math.max(closed, 1), 0];
+            return [closed, Math.max(subs.filter((k) => k.made <= T).length, estimate) - closed];
+          };
+        }
+      }
+      for (const T of grid) {
+        const [done, left] = at(T);
+        out.push({ id: r.id, goal: r.goal, kind: r.kind, at: new Date(T).toISOString(), done, left,
+          progress: done + left ? done / (done + left) : 1 });
+      }
+    }
+    return out;
+  },
+});
+
+dash.calc('goal_history', {
+  inputs: ['release_history', 'release'],
+  title: 'Release progress per goal over time',
+  description: 'For each goal at each step of time: the full-roadmap progress (C) = closed ÷ (closed + left), with the bug reserve of the feature tickets left at that time, as in Release progress per goal.',
+  fn: (release_history, release) => {
+    const out = [];
+    const sum = (list, f) => list.reduce((s, r) => s + Number(r[f]), 0);
+    for (const goal of ['capture', 'rank', 'trip', 'host']) {
+      const share = Number((release.find((r) => r.goal === goal && r.kind === 'reserve') || {}).share) || 0;
+      const steps = new Map();
+      release_history.filter((r) => r.goal === goal).forEach((r) => {
+        if (!steps.has(r.at)) steps.set(r.at, []);
+        steps.get(r.at).push(r);
+      });
+      for (const [at, rows] of steps) {
+        const done = sum(rows, 'done');
+        const left = sum(rows, 'left') + Math.ceil(share * sum(rows.filter((r) => r.kind === 'feature'), 'left'));
+        out.push({ goal, at, done, left, percent: done + left ? done / (done + left) : 0 });
+      }
+    }
+    return out;
+  },
+});
+</script>
+
+<script>
+(() => {
+  const MIN = 60 * 1000;
+  const SPANS = { '1h': 60 * MIN, '3h': 180 * MIN, '6h': 360 * MIN, '12h': 720 * MIN, '24h': 1440 * MIN, '3d': 4320 * MIN, '7d': 10080 * MIN };
+  const fmtDate = d3.utcFormat('%b %-d, %H:%M UTC');
+  const fmtShort = d3.utcFormat('%b %-d %H:%M');
+  const fmtClock = d3.utcFormat('%H:%M');
+  const pct = d3.format('.0%');
+  const one = d3.format('.1f');
+  const count = d3.format(',');
+  const formats = {
+    snapshot: (v) => fmtDate(new Date(v)),
+    first_merge: (v) => fmtDate(new Date(v)),
+    usage_at: (v) => fmtShort(new Date(v)),
+    per_15min: (v) => one(v),
+    median_open_min: (v) => one(v),
+    usage_5h: (v) => pct(v),
+    usage_7d: (v) => pct(v),
+    percent: (v) => pct(v),
+    percent_a: (v) => pct(v),
+    percent_b: (v) => pct(v),
+    merged_total: (v) => count(v),
+    haiku_runs: (v) => count(v),
+  };
+
+  // Header figures and tiles: one-cell marks of a calc.
+  function fillMarks() {
+    document.querySelectorAll('.ax [data-source][data-field]').forEach((el) => {
+      if (el.closest('table')) return;
+      const d = dash.data(el.dataset.source);
+      if (d.status === 'ok') {
+        const where = el.dataset.where ? [...new URLSearchParams(el.dataset.where)] : null;
+        const row = where ? d.data.find((r) => where.every(([k, v]) => String(r[k]) === v)) : d.data[Number(el.dataset.row || 0)];
+        const v = row ? row[el.dataset.field] : null;
+        el.textContent = v == null || v === '' ? '—' : (formats[el.dataset.field] || String)(v);
+        el.classList.remove('dash-skeleton');
+      } else {
+        el.textContent = '—';
+        if (d.status !== 'loading') el.classList.remove('dash-skeleton');
+      }
+    });
+  }
+
+  function failed(el, d) {
+    el.replaceChildren();
+    if (d.status === 'loading') { el.classList.add('dash-skeleton'); return true; }
+    el.classList.remove('dash-skeleton');
+    if (d.status !== 'ok') {
+      const p = document.createElement('div');
+      p.className = 'ax-fail';
+      p.textContent = 'Failed to load';
+      el.append(p);
+      return true;
+    }
+    return false;
+  }
+
+  function styleAxis(g) {
+    g.attr('font-size', null).attr('font-family', null);
+    g.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+    g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-axis)');
+    g.select('.domain').attr('stroke', 'var(--cds-chart-axis)');
+  }
+
+  // A tick label at an edge of the drawing goes past it when it is centered: anchor it at its tick instead.
+  function keepInside(g, W) {
+    g.selectAll('.tick').each(function () {
+      const m = /translate\(([-\d.]+)/.exec(this.getAttribute('transform') || '');
+      const text = this.querySelector('text');
+      if (!m || !text) return;
+      const x = Number(m[1]), w = text.getComputedTextLength();
+      if (x + w / 2 > W) text.setAttribute('text-anchor', 'end');
+      else if (x - w / 2 < 0) text.setAttribute('text-anchor', 'start');
+    });
+  }
+
+  // The width of the widest label, as drawn.
+  function widest(svg, labels) {
+    const t = svg.append('g').style('font-size', 'var(--cds-font-size-caption)');
+    let w = 0;
+    for (const s of labels) w = Math.max(w, t.append('text').text(s).node().getComputedTextLength());
+    t.remove();
+    return w;
+  }
+
+  function tooltip(el, fixed) {
+    const tip = document.createElement('div');
+    tip.className = 'ax-tip';
+    tip.hidden = true;
+    if (fixed) tip.style.position = 'fixed';
+    el.append(tip);
+    return {
+      show(x, y, lines) {
+        tip.replaceChildren(...lines.map(([text, color, cls]) => {
+          const row = document.createElement('div');
+          row.className = cls || 'ax-tip-row';
+          if (color) {
+            const sw = document.createElement('i');
+            sw.className = 'ax-swatch';
+            sw.style.background = color;
+            row.append(sw);
+          }
+          row.append(document.createTextNode(text));
+          return row;
+        }));
+        tip.hidden = false;
+        const w = tip.offsetWidth, h = tip.offsetHeight, W = el.clientWidth;
+        const left = Math.max(0, Math.min(W - w, x - w / 2));
+        const top = Math.max(0, y - h - 8);
+        tip.style.transform = `translate(${left}px, ${top}px)`;
+      },
+      hide() { tip.hidden = true; },
+    };
+  }
+
+  // The time window of the Activity charts: from the period control and the last block of the data.
+  function window15() {
+    const d = dash.data('merge_buckets');
+    if (d.status !== 'ok' || !d.data.length) return null;
+    const starts = d.data.map((r) => Date.parse(r.start));
+    const end = Math.max(...starts) + 15 * MIN;
+    const first = Math.min(...starts);
+    const span = SPANS[dash.params().range ?? '24h'];
+    return { from: span ? Math.max(first, end - span) : first, end };
+  }
+
+  // The block size of the Activity charts, in ms.
+  function blockSize() { return (Number(dash.params().bucket) || 15) * MIN; }
+
+  // Add the 15-minute rows of a calc up to blocks of `size`, from the start of the window to its end.
+  function rebin(rows, win, size, init, add) {
+    const from = Math.floor(win.from / size) * size, sums = new Map();
+    for (const r of rows) {
+      const t = Date.parse(r.start);
+      if (t < from || t >= win.end) continue;
+      const k = Math.floor(t / size) * size;
+      const b = sums.get(k) || init();
+      add(b, r);
+      sums.set(k, b);
+    }
+    const out = [];
+    for (let k = from; k < win.end; k += size) out.push({ t: k, ...(sums.get(k) || init()) });
+    return out;
+  }
+
+  function drawMerges() {
+    const el = document.getElementById('merge-chart');
+    const d = dash.data('merge_buckets');
+    if (failed(el, d)) return;
+    const win = window15();
+    if (!win) return;
+    const size = blockSize();
+    const from = Math.floor(win.from / size) * size;
+    const sums = new Map();
+    for (const r of d.data) {
+      const t = Date.parse(r.start);
+      if (t < from) continue;
+      const k = Math.floor(t / size) * size;
+      sums.set(k, (sums.get(k) || 0) + Number(r.merges));
+    }
+    const bins = [];
+    for (let k = from; k < win.end; k += size) bins.push({ t: k, n: sums.get(k) || 0 });
+
+    const W = el.clientWidth, H = 230;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'Merged pull requests per block of time');
+    const y = d3.scaleLinear([0, Math.max(1, d3.max(bins, (b) => b.n))], [H - 26, 10]).nice();
+    const yTicks = y.ticks(5).filter(Number.isInteger);
+    const left = Math.ceil(widest(svg, yTicks.map(String))) + 10;
+    const x = d3.scaleUtc([new Date(from), new Date(win.end)], [left, W - 6]);
+    svg.append('g').attr('transform', `translate(${left},0)`)
+      .call(d3.axisLeft(y).tickValues(yTicks).tickFormat(d3.format('d')).tickSize(-(W - 6 - left)))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    const xTicks = Math.max(2, Math.floor((W - left) / 90));
+    svg.append('g').attr('transform', `translate(0,${H - 26})`)
+      .call(d3.axisBottom(x).ticks(xTicks).tickFormat((t) => (t.getUTCHours() === 0 && t.getUTCMinutes() === 0 ? d3.utcFormat('%b %-d')(t) : fmtClock(t))))
+      .call(styleAxis)
+      .call((g) => keepInside(g, W));
+    const bw = Math.max(1, x(new Date(from + size)) - x(new Date(from)));
+    const gap = bw > 6 ? Math.min(3, bw * 0.2) : 0.5;
+    const bars = svg.append('g').selectAll('rect').data(bins).join('rect')
+      .attr('x', (b) => x(new Date(b.t)) + gap / 2).attr('width', Math.max(0.5, bw - gap))
+      .attr('y', (b) => y(b.n)).attr('height', (b) => y(0) - y(b.n))
+      .attr('rx', Math.min(4, bw / 2)).attr('fill', dash.colors[0]);
+    const tip = tooltip(el);
+    svg.append('g').selectAll('rect').data(bins).join('rect')
+      .attr('x', (b) => x(new Date(b.t))).attr('width', bw).attr('y', 10).attr('height', H - 36).attr('fill', 'transparent')
+      .on('mouseenter', (event, b) => {
+        bars.attr('opacity', (o) => (o === b ? 1 : 0.45));
+        tip.show(x(new Date(b.t)) + bw / 2, y(b.n), [
+          [`${fmtShort(new Date(b.t))}–${fmtClock(new Date(b.t + size))}`, null, 'ax-tip-k'],
+          [`${b.n} ${b.n === 1 ? 'merge' : 'merges'}`],
+        ]);
+      })
+      .on('mouseleave', () => { bars.attr('opacity', 1); tip.hide(); });
+  }
+
+  function drawUsage() {
+    const el = document.getElementById('usage-chart');
+    const d = dash.data('usage');
+    if (failed(el, d)) return;
+    const win = window15();
+    if (!win) return;
+    const pts = d.data.map((r) => ({ t: Date.parse(r.at), u: Number(r.usage), reset: Date.parse(r.resets), runs: Number(r.runs), haiku: Number(r.haiku) || 0,
+      w: r.week === undefined || r.week === null || r.week === '' ? null : Number(r.week), wreset: Date.parse(r.week_resets) }))
+      .filter((p) => p.t >= win.from && p.t <= win.end).sort((a, b) => a.t - b.t);
+    const W = el.clientWidth, H = 190;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', '5-hour and 7-day usage over time');
+    const y = d3.scaleLinear([0, 1], [H - 26, 10]);
+    const left = Math.ceil(widest(svg, ['100%'])) + 10;
+    const x = d3.scaleUtc([new Date(win.from), new Date(win.end)], [left, W - 6]);
+    svg.append('g').attr('transform', `translate(${left},0)`)
+      .call(d3.axisLeft(y).tickValues([0, 0.25, 0.5, 0.75, 1]).tickFormat(pct).tickSize(-(W - 6 - left)))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    // The owner's target: 90 % two hours before the reset (framework/tools/usage.py), a fixed reference.
+    svg.append('line').attr('x1', left).attr('x2', W - 6).attr('y1', y(0.9)).attr('y2', y(0.9))
+      .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '2 3');
+    svg.append('text').attr('x', W - 8).attr('y', y(0.9) - 4).attr('text-anchor', 'end')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Target 90 %');
+    svg.append('g').attr('transform', `translate(0,${H - 26})`)
+      .call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - left) / 90))).tickFormat(fmtClock))
+      .call(styleAxis)
+      .call((g) => keepInside(g, W));
+    if (!pts.length) {
+      svg.append('text').attr('x', (left + W) / 2).attr('y', H / 2).attr('text-anchor', 'middle')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('No usage line in this period');
+      return;
+    }
+    const resets = [...new Set(pts.map((p) => p.reset))].filter((r) => r > win.from && r < win.end);
+    svg.append('g').selectAll('line').data(resets).join('line')
+      .attr('x1', (r) => x(new Date(r))).attr('x2', (r) => x(new Date(r))).attr('y1', 10).attr('y2', H - 26)
+      .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    const line = d3.line().x((p) => x(new Date(p.t))).y((p) => y(p.u));
+    for (const group of d3.groups(pts, (p) => p.reset).map((g) => g[1])) {
+      svg.append('path').datum(group).attr('d', line).attr('fill', 'none').attr('stroke', dash.colors[0])
+        .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    }
+    // The 7-day usage, and the even pace of each week: the share of the week that has passed (#1696).
+    const weekPts = pts.filter((p) => p.w !== null && !isNaN(p.w));
+    const WEEK = 7 * 24 * 60 * MIN;
+    for (const r of [...new Set(weekPts.map((p) => p.wreset))].filter((r) => !isNaN(r))) {
+      const a = Math.max(win.from, r - WEEK), b = Math.min(win.end, r);
+      if (a >= b) continue;
+      svg.append('line').attr('x1', x(new Date(a))).attr('x2', x(new Date(b)))
+        .attr('y1', y((a - (r - WEEK)) / WEEK)).attr('y2', y((b - (r - WEEK)) / WEEK))
+        .attr('stroke', dash.colors[1]).attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4').attr('opacity', 0.7);
+    }
+    const wline = d3.line().x((p) => x(new Date(p.t))).y((p) => y(p.w));
+    for (const group of d3.groups(weekPts, (p) => p.wreset).map((g) => g[1])) {
+      svg.append('path').datum(group).attr('d', wline).attr('fill', 'none').attr('stroke', dash.colors[1])
+        .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    }
+    if (weekPts.length) {
+      const lastW = weekPts[weekPts.length - 1];
+      svg.append('text').attr('x', Math.min(x(new Date(lastW.t)), W - 60)).attr('y', y(lastW.w) - 6)
+        .attr('fill', dash.colors[1]).style('font-size', 'var(--cds-font-size-caption)').text('7-day');
+    }
+    const dots = svg.append('g').selectAll('circle').data(pts).join('circle')
+      .attr('cx', (p) => x(new Date(p.t))).attr('cy', (p) => y(p.u)).attr('r', 2.5).attr('fill', dash.colors[0]);
+    const tip = tooltip(el);
+    const near = d3.Delaunay.from(pts, (p) => x(new Date(p.t)), (p) => y(p.u));
+    svg.append('rect').attr('x', left).attr('y', 0).attr('width', W - 6 - left).attr('height', H - 26).attr('fill', 'transparent')
+      .on('mousemove', (event) => {
+        const [mx, my] = d3.pointer(event);
+        const p = pts[near.find(mx, my)];
+        dots.attr('r', (o) => (o === p ? 4.5 : 2.5));
+        tip.show(x(new Date(p.t)), y(p.u), [
+          [fmtShort(new Date(p.t)), null, 'ax-tip-k'],
+          [`Usage ${pct(p.u)}`],
+          ...(p.w === null ? [] : [[`7-day usage ${pct(p.w)}`]]),
+          [`Runs with a claim beat: ${p.runs}` + (p.haiku ? ` (${p.haiku} Haiku)` : '')],
+        ]);
+      })
+      .on('mouseleave', () => { dots.attr('r', 2.5); tip.hide(); });
+  }
+
+  function drawPerUsage() {
+    const el = document.getElementById('per-usage-chart');
+    const d = dash.data('per_usage');
+    if (failed(el, d)) return;
+    const win = window15();
+    if (!win) return;
+    const size = blockSize();
+    const bins = rebin(d.data, win, size, () => ({ m: 0, p: 0 }), (b, r) => { b.m += Number(r.merges); b.p += Number(r.points); });
+    for (const b of bins) { b.p = Math.round(b.p * 10) / 10; b.v = b.p >= 0.5 ? Math.round((b.m / b.p) * 10) / 10 : null; }
+    const W = el.clientWidth, H = 190;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'Merged pull requests per percentage point of 7-day usage');
+    if (!d.data.length) {
+      svg.append('text').attr('x', W / 2).attr('y', H / 2).attr('text-anchor', 'middle')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Too few usage lines with the 7-day usage');
+      return;
+    }
+    const y = d3.scaleLinear([0, Math.max(1, d3.max(bins, (b) => b.v || 0))], [H - 26, 10]).nice();
+    const yTicks = y.ticks(4);
+    const left = Math.ceil(widest(svg, yTicks.map(String))) + 10;
+    const x = d3.scaleUtc([new Date(bins[0].t), new Date(win.end)], [left, W - 6]);
+    svg.append('g').attr('transform', `translate(${left},0)`)
+      .call(d3.axisLeft(y).tickValues(yTicks).tickSize(-(W - 6 - left)))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    svg.append('g').attr('transform', `translate(0,${H - 26})`)
+      .call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - left) / 90)))
+        .tickFormat((t) => (t.getUTCHours() === 0 ? d3.utcFormat('%b %-d')(t) : fmtClock(t))))
+      .call(styleAxis)
+      .call((g) => keepInside(g, W));
+    const bw = Math.max(1, x(new Date(bins[0].t + size)) - x(new Date(bins[0].t)));
+    const gap = bw > 6 ? Math.min(3, bw * 0.2) : 0.5;
+    const bars = svg.append('g').selectAll('rect').data(bins.filter((b) => b.v !== null)).join('rect')
+      .attr('x', (b) => x(new Date(b.t)) + gap / 2).attr('width', Math.max(0.5, bw - gap))
+      .attr('y', (b) => y(b.v)).attr('height', (b) => y(0) - y(b.v))
+      .attr('rx', Math.min(4, bw / 2)).attr('fill', dash.colors[0]);
+    const tip = tooltip(el);
+    svg.append('g').selectAll('rect').data(bins).join('rect')
+      .attr('x', (b) => x(new Date(b.t))).attr('width', bw).attr('y', 10).attr('height', H - 36).attr('fill', 'transparent')
+      .on('mouseenter', (event, b) => {
+        bars.attr('opacity', (o) => (o === b ? 1 : 0.45));
+        tip.show(x(new Date(b.t)) + bw / 2, y(b.v || 0), [
+          [`${fmtShort(new Date(b.t))}–${fmtClock(new Date(b.t + size))}`, null, 'ax-tip-k'],
+          [b.v === null ? 'Too little usage for a ratio' : `${one(b.v)} merges per point`],
+          [`${b.m} ${b.m === 1 ? 'merge' : 'merges'}, 7-day usage +${one(b.p)} points`],
+        ]);
+      })
+      .on('mouseleave', () => { bars.attr('opacity', 1); tip.hide(); });
+  }
+
+  function drawPerPr() {
+    const el = document.getElementById('per-pr-chart');
+    const d = dash.data('per_pr');
+    if (failed(el, d)) return;
+    const win = window15();
+    if (!win) return;
+    const size = blockSize();
+    const bins = rebin(d.data, win, size, () => ({ runs: 0, prs: 0, eq: 0, beq: 0, bsum: 0 }), (b, r) => {
+      b.runs += Number(r.runs); b.prs += Number(r.prs); b.eq += Number(r.eq); b.beq += Number(r.beq); b.bsum += Number(r.bsum);
+    });
+    for (const b of bins) { b.v = b.prs ? b.eq / b.prs : null; b.base = b.beq ? b.bsum / b.beq : null; }
+    const W = el.clientWidth, H = 190;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'Million eq tokens per merged pull request');
+    if (!d.data.length) {
+      svg.append('text').attr('x', W / 2).attr('y', H / 2).attr('text-anchor', 'middle')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('No run reports with a Tokens: line');
+      return;
+    }
+    const y = d3.scaleLinear([0, Math.max(0.5, d3.max(bins, (b) => b.v || 0))], [H - 26, 10]).nice();
+    const yTicks = y.ticks(4);
+    const yb = d3.scaleLinear([0, 1], [H - 26, 10]);
+    const left = Math.ceil(widest(svg, yTicks.map((v) => `${v}M`))) + 10, right = 40;
+    const x = d3.scaleUtc([new Date(bins[0].t), new Date(win.end)], [left, W - right]);
+    svg.append('g').attr('transform', `translate(${left},0)`)
+      .call(d3.axisLeft(y).tickValues(yTicks).tickFormat((v) => `${v}M`).tickSize(-(W - right - left)))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    svg.append('g').attr('transform', `translate(${W - right},0)`)
+      .call(d3.axisRight(yb).ticks(2).tickFormat((v) => `${Math.round(v * 100)} %`).tickSize(0))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove());
+    svg.append('g').attr('transform', `translate(0,${H - 26})`)
+      .call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - left - right) / 90)))
+        .tickFormat((t) => (t.getUTCHours() === 0 ? d3.utcFormat('%b %-d')(t) : fmtClock(t))))
+      .call(styleAxis)
+      .call((g) => keepInside(g, W));
+    const bw = Math.max(1, x(new Date(bins[0].t + size)) - x(new Date(bins[0].t)));
+    const gap = bw > 6 ? Math.min(3, bw * 0.2) : 0.5;
+    const bars = svg.append('g').selectAll('rect').data(bins.filter((b) => b.v !== null)).join('rect')
+      .attr('x', (b) => x(new Date(b.t)) + gap / 2).attr('width', Math.max(0.5, bw - gap))
+      .attr('y', (b) => y(b.v)).attr('height', (b) => y(0) - y(b.v))
+      .attr('rx', Math.min(4, bw / 2)).attr('fill', dash.colors[0]);
+    svg.append('path').datum(bins.filter((b) => b.base !== null))
+      .attr('fill', 'none').attr('stroke', dash.colors[1]).attr('stroke-width', 2)
+      .attr('d', d3.line().x((b) => x(new Date(b.t)) + bw / 2).y((b) => yb(b.base)));
+    const tip = tooltip(el);
+    svg.append('g').selectAll('rect').data(bins).join('rect')
+      .attr('x', (b) => x(new Date(b.t))).attr('width', bw).attr('y', 10).attr('height', H - 36).attr('fill', 'transparent')
+      .on('mouseenter', (event, b) => {
+        bars.attr('opacity', (o) => (o === b ? 1 : 0.45));
+        tip.show(x(new Date(b.t)) + bw / 2, y(b.v || 0), [
+          [`${fmtShort(new Date(b.t))}–${fmtClock(new Date(b.t + size))}`, null, 'ax-tip-k'],
+          [b.v === null ? 'No PR in this block' : `${b.v.toFixed(2)}M eq per PR`],
+          [`${b.runs} ${b.runs === 1 ? 'run' : 'runs'}, ${b.prs} ${b.prs === 1 ? 'PR' : 'PRs'}, ${one(b.eq)}M eq`],
+          [b.base === null ? 'Base share not known' : `Base ${Math.round(b.base * 100)} % of the tokens`],
+        ]);
+      })
+      .on('mouseleave', () => { bars.attr('opacity', 1); tip.hide(); });
+  }
+
+  // The usage tab: the group of a row, the rows of the period, and a color per group or part.
+  const KINDS = ['S', 'M', 'L', 'no size', 'improve', 'review', 'no ticket'];
+  const nRuns = (v) => `${Math.round(v * 10) / 10} ${v === 1 ? 'run' : 'runs'}`;    // a run with 2 tickets counts 0.5 for each
+  function spendKey(r, group) {
+    return group === 'lane' ? r.lane : group === 'kind' ? r.kind : `${r.lane} · ${r.kind}`;
+  }
+  // By lane name, then by the order of KINDS.
+  function spendOrder(a, b) {
+    const sortKey = (k) => k.split(' · ').map((x) => (KINDS.includes(x) ? String(KINDS.indexOf(x)).padStart(2, '0') : x)).join('|');
+    return sortKey(a).localeCompare(sortKey(b));
+  }
+  function spendColor(keys) {
+    const pal = [...dash.colors, ...d3.schemeTableau10, ...d3.schemeSet3];
+    const m = new Map(keys.filter((k) => k !== 'other').map((k, i) => [k, pal[i % pal.length]]));
+    return (k) => m.get(k) || 'var(--cds-chart-muted)';
+  }
+  function spendRows() {
+    const d = dash.data('spend_rows');
+    if (d.status !== 'ok') return { d, rows: [] };
+    const p = dash.params();
+    const block = (Number(p.spend_block) || 24) * 60 * MIN;
+    const span = { '3d': 3, '7d': 7, '14d': 14 }[p.spend_range ?? '7d'] * 1440 * MIN;
+    const end = d.data.length ? (Math.floor(d3.max(d.data, (r) => r.t) / block) + 1) * block : 0;
+    const from = end - span;
+    return { d, block, from, end, group: p.spend_group ?? 'both', rows: d.data.filter((r) => r.t >= from && r.t < end) };
+  }
+  function legend(id, keys, color) {
+    const el = document.getElementById(id);
+    el.replaceChildren(...keys.map((k) => {
+      const s = document.createElement('span');
+      const sw = document.createElement('i');
+      sw.className = 'ax-swatch';
+      sw.style.background = color(k);
+      s.append(sw, document.createTextNode(k));
+      return s;
+    }));
+  }
+  function emptyChart(svg, W, H, text) {
+    svg.append('text').attr('x', W / 2).attr('y', H / 2).attr('text-anchor', 'middle')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(text);
+  }
+
+  function drawSpend() {
+    const el = document.getElementById('spend-chart');
+    const { d, block, from, end, group, rows } = spendRows();
+    document.getElementById('spend-legend').replaceChildren();
+    if (failed(el, d)) return;
+    const measure = dash.params().spend_measure ?? 'eq';
+    const keys = [...new Set(rows.map((r) => spendKey(r, group)))].sort(spendOrder);
+    const color = spendColor(keys);
+    const bins = [];
+    for (let k = from; k < end; k += block) bins.push({ t: k, v: {}, eq: {}, runs: {} });
+    for (const r of rows) {
+      const b = bins[Math.floor((r.t - from) / block)], key = spendKey(r, group);
+      b.eq[key] = (b.eq[key] || 0) + r.eq;
+      b.runs[key] = (b.runs[key] || 0) + r.runs;
+      b.v[key] = (b.v[key] || 0) + (measure === 'cost' ? r.cost || 0 : r.eq);
+    }
+    if (measure === 'per_run') for (const b of bins) for (const k in b.v) b.v[k] = b.runs[k] ? b.eq[k] / b.runs[k] : 0;
+    const unit = measure === 'cost' ? (v) => `$${v.toFixed(2)}` : (v) => `${v.toFixed(2)}M`;
+    const W = el.clientWidth, H = 260;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'Usage per lane and type of work over time');
+    if (!rows.length) { emptyChart(svg, W, H, 'No run reports with a Tokens: line in this period'); return; }
+    legend('spend-legend', keys, color);
+    const stacked = measure !== 'per_run';
+    const series = d3.stack().keys(keys).value((b, k) => b.v[k] || 0)(bins);
+    const top = stacked ? d3.max(series.at(-1), (p) => p[1]) : d3.max(bins, (b) => d3.max(keys, (k) => b.v[k] || 0));
+    const y = d3.scaleLinear([0, top || 1], [H - 26, 10]).nice();
+    const yTicks = y.ticks(5);
+    const fmtY = measure === 'cost' ? (v) => `$${v}` : (v) => `${v}M`;
+    const left = Math.ceil(widest(svg, yTicks.map(fmtY))) + 10, right = 8;
+    const x = d3.scaleUtc([new Date(from), new Date(end)], [left, W - right]);
+    svg.append('g').attr('transform', `translate(${left},0)`)
+      .call(d3.axisLeft(y).tickValues(yTicks).tickFormat(fmtY).tickSize(-(W - right - left)))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    svg.append('g').attr('transform', `translate(0,${H - 26})`)
+      .call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - left - right) / 90)))
+        .tickFormat((t) => (t.getUTCHours() === 0 ? d3.utcFormat('%b %-d')(t) : fmtClock(t))))
+      .call(styleAxis)
+      .call((g) => keepInside(g, W));
+    const bw = Math.max(1, x(new Date(from + block)) - x(new Date(from)));
+    const gap = bw > 6 ? Math.min(4, bw * 0.15) : 0.5;
+    if (stacked) {
+      svg.append('g').selectAll('g').data(series).join('g').attr('fill', (s) => color(s.key))
+        .selectAll('rect').data((s) => s).join('rect')
+        .attr('x', (p) => x(new Date(p.data.t)) + gap / 2).attr('width', Math.max(0.5, bw - gap))
+        .attr('y', (p) => y(p[1])).attr('height', (p) => y(p[0]) - y(p[1]));
+    } else {
+      for (const k of keys) {
+        const pts = bins.filter((b) => b.runs[k]);
+        svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', color(k)).attr('stroke-width', 2)
+          .attr('d', d3.line().x((b) => x(new Date(b.t)) + bw / 2).y((b) => y(b.v[k])));
+        svg.append('g').selectAll('circle').data(pts).join('circle').attr('r', 3).attr('fill', color(k))
+          .attr('cx', (b) => x(new Date(b.t)) + bw / 2).attr('cy', (b) => y(b.v[k]));
+      }
+    }
+    const tip = tooltip(el);
+    const hl = svg.append('rect').attr('y', 10).attr('height', H - 36).attr('width', bw)
+      .attr('fill', 'var(--color-fg)').attr('opacity', 0).attr('pointer-events', 'none');
+    svg.append('g').selectAll('rect').data(bins).join('rect')
+      .attr('x', (b) => x(new Date(b.t))).attr('width', bw).attr('y', 10).attr('height', H - 36).attr('fill', 'transparent')
+      .on('mouseenter', (event, b) => {
+        hl.attr('x', x(new Date(b.t))).attr('opacity', 0.06);
+        const ks = keys.filter((k) => b.runs[k]);
+        const runs = d3.sum(ks, (k) => b.runs[k]), eq = d3.sum(ks, (k) => b.eq[k]);
+        tip.show(x(new Date(b.t)) + bw / 2, 40, [
+          [`${fmtShort(new Date(b.t))}–${fmtShort(new Date(b.t + block))}`, null, 'ax-tip-k'],
+          ...ks.slice().reverse().map((k) => [`${k}: ${unit(b.v[k])} (${nRuns(b.runs[k])})`, color(k)]),
+          [ks.length ? `All: ${eq.toFixed(2)}M eq, ${nRuns(runs)}` : 'No run in this block', null, 'ax-tip-k'],
+        ]);
+      })
+      .on('mouseleave', () => { hl.attr('opacity', 0); tip.hide(); });
+  }
+
+  function drawSpendSplit() {
+    const el = document.getElementById('spend-split-chart');
+    const { d, group, rows } = spendRows();
+    document.getElementById('spend-split-legend').replaceChildren();
+    if (failed(el, d)) return;
+    const split = dash.params().spend_split ?? 'phases';
+    const groups = new Map();
+    const totals = new Map();
+    for (const r of rows) {
+      const key = spendKey(r, group);
+      const g = groups.get(key) || { key, eq: 0, runs: 0, parts: {} };
+      g.eq += r.eq; g.runs += r.runs;
+      for (const [p, v] of Object.entries(r[split] || {})) {
+        g.parts[p] = (g.parts[p] || 0) + v;
+        totals.set(p, (totals.get(p) || 0) + v);
+      }
+      groups.set(key, g);
+    }
+    const order = [...totals.keys()].filter((p) => p !== 'other').sort((a, b) => totals.get(b) - totals.get(a));
+    const shown = split === 'phases' ? order : order.slice(0, 9);
+    const parts = [...shown, ...(order.length > shown.length || totals.has('other') ? ['other'] : [])];
+    const color = spendColor(parts);
+    const list = [...groups.values()].sort((a, b) => spendOrder(a.key, b.key));
+    for (const g of list) {
+      g.sum = d3.sum(Object.values(g.parts));
+      g.seg = {};
+      for (const [p, v] of Object.entries(g.parts)) {
+        const k = shown.includes(p) ? p : 'other';
+        g.seg[k] = (g.seg[k] || 0) + v;
+      }
+    }
+    const row = 26, W = el.clientWidth, H = Math.max(80, list.length * row + 30);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'The split of the usage of each group');
+    if (!list.length) { emptyChart(svg, W, H, 'No run reports with a Tokens: line in this period'); return; }
+    legend('spend-split-legend', parts, color);
+    const label = (g) => `${g.eq.toFixed(1)}M · ${nRuns(g.runs)} · ${(g.eq / (g.runs || 1)).toFixed(2)}M/run`;
+    const left = Math.ceil(widest(svg, list.map((g) => g.key))) + 10;
+    const right = W > 560 ? Math.ceil(widest(svg, list.map(label))) + 12 : 8;
+    const x = d3.scaleLinear([0, 1], [left, W - right]);
+    const y = (i) => 4 + i * row;
+    svg.append('g').attr('transform', `translate(0,${y(list.length) + 2})`)
+      .call(d3.axisBottom(x).ticks(5).tickFormat((v) => `${Math.round(v * 100)} %`))
+      .call(styleAxis);
+    const txt = (g) => g.attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+    svg.append('g').selectAll('text').data(list).join('text').call(txt)
+      .attr('x', left - 8).attr('y', (g, i) => y(i) + row / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((g) => g.key);
+    if (W > 560) {
+      svg.append('g').selectAll('text').data(list).join('text').call(txt)
+        .attr('x', W - right + 8).attr('y', (g, i) => y(i) + row / 2).attr('dy', '0.35em').text(label);
+    }
+    const tip = tooltip(el);
+    list.forEach((g, i) => {
+      let at = 0;
+      const segs = parts.filter((p) => g.seg[p]).map((p) => {
+        const s = { p, a: at, share: g.sum ? g.seg[p] / g.sum : 0, v: g.seg[p] };
+        at += s.share;
+        return s;
+      });
+      svg.append('g').selectAll('rect').data(segs).join('rect')
+        .attr('x', (s) => x(s.a)).attr('width', (s) => Math.max(0, x(s.a + s.share) - x(s.a) - 1))
+        .attr('y', y(i) + 3).attr('height', row - 6).attr('fill', (s) => color(s.p))
+        .on('mouseenter', (event, s) => tip.show(x(s.a + s.share / 2), y(i), [
+          [g.key, null, 'ax-tip-k'],
+          [`${s.p}: ${Math.round(s.share * 100)} % · ${s.v.toFixed(2)}M eq · ${(s.v / (g.runs || 1)).toFixed(3)}M per run`, color(s.p)],
+        ]))
+        .on('mouseleave', () => tip.hide());
+    });
+  }
+
+  function drawFlow() {
+    const el = document.getElementById('flow-chart');
+    const d = dash.data('backlog');
+    if (failed(el, d)) return;
+    const rows = d.data.map((r) => ({ t: Date.parse(r.hour), made: Number(r.made), closed: Number(r.closed) }));
+    if (!rows.length) return;
+    const W = el.clientWidth, H = 230;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'Tickets made and closed per hour');
+    const y = d3.scaleLinear([0, Math.max(1, d3.max(rows, (r) => Math.max(r.made, r.closed)))], [H - 26, 10]).nice();
+    const yTicks = y.ticks(5).filter(Number.isInteger);
+    const left = Math.ceil(widest(svg, yTicks.map(String))) + 10;
+    const end = d3.max(rows, (r) => r.t) + 60 * MIN;
+    const x = d3.scaleUtc([new Date(rows[0].t), new Date(end)], [left, W - 6]);
+    svg.append('g').attr('transform', `translate(${left},0)`)
+      .call(d3.axisLeft(y).tickValues(yTicks).tickFormat(d3.format('d')).tickSize(-(W - 6 - left)))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    svg.append('g').attr('transform', `translate(0,${H - 26})`)
+      .call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - left) / 90)))
+        .tickFormat((t) => (t.getUTCHours() === 0 ? d3.utcFormat('%b %-d')(t) : fmtClock(t))))
+      .call(styleAxis)
+      .call((g) => keepInside(g, W));
+    const bw = Math.max(1, x(new Date(rows[0].t + 60 * MIN)) - x(new Date(rows[0].t)));
+    const half = Math.max(0.5, (bw - Math.min(2, bw * 0.2)) / 2);
+    const g = svg.append('g');
+    const made = g.selectAll('.m').data(rows).join('rect').attr('class', 'm')
+      .attr('x', (r) => x(new Date(r.t))).attr('width', half).attr('y', (r) => y(r.made)).attr('height', (r) => y(0) - y(r.made))
+      .attr('rx', Math.min(3, half / 2)).attr('fill', dash.colors[0]);
+    const closed = g.selectAll('.c').data(rows).join('rect').attr('class', 'c')
+      .attr('x', (r) => x(new Date(r.t)) + half).attr('width', half).attr('y', (r) => y(r.closed)).attr('height', (r) => y(0) - y(r.closed))
+      .attr('rx', Math.min(3, half / 2)).attr('fill', dash.colors[1]);
+    const tip = tooltip(el);
+    svg.append('g').selectAll('rect').data(rows).join('rect')
+      .attr('x', (r) => x(new Date(r.t))).attr('width', bw).attr('y', 10).attr('height', H - 36).attr('fill', 'transparent')
+      .on('mouseenter', (event, r) => {
+        made.attr('opacity', (o) => (o === r ? 1 : 0.45));
+        closed.attr('opacity', (o) => (o === r ? 1 : 0.45));
+        tip.show(x(new Date(r.t)) + bw / 2, y(Math.max(r.made, r.closed)), [
+          [`${fmtShort(new Date(r.t))}–${fmtClock(new Date(r.t + 60 * MIN))}`, null, 'ax-tip-k'],
+          [`Made ${r.made}`, dash.colors[0]],
+          [`Closed ${r.closed}`, dash.colors[1]],
+        ]);
+      })
+      .on('mouseleave', () => { made.attr('opacity', 1); closed.attr('opacity', 1); tip.hide(); });
+  }
+
+  const BANDS = [['open_p0', 'P0', 'var(--cds-chart-status-critical)'], ['open_p1', 'P1', () => dash.colors[1]],
+    ['open_p2', 'P2', () => dash.colors[0]], ['open_p3', 'P3', () => dash.colors[2]], ['open_none', 'No priority', 'var(--cds-chart-muted)']];
+  const bandColor = (c) => (typeof c === 'function' ? c() : c);
+
+  function drawOpen() {
+    const el = document.getElementById('open-chart');
+    const legend = document.getElementById('open-legend');
+    const d = dash.data('backlog');
+    legend.replaceChildren();
+    if (failed(el, d)) return;
+    const rows = d.data.map((r) => ({ t: Date.parse(r.hour) + 60 * MIN, n: Number(r.open),
+      ...Object.fromEntries(BANDS.map(([k]) => [k, Number(r[k]) || 0])) }));
+    if (!rows.length) return;
+    const bands = BANDS.filter(([k]) => rows.some((r) => r[k] > 0));       // only the priorities that occur
+    const W = el.clientWidth, H = 190;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'Open tickets over time, by priority');
+    const y = d3.scaleLinear([0, Math.max(1, d3.max(rows, (r) => r.n))], [H - 26, 10]).nice();
+    const yTicks = y.ticks(4).filter(Number.isInteger);
+    const left = Math.ceil(widest(svg, yTicks.map(String))) + 10;
+    const x = d3.scaleUtc(d3.extent(rows, (r) => new Date(r.t)), [left, W - 8]);
+    svg.append('g').attr('transform', `translate(${left},0)`)
+      .call(d3.axisLeft(y).tickValues(yTicks).tickFormat(d3.format('d')).tickSize(-(W - 8 - left)))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    const stack = d3.stack().keys(bands.map(([k]) => k))(rows);
+    const area = d3.area().x((p) => x(new Date(p.data.t))).y0((p) => y(p[0])).y1((p) => y(p[1]));
+    svg.append('g').selectAll('path').data(stack).join('path')
+      .attr('d', area).attr('fill', (s, i) => bandColor(bands[i][2])).attr('fill-opacity', 0.7);
+    svg.append('g').attr('transform', `translate(0,${H - 26})`)
+      .call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - left) / 90)))
+        .tickFormat((t) => (t.getUTCHours() === 0 ? d3.utcFormat('%b %-d')(t) : fmtClock(t))))
+      .call(styleAxis)
+      .call((g) => keepInside(g, W));
+    svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.5)
+      .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+      .attr('d', d3.line().x((r) => x(new Date(r.t))).y((r) => y(r.n)));
+    const lastRow = rows[rows.length - 1];
+    svg.append('circle').attr('cx', x(new Date(lastRow.t))).attr('cy', y(lastRow.n)).attr('r', 3).attr('fill', 'var(--color-fg)');
+    legend.replaceChildren(...bands.map(([, name, color]) => {
+      const item = document.createElement('span');
+      const sw = document.createElement('i');
+      sw.className = 'ax-swatch';
+      sw.style.background = bandColor(color);
+      item.append(sw, document.createTextNode(name));
+      return item;
+    }));
+    const tip = tooltip(el);
+    const dot = svg.append('circle').attr('r', 4).attr('fill', 'var(--color-fg)').attr('opacity', 0);
+    const bisect = d3.bisector((r) => r.t).center;
+    svg.append('rect').attr('x', left).attr('y', 0).attr('width', W - 8 - left).attr('height', H - 26).attr('fill', 'transparent')
+      .on('mousemove', (event) => {
+        const r = rows[bisect(rows, x.invert(d3.pointer(event)[0]).getTime())];
+        dot.attr('cx', x(new Date(r.t))).attr('cy', y(r.n)).attr('opacity', 1);
+        tip.show(x(new Date(r.t)), y(r.n), [[fmtShort(new Date(r.t)), null, 'ax-tip-k'], [`${r.n} open`],
+          ...bands.slice().reverse().map(([k, name, color]) => [`${name}: ${r[k]}`, bandColor(color)])]);
+      })
+      .on('mouseleave', () => { dot.attr('opacity', 0); tip.hide(); });
+  }
+
+  function drawPriority() {
+    const el = document.getElementById('priority-bars');
+    const d = dash.data('open_by_priority');
+    if (failed(el, d)) return;
+    const max = Math.max(1, ...d.data.map((r) => Number(r.tickets)));
+    const colors = { P0: 'var(--cds-chart-status-critical)', P1: dash.colors[0], P2: dash.colors[0], P3: 'var(--cds-chart-muted)', none: 'var(--cds-chart-muted)' };
+    el.replaceChildren(...d.data.map((r) => {
+      const row = document.createElement('div');
+      row.className = 'ax-bar-row';
+      const label = document.createElement('span');
+      label.textContent = r.priority;
+      const track = document.createElement('span');
+      track.className = 'ax-bar-track';
+      const fill = document.createElement('span');
+      fill.className = 'ax-bar-fill';
+      fill.style.width = `${(100 * Number(r.tickets)) / max}%`;
+      fill.style.background = colors[r.priority] || dash.colors[0];
+      track.append(fill);
+      const n = document.createElement('span');
+      n.className = 'ax-bar-n';
+      n.textContent = String(r.tickets);
+      row.append(label, track, n);
+      return row;
+    }));
+  }
+
+  // A table from rows: a cell holds words, a bar or a graph (the marks are on the table and its headers).
+  function fillTable(id, rows, cells, keyField) {
+    const table = document.getElementById(id);
+    const body = table.tBodies[0];
+    const out = [];
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      if (keyField) tr.dataset.key = String(r[keyField]);
+      for (const [field, show, cls] of cells) {
+        const td = document.createElement('td');
+        const v = show(r[field], r, td);
+        if (v instanceof Node) td.replaceChildren(v); else td.textContent = v;
+        if (cls) td.className = cls;
+        tr.append(td);
+      }
+      out.push(tr);
+    }
+    body.replaceChildren(...out);
+  }
+
+  function tableState(id) {
+    const d = dash.data(document.getElementById(id).dataset.source);
+    const body = document.getElementById(id).tBodies[0];
+    if (d.status === 'ok') return d.data;
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = document.getElementById(id).tHead.rows[0].cells.length;
+    if (d.status === 'loading') td.className = 'dash-skeleton';
+    else { const f = document.createElement('div'); f.className = 'ax-fail'; f.textContent = 'Failed to load'; td.append(f); }
+    tr.append(td);
+    body.replaceChildren(tr);
+    return null;
+  }
+
+  // A progress bar with its percent: share 0..1, or null for no tickets.
+  function progressBar(share) {
+    const box = document.createElement('span');
+    box.className = 'ax-pbar';
+    const track = document.createElement('span');
+    track.className = 'ax-mini';
+    const n = document.createElement('span');
+    n.className = 'ax-pbar-n';
+    if (share === null || isNaN(share)) n.textContent = '—';
+    else {
+      const fill = document.createElement('span');
+      fill.style.width = `${100 * share}%`;
+      fill.style.background = 'var(--ax-done)';
+      track.append(fill);
+      n.textContent = pct(share);
+    }
+    box.setAttribute('role', 'img');
+    box.setAttribute('aria-label', n.textContent === '—' ? 'No tickets' : `${n.textContent} done`);
+    box.append(track, n);
+    return box;
+  }
+
+  // The progress of one item over time on the 0..100 % box (x: the time of all items), and its percent now.
+  let pageTip = null;
+  function progressGraph(points, x, now) {
+    const W = 72, H = 18;
+    const box = document.createElement('span');
+    box.className = 'ax-pbar';
+    const n = document.createElement('span');
+    n.className = 'ax-pbar-n';
+    n.textContent = pct(now);
+    const sx = x.copy().range([1, W - 1]);
+    const y = d3.scaleLinear([0, 1], [H - 1, 1]);
+    const svg = d3.create('svg').attr('class', 'ax-spark').attr('width', W).attr('height', H).attr('viewBox', `0 0 ${W} ${H}`)
+      .attr('role', 'img').attr('aria-label', `Progress over time: ${pct(points.length ? points[0].p : 0)} at the start, ${pct(now)} now`);
+    svg.append('rect').attr('width', W).attr('height', H).attr('rx', 3).attr('fill', 'var(--cds-chart-muted)').attr('opacity', 0.5);
+    if (points.length) {
+      svg.append('path').datum(points).attr('d', d3.area().x((p) => sx(p.t)).y0(H - 1).y1((p) => y(p.p)))
+        .attr('fill', 'var(--ax-done)').attr('opacity', 0.25);
+      svg.append('path').datum(points).attr('d', d3.line().x((p) => sx(p.t)).y((p) => y(p.p)))
+        .attr('fill', 'none').attr('stroke', 'var(--ax-done)').attr('stroke-width', 1.5).attr('stroke-linejoin', 'round');
+      const dot = svg.append('circle').attr('r', 2.5).attr('fill', 'var(--ax-done)').attr('stroke', 'var(--color-panel)').attr('opacity', 0);
+      pageTip = pageTip || tooltip(document.querySelector('.ax'), true);
+      svg.on('pointermove', (event) => {
+        const p = points[d3.bisector((q) => q.t).center(points, sx.invert(d3.pointer(event)[0]))];
+        dot.attr('cx', sx(p.t)).attr('cy', y(p.p)).attr('opacity', 1);
+        pageTip.show(event.clientX, event.clientY - 6, [[fmtShort(new Date(p.t)), null, 'ax-tip-k'], [`${pct(p.p)} · ${p.done} / ${p.done + p.left} tickets`]]);
+      }).on('pointerleave', () => { dot.attr('opacity', 0); pageTip.hide(); });
+    }
+    box.append(svg.node(), n);
+    return box;
+  }
+
+  // The progress of each goal over time: one line per goal, labeled at its end, and a crosshair.
+  const GOALS = { capture: 'Capture', rank: 'Rank', trip: 'Trip', host: 'Host' };
+  function drawHistory() {
+    const el = document.getElementById('history-chart');
+    const legend = document.getElementById('history-legend');
+    const d = dash.data('goal_history');
+    legend.replaceChildren();
+    if (failed(el, d)) return;
+    const goals = Object.keys(GOALS);
+    const color = (g) => dash.colors[goals.indexOf(g)];
+    const series = goals.map((g) => ({ goal: g, pts: d.data.filter((r) => r.goal === g)
+      .map((r) => ({ t: Date.parse(r.at), p: Number(r.percent) })).sort((a, b) => a.t - b.t) })).filter((s) => s.pts.length);
+    legend.replaceChildren(...series.map((s) => {
+      const span = document.createElement('span');
+      const sw = document.createElement('i');
+      sw.className = 'ax-swatch';
+      sw.style.background = color(s.goal);
+      span.append(sw, document.createTextNode(GOALS[s.goal]));
+      return span;
+    }));
+    if (!series.length) return;
+    const W = el.clientWidth, H = 230;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'Full-roadmap progress of each goal over time');
+    const y = d3.scaleLinear([0, 1], [H - 26, 10]);
+    const left = Math.ceil(widest(svg, ['100%'])) + 10;
+    const right = Math.ceil(widest(svg, Object.values(GOALS))) + 12;
+    const times = series[0].pts.map((p) => p.t);
+    const x = d3.scaleUtc([new Date(times[0]), new Date(times[times.length - 1])], [left, W - right]);
+    svg.append('g').attr('transform', `translate(${left},0)`)
+      .call(d3.axisLeft(y).tickValues([0, 0.25, 0.5, 0.75, 1]).tickFormat(pct).tickSize(-(W - right - left)))
+      .call(styleAxis)
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    const day = d3.utcFormat('%b %-d');
+    svg.append('g').attr('transform', `translate(0,${H - 26})`)
+      .call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - left - right) / 90))).tickFormat((t) => (t.getUTCHours() ? fmtClock(t) : day(t))))
+      .call(styleAxis)
+      .call((g) => keepInside(g, W));
+    const line = d3.line().x((p) => x(new Date(p.t))).y((p) => y(p.p));
+    for (const s of series) {
+      svg.append('path').datum(s.pts).attr('d', line).attr('fill', 'none').attr('stroke', color(s.goal))
+        .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    }
+    // Direct labels at the line ends, moved apart when they are too near.
+    const ends = series.map((s) => ({ goal: s.goal, y: y(s.pts[s.pts.length - 1].p) })).sort((a, b) => a.y - b.y);
+    ends.forEach((e, i) => { if (i && e.y - ends[i - 1].y < 13) e.y = ends[i - 1].y + 13; });
+    svg.append('g').selectAll('text').data(ends).join('text')
+      .attr('x', W - right + 6).attr('y', (e) => e.y).attr('dy', '0.32em')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((e) => GOALS[e.goal]);
+    const hair = svg.append('line').attr('y1', 10).attr('y2', H - 26).attr('stroke', 'var(--cds-chart-reference)').attr('opacity', 0);
+    const dots = svg.append('g').selectAll('circle').data(series).join('circle').attr('r', 4).attr('fill', (s) => color(s.goal))
+      .attr('stroke', 'var(--color-panel)').attr('stroke-width', 2).attr('opacity', 0);
+    const tip = tooltip(el);
+    svg.append('rect').attr('x', left).attr('y', 0).attr('width', W - right - left).attr('height', H - 26).attr('fill', 'transparent')
+      .on('pointermove', (event) => {
+        const i = d3.bisectCenter(times, x.invert(d3.pointer(event)[0]).getTime());
+        const at = x(new Date(times[i]));
+        hair.attr('x1', at).attr('x2', at).attr('opacity', 1);
+        dots.attr('cx', at).attr('cy', (s) => y((s.pts[i] || s.pts[s.pts.length - 1]).p)).attr('opacity', 1);
+        tip.show(at, d3.min(series, (s) => y((s.pts[i] || s.pts[s.pts.length - 1]).p)), [
+          [fmtShort(new Date(times[i])), null, 'ax-tip-k'],
+          ...series.map((s) => [`${GOALS[s.goal]} ${pct((s.pts[i] || s.pts[s.pts.length - 1]).p)}`, color(s.goal)]),
+        ]);
+      })
+      .on('pointerleave', () => { hair.attr('opacity', 0); dots.attr('opacity', 0); tip.hide(); });
+  }
+
+  function drawRecent() {
+    const rows = tableState('recent-table');
+    if (!rows) return;
+    const recent = rows.slice().sort((a, b) => Date.parse(b.merged_at) - Date.parse(a.merged_at)).slice(0, 40);
+    fillTable('recent-table', recent, [
+      ['number', (v) => String(v), 'ax-num'],
+      ['title', (v) => v],
+      ['merged_at', (v) => fmtShort(new Date(v)), 'ax-nowrap'],
+      ['minutes_open', (v) => one(Number(v)), 'ax-num'],
+    ]);
+  }
+
+  function drawEpics() {
+    const rows = tableState('epics-table');
+    if (!rows) return;
+    fillTable('epics-table', rows, [
+      ['number', (v) => String(v), 'ax-num'],
+      ['title', (v) => v],
+      ['priority', (v) => v],
+      ['subs_done', (v) => String(v), 'ax-num'],
+      ['subs_total', (v) => String(v), 'ax-num'],
+      ['share', (v, r) => progressBar(Number(r.subs_total) ? Number(v) : null)],
+    ]);
+  }
+
+  function drawReviews() {
+    const el = document.getElementById('reviews-chart');
+    const d = dash.data('reviews');
+    if (!failed(el, d)) {
+      const rows = d.data.filter((r) => r.prs !== null);
+      const W = el.clientWidth, H = 190;
+      const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+        .attr('aria-label', 'Merged pull requests between two process reviews');
+      if (!rows.length) {
+        svg.append('text').attr('x', W / 2).attr('y', H / 2).attr('text-anchor', 'middle')
+          .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Fewer than two process reviews in the log');
+      } else {
+        const y = d3.scaleLinear([0, Math.max(10, d3.max(rows, (r) => r.prs))], [H - 26, 10]).nice();
+        const yTicks = y.ticks(4);
+        const left = Math.ceil(widest(svg, yTicks.map(String))) + 10, right = 10;
+        const x = d3.scaleBand(rows.map((r) => r.at), [left, W - right]).padding(0.2);
+        svg.append('g').attr('transform', `translate(${left},0)`)
+          .call(d3.axisLeft(y).tickValues(yTicks).tickSize(-(W - right - left)))
+          .call(styleAxis)
+          .call((g) => g.select('.domain').remove())
+          .call((g) => g.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+        const every = Math.max(1, Math.ceil(rows.length / Math.max(1, Math.floor((W - left - right) / 90))));
+        svg.append('g').attr('transform', `translate(0,${H - 26})`)
+          .call(d3.axisBottom(x).tickValues(rows.filter((r, i) => i % every === 0).map((r) => r.at))
+            .tickFormat((t) => fmtShort(new Date(t))))
+          .call(styleAxis)
+          .call((g) => keepInside(g, W));
+        const tip = tooltip(el);
+        const bars = svg.append('g').selectAll('rect').data(rows).join('rect')
+          .attr('x', (r) => x(r.at)).attr('width', x.bandwidth())
+          .attr('y', (r) => y(r.prs)).attr('height', (r) => y(0) - y(r.prs))
+          .attr('rx', Math.min(4, x.bandwidth() / 2)).attr('fill', (r) => dash.colors[r.changes.length ? 0 : 1])
+          .on('mouseenter', (event, r) => {
+            bars.attr('opacity', (o) => (o === r ? 1 : 0.45));
+            tip.show(x(r.at) + x.bandwidth() / 2, y(r.prs), [
+              [fmtShort(new Date(r.at)), null, 'ax-tip-k'],
+              [`${r.prs} merged ${r.prs === 1 ? 'PR' : 'PRs'} since the review before`],
+              [r.changes.length ? `PRs named: ${r.changes.map((n) => '#' + n).join(', ')}` : 'No PR named'],
+            ]);
+          })
+          .on('mouseleave', () => { bars.attr('opacity', 1); tip.hide(); });
+      }
+    }
+    const rows = tableState('reviews-table');
+    if (!rows) return;
+    fillTable('reviews-table', rows.slice().reverse(), [
+      ['at', (v) => fmtShort(new Date(v)), 'ax-nowrap'],
+      ['prs', (v) => (v === null ? '—' : String(v)), 'ax-num'],
+      ['changes', (v) => v.map((n) => '#' + n).join(', ') || '—', 'ax-nowrap'],
+      ['text', (v) => v],
+    ]);
+  }
+
+  function drawSetup() {
+    const rows = tableState('setup-table');
+    if (!rows) return;
+    fillTable('setup-table', rows, [
+      ['part', (v) => v],
+      ['group', (v) => v, 'ax-narrow-hide'],
+      ['when', (v) => v],
+      ['does', (v) => v],
+      ['where', (v) => v, 'ax-narrow-hide'],
+    ]);
+  }
+
+  const STATUS = { 'Done': 'ax-st ax-st-done', 'In progress': 'ax-st ax-st-prog', 'To do': 'ax-st ax-st-todo' };
+
+  function drawProgress() {
+    drawHistory();
+    const goals = dash.data('release_goals');
+    const history = dash.data('release_history');
+    const byItem = new Map();
+    if (history.status === 'ok') {
+      history.data.forEach((r) => {
+        if (!byItem.has(r.id)) byItem.set(r.id, []);
+        byItem.get(r.id).push({ t: Date.parse(r.at), p: Number(r.progress), done: Number(r.done), left: Number(r.left) });
+      });
+    }
+    const span = history.status === 'ok' && history.data.length ? d3.extent(history.data, (r) => Date.parse(r.at)) : [0, 1];
+    const x = d3.scaleUtc(span.map((t) => new Date(t)), [0, 1]);
+    document.querySelectorAll('.ax-stack[data-stack]').forEach((el) => {
+      el.replaceChildren();
+      if (goals.status !== 'ok') return;
+      const g = goals.data.find((r) => r.goal === el.dataset.stack);
+      if (!g) return;
+      const seg = document.createElement('span');
+      seg.style.width = `${100 * Number(g.percent)}%`;
+      seg.style.background = 'var(--ax-done)';
+      el.append(seg);
+    });
+    document.querySelectorAll('.ax-mini[data-mini]').forEach((el) => {
+      el.replaceChildren();
+      if (goals.status !== 'ok') return;
+      const [goal, field] = el.dataset.mini.split(':');
+      const g = goals.data.find((r) => r.goal === goal);
+      if (!g) return;
+      const seg = document.createElement('span');
+      seg.style.width = `${100 * Number(g[field])}%`;
+      seg.style.background = 'var(--ax-prog)';
+      el.append(seg);
+    });
+    for (const goal of ['capture', 'rank', 'trip', 'host']) {
+      const id = `release-${goal}`;
+      const rows = tableState(id);
+      if (!rows) continue;
+      fillTable(id, rows.filter((r) => r.goal === goal), [
+        ['item', (v) => v],
+        ['status', (v, r, td) => { td.className = STATUS[v] || 'ax-st'; return v; }],
+        ['epics', (v) => v, 'ax-narrow-hide ax-nowrap'],
+        ['progress', (v, r) => progressGraph(byItem.get(r.id) || [], x, Number(v))],
+        ['tickets', (v) => v, 'ax-num ax-narrow-hide'],
+      ], 'id');
+    }
+  }
+  document.querySelectorAll('.ax-goal').forEach((b) => b.addEventListener('click', () => {
+    const card = document.getElementById(`goal-${b.dataset.goal}`);
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    dash.setLink(card.id);
+  }));
+
+  // Tabs: one page at a time; a hidden page has no width, so it draws when shown.
+  const pages = ['activity', 'progress', 'tickets', 'spend', 'improvements', 'setup'];
+  const named = location.hash.slice(1);
+  let current = pages.includes(named) ? named : named.startsWith('goal-') ? 'progress' : 'activity';
+  function showPage(id, link) {
+    current = id;
+    for (const p of pages) {
+      document.getElementById(p).hidden = p !== id;
+      document.getElementById(`tab-${p}`).setAttribute('aria-selected', String(p === id));
+    }
+    if (link) dash.setLink(id);
+    draw();
+  }
+  document.querySelectorAll('.ax-tab').forEach((b) => b.addEventListener('click', () => showPage(b.dataset.page, true)));
+
+  const bucket = document.getElementById('ax-bucket');
+  const range = document.getElementById('ax-range');
+  bucket.addEventListener('change', () => dash.setParams({ bucket: Number(bucket.value) }));
+  range.addEventListener('change', () => dash.setParams({ range: range.value }));
+  const SPEND = { group: 'both', measure: 'eq', block: 24, range: '7d', split: 'phases' };
+  for (const k of Object.keys(SPEND)) {
+    const sel = document.getElementById(`spend-${k}`);
+    sel.addEventListener('change', () => dash.setParams({ [`spend_${k}`]: sel.value }));
+  }
+
+  function draw() {
+    fillMarks();
+    bucket.value = String(dash.params().bucket ?? 15);
+    range.value = String(dash.params().range ?? '24h');
+    for (const [k, v] of Object.entries(SPEND)) document.getElementById(`spend-${k}`).value = String(dash.params()[`spend_${k}`] ?? v);
+    document.getElementById('sw-made').style.background = dash.colors[0];
+    document.getElementById('sw-closed').style.background = dash.colors[1];
+    const root = document.querySelector('.ax');
+    root.style.setProperty('--ax-done', dash.colors[0]);
+    root.style.setProperty('--ax-prog', dash.colors[1]);
+    if (current === 'activity') { drawMerges(); drawUsage(); drawPerUsage(); drawPerPr(); drawRecent(); }
+    if (current === 'progress') drawProgress();
+    if (current === 'tickets') { drawFlow(); drawOpen(); drawPriority(); drawEpics(); }
+    if (current === 'spend') { drawSpend(); drawSpendSplit(); }
+    if (current === 'improvements') drawReviews();
+    if (current === 'setup') drawSetup();
+  }
+
+  dash.onData(draw);
+  if (current !== 'activity') showPage(current, false);
+  const goalCard = named.startsWith('goal-') && document.getElementById(named);
+  if (goalCard) goalCard.scrollIntoView();
+})();
+</script>

@@ -5,6 +5,7 @@ The counts of each case and the raw capture come with `capture:upsert`."""
 import gzip
 import hashlib
 import json
+import logging
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -14,8 +15,11 @@ from sqlalchemy.orm import Session
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg
+from app.parsers import get_parser
 from app.retention import RETENTION_DAYS, delete_old_captures
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
+
+log = logging.getLogger(__name__)
 
 
 def fingerprint(legs: list[LegIn]) -> str:
@@ -72,15 +76,17 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
     fare = next((f for f in it.fares if f.source == source and f.fare_name == offer.fare_name), None)
     if fare is None:
         fare = Fare(source=source, fare_name=offer.fare_name, latest_price=offer.price_amount,
-                    currency=offer.price_currency, latest_captured_at=captured_at)
+                    currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers)
         it.fares.append(fare)
     elif fare.latest_price == offer.price_amount and fare.currency == offer.price_currency:
-        fare.flexibility, fare.booking_url = offer.flexibility, offer.booking_url
+        fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
+                                                          offer.self_transfers)
         return result
     if captured_at >= fare.latest_captured_at:
         fare.latest_price, fare.currency, fare.latest_captured_at = (offer.price_amount, offer.price_currency,
                                                                       captured_at)
-    fare.flexibility, fare.booking_url = offer.flexibility, offer.booking_url
+    fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
+                                                          offer.self_transfers)
     fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=captured_at,
                                  capture_id=capture_id))
     session.flush()
@@ -111,11 +117,55 @@ def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers
     return counts
 
 
-def store(session: Session, body: IngestIn) -> dict[str, int]:
-    """Store the offers of the body, then delete the captures past the retention period (app/retention.py).
-    Returns the counts {"created", "updated", "unchanged"}."""
-    counts = upsert_offers(session, body.trip_id, None, body.offers, source=body.source,
+def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None]:
+    """The offers and the rejected connections of the raw payload, by the parser of the source (none when the source
+    has no parser). The third value is the reason when the parser cannot read the payload as a whole (P3): the
+    capture is stored anyway, with the offers of the body."""
+    parser = get_parser(body.source)
+    if body.raw is None or parser is None:
+        return [], [], None
+    try:
+        result = parser.parse(body.raw)
+    except ValueError as e:
+        return [], [], str(e)[:200]
+    return result.offers, result.errors, None
+
+
+def reparse(session: Session, capture: Capture) -> dict | None:
+    """Run the current parser of the source again on the stored raw of the capture (after a parser fix), and upsert
+    its offers with the capture id and time. None when the capture has no raw or the source has no parser. Returns
+    the counts as `store`, and "unreadable" (the reason, or None)."""
+    raw, parser = load_raw(capture), get_parser(capture.source)
+    if raw is None or parser is None:
+        return None
+    try:
+        result = parser.parse(raw)
+    except ValueError as e:
+        log.warning("capture %s: reparse of %s raw payload failed: %s", capture.id, capture.source, e)
+        return {"created": 0, "updated": 0, "unchanged": 0, "rejected": 0, "unreadable": str(e)[:200]}
+    counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
+                           captured_at=capture.captured_at)
+    return {**counts, "rejected": len(result.errors), "unreadable": None}
+
+
+def store(session: Session, body: IngestIn) -> dict:
+    """Store the capture of the body (with its raw, if any), then its valid offers; each price row links to the
+    capture. The offers of a raw payload come from its parser (`app/parsers`); one bad connection is an entry of
+    the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors"}: the
+    errors are the offers that the schema or the parser rejected, with their index (#54). Each failure is logged
+    with the capture id (P3)."""
+    capture = store_capture(session, body.trip_id, body)
+    session.commit()
+    raw_offers, raw_errors, unreadable = parse_raw(body)
+    if unreadable is not None:
+        log.warning("capture %s: %s raw payload not read: %s", capture.id, body.source, unreadable)
+    offers = list(body.offers) + raw_offers
+    errors = list(body.offer_errors) + raw_errors
+    for err in errors:
+        log.warning("capture %s: %s %s rejected at index %s: %s", capture.id, body.source,
+                    body.parser_version or "-", err.get("index"), err.get("reason"))
+    counts = upsert_offers(session, body.trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at)
     delete_old_captures(session, RETENTION_DAYS, datetime.now(UTC))
     session.commit()
-    return counts
+    return {**counts, "rejected": len(errors), "errors": errors}
