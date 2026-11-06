@@ -87,11 +87,10 @@
     <button type="submit" form="save-profile">Save as profile</button>
   </details>
 </form>
-<form id="save-profile" method="post" action="/profiles">
+<form id="save-profile" method="post" action="/profiles"
+      onformdata="for (const [k, v] of new FormData(document.querySelector('form.weights'))) event.formData.set(k, v)">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <input type="hidden" name="trip_id" value="{{ trip.id }}">
-  {% for k, v in sort_query.items() if k in weights.__dataclass_fields__ %}<input type="hidden" name="{{ k }}" value="{{ v }}">
-  {% endfor %}
 </form>
 {% with oob = false %}{% include "compare_form.html" %}{% endwith %}
 <div class="scroll" id="table">
