@@ -153,6 +153,10 @@ is missing or bad, the command stops with an error and the database does not cha
 `POST /api/ingest` stores each offer by its journey. The same journey sent twice gives one itinerary. A changed price
 adds a price row; the same price adds none and counts as `unchanged`. Each offer is stored in its own transaction.
 
+The body can also have the field `raw`: the original response of the travel site, as sent by the userscript. The app
+stores it as a capture, so a later parser fix can run again on it (see "Reparse a capture" below). A body with `raw`
+and no `offers` is valid. The app reports a connection that the parser cannot read in `errors`.
+
 All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
 limited to 5 MB.
 
@@ -168,6 +172,7 @@ limited to 5 MB.
 | `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
+| `/trips/{id}/captures` | The captures of a trip, with the action "reparse capture" (see below) |
 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
@@ -202,6 +207,24 @@ when the offers reached your server, or an error message.
   Make the token on the `/tokens` page.
 - **Not sent.** When a send fails, the offers stay in the queue. With auto-send on, the userscript sends them again
   later.
+
+### bahn.de userscript
+
+The bahn.de userscript captures the search results of bahn.de: the connections, their times and their fares.
+It reads only the responses that the bahn.de page itself gets. It sends no request to bahn.de.
+
+To install it, add the file `userscripts/bahn.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On bahn.de, search for a connection. The panel
+shows the number of captured offers.
+
+The parser reads the fare name with its class and its BahnCard discount. It gives each station its own timezone. A
+connection with no price goes to the errors of the capture and is not stored as an offer.
+
+### Reparse a capture
+
+Open `/trips/{id}/captures` and press "reparse capture" on a capture. The app runs the current parser on the stored raw
+data of that capture and shows how many offers it read. Use this after the parser of a source is fixed. The button
+does not send a request to the travel site. A capture with no raw data, or a source with no parser, cannot be reparsed.
 
 ## Ranking
 
