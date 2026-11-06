@@ -124,9 +124,24 @@ limited to 5 MB.
 | `/trips/new` | The form to make a trip |
 | `/trips/{id}/edit` | The form to change a trip |
 | `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
+| `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
+
+## Userscript panel
+
+Each userscript shows a small panel at the bottom right of the travel site. The panel shows `Captured N offers → sent ✓`
+when the offers reached your server, or an error message.
+
+- **Trip.** The dropdown chooses the trip that receives the offers. `+ new trip` makes a trip with the title that you
+  type. The app remembers the chosen trip.
+- **Auto-send.** This check box is on by default. With it on, the offers are sent at once. With it off, the offers wait
+  in the queue until you press Send.
+- **Settings.** Set the server URL and the API token once, in the Tampermonkey menu (`Set server URL`, `Set API token`).
+  Make the token on the `/tokens` page.
+- **Not sent.** When a send fails, the offers stay in the queue. With auto-send on, the userscript sends them again
+  later.
 
 ## Ranking
 
