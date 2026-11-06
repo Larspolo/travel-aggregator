@@ -90,7 +90,7 @@ jobs:
         run: |
           cp .env.example .env
           sed -i 's/change-me/ci-secret/g; /^OWNER_PASSWORD_HASH=/d' .env
-          hash=$(docker run --rm "$IMAGE" python -m app.auth 'ci-password')
+          hash=$(docker run --rm --entrypoint python "$IMAGE" -m app.auth 'ci-password')
           printf "OWNER_PASSWORD_HASH='%s'\n" "$hash" >> .env
           docker compose up -d --pull never app db
           for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/api/health >/dev/null && break; sleep 2; done
