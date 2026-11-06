@@ -64,7 +64,7 @@ You need Docker with Docker Compose.
    }' http://localhost:8000/api/ingest
    ```
 
-6. Log in at `http://localhost:8000/login` and open `http://localhost:8000/trips/1`.
+6. Log in at `http://localhost:8000/login`. The trips list opens; click a trip to see its offers.
 
 `http://localhost:8000/api/health` shows `{"status": "ok", "commit": "dev"}`. Set `APP_PORT` in `.env` to use
 another port.
@@ -118,8 +118,15 @@ limited to 5 MB.
 
 | Path | Use |
 |---|---|
-| `/login`, `/logout` | The login with `OWNER_PASSWORD_HASH` |
+| `/login` | The login form: the password of `OWNER_PASSWORD_HASH`. The session is signed with `SECRET_KEY` |
+| `/logout` | Ends the login session |
+| `/` | The list of your trips, with a link to each trip |
+| `/trips/new` | The form to make a trip |
+| `/trips/{id}/edit` | The form to change a trip |
 | `/trips/{id}` | The offers of a trip, cheapest first |
+
+All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
+gets the answer 403.
 
 ## Development
 

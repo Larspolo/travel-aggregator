@@ -10,7 +10,7 @@ from sqlalchemy import func, select
 
 from app import tokens
 from app.main import app
-from app.models import Fare, FarePrice, Itinerary, Leg, Trip
+from app.models import Capture, Fare, FarePrice, Itinerary, Leg, Trip
 
 BODY = {
     "trip_id": 0, "source": "bahn.de", "parser_version": "1.0.0", "captured_at": "2026-11-03T19:41:00Z",
@@ -122,7 +122,10 @@ def test_too_many_offers_get_422_and_a_too_large_body_413(setup):
     assert r.status_code == 413
 
 
-def test_raw_only_is_accepted_and_stores_nothing_yet(setup):
+def test_raw_only_stores_one_capture_and_no_itinerary(setup, sessions):
     client, auth, trip_id = setup
     r = client.post("/api/ingest", json=body(trip_id, offers=[], raw={"journeys": []}), headers=auth)
     assert r.status_code == 200 and r.json() == {"created": 0, "updated": 0, "unchanged": 0, "rejected": 0, "errors": []}
+    with sessions() as s:
+        assert s.scalar(select(func.count()).select_from(Capture)) == 1
+        assert s.scalar(select(func.count()).select_from(Itinerary)) == 0
