@@ -78,6 +78,10 @@ name each file and function that the ticket changes, and no others (tools that o
 
 The owner reads them on a phone. Give numbered steps, the exact names of settings or files, and what the
 owner must reply. One ticket per decision.
+Make them early (owner, 2026-11-06): when you make an epic, make its owner tickets too (the `roadmap` skill, "Owner
+steps first"), so the owner can do them while the agents work. An owner ticket that needs agent work first gets
+`blocked` and its "Depends on" lines: "Waiting for you" hides it until they close, and then the orphan check tells
+a run to check its steps against `main` and remove `blocked`. Write the steps for the planned pages and commands.
 Each `needs-human` ticket (also when you add the label to an existing ticket: add the section to the body or to
 your comment) has a section `## For the owner`, so that the `human` skill (`/human` on the owner's computer, #983)
 can prepare and guide it:

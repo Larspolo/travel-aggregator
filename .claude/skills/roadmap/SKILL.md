@@ -24,8 +24,21 @@ open epics have no goal left that an agent can do.
    feature"), the line "Roadmap: `<key>`", and the labels `epic`, `feature`,
    `size:L`, `P3`. Compare it with `steering/project/PRINCIPLES.md`. A choice with no single best option, or in an
    area of "Owner involvement", gets a decision ticket first (`ticket` skill, "Decision tickets").
-5. Make its first 3 to 5 sub-issues (`size:S` or `size:M`, `P3`). The first one is small and useful alone.
-6. Do not change `steering/project/ROADMAP.md` for a new epic: the key in the epic body is enough.
+5. Owner steps first (owner, 2026-11-06: the work of the owner must not stop the progress). List each step of the
+   feature that only the owner can do, and make a `needs-human` sub-issue for each one now (`ticket` skill,
+   "needs-human tickets"), also when its agent work comes much later:
+   - An input that the owner can give now: a real payload of a travel site (P1, P5), a setting or a secret on a
+     server, an account, a decision. It is the first sub-issue; each agent sub-issue that needs it gets
+     "Depends on: #<it>".
+   - A check that needs agent work first: a test with Tampermonkey in the owner's browser, a test on the phone,
+     `docker compose up` on the owner's computer, a login on the preview. Add `blocked` and
+     "Depends on: #<the sub-issues that it needs>". "Waiting for you" of the status issue hides it until they close;
+     then the orphan check of `cycle_start.py` tells a run to check its steps against `main` and remove `blocked`.
+6. Look ahead for inputs: read the next 2 missing features (the ones that steps 2 and 3 give after this one) and make
+   their input tickets of step 5 now, each with the line "Roadmap: `<key>`". Grep the open `needs-human` tickets for
+   the key first (no duplicate). When the epic of that feature comes, add its input tickets as sub-issues.
+7. Make its first 3 to 5 agent sub-issues (`size:S` or `size:M`, `P3`). The first one is small and useful alone.
+8. Do not change `steering/project/ROADMAP.md` for a new epic: the key in the epic body is enough.
 
 ## Review the feature list (the roadmap review)
 
