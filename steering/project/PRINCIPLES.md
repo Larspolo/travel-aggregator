@@ -10,7 +10,9 @@ with these principles and name the principle ("follows P1"). The full specificat
 The project reads only data that the owner's own browser shows. No code sends a request to a travel site: no
 crawler, no replayed or changed request, no scheduled fetch, no request from CI or a cloud session (GitHub Actions
 terms: only the build, test and release of this project). A userscript only observes the responses that the page
-requested itself. Example: the search links of `trip:links` only open a page; they fetch nothing.
+requested itself. Example: the search links of `trip:links` only open a page; they fetch nothing. The `capture`
+skill in a local session on Jeroen's computer is his own browsing (owner, 2026-11-06): it clicks and types in his own
+visible Chrome as a person does, only the searches of one capture ticket, and its hook only records the responses.
 
 ## P2. Simple first in the ranking
 
