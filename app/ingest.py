@@ -75,15 +75,17 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
     fare = next((f for f in it.fares if f.source == source and f.fare_name == offer.fare_name), None)
     if fare is None:
         fare = Fare(source=source, fare_name=offer.fare_name, latest_price=offer.price_amount,
-                    currency=offer.price_currency, latest_captured_at=captured_at)
+                    currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers)
         it.fares.append(fare)
     elif fare.latest_price == offer.price_amount and fare.currency == offer.price_currency:
-        fare.flexibility, fare.booking_url = offer.flexibility, offer.booking_url
+        fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
+                                                          offer.self_transfers)
         return result
     if captured_at >= fare.latest_captured_at:
         fare.latest_price, fare.currency, fare.latest_captured_at = (offer.price_amount, offer.price_currency,
                                                                       captured_at)
-    fare.flexibility, fare.booking_url = offer.flexibility, offer.booking_url
+    fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
+                                                          offer.self_transfers)
     fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=captured_at,
                                  capture_id=capture_id))
     session.flush()

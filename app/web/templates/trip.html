@@ -47,6 +47,8 @@
       <input type="number" name="night_adjust" min="-1000" max="1000" step="0.01" value="{{ weights.night_adjust }}"></label>
     <label>Night hour markup €/h
       <input type="number" name="night_hour_markup" min="0" max="100" step="0.01" value="{{ weights.night_hour_markup if weights.night_hour_markup is not none else weights.hour_markup }}"></label>
+    <label>Self-transfer €
+      <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
   </details>
 </form>
 <div class="scroll" id="table">
