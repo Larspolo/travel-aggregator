@@ -26,6 +26,9 @@ class LegIn(BaseModel):
     to_code: str | None = Field(None, max_length=20)
     depart_at: AwareDatetime
     arrive_at: AwareDatetime
+    # The ticket of the leg in a self-transfer offer (#176): a change of the number between two legs is a
+    # self-transfer. A leg with no number is on the ticket of the leg before it.
+    ticket: int | None = Field(None, ge=1, le=MAX_LEGS)
 
     @model_validator(mode="after")
     def _arrives_after_departure(self) -> "LegIn":
@@ -51,6 +54,17 @@ class OfferIn(BaseModel):
             if b.depart_at < a.arrive_at:
                 raise ValueError("a leg departs before the leg before it arrives")
         return self
+
+    @property
+    def self_transfers(self) -> int:
+        """The count of transfers between two tickets (#176). The ingest stores it on the fare: the same journey can
+        be one ticket at one source and two tickets at another."""
+        count, current = 0, self.legs[0].ticket
+        for leg in self.legs[1:]:
+            if leg.ticket is not None and current is not None and leg.ticket != current:
+                count += 1
+            current = leg.ticket if leg.ticket is not None else current
+        return count
 
 
 class IngestIn(BaseModel):

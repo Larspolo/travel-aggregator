@@ -116,6 +116,19 @@ Before each migration that changes data, the container writes a `pg_dump` backup
 Each closed epic makes a release: the workflow `.github/workflows/release.yml` pushes the git tag `vX.Y.Z` and the
 images `:vX.Y.Z` and `:latest`. `GET /api/health` shows the commit that runs.
 
+### Backups
+
+The app writes a `pg_dump` backup to `BACKUP_DIR` (in the container: `/backups`, a Docker volume). Make one at any time:
+
+```bash
+make backup                                   # or: docker compose exec app python -m app.backup --now
+make restore FILE=/backups/<file>.dump        # or: docker compose exec app python -m app.restore /backups/<file>.dump
+```
+
+A restore gives back the trips, the offers and the price history of the dump. It runs in one transaction: if the file
+is missing or bad, the command stops with an error and the database does not change. The backups hold private data
+(your trips and offers). They stay in the volume: copy them only to a place that you trust.
+
 ## Configuration
 
 | Variable | Use |
@@ -219,6 +232,23 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   The **Advanced** section under the sliders sets them. The defaults are 120 minutes before departure, 30 minutes after
   landing and a baggage fee of €0. A value of 0 removes that part from the ranking.
 
+### Time of day and night
+
+The **Advanced** section under the sliders also sets the time of day. Each setting has a default. The times are local
+times of the stored offset.
+
+- **Early limit (local)**, default `06:00`. A first leg that departs before this time adds the part `early departure`.
+- **Late limit (local)**, default `23:30`. A last leg that arrives after this time adds the part `late arrival`.
+- **Early or late penalty €**, default `0`. The amount of each of these two parts. A value of 0 removes both parts.
+- **Night start (local)**, default `23:00`, and **Night end (local)**, default `06:00`. They set the night window. A window
+  that crosses midnight is allowed.
+- **Night minutes**, default `240`. An offer that spans at least this many minutes in the night window adds the part
+  `night travel`.
+- **Night travel € (negative = bonus)**, default `0`. The amount of the `night travel` part. A negative value is a bonus.
+  A value of 0 removes the part.
+- **Night hour markup €/h**, default empty. Empty means the same as the hour markup. A value sets the hour markup inside
+  the night window. The difference to the hour markup adds the part `night hours` for the night minutes.
+
 ## Development
 
 You need Python 3.12 and PostgreSQL 16 for the tests.
@@ -228,6 +258,8 @@ python3 -m pip install -r requirements-dev.txt
 ruff check .
 python3 -m pytest -n auto
 ```
+
+The `Makefile` has these targets: `up`, `down`, `logs`, `test`, `migrate`, `backup` and `restore` (`FILE=<backup file>`).
 
 The code: `app/` (FastAPI), `tests/` (pytest). The planned layout is in [`CLAUDE.md`](CLAUDE.md), section "Code map".
 

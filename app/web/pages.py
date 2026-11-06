@@ -19,6 +19,8 @@ from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, req
 from app.config import get_settings
 from app.db import get_session
 from app.door import door_extras, flight_extras
+from app.flexibility import flexibility_extras
+from app.risk import mode_extras, self_transfer_extras
 from app.models import AccessTime, ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
@@ -180,21 +182,37 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               night_min: int = Query(Weights.night_min, ge=0, le=1440),
               night_adjust: Decimal = Query(Weights.night_adjust, ge=-1000, le=1000),
               night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
+              flex_non_refundable: Decimal = Query(Weights.flex_non_refundable, ge=-1000, le=1000),
+              flex_partly_refundable: Decimal = Query(Weights.flex_partly_refundable, ge=-1000, le=1000),
+              flex_flexible: Decimal = Query(Weights.flex_flexible, ge=-1000, le=1000),
+              self_transfer_penalty: Decimal = Query(Weights.self_transfer_penalty, ge=0, le=1000),
               sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
               dir: str = Query("asc", pattern="^(asc|desc)$"),
               mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
+              train_markup: Decimal = Query(Weights.train_markup, ge=-1000, le=1000),
+              bus_markup: Decimal = Query(Weights.bus_markup, ge=-1000, le=1000),
+              flight_markup: Decimal = Query(Weights.flight_markup, ge=-1000, le=1000),
+              ferry_markup: Decimal = Query(Weights.ferry_markup, ge=-1000, le=1000),
+              max_transfers: str = Query("", max_length=5), max_duration_min: str = Query("", max_length=6),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([])) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    # an empty box of the form is no limit (#180); a number is capped to its range
+    limit_transfers = min(int(max_transfers), 10) if max_transfers.isdigit() else None
+    limit_duration = min(int(max_duration_min), 10080) if max_duration_min.isdigit() else None
     # subqueryload: one statement per relation; selectinload adds one per 500 offers (#115)
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
                       early_limit, late_limit, time_window_penalty,
-                      night_start, night_end, night_min, night_adjust, night_hour_markup)  # the score is computed here and never stored
+                      night_start, night_end, night_min, night_adjust, night_hour_markup,
+                      flex_non_refundable=flex_non_refundable, flex_partly_refundable=flex_partly_refundable,
+                      flex_flexible=flex_flexible, self_transfer_penalty=self_transfer_penalty,
+                      train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
+                      ferry_markup=ferry_markup)  # the score is computed here and never stored
     rows, modes, sources, carriers = [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
@@ -206,13 +224,17 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         fares = [f for f in it.fares if not source or f.source == source]
         if not fares or (mode and mode not in it_modes):
             continue  # the filter hides this row (#112)
+        if (limit_transfers is not None and it.transfers > limit_transfers) or (
+                limit_duration is not None and it.duration_min > limit_duration):
+            continue  # the limits of transfers and duration hide this row
         if any(leg.mode in exclude_mode or leg.carrier in exclude_carrier for leg in it.legs):
             continue  # an excluded mode or carrier hides each offer with one of its legs
-        fare = min(fares, key=lambda f: f.latest_price)
-        cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights,
-                              door_extras(it, places, hour_markup) + flight_extras(it, weights)
-                              + time_extras(it, weights) + night_extras(it, weights)
-                              + night_time_extras(it, weights))
+        base = (door_extras(it, places, hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
+                + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights))
+        # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
+        fare, cost = min(((f, effective_cost(f.latest_price, it.duration_min, it.transfers, weights,
+                                             base + flexibility_extras(f, weights) + self_transfer_extras(f, weights)))
+                          for f in fares), key=lambda fc: (fc[1].total, fc[0].latest_price))
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
@@ -223,6 +245,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges,
+            "max_transfers": limit_transfers, "max_duration_min": limit_duration,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     query = {"hour_markup": hour_markup, "transfer_markup": transfer_markup, "airport_before_min": airport_before_min,
@@ -230,8 +253,14 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              "early_limit": early_limit.strftime("%H:%M"), "late_limit": late_limit.strftime("%H:%M"),
              "time_window_penalty": time_window_penalty,
              "night_start": night_start.strftime("%H:%M"), "night_end": night_end.strftime("%H:%M"),
-             "night_min": night_min, "night_adjust": night_adjust,
+             "night_min": night_min, "night_adjust": night_adjust, "self_transfer_penalty": self_transfer_penalty,
+             "ferry_markup": ferry_markup,
+             "flex_flexible": flex_flexible,
+             "flex_non_refundable": flex_non_refundable, "flex_partly_refundable": flex_partly_refundable,
+             "train_markup": train_markup, "bus_markup": bus_markup, "flight_markup": flight_markup,
              **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
+             **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
+             **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "now": datetime.now(timezone.utc)}
