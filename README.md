@@ -229,6 +229,16 @@ it. See "Risk" under "Ranking".
 All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
 limited to 5 MB.
 
+The API has two limits:
+
+- **Requests.** A token may send 120 requests in 60 seconds. A request over this limit gets `429` with the header
+  `Retry-After` (the seconds to wait).
+- **Bad tokens.** An address that sends 20 bad tokens in 15 minutes gets `429` with `Retry-After` for 15 minutes. This
+  also applies to a valid token from that address. The limit is per address, so one address cannot lock the API for
+  the others.
+
+The counts of the request limit live in the memory of the app: a restart of the app resets them.
+
 ## Pages
 
 | Path | Use |
@@ -345,6 +355,9 @@ when the offers reached your server, or an error message.
   Make the token on the `/tokens` page.
 - **Not sent.** When a send fails, the offers stay in the queue. With auto-send on, the userscript sends them again
   later.
+- **Server busy.** When the app answers `429` (too many requests, or too many bad tokens from your address), the panel
+  shows `Server busy: kept in the queue`. The offers stay in the queue and the userscript sends them again later.
+  See "API" for the limits.
 
 ### bahn.de userscript
 
