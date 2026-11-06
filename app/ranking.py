@@ -28,6 +28,11 @@ class Weights:
     night_adjust: Decimal = Decimal("0")
     # The hour markup inside the night window (#143); None = the same as hour_markup.
     night_hour_markup: Decimal | None = None
+    # The mode markups (#174): a flat amount per itinerary that uses the mode; a negative amount is a discount.
+    train_markup: Decimal = Decimal("0")
+    bus_markup: Decimal = Decimal("0")
+    flight_markup: Decimal = Decimal("0")
+    ferry_markup: Decimal = Decimal("0")
     # The flexibility amounts per tier (#175): signed (negative = bonus); 0 disables each.
     flex_non_refundable: Decimal = Decimal("0")
     flex_partly_refundable: Decimal = Decimal("0")

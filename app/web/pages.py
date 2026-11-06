@@ -20,7 +20,7 @@ from app.config import get_settings
 from app.db import get_session
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
-from app.risk import self_transfer_extras
+from app.risk import mode_extras, self_transfer_extras
 from app.models import AccessTime, ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
@@ -189,6 +189,10 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
               dir: str = Query("asc", pattern="^(asc|desc)$"),
               mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
+              train_markup: Decimal = Query(Weights.train_markup, ge=-1000, le=1000),
+              bus_markup: Decimal = Query(Weights.bus_markup, ge=-1000, le=1000),
+              flight_markup: Decimal = Query(Weights.flight_markup, ge=-1000, le=1000),
+              ferry_markup: Decimal = Query(Weights.ferry_markup, ge=-1000, le=1000),
               max_transfers: str = Query("", max_length=5), max_duration_min: str = Query("", max_length=6),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([])) -> HTMLResponse:
@@ -205,8 +209,10 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
                       early_limit, late_limit, time_window_penalty,
                       night_start, night_end, night_min, night_adjust, night_hour_markup,
-                      flex_non_refundable, flex_partly_refundable, flex_flexible,
-                      self_transfer_penalty)  # the score is computed here and never stored
+                      flex_non_refundable=flex_non_refundable, flex_partly_refundable=flex_partly_refundable,
+                      flex_flexible=flex_flexible, self_transfer_penalty=self_transfer_penalty,
+                      train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
+                      ferry_markup=ferry_markup)  # the score is computed here and never stored
     rows, modes, sources, carriers = [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
@@ -224,7 +230,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         if any(leg.mode in exclude_mode or leg.carrier in exclude_carrier for leg in it.legs):
             continue  # an excluded mode or carrier hides each offer with one of its legs
         base = (door_extras(it, places, hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
-                + night_extras(it, weights) + night_time_extras(it, weights))
+                + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights))
         # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
         fare, cost = min(((f, effective_cost(f.latest_price, it.duration_min, it.transfers, weights,
                                              base + flexibility_extras(f, weights) + self_transfer_extras(f, weights)))
@@ -248,8 +254,10 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              "time_window_penalty": time_window_penalty,
              "night_start": night_start.strftime("%H:%M"), "night_end": night_end.strftime("%H:%M"),
              "night_min": night_min, "night_adjust": night_adjust, "self_transfer_penalty": self_transfer_penalty,
-             "flex_non_refundable": flex_non_refundable, "flex_partly_refundable": flex_partly_refundable,
+             "ferry_markup": ferry_markup,
              "flex_flexible": flex_flexible,
+             "flex_non_refundable": flex_non_refundable, "flex_partly_refundable": flex_partly_refundable,
+             "train_markup": train_markup, "bus_markup": bus_markup, "flight_markup": flight_markup,
              **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
              **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
              **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
