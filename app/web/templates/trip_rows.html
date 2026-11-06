@@ -13,4 +13,23 @@
       <td class="price">{{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }}</td>
       <td class="cost">{{ format_breakdown(cost) }}</td>
     </tr>
+    <tr class="detail">
+      <td colspan="7"><details><summary>Legs and fares</summary>
+        <ol class="legs">
+        {% for leg in it.legs %}
+          {% if not loop.first %}{% set gap = ((leg.depart_at - loop.previtem.arrive_at).total_seconds() // 60) | int %}
+          <li class="transfer muted">Transfer at {{ leg.from_name }}: {{ gap // 60 }}h {{ "%02d" | format(gap % 60) }}</li>{% endif %}
+          <li>{{ leg.mode | mode_icon }} {{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}:
+            {{ leg.from_name }} {{ (leg.depart_at | local(leg.depart_offset_min)).strftime("%H:%M") }} →
+            {{ leg.to_name }} {{ (leg.arrive_at | local(leg.arrive_offset_min)).strftime("%H:%M") }}</li>
+        {% endfor %}
+        </ol>
+        <ul class="fares">
+        {% for f in it.fares | sort(attribute="latest_price") %}
+          <li>{{ f.source }}: {{ f.fare_name or "" }} {{ f.currency }} {{ "%.2f" | format(f.latest_price) }}
+            {% if f.booking_url %}<a href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">Book</a>{% endif %}</li>
+        {% endfor %}
+        </ul>
+      </details></td>
+    </tr>
   {% endfor %}
