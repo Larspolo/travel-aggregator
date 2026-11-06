@@ -1,0 +1,19 @@
+# Traefik in front of deploy/production. Copy to deploy/production/docker-compose.override.yml on the server,
+# next to docker-compose.yml, and change only the hostname (travel.example.com) in the rule below.
+# Traefik runs on the external network `proxy`, which it already uses. No basic auth: the app has its own login.
+# Compose merges this file into the production file when you run `docker compose up -d` in that directory.
+networks:
+  proxy:
+    external: true
+
+services:
+  app:
+    networks:
+      - proxy
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.travel-production.rule=Host(`travel.example.com`)
+      - traefik.http.routers.travel-production.service=travel-production
+      - traefik.http.services.travel-production.loadbalancer.server.port=8000
