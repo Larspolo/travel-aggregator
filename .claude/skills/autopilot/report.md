@@ -39,7 +39,9 @@ said `none`, most of them such checks); `checked` when a check ticket (or a deep
 and put its findings on the ticket (a comment, new bug tickets, `Depends on`) and the ticket stays open by design (#5782:
 8 of 18 given-back runs were such checks); `none` only when the run stopped without a PR and the ticket stays open.
 Before you give back a ticket whose next step only the owner can do, add `needs-human` (`owner.md`): with `none` and
-a release only, the next run takes it again in minutes (#5676: 2 runs). `framework/tools/health.py` counts the `pr #n` lines by the present PR state (#902).
+a release only, the next run takes it again in minutes (#5676: 2 runs).
+When your PR closes the last ticket of a line `- After #a, #b: ...` in the section `## Owner checks` of its epic,
+make that `needs-human` ticket now (`ticket` skill), so the owner can check when the merge is live (owner, 2026-11-06). `framework/tools/health.py` counts the `pr #n` lines by the present PR state (#902).
 `framework/tools/report.py` puts the output of `python3 tools/release.py` (the release bar of each goal, #879) above the
 `Usage:` line, when the project has that tool (#1963).
 Below the metrics lines, put the output of `python3 framework/tools/tokens.py` (one `Tokens:` line for the run: the tokens of

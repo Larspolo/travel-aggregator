@@ -211,8 +211,6 @@ def orphans(issues, after=prs_after):
     (`in-progress`: `claim.py --stuck` finds a stopped run), and the owner does not see them (`needs-human`, `muted`,
     `after-release`). issues: the open issues and PRs. A `blocked` ticket waits for another ticket: with no open
     "Depends on" item nothing removes the label (#303 waited 49 hours, #4442 asked the owner with no `needs-human`).
-    An early owner ticket (`needs-human` and `blocked`, owner 2026-11-06) whose "Depends on" tickets are all closed
-    waits for ever too: the owner does not see it in "Waiting for you".
     A decision with no `needs-human` (#1569), a "Depends on" cycle, and a "Start after: N PRs after #M" line whose #M
     is no open PR and did not merge also wait for ever."""
     open_numbers = {i["number"] for i in issues}
@@ -236,11 +234,6 @@ def orphans(issues, after=prs_after):
                 closers.setdefault(c, []).append(i["number"])
     out = []
     for n, i in sorted(tickets.items()):
-        if ({"needs-human", "blocked"} <= labels(i) and MUTED not in labels(i) and (d := depends(i))
-                and not any(x in open_numbers for x in d)):        # an early owner ticket (owner, 2026-11-06)
-            out.append((n, "`needs-human` and `blocked`: its \"Depends on\" tickets are closed, so the owner can do it "
-                           "now: check its steps against `main`, then remove `blocked`"))
-            continue
         if labels(i) & WATCHED:
             continue
         if i.get("title", "").startswith("Decide:") and n in closers:   # the owner answered in a `human/*` PR (#4754)
@@ -366,12 +359,8 @@ def render(old_body, issues, comments, open_prs, closed_issues, closed_prs, now,
         out.append("**State:** paused (remove the label `paused` from this issue to continue)")
 
     out += ["", "### Waiting for you"]
-    owner = [i for i in sorted(issues, key=lambda i: i["number"]) if "needs-human" in labels(i) and MUTED not in labels(i)]
-    wait = [i for i in owner if "blocked" not in labels(i)]     # `blocked`: it waits for agent work first (2026-11-06)
+    wait = [i for i in sorted(issues, key=lambda i: i["number"]) if "needs-human" in labels(i) and MUTED not in labels(i)]
     out += [f"- #{i['number']} {i['title']} – {question(comments.get(i['number'], []))}" for i in wait] or ["- nothing"]
-    if later := len(owner) - len(wait):
-        out.append(f"- Later: {later} ticket{'s' * (later != 1)} (labels `needs-human` and `blocked`: "
-                   "the agents finish its \"Depends on\" tickets first)")
     muted = sum(MUTED in labels(i) for i in issues)
     if muted:
         out.append(f"- Muted: {muted} ticket{'s' * (muted != 1)} (label `{MUTED}`: no agent works on them; remove the label to bring one back)")
