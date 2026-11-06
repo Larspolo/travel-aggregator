@@ -1,4 +1,4 @@
-"""The web pages: login, logout, the trips list, the trip page, the API tokens and the access and egress places. Jinja2 escapes all output: captured text is
+"""The web pages: login, logout, the trips list, the trip page, the API tokens and the access and egress places and the settings. Jinja2 escapes all output: captured text is
 untrusted (P5)."""
 
 import math
@@ -21,7 +21,8 @@ from app.db import get_session
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.risk import mode_extras, self_transfer_extras, transfer_extras
-from app.models import AccessTime, ApiToken, Itinerary, Trip
+from app.models import AccessTime, ApiToken, Itinerary, Setting, Trip
+from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
 from app.timeofday import night_extras, night_time_extras, time_extras
@@ -424,3 +425,20 @@ def delete_place(place_id: int, session: Session = Depends(get_session)) -> Redi
         session.delete(place)
         session.commit()
     return RedirectResponse("/places", status_code=303)
+
+
+@router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def settings_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return templates.TemplateResponse(request, "settings.html", {"retention_days": retention_days(session),
+                                                                 "max_days": MAX_RETENTION_DAYS})
+
+
+@router.post("/settings", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_settings(retention: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+    value = retention.strip()
+    if not value.isdigit() or int(value) > MAX_RETENTION_DAYS:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            f"the retention period must be a whole number from 0 to {MAX_RETENTION_DAYS}")
+    session.merge(Setting(key=RETENTION_KEY, value=str(int(value))))
+    session.commit()
+    return RedirectResponse("/settings", status_code=303)

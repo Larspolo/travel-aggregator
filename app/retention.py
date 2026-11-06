@@ -6,9 +6,20 @@ from datetime import datetime, timedelta
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
-from app.models import Capture
+from app.models import Capture, Setting
 
 RETENTION_DAYS = 90
+RETENTION_KEY = "capture_retention_days"
+MAX_RETENTION_DAYS = 3650
+
+
+def retention_days(session: Session) -> int:
+    """The retention period of the settings page (#207), else `RETENTION_DAYS`."""
+    row = session.get(Setting, RETENTION_KEY)
+    try:
+        return int(row.value) if row is not None else RETENTION_DAYS
+    except ValueError:
+        return RETENTION_DAYS
 
 
 def delete_old_captures(session: Session, days: int, now: datetime) -> int:
