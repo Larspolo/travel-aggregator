@@ -357,6 +357,22 @@ def toggle_pin(trip_id: int, itinerary_id: int, session: Session = Depends(get_s
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
+@router.post("/trips/{trip_id}/return", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def make_return_trip(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    """The return trip of a one-way trip (#340): the places swapped, one linked trip, no second one."""
+    trip = _get_trip(session, trip_id)
+    if trip.return_of_id is not None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "a return trip cannot have a return trip")
+    ret = session.scalar(select(Trip).where(Trip.return_of_id == trip.id))
+    if ret is None:
+        ret = Trip(title=f"{trip.title[:191]} (return)", origin_text=trip.destination_text,
+                   destination_text=trip.origin_text, travelers=trip.travelers, profile_id=trip.profile_id,
+                   return_of_id=trip.id)
+        session.add(ret)
+        session.commit()
+    return RedirectResponse(f"/trips/{ret.id}/edit", status_code=303)
+
+
 @router.post("/profiles", dependencies=[Depends(require_login), Depends(verify_csrf)])
 def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length=1, max_length=100),
                       hour_markup: Decimal = Form(Weights.hour_markup, ge=0, le=100),
