@@ -1,13 +1,16 @@
-"""The web pages: login, logout and the start page."""
+"""The web pages: login, logout and the trips list."""
 
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 
 from app.auth import SESSION_KEY, check_password, require_login
 from app.config import get_settings
+from app.db import get_db
+from app.trips import list_trips
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -34,8 +37,5 @@ def logout(request: Request) -> RedirectResponse:
 
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def index() -> HTMLResponse:
-    return HTMLResponse(
-        "<!doctype html><title>travel-aggregator</title><h1>travel-aggregator</h1>"
-        '<p><a href="/logout">Log out</a></p>'
-    )
+def index(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    return templates.TemplateResponse(request, "trips.html", {"trips": list_trips(db)})

@@ -1,5 +1,7 @@
 """The database engine and sessions."""
 
+from collections.abc import Iterator
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -21,3 +23,15 @@ def make_engine(url: str | None = None) -> Engine:
 
 def make_sessionmaker(engine: Engine) -> sessionmaker[Session]:
     return sessionmaker(bind=engine, expire_on_commit=False)
+
+
+_sessionmakers: dict[str, sessionmaker[Session]] = {}
+
+
+def get_db() -> Iterator[Session]:
+    """A FastAPI dependency: one session per request, with one engine per database URL."""
+    url = get_settings().database_url
+    if url not in _sessionmakers:
+        _sessionmakers[url] = make_sessionmaker(make_engine(url))
+    with _sessionmakers[url]() as session:
+        yield session
