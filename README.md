@@ -232,6 +232,7 @@ limited to 5 MB.
 | `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
+| `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile |
 | `/trips/{id}/captures` | The captures of a trip, with the action "reparse capture" (see below) |
 | `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
 | `/settings` | The capture retention period: the number of days that the raw captures are kept (see below) |
@@ -345,6 +346,27 @@ Each row shows the breakdown of its cost, for example `€90 price + €62 time 
 0 is not shown. Two sliders above the list set the hour markup (default €15) and the transfer markup (default €10),
 from €0 to €100. When you move a slider, the list ranks again at once.
 The values are not stored: a link such as `/trips/1?hour_markup=20&transfer_markup=5` opens the page with them.
+
+### Score profiles
+
+A score profile stores the weights of the sliders under a name.
+
+- To save a profile, open a trip page, enter a name under "Advanced" and press "Save as profile". The profile stores the
+  weights that the page shows at that moment.
+- One profile is the default. The default profile gives the weights of a trip page that has no other profile.
+  Set the default on `/profiles`.
+- A trip can have its own profile. Choose it in the trip edit form `/trips/{id}/edit`.
+- The switcher "Profile" on the trip page (`/trips/{id}?profile=<id>`) selects a profile for that page.
+
+When the page ranks the offers, a value comes from the first source that has it, in this order:
+
+1. a weight in the URL (a slider or a link with `hour_markup` or `transfer_markup`)
+2. the profile of the switcher (`profile=<id>`)
+3. the profile of the trip
+4. the default profile
+5. the defaults of the sliders (€15 for the hour markup, €10 for the transfer markup)
+
+The profiles are listed, changed and deleted on `/profiles`.
 
 ### Door-to-door
 
