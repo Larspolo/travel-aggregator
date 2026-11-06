@@ -234,7 +234,8 @@ limited to 5 MB.
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile |
-| `/trips/{id}/captures` | The captures of a trip, with the action "reparse capture" (see below) |
+| `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
+| `/trips/{id}/captures` | The captures of a trip, with the parse result and the action "reparse capture" (see below). The link "Only failed captures" shows only the failed captures (`?failed=1`); "Show all captures" shows all again |
 | `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
 | `/settings` | The capture retention period: the number of days that the raw captures are kept (see below) |
 
@@ -360,11 +361,28 @@ The panel shows the number of captured offers.
 The parser reads the fare name with its flexibility level. It gives each station its own timezone. A connection that
 the parser cannot read goes to the errors of the capture and is not stored as an offer.
 
+### Parse result of a capture
+
+Each capture on the captures pages has these columns:
+
+- "Offers": the offers that the parser read.
+- "Rejected": the offers that the parser rejected.
+- "Result": "ok", or "failed". Open "failed" to see the reason: the reason when the parser cannot read the raw data,
+  and "offer N: reason" for each rejected offer.
+
+A capture from the time before this feature shows "-" in these columns. The reasons do not show the input values.
+
+A capture is failed when the parser cannot read it or rejects one or more offers. Open `/captures` or
+`/trips/{id}/captures` and press "Only failed captures" to see only the failed captures. Press "Show all captures" to
+see all captures again.
+
 ### Reparse a capture
 
 Open `/trips/{id}/captures` and press "reparse capture" on a capture. The app runs the current parser on the stored raw
 data of that capture and shows how many offers it read. Use this after the parser of a source is fixed. The button
 does not send a request to the travel site. A capture with no raw data, or a source with no parser, cannot be reparsed.
+
+A reparse replaces the stored parse result with the new one. Reload the page to see it.
 
 ### Capture retention
 
