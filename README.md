@@ -242,6 +242,7 @@ limited to 5 MB.
 | `/trips/{id}/compare` | 2 to 4 offers of a trip side by side, with the best value of each line marked (see below) |
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
+| `/rates` | The exchange rates: store the value in EUR of a currency, or delete a rate (see "Exchange rates" below) |
 | `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile |
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
 | `/trips/{id}/captures` | The captures of a trip, with the parse result and the action "reparse capture" (see below). The link "Only failed captures" shows only the failed captures (`?failed=1`); "Show all captures" shows all again |
@@ -497,6 +498,26 @@ The flag only informs you: it does not change the price.
 - A score profile stores both values (see "Score profiles").
 - To hide the stale offers, tick the checkbox "hide stale" above the table. The rows that stay visible are the only
   rows that the badges and the highlights use.
+
+### Exchange rates
+
+A fare in another currency than EUR is ranked by its EUR value. Store the rates on `/rates` (link "Exchange rates"
+on `/settings`):
+
+- Enter a 3-letter code (not `EUR`) and the value in EUR of one unit, for example `CHF` and `1.07`. A save of an
+  existing code changes its rate. The list shows each rate with the time of its last change.
+- To remove a rate, press "Delete" on its row.
+- Bad input shows an error and stores nothing. The code must be 3 letters and not `EUR`. The rate must be a number
+  more than 0 with at most 6 decimals.
+
+On a trip page, the breakdown of a fare in another currency shows its price in that currency and its EUR value.
+The effective cost uses the EUR value. The sort by price, "cheapest" and the compare page use the EUR value too.
+
+If a fare has no rate for its currency, its row shows **no rate for XXX** with a link "Add a rate" to `/rates`. Such a
+row has no cost and sorts after the rows with a cost.
+
+The trips list `/` shows the lowest EUR value of the fares of each trip. A trip with only fares without a rate shows
+its lowest price in its currency with "no rate". A journey with a fare that has no rate shows "no total".
 
 ## Development
 
