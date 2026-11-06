@@ -77,7 +77,8 @@ name each file and function that the ticket changes, and no others (tools that o
 ## needs-human tickets
 
 Add one label of `[audience]` in `agent.toml` too (#72): `for-lars` for the agent system (Claude, Docker, the
-server, CI, the GitHub settings), `for-jeroen` for the project (decisions, features, the roadmap). Mention the login
+server, CI, the GitHub settings), `for-jeroen` for the project (decisions, features, the roadmap, and the payload captures of a
+new source: Kind `outside`, owner Larspolo on #122). Mention the login
 of that label in the comment. The status issue shows one list per label.
 The owner reads them on a phone. Give numbered steps, the exact names of settings or files, and what the
 owner must reply. One ticket per decision.
