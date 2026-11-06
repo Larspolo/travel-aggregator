@@ -184,6 +184,15 @@ An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
 Click a column header to sort by it. Click it again to reverse the order.
 The Mode and Source lists show only one mode or one source.
+
+The hard filters hide the offers that do not match. A penalty does not hide an offer: it only adds to its cost.
+Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
+- `max_transfers`: the most transfers (0 to 10).
+- `max_duration_min`: the longest duration in minutes.
+- `earliest_depart`: the first leg departs at or after this local time.
+- `latest_arrive`: the last leg arrives by this local time, on the day of its departure.
+- `exclude_mode`: a mode (train, bus or flight) hides each offer with one of its legs.
+- `exclude_carrier`: a carrier hides each offer with one of its legs.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
 
