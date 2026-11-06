@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.auth import SESSION_KEY, check_password, csrf_token, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
+from app.door import flight_extras
 from app.models import AccessTime, ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
@@ -118,19 +119,22 @@ async def edit_trip(request: Request, trip_id: int, session: Session = Depends(g
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
               hour_markup: Decimal = Query(Weights.hour_markup, ge=0, le=100),
-              transfer_markup: Decimal = Query(Weights.transfer_markup, ge=0, le=100)) -> HTMLResponse:
+              transfer_markup: Decimal = Query(Weights.transfer_markup, ge=0, le=100),
+              airport_before_min: int = Query(Weights.airport_before_min, ge=0, le=1440),
+              airport_after_min: int = Query(Weights.airport_after_min, ge=0, le=1440),
+              baggage_fee: Decimal = Query(Weights.baggage_fee, ge=0, le=1000)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
                                   .options(selectinload(Itinerary.legs), selectinload(Itinerary.fares))).all()
-    weights = Weights(hour_markup, transfer_markup)  # the score is computed here and never stored
+    weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee)  # the score is computed here and never stored
     rows = []
     for it in itineraries:
         if not it.fares:
             continue  # an itinerary with no fare has no cost: it is not a row
         fare = min(it.fares, key=lambda f: f.latest_price)
-        cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights)
+        cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights, flight_extras(it, weights))
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))
     context = {"trip": trip, "rows": rows, "weights": weights, "format_breakdown": format_breakdown}
