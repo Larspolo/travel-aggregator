@@ -1,4 +1,4 @@
-"""The web pages: login, logout, the start page and the trip page. Jinja2 escapes all output: captured text is
+"""The web pages: login, logout, the trips list and the trip page. Jinja2 escapes all output: captured text is
 untrusted (P5)."""
 
 from datetime import datetime, timedelta, timezone
@@ -14,6 +14,7 @@ from app.auth import SESSION_KEY, check_password, csrf_token, require_login, ver
 from app.config import get_settings
 from app.db import get_session
 from app.models import Itinerary, Trip
+from app.trips import list_trips
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -50,11 +51,8 @@ def logout(request: Request) -> RedirectResponse:
 
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def index() -> HTMLResponse:
-    return HTMLResponse(
-        "<!doctype html><title>travel-aggregator</title><h1>travel-aggregator</h1>"
-        '<p><a href="/logout">Log out</a></p>'
-    )
+def index(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return templates.TemplateResponse(request, "trips.html", {"trips": list_trips(session)})
 
 
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])

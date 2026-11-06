@@ -12,7 +12,7 @@ PASSWORD = "correct horse"
 
 
 @pytest.fixture
-def client(monkeypatch):
+def client(monkeypatch, sessions):
     monkeypatch.setenv("OWNER_PASSWORD_HASH", make_password_hash(PASSWORD, iterations=1000))
     return TestClient(app)
 
