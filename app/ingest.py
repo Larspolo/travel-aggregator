@@ -16,6 +16,7 @@ from app.derived import Leg as DerivedLeg
 from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg
 from app.parsers import get_parser
+from app.retention import RETENTION_DAYS, delete_old_captures
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 
 log = logging.getLogger(__name__)
@@ -165,4 +166,6 @@ def store(session: Session, body: IngestIn) -> dict:
                     body.parser_version or "-", err.get("index"), err.get("reason"))
     counts = upsert_offers(session, body.trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at)
+    delete_old_captures(session, RETENTION_DAYS, datetime.now(UTC))
+    session.commit()
     return {**counts, "rejected": len(errors), "errors": errors}
