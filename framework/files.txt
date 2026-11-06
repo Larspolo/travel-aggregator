@@ -60,6 +60,7 @@ framework/tools/metrics_log.py
 framework/tools/report.py
 framework/tools/epic_autoclose.py
 framework/tools/ticket_context.py
+framework/tools/new_tickets.py
 framework/tools/tokens.py
 framework/tools/operator_check.py
 framework/tools/owner_gate.py
@@ -124,6 +125,8 @@ framework/tests/test_tokens.py
 framework/tests/test_tokens_verify.py
 framework/tests/test_tokens_cost.py
 framework/tests/test_tokens_phases.py
+framework/tests/test_report_start_cost.py
+framework/tests/test_new_tickets.py
 framework/tests/test_run_data.py
 framework/tests/test_unconflict.py
 framework/tests/test_automerge_failure.py

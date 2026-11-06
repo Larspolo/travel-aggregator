@@ -11,7 +11,9 @@ description: Turn the goals of travel-aggregator in steering/project/ROADMAP.md 
 ## Make the next epic (in the refill)
 
 Do this in the refill of autopilot step 5 (you hold its lock, `python3 framework/tools/claim.py 0 --refill`), when the
-open epics have no goal left that an agent can do.
+open epics have no goal left that an agent can do. A goal that has an open sub-issue is not left, also when that
+sub-issue waits for another ticket: then make the next epic (owner, 2026-11-06: a deep run read such waiting sub-issues
+as work left and stopped with no refill, 113k eq for no ticket).
 
 1. List the epics: `gh api "repos/OWNER/NAME/issues?labels=epic&state=all&per_page=100"` (`repo` in `agent.toml`). A feature has an epic when an
    epic body names its key ("Roadmap: `<key>`"). A `muted` epic counts too.
