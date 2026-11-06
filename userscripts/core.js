@@ -239,6 +239,9 @@
     const v = root.prompt("travel-aggregator API token", "");
     if (v !== null) gm.setValue("token", v.trim());
   });
+  gm.menu("Add this website", () => {
+    root.open(config().server.replace(/\/+$/, "") + "/sources/new?site=" + encodeURIComponent(root.location.host), "_blank");
+  });
   loadTrips();
   if (autoSend()) flush();
   setInterval(() => { if (autoSend()) flush(); }, RETRY_MS);
