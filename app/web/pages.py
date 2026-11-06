@@ -34,6 +34,33 @@ def local(t: datetime, offset_min: int) -> datetime:
 
 templates.env.filters["local"] = local
 
+MODE_ICONS = {"train": "🚆", "bus": "🚌", "flight": "✈️"}
+
+
+def mode_icon(mode: str) -> str:
+    """The icon of one leg mode (a mode with no icon gets a dot)."""
+    return MODE_ICONS.get(mode, "•")
+
+
+def day_gap(arrive_local: datetime, depart_local: datetime) -> int:
+    """How many local calendar days later the arrival is than the departure."""
+    return (arrive_local.date() - depart_local.date()).days
+
+
+def ago(t: datetime, now: datetime) -> str:
+    """The age of a capture, for example '2 h ago'."""
+    seconds = max(0, int((now - t).total_seconds()))
+    if seconds < 3600:
+        return f"{seconds // 60} min ago"
+    if seconds < 48 * 3600:
+        return f"{seconds // 3600} h ago"
+    return f"{seconds // 86400} days ago"
+
+
+templates.env.filters["mode_icon"] = mode_icon
+templates.env.filters["day_gap"] = day_gap
+templates.env.filters["ago"] = ago
+
 
 @router.get("/login", response_class=HTMLResponse)
 def login_form(request: Request) -> HTMLResponse:
@@ -139,7 +166,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                               door_extras(it, places, hour_markup) + flight_extras(it, weights))
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))
-    context = {"trip": trip, "rows": rows, "weights": weights, "format_breakdown": format_breakdown}
+    context = {"trip": trip, "rows": rows, "weights": weights, "format_breakdown": format_breakdown,
+               "now": datetime.now(timezone.utc)}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_rows.html", context)
     return templates.TemplateResponse(request, "trip.html", context)
