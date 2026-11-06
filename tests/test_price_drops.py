@@ -82,7 +82,7 @@ def test_migration_0012_up_and_down(empty_database_url):
         def has_column():
             return "seen_price" in {c["name"] for c in inspect(engine).get_columns("fares")}
         assert has_column()
-        command.downgrade(cfg, "-1")
+        command.downgrade(cfg, "0011")
         assert not has_column()
         command.upgrade(cfg, "head")
         assert has_column()
