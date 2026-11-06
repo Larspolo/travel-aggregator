@@ -4,7 +4,7 @@
 <table>
   <thead>
     <tr>{% for key, name in columns %}{% set active = view.sort == key %}
-      <th{% if active %} aria-sort="{{ "ascending" if view.dir == "asc" else "descending" }}"{% endif %}><a class="sort" href="/trips/{{ trip.id }}?{{ sort_query | urlencode }}&amp;sort={{ key }}&amp;dir={{ "desc" if active and view.dir == "asc" else "asc" }}">{{ name }}{% if active %} {{ "▲" if view.dir == "asc" else "▼" }}{% endif %}</a></th>{% endfor %}</tr>
+      <th{% if active %} aria-sort="{{ "ascending" if view.dir == "asc" else "descending" }}"{% endif %}><a class="sort" href="/trips/{{ trip.id }}?{{ sort_qs }}&amp;sort={{ key }}&amp;dir={{ "desc" if active and view.dir == "asc" else "asc" }}">{{ name }}{% if active %} {{ "▲" if view.dir == "asc" else "▼" }}{% endif %}</a></th>{% endfor %}</tr>
   </thead>
   <tbody id="rows">
   {% include "trip_rows.html" %}
