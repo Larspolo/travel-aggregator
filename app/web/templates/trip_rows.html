@@ -2,6 +2,7 @@
     {% set first, last = it.legs[0], it.legs[-1] %}
     <tr>
       <td>{{ first.from_name }} → {{ last.to_name }}
+        {% for b in view.badges.get(it.id, []) %}<span class="badge">{{ b }}</span> {% endfor %}
         <div class="modes">{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{{ m | mode_icon }}</span> {% endfor %}</div>
         <div class="muted">{{ it.mode_summary }}, {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }},
           {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }}</div></td>

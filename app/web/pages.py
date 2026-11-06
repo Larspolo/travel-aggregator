@@ -187,9 +187,14 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                               door_extras(it, places, hour_markup) + flight_extras(it, weights))
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
+    badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
+    if rows:
+        for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[1].latest_price),
+                          ("fastest", lambda r: r[0].duration_min)):
+            badges.setdefault(min(rows, key=key)[0].id, []).append(name)
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
-    view = {"sort": sort, "dir": dir, "mode": mode, "source": source,
+    view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges,
             "modes": sorted(modes), "sources": sorted(sources)}
     query = {"hour_markup": hour_markup, "transfer_markup": transfer_markup, "airport_before_min": airport_before_min,
              "airport_after_min": airport_after_min, "baggage_fee": baggage_fee, "mode": mode, "source": source}
