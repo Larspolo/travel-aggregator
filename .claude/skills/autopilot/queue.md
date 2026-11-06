@@ -65,8 +65,8 @@ refill; then refill one open epic instead (the first one with open goals that an
 up to 10 sub-issues (within the cap) for its open goals, then pick again. The pacer starts refill runs from the
 tickets that the queue misses (`usage.refill_count`, owner, 2026-11-06): one run for each `refill_tickets` of N − R, at
 least 1, less the live refill runs (a refill lock younger than `refill_minutes`, `usage.refill_live`). At most
-`refill_runs` (`[pacing]` of `steering/system/system.toml`) and one run per refill source (the whole refill and each open
-epic), and only 1 when no open ticket is less than 60 minutes old (`usage.new_ticket`): an empty refill run costs quota.
+`refill_runs` (`[pacing]` of `steering/system/system.toml`) and one run per refill source with work (the whole refill
+when it has a source, and each epic that waits for its check, `usage.refill_sources`, #378), and only 1 when no open ticket is less than 60 minutes old (`usage.new_ticket`): an empty refill run costs quota.
 It starts none when R >= N and no epic or release check waits (`usage.refill_need`, #3547), and none when R < N and the
 refill has no source: no such check, no roadmap feature with no epic and no fallback (#3560). A due process or roadmap
 review starts one too (deep locks), also while refill runs are live: a review has its own lock (owner, 2026-10-29).
