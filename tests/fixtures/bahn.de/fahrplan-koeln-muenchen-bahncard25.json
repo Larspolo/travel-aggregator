@@ -1,0 +1,1807 @@
+{
+ "url": "https://int.bahn.de/web/api/angebote/fahrplan",
+ "method": "POST",
+ "request": {
+  "abfahrtsHalt": "A=1@O=Köln Hbf@X=6958730@Y=50943029@U=81@L=8000207@p=1793811861@i=U×008015458@",
+  "anfrageZeitpunkt": "2026-11-20T10:02:00",
+  "ankunftsHalt": "A=1@O=MUNICH (MÜNCHEN)@X=11575383@Y=48134916@U=80@L=8096013@p=1793814919@i=U×008096013@",
+  "ankunftSuche": "ABFAHRT",
+  "klasse": "KLASSE_2",
+  "produktgattungen": [
+   "ICE",
+   "EC_IC",
+   "IR",
+   "REGIONAL",
+   "SBAHN",
+   "BUS",
+   "SCHIFF",
+   "UBAHN",
+   "TRAM",
+   "ANRUFPFLICHTIG"
+  ],
+  "reisende": [
+   {
+    "typ": "ERWACHSENER",
+    "ermaessigungen": [
+     {
+      "art": "BAHNCARD25",
+      "klasse": "KLASSE_2"
+     }
+    ],
+    "alter": [],
+    "anzahl": 1
+   }
+  ],
+  "schnelleVerbindungen": true,
+  "autonomeReservierungOnly": false,
+  "bikeCarriage": false,
+  "reservierungsKontingenteVorhanden": false,
+  "nurFahrbareVerbindungen": false,
+  "nurDeutschlandTicketVerbindungen": false,
+  "deutschlandTicketVorhanden": false
+ },
+ "response": {
+  "verbindungen": [
+   {
+    "tripId": "da9080dc_3",
+    "ctxRecon": "¶HKI¶T$A=1@O=Köln Hbf@X=6958730@Y=50943029@L=8000207@a=128@$A=1@O=Mannheim Hbf@X=8468917@Y=49479352@L=8000244@a=128@$202611201053$202611201321$ICE          2013$$1$$$$$$§T$A=1@O=Mannheim Hbf@X=8468917@Y=49479352@L=8000244@a=128@$A=1@O=München Hbf@X=11558339@Y=48140229@L=8000261@a=128@$202611201333$202611201629$ICE           517$$1$$$$$$¶KC¶#VE#2#CF#100#CA#0#CM#0#SICT#0#AM#81#AM2#0#RT#7#¶KCC¶I1ZFIzEjRVJHIzQ1MDU4I0hJTiMwI0VDSyM0OTQ1NzR8NDk0NTczfDQ5NDgzNHw0OTQ5MDl8MHwwfDQ4NXw0OTQ1MTl8MXwwfDh8MHwwfC0yMTQ3NDgzNjQ4I0dBTSMyMDExMjYxMDUzIwpaI1ZOIzEjU1QjMTc5MzgxNDkxOSNQSSMwI1pJIzE3MDM2NSNUQSMwI0RBIzIwMTEyNiMxUyM4MDAwMjA3IzFUIzEwNTMjTFMjODAwNDU4NSNMVCMxODEyI1BVIzgwI1JUIzEjQ0EjSUNFI1pFIzIwMTMjWkIjSUNFICAgICAgICAgIDIwMTMjUEMjMCNGUiM4MDAwMjA3I0ZUIzEwNTMjVE8jODAwMDI0NCNUVCMxMzIxIwpaI1ZOIzEjU1QjMTc5MzgxNDkxOSNQSSMwI1pJIzE3NTUyMCNUQSMwI0RBIzIwMTEyNiMxUyM4MDAyNTUzIzFUIzcyNiNMUyM4MDAwMjYxI0xUIzE2MjkjUFUjODAjUlQjMSNDQSNJQ0UjWkUjNTE3I1pCI0lDRSAgICAgICAgICAgNTE3I1BDIzAjRlIjODAwMDI0NCNGVCMxMzMzI1RPIzgwMDAyNjEjVFQjMTYyOSM=¶KRCC¶#VE#1#¶SC¶1_H4sIAAAAAAACA22PW06DQBiFt2LmSRNs5meADiQkY8Gm1ZaSpjUa4wOWacVwqTA0EsI6fHEdbqAbc4B4SfSNc/7D+c7U6MBzZCEYmBQpiL8KKdzR4MYdgCqNnL8gq0ZpmYyRpSvtxwhZWEFZKdxAcJlWsWoAqBh15ipKWhMwVnFrbbuGc1DQc1qNY5HPkHVfI1Ht25i/XLgylGRhq6aeI8UhiMu+QiWoeehGOU+7vliSQ76fZZu+Jo5CmbywgS3s6+NHnJ5MHrfs1jZMnQ4JZne2jk2NYNVka5sCm9kUt8uGbG/D0CQUgBrAInt9fMOYYtA1nTI5ohD948bdgiDP/0XO197UmZyczo/vnjO59M4kGkAf6oQSydYoEM0Eo2Xjjm0aGMg3W97MH3Z/+8PeceEuV8gSeck75WdxFUepTGyDuOi9q6zMU16NsjINi98HPyiKOCrE1/98k/lBHiQyVDdN8wkImNC5/wEAAA==",
+    "verbindungsAbschnitte": [
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdOrigin": "3320",
+      "externeBahnhofsinfoIdDestination": "3925",
+      "abfahrtsOrt": "Köln Hbf",
+      "startHalt": {
+       "extId": "8000207",
+       "name": "Köln Hbf",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T10:53:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8000244",
+       "name": "Mannheim Hbf",
+       "ankunft": {
+        "sollzeit": "2026-11-20T13:21:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8000207",
+      "abschnittsDauer": 8880,
+      "abschnittsAnteil": 45.68,
+      "ankunftsOrt": "Mannheim Hbf",
+      "ankunftsOrtExtId": "8000244",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 2
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 2
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T10:53:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T13:21:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Köln Hbf@X=6958730@Y=50943029@U=80@L=8000207@i=U×008015458@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 1
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 1
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T10:53:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "7",
+        "haltTyp": "PL",
+        "name": "Köln Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3320",
+        "extId": "8000207",
+        "adminID": "80",
+        "routeIdx": 0,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Bonn Hbf@X=7097136@Y=50732008@U=80@L=8000044@i=U×008015485@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 1
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:14:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T11:13:00"
+        },
+        "gleis": "3",
+        "haltTyp": "PL",
+        "name": "Bonn Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "0767",
+        "extId": "8000044",
+        "adminID": "80",
+        "routeIdx": 1,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Koblenz Hbf@X=7588343@Y=50350928@U=80@L=8000206@i=U×008019023@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 1
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:48:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T11:46:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Koblenz Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3299",
+        "extId": "8000206",
+        "adminID": "80",
+        "routeIdx": 2,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Mainz Hbf@X=8258723@Y=50001113@U=80@L=8000240@i=U×008019051@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T12:42:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T12:39:00"
+        },
+        "gleis": "5a/b",
+        "haltTyp": "PL",
+        "name": "Mainz Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3898",
+        "extId": "8000240",
+        "adminID": "80",
+        "routeIdx": 3,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Mannheim Hbf@X=8468917@Y=49479352@U=80@L=8000244@i=U×008014008@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T13:21:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Mannheim Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3925",
+        "extId": "8000244",
+        "adminID": "80",
+        "routeIdx": 4,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 0,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#170365#TA#0#DA#201126#1S#8000207#1T#1053#LS#8004585#LT#1812#PU#80#RT#1#CA#ICE#ZE#2013#ZB#ICE          2013#PC#0#FR#8000207#FT#1053#TO#8004585#TT#1812#",
+      "samePlatform": true,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "ICE",
+       "name": "ICE 2013",
+       "nummer": "2013",
+       "richtung": "Oberstdorf",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "DB Fernverkehr AG"
+        },
+        {
+         "kategorie": "BORDBISTRO",
+         "key": "BR",
+         "value": "Bordrestaurant"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FR",
+         "value": "Bicycles conveyed - subject to reservation"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "CK",
+         "value": "Komfort Check-in possible (visit bahn.de/kci for more information)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "RZ",
+         "value": "Wheelchair boarding: self/train staff-assisted"
+        }
+       ],
+       "kurzText": "ICE",
+       "mittelText": "ICE 2013",
+       "langText": "ICE 2013"
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdOrigin": "3925",
+      "externeBahnhofsinfoIdDestination": "4234",
+      "abfahrtsOrt": "Mannheim Hbf",
+      "startHalt": {
+       "extId": "8000244",
+       "name": "Mannheim Hbf",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T13:33:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8000261",
+       "name": "München Hbf",
+       "ankunft": {
+        "sollzeit": "2026-11-20T16:29:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8000244",
+      "abschnittsDauer": 10560,
+      "abschnittsAnteil": 54.32,
+      "ankunftsOrt": "München Hbf",
+      "ankunftsOrtExtId": "8000261",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 3
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 3
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T13:33:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T16:29:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Mannheim Hbf@X=8468917@Y=49479352@U=80@L=8000244@i=U×008014008@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T13:33:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "5",
+        "haltTyp": "PL",
+        "name": "Mannheim Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3925",
+        "extId": "8000244",
+        "adminID": "80",
+        "routeIdx": 13,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Stuttgart Hbf@X=9182760@Y=48784782@U=80@L=8000096@i=U×008029034@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T14:17:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T14:11:00"
+        },
+        "gleis": "15",
+        "haltTyp": "PL",
+        "name": "Stuttgart Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "6071",
+        "extId": "8000096",
+        "adminID": "80",
+        "routeIdx": 14,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Ulm Hbf@X=9982611@Y=48399397@U=80@L=8000170@i=U×008029103@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:15:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:13:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Ulm Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "6323",
+        "extId": "8000170",
+        "adminID": "80",
+        "routeIdx": 15,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Augsburg Hbf@X=10885568@Y=48365444@U=80@L=8000013@i=U×008002140@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:58:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:56:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Augsburg Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "0220",
+        "extId": "8000013",
+        "adminID": "80",
+        "routeIdx": 16,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=München Hbf@X=11558339@Y=48140229@U=80@L=8000261@i=U×008020347@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T16:29:00"
+        },
+        "gleis": "13",
+        "haltTyp": "PL",
+        "name": "München Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "4234",
+        "extId": "8000261",
+        "adminID": "80",
+        "routeIdx": 17,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 1,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#175520#TA#0#DA#201126#1S#8002553#1T#726#LS#8000261#LT#1629#PU#80#RT#1#CA#ICE#ZE#517#ZB#ICE           517#PC#0#FR#8002553#FT#726#TO#8000261#TT#1629#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "ICE",
+       "name": "ICE 517",
+       "nummer": "517",
+       "richtung": "München Hbf",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "DB Fernverkehr AG"
+        },
+        {
+         "kategorie": "BORDBISTRO",
+         "key": "BR",
+         "value": "Bordrestaurant",
+         "teilstreckenHinweis": "(Mannheim Hbf - München Hbf)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FR",
+         "value": "Bicycles conveyed - subject to reservation",
+         "teilstreckenHinweis": "(Mannheim Hbf - München Hbf)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited",
+         "teilstreckenHinweis": "(Mannheim Hbf - München Hbf)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "CK",
+         "value": "Komfort Check-in possible (visit bahn.de/kci for more information)",
+         "teilstreckenHinweis": "(Mannheim Hbf - München Hbf)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "EH",
+         "value": "Wheelchair boarding: station/train staff-assisted, registration rec.",
+         "teilstreckenHinweis": "(Mannheim Hbf - München Hbf)"
+        }
+       ],
+       "kurzText": "ICE",
+       "mittelText": "ICE 517",
+       "langText": "ICE 517"
+      }
+     }
+    ],
+    "umstiegsAnzahl": 1,
+    "verbindungsDauerInSeconds": 20160,
+    "isAlternativeVerbindung": false,
+    "auslastungsmeldungen": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3
+     }
+    ],
+    "auslastungstexte": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     }
+    ],
+    "risNotizen": [],
+    "priorisierteMeldungen": [],
+    "reservierungsMeldungen": [],
+    "isAngebotseinholungNachgelagert": false,
+    "isAlterseingabeErforderlich": false,
+    "serviceDays": [
+     {
+      "lastDateInPeriod": "2026-12-12",
+      "regular": "not every day",
+      "irregular": "6. Nov until 12. Dec 2026; not 12. Nov 2026",
+      "planningPeriodBegin": "2025-12-14",
+      "planningPeriodEnd": "2027-12-11",
+      "weekdays": [
+       "MO",
+       "DI",
+       "MI",
+       "DO",
+       "FR",
+       "SA",
+       "SO"
+      ]
+     }
+    ],
+    "angebotsPreis": {
+     "betrag": 82.49,
+     "waehrung": "EUR",
+     "mwst": []
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "abPreisInfo": {
+     "streichpreis": {
+      "betrag": 109.99,
+      "waehrung": "EUR",
+      "mwst": []
+     }
+    },
+    "hasTeilpreis": false,
+    "reiseAngebote": [],
+    "hinRueckPauschalpreis": false,
+    "isReservierungAusserhalbVorverkaufszeitraum": false,
+    "gesamtAngebotsbeziehungList": []
+   },
+   {
+    "tripId": "bcd00910_3",
+    "ctxRecon": "¶HKI¶T$A=1@O=Köln Hbf@X=6958730@Y=50943029@L=8000207@a=128@$A=1@O=München Hbf@X=11558339@Y=48140229@L=8000261@a=128@$202611201118$202611201540$ICE           225$$1$$$$$$¶KC¶#VE#2#CF#100#CA#0#CM#0#SICT#0#AM#81#AM2#0#RT#7#¶KCC¶I1ZFIzEjRVJHIzEjSElOIzAjRUNLIzQ5NDU5OHw0OTQ1OTh8NDk0ODYwfDQ5NDg2MHwwfDB8NDg1fDQ5NDU3NXwzfDB8MTA0MnwwfDB8LTIxNDc0ODM2NDgjR0FNIzIwMTEyNjExMTgjClojVk4jMSNTVCMxNzkzODE0OTE5I1BJIzAjWkkjMzI5ODg3I1RBIzAjREEjMjAxMTI2IzFTIzg0MDAwNTgjMVQjODMxI0xTIzgwMDAyNjEjTFQjMTU0MCNQVSM4MCNSVCMxI0NBI0lDRSNaRSMyMjUjWkIjSUNFICAgICAgICAgICAyMjUjUEMjMCNGUiM4MDAwMjA3I0ZUIzExMTgjVE8jODAwMDI2MSNUVCMxNTQwIw==¶KRCC¶#VE#1#¶SC¶1_H4sIAAAAAAACA22PW06DQBiFt2LmSRNs5meADiQkY8Gm1ZaSpjUa4wOWacVwqTA0EsI6fHEdbqAbc4B4SfSNc/7D+c7U6MBzZCEYmBQpiL8KKdzR4MYdgCqNnL8gq0ZpmYyRpSvtxwhZWEFZKdxAcJlWsWoAqBh15ipKWhMwVnFrbbuGc1DQc1qNY5HPkHVfI1Ht25i/XLgylGRhq6aeI8UhiMu+QiWoeehGOU+7vliSQ76fZZu+Jo5CmbywgS3s6+NHnJ5MHrfs1jZMnQ4JZne2jk2NYNVka5sCm9kUt8uGbG/D0CQUgBrAInt9fMOYYtA1nTI5ohD948bdgiDP/0XO197UmZyczo/vnjO59M4kGkAf6oQSydYoEM0Eo2Xjjm0aGMg3W97MH3Z/+8PeceEuV8gSeck75WdxFUepTGyDuOi9q6zMU16NsjINi98HPyiKOCrE1/98k/lBHiQyVDdN8wkImNC5/wEAAA==",
+    "verbindungsAbschnitte": [
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdOrigin": "3320",
+      "externeBahnhofsinfoIdDestination": "4234",
+      "abfahrtsOrt": "Köln Hbf",
+      "startHalt": {
+       "extId": "8000207",
+       "name": "Köln Hbf",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T11:18:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8000261",
+       "name": "München Hbf",
+       "ankunft": {
+        "sollzeit": "2026-11-20T15:40:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8000207",
+      "abschnittsDauer": 15720,
+      "abschnittsAnteil": 100,
+      "ankunftsOrt": "München Hbf",
+      "ankunftsOrtExtId": "8000261",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 3
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 3
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T11:18:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T15:40:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Köln Hbf@X=6958730@Y=50943029@U=80@L=8000207@i=U×008015458@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:18:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "6",
+        "haltTyp": "PL",
+        "name": "Köln Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3320",
+        "extId": "8000207",
+        "adminID": "80",
+        "routeIdx": 8,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Siegburg/Bonn@X=7203029@Y=50793916@U=80@L=8005556@i=U×008015588@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:32:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T11:31:00"
+        },
+        "gleis": "6",
+        "haltTyp": "PL",
+        "name": "Siegburg/Bonn",
+        "risNotizen": [],
+        "bahnhofsInfoId": "5840",
+        "extId": "8005556",
+        "adminID": "80",
+        "routeIdx": 9,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Frankfurt(M) Flughafen Fernbf@X=8570181@Y=50053169@U=80@L=8070003@i=U×008061676@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T12:21:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T12:13:00"
+        },
+        "gleis": "Fern 5",
+        "haltTyp": "PL",
+        "name": "Frankfurt(M) Flughafen Fernbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "7982",
+        "extId": "8070003",
+        "adminID": "80",
+        "routeIdx": 10,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Mannheim Hbf@X=8468917@Y=49479352@U=80@L=8000244@i=U×008014008@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T12:56:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T12:53:00"
+        },
+        "gleis": "5",
+        "haltTyp": "PL",
+        "name": "Mannheim Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3925",
+        "extId": "8000244",
+        "adminID": "80",
+        "routeIdx": 11,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Stuttgart Hbf@X=9182760@Y=48784782@U=80@L=8000096@i=U×008029034@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T13:43:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T13:33:00"
+        },
+        "gleis": "15",
+        "haltTyp": "PL",
+        "name": "Stuttgart Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "6071",
+        "extId": "8000096",
+        "adminID": "80",
+        "routeIdx": 12,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Ulm Hbf@X=9982611@Y=48399397@U=80@L=8000170@i=U×008029103@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T14:28:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T14:26:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Ulm Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "6323",
+        "extId": "8000170",
+        "adminID": "80",
+        "routeIdx": 13,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Augsburg Hbf@X=10885568@Y=48365444@U=80@L=8000013@i=U×008002140@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:13:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:11:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Augsburg Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "0220",
+        "extId": "8000013",
+        "adminID": "80",
+        "routeIdx": 14,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=München Hbf@X=11558339@Y=48140229@U=80@L=8000261@i=U×008020347@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:40:00"
+        },
+        "gleis": "13",
+        "haltTyp": "PL",
+        "name": "München Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "4234",
+        "extId": "8000261",
+        "adminID": "80",
+        "routeIdx": 15,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 0,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#329887#TA#0#DA#201126#1S#8400058#1T#831#LS#8000261#LT#1540#PU#80#RT#1#CA#ICE#ZE#225#ZB#ICE           225#PC#0#FR#8400058#FT#831#TO#8000261#TT#1540#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "ICE",
+       "name": "ICE 225",
+       "nummer": "225",
+       "richtung": "München Hbf",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "DB Fernverkehr AG"
+        },
+        {
+         "kategorie": "BORDBISTRO",
+         "key": "BR",
+         "value": "Bordrestaurant",
+         "teilstreckenHinweis": "(Köln Hbf - München Hbf)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FR",
+         "value": "Bicycles conveyed - subject to reservation",
+         "teilstreckenHinweis": "(Köln Hbf - München Hbf)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited",
+         "teilstreckenHinweis": "(Köln Hbf - München Hbf)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "CK",
+         "value": "Komfort Check-in possible (visit bahn.de/kci for more information)",
+         "teilstreckenHinweis": "(Köln Hbf - München Hbf)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "FH",
+         "value": "Wheelchair boarding: train staff-assisted",
+         "teilstreckenHinweis": "(Köln Hbf - München Hbf)"
+        }
+       ],
+       "kurzText": "ICE",
+       "mittelText": "ICE 225",
+       "langText": "ICE 225"
+      }
+     }
+    ],
+    "umstiegsAnzahl": 0,
+    "verbindungsDauerInSeconds": 15720,
+    "isAlternativeVerbindung": false,
+    "auslastungsmeldungen": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3
+     }
+    ],
+    "auslastungstexte": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     }
+    ],
+    "risNotizen": [],
+    "priorisierteMeldungen": [],
+    "reservierungsMeldungen": [],
+    "isAngebotseinholungNachgelagert": false,
+    "isAlterseingabeErforderlich": false,
+    "serviceDays": [
+     {
+      "lastDateInPeriod": "2026-12-12",
+      "regular": "not every day",
+      "irregular": "9. Nov until 12. Dec 2026; not 10. until 16. Nov 2026, 21., 22. Nov 2026",
+      "planningPeriodBegin": "2025-12-14",
+      "planningPeriodEnd": "2027-12-11",
+      "weekdays": [
+       "MO",
+       "DI",
+       "MI",
+       "DO",
+       "FR"
+      ]
+     }
+    ],
+    "angebotsPreis": {
+     "betrag": 152.9,
+     "waehrung": "EUR",
+     "mwst": []
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "abPreisInfo": {
+     "streichpreis": {
+      "betrag": 203.9,
+      "waehrung": "EUR",
+      "mwst": []
+     }
+    },
+    "hasTeilpreis": false,
+    "reiseAngebote": [],
+    "hinRueckPauschalpreis": false,
+    "isReservierungAusserhalbVorverkaufszeitraum": false,
+    "gesamtAngebotsbeziehungList": []
+   },
+   {
+    "tripId": "f4b7c3cc_3",
+    "ctxRecon": "¶HKI¶T$A=1@O=Köln Hbf@X=6958730@Y=50943029@L=8000207@a=128@$A=1@O=Köln Messe/Deutz@X=6975000@Y=50940872@L=8003368@a=128@$202611201137$202611201139$               S6$$1$$$$$$§W$A=1@O=Köln Messe/Deutz@X=6975000@Y=50940872@L=8003368@a=128@$A=1@O=Köln Messe/Deutz Gl.11-12@X=6974065@Y=50941717@L=8073368@a=128@$202611201139$202611201146$$$1$$$$$$§T$A=1@O=Köln Messe/Deutz Gl.11-12@X=6974065@Y=50941717@L=8073368@a=128@$A=1@O=München Hbf@X=11558339@Y=48140229@L=8000261@a=128@$202611201146$202611201629$ICE           517$$1$$$$$$¶KC¶#VE#2#CF#100#CA#0#CM#0#SICT#0#AM#81#AM2#0#RT#7#¶KCC¶I1ZFIzEjRVJHIzMjSElOIzAjRUNLIzQ5NDYxN3w0OTQ2MTd8NDk0OTA5fDQ5NDkwOXwwfDB8NDg1fDQ5NDU5OXw0fDB8MTh8MHwwfC0yMTQ3NDgzNjQ4I0dBTSMyMDExMjYxMTM3IwpaI1ZOIzEjU1QjMTc5MzgxNDkxOSNQSSMwI1pJIzE5OTI0OCNUQSMxNCNEQSMyMDExMjYjMVMjODAwMzM3MyMxVCMxMTEzI0xTIzgwMDMzNjcjTFQjMTE1MiNQVSM4MCNSVCMxI0NBI0RCUyNaRSNTNiNaQiMgICAgICAgICAgICAgICBTNiNQQyM0I0ZSIzgwMDAyMDcjRlQjMTEzNyNUTyM4MDAzMzY4I1RUIzExMzkjCkYjVk4jMCNTVCMxNzkzODE0OTE5I1BJIzAjUFUjODAjWkkjMjI4NDQxNTExNCNEQSMyMDExMjYjRlIjODAwMzM2OCNUTyM4MDczMzY4I0ZUIzExMzkjVFQjMTE0NiNUUyMwI0ZGIyNGViMwIwpaI1ZOIzEjU1QjMTc5MzgxNDkxOSNQSSMwI1pJIzE3NTUyMCNUQSMwI0RBIzIwMTEyNiMxUyM4MDAyNTUzIzFUIzcyNiNMUyM4MDAwMjYxI0xUIzE2MjkjUFUjODAjUlQjMSNDQSNJQ0UjWkUjNTE3I1pCI0lDRSAgICAgICAgICAgNTE3I1BDIzAjRlIjODA3MzM2OCNGVCMxMTQ2I1RPIzgwMDAyNjEjVFQjMTYyOSM=¶KRCC¶#VE#1#¶SC¶1_H4sIAAAAAAACA22PW06DQBiFt2LmSRNs5meADiQkY8Gm1ZaSpjUa4wOWacVwqTA0EsI6fHEdbqAbc4B4SfSNc/7D+c7U6MBzZCEYmBQpiL8KKdzR4MYdgCqNnL8gq0ZpmYyRpSvtxwhZWEFZKdxAcJlWsWoAqBh15ipKWhMwVnFrbbuGc1DQc1qNY5HPkHVfI1Ht25i/XLgylGRhq6aeI8UhiMu+QiWoeehGOU+7vliSQ76fZZu+Jo5CmbywgS3s6+NHnJ5MHrfs1jZMnQ4JZne2jk2NYNVka5sCm9kUt8uGbG/D0CQUgBrAInt9fMOYYtA1nTI5ohD948bdgiDP/0XO197UmZyczo/vnjO59M4kGkAf6oQSydYoEM0Eo2Xjjm0aGMg3W97MH3Z/+8PeceEuV8gSeck75WdxFUepTGyDuOi9q6zMU16NsjINi98HPyiKOCrE1/98k/lBHiQyVDdN8wkImNC5/wEAAA==",
+    "verbindungsAbschnitte": [
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdOrigin": "3320",
+      "externeBahnhofsinfoIdDestination": "3329",
+      "abfahrtsOrt": "Köln Hbf",
+      "startHalt": {
+       "extId": "8000207",
+       "name": "Köln Hbf",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T11:37:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8003368",
+       "name": "Köln Messe/Deutz",
+       "ankunft": {
+        "sollzeit": "2026-11-20T11:39:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8000207",
+      "abschnittsDauer": 120,
+      "abschnittsAnteil": 0.68,
+      "ankunftsOrt": "Köln Messe/Deutz",
+      "ankunftsOrtExtId": "8003368",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 1
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T11:37:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T11:39:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Köln Hbf@X=6958730@Y=50943029@U=80@L=8000207@i=U×008015458@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 1
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:37:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "10 A-B",
+        "haltTyp": "PL",
+        "name": "Köln Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3320",
+        "extId": "8000207",
+        "adminID": "8003S",
+        "routeIdx": 9,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Köln Messe/Deutz@X=6975000@Y=50940872@U=80@L=8003368@i=U×008015561@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T11:39:00"
+        },
+        "gleis": "9",
+        "haltTyp": "PL",
+        "name": "Köln Messe/Deutz",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3329",
+        "extId": "8003368",
+        "adminID": "8003S",
+        "routeIdx": 10,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 0,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#199248#TA#14#DA#201126#1S#8003373#1T#1113#LS#8003367#LT#1152#PU#80#RT#1#CA#DBS#ZE#S6#ZB#               S6#PC#4#FR#8003373#FT#1113#TO#8003367#TT#1152#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "SBAHN",
+       "kategorie": "DBS",
+       "linienNummer": "S6",
+       "name": "S6",
+       "nummer": "S6",
+       "richtung": "Köln-Dellbrück",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "DB Regio AG NRW"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited",
+         "teilstreckenHinweis": "(Köln Hbf - Köln Messe/Deutz)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "EH",
+         "value": "Wheelchair boarding: station/train staff-assisted, registration rec.",
+         "teilstreckenHinweis": "(Köln Hbf - Köln Messe/Deutz)"
+        }
+       ],
+       "kurzText": "S",
+       "mittelText": "S6",
+       "langText": "S6"
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdOrigin": "3329",
+      "externeBahnhofsinfoIdDestination": "3329",
+      "abfahrtsOrt": "Köln Messe/Deutz",
+      "startHalt": {
+       "extId": "8003368",
+       "name": "Köln Messe/Deutz",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T11:39:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8073368",
+       "name": "Köln Messe/Deutz Gl.11-12",
+       "ankunft": {
+        "sollzeit": "2026-11-20T11:46:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8003368",
+      "abschnittsDauer": 420,
+      "abschnittsAnteil": 2.4,
+      "ankunftsOrt": "Köln Messe/Deutz Gl.11-12",
+      "ankunftsOrtExtId": "8073368",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 0
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 0
+       }
+      ],
+      "distanz": 115,
+      "abfahrt": {
+       "sollzeit": "2026-11-20T11:39:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T11:46:00"
+      },
+      "halte": [],
+      "idx": 1,
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "name": "Walk",
+       "typ": "WALK",
+       "zugattribute": []
+      }
+     },
+     {
+      "risNotizen": [],
+      "himMeldungen": [],
+      "priorisierteMeldungen": [],
+      "externeBahnhofsinfoIdOrigin": "3329",
+      "externeBahnhofsinfoIdDestination": "4234",
+      "abfahrtsOrt": "Köln Messe/Deutz Gl.11-12",
+      "startHalt": {
+       "extId": "8073368",
+       "name": "Köln Messe/Deutz Gl.11-12",
+       "abfahrt": {
+        "sollzeit": "2026-11-20T11:46:00"
+       }
+      },
+      "zielHalt": {
+       "extId": "8000261",
+       "name": "München Hbf",
+       "ankunft": {
+        "sollzeit": "2026-11-20T16:29:00"
+       }
+      },
+      "destinationCancelled": false,
+      "originCancelled": false,
+      "abfahrtsOrtExtId": "8073368",
+      "abschnittsDauer": 16980,
+      "abschnittsAnteil": 96.92,
+      "ankunftsOrt": "München Hbf",
+      "ankunftsOrtExtId": "8000261",
+      "auslastungsmeldungen": [
+       {
+        "klasse": "KLASSE_1",
+        "stufe": 3
+       },
+       {
+        "klasse": "KLASSE_2",
+        "stufe": 3
+       }
+      ],
+      "abfahrt": {
+       "sollzeit": "2026-11-20T11:46:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-11-20T16:29:00"
+      },
+      "halte": [
+       {
+        "id": "A=1@O=Köln Messe/Deutz Gl.11-12@X=6974065@Y=50941717@U=80@L=8073368@i=U×008015032@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T11:46:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "gleis": "11",
+        "haltTyp": "PL",
+        "name": "Köln Messe/Deutz Gl.11-12",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3329",
+        "extId": "8073368",
+        "adminID": "80",
+        "routeIdx": 11,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Frankfurt(M) Flughafen Fernbf@X=8570181@Y=50053169@U=80@L=8070003@i=U×008061676@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T12:51:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T12:49:00"
+        },
+        "gleis": "Fern 5",
+        "haltTyp": "PL",
+        "name": "Frankfurt(M) Flughafen Fernbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "7982",
+        "extId": "8070003",
+        "adminID": "80",
+        "routeIdx": 12,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Mannheim Hbf@X=8468917@Y=49479352@U=80@L=8000244@i=U×008014008@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T13:33:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T13:25:00"
+        },
+        "gleis": "5",
+        "haltTyp": "PL",
+        "name": "Mannheim Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "3925",
+        "extId": "8000244",
+        "adminID": "80",
+        "routeIdx": 13,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Stuttgart Hbf@X=9182760@Y=48784782@U=80@L=8000096@i=U×008029034@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 3
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T14:17:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T14:11:00"
+        },
+        "gleis": "15",
+        "haltTyp": "PL",
+        "name": "Stuttgart Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "6071",
+        "extId": "8000096",
+        "adminID": "80",
+        "routeIdx": 14,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Ulm Hbf@X=9982611@Y=48399397@U=80@L=8000170@i=U×008029103@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 3
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:15:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:13:00"
+        },
+        "gleis": "2",
+        "haltTyp": "PL",
+        "name": "Ulm Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "6323",
+        "extId": "8000170",
+        "adminID": "80",
+        "routeIdx": 15,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=Augsburg Hbf@X=10885568@Y=48365444@U=80@L=8000013@i=U×008002140@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 2
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 2
+         }
+        ],
+        "abfahrt": {
+         "sollzeit": "2026-11-20T15:58:00"
+        },
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T15:56:00"
+        },
+        "gleis": "4",
+        "haltTyp": "PL",
+        "name": "Augsburg Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "0220",
+        "extId": "8000013",
+        "adminID": "80",
+        "routeIdx": 16,
+        "priorisierteMeldungen": []
+       },
+       {
+        "id": "A=1@O=München Hbf@X=11558339@Y=48140229@U=80@L=8000261@i=U×008020347@",
+        "auslastungsmeldungen": [
+         {
+          "klasse": "KLASSE_1",
+          "stufe": 0
+         },
+         {
+          "klasse": "KLASSE_2",
+          "stufe": 0
+         }
+        ],
+        "additional": false,
+        "cancelled": false,
+        "cancelledArrival": false,
+        "cancelledDeparture": false,
+        "ankunft": {
+         "sollzeit": "2026-11-20T16:29:00"
+        },
+        "gleis": "13",
+        "haltTyp": "PL",
+        "name": "München Hbf",
+        "risNotizen": [],
+        "bahnhofsInfoId": "4234",
+        "extId": "8000261",
+        "adminID": "80",
+        "routeIdx": 17,
+        "priorisierteMeldungen": []
+       }
+      ],
+      "idx": 2,
+      "journeyId": "2|#VN#1#ST#1793814919#PI#0#ZI#175520#TA#0#DA#201126#1S#8002553#1T#726#LS#8000261#LT#1629#PU#80#RT#1#CA#ICE#ZE#517#ZB#ICE           517#PC#0#FR#8002553#FT#726#TO#8000261#TT#1629#",
+      "samePlatform": false,
+      "verkehrsmittel": {
+       "produktGattung": "ICE",
+       "kategorie": "ICE",
+       "name": "ICE 517",
+       "nummer": "517",
+       "richtung": "München Hbf",
+       "typ": "PUBLICTRANSPORT",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "DB Fernverkehr AG"
+        },
+        {
+         "kategorie": "BORDBISTRO",
+         "key": "BR",
+         "value": "Bordrestaurant",
+         "teilstreckenHinweis": "(Köln Messe/Deutz Gl.11-12 - München Hbf)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FR",
+         "value": "Bicycles conveyed - subject to reservation",
+         "teilstreckenHinweis": "(Köln Messe/Deutz Gl.11-12 - München Hbf)"
+        },
+        {
+         "kategorie": "FAHRRADMITNAHME",
+         "key": "FB",
+         "value": "Number of bicycles conveyed limited",
+         "teilstreckenHinweis": "(Köln Messe/Deutz Gl.11-12 - München Hbf)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "CK",
+         "value": "Komfort Check-in possible (visit bahn.de/kci for more information)",
+         "teilstreckenHinweis": "(Köln Messe/Deutz Gl.11-12 - München Hbf)"
+        },
+        {
+         "kategorie": "INFORMATION",
+         "key": "EH",
+         "value": "Wheelchair boarding: station/train staff-assisted, registration rec.",
+         "teilstreckenHinweis": "(Köln Messe/Deutz Gl.11-12 - München Hbf)"
+        }
+       ],
+       "kurzText": "ICE",
+       "mittelText": "ICE 517",
+       "langText": "ICE 517"
+      }
+     }
+    ],
+    "umstiegsAnzahl": 1,
+    "verbindungsDauerInSeconds": 17520,
+    "isAlternativeVerbindung": false,
+    "auslastungsmeldungen": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3
+     }
+    ],
+    "auslastungstexte": [
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 0,
+      "kurzText": "No occupancy information available"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 1,
+      "kurzText": "Low demand expected"
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 2,
+      "anzeigeText": "We expect medium demand for your journey. Reserve the seat of your choice now.",
+      "kurzText": "Medium demand expected",
+      "langText": "We expect medium demand for your journey. Reserve the seat of your choice now."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 3,
+      "anzeigeText": "We expect high demand for your journey. We recommend reserving a seat.",
+      "kurzText": "High demand expected",
+      "langText": "We expect high demand for your journey. We recommend reserving a seat."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 1st class. Passengers who have not yet purchased a ticket should choose a different connection or book a 2nd."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 4,
+      "anzeigeText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect an exceptionally high occupancy in the course of your trip in 2nd class. Passengers who have not yet purchased a ticket should choose a different connection or book a 1st."
+     },
+     {
+      "klasse": "KLASSE_1",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     },
+     {
+      "klasse": "KLASSE_2",
+      "stufe": 99,
+      "anzeigeText": "We expect exceptionally high demand for your journey.",
+      "kurzText": "Exceptionally high demand expected",
+      "langText": "We expect exceptionally high demand for your journey. Passengers who have not yet purchased a ticket should choose another connection."
+     }
+    ],
+    "risNotizen": [],
+    "priorisierteMeldungen": [],
+    "reservierungsMeldungen": [],
+    "isAngebotseinholungNachgelagert": false,
+    "isAlterseingabeErforderlich": false,
+    "serviceDays": [
+     {
+      "lastDateInPeriod": "2026-12-12",
+      "regular": "not every day",
+      "irregular": "6. Nov until 12. Dec 2026; not 23. Nov until 2. Dec 2026",
+      "planningPeriodBegin": "2025-12-14",
+      "planningPeriodEnd": "2027-12-11",
+      "weekdays": [
+       "FR",
+       "SA",
+       "SO"
+      ]
+     }
+    ],
+    "angebotsPreis": {
+     "betrag": 93.69,
+     "waehrung": "EUR",
+     "mwst": []
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "abPreisInfo": {
+     "streichpreis": {
+      "betrag": 123.69,
+      "waehrung": "EUR",
+      "mwst": []
+     }
+    },
+    "hasTeilpreis": false,
+    "reiseAngebote": [],
+    "hinRueckPauschalpreis": false,
+    "isReservierungAusserhalbVorverkaufszeitraum": false,
+    "gesamtAngebotsbeziehungList": []
+   }
+  ],
+  "verbindungReference": {
+   "earlier": "3|OB|MTµ14µ494574µ494573µ494834µ494909µ0µ0µ485µ494519µ1µ0µ8µ0µ0µ-2147483648µ1µ2|PDHµ24d891fe962c9a3b2b58a0a9f8038471|RDµ20112026|RTµ100200|USµ0|RSµINIT",
+   "later": "3|OF|MTµ14µ494694µ494694µ494956µ494956µ0µ0µ485µ494618µ7µ0µ18µ0µ0µ-2147483648µ1µ2|PDHµ24d891fe962c9a3b2b58a0a9f8038471|RDµ20112026|RTµ100200|USµ0|RSµINIT"
+  }
+ }
+}
