@@ -234,6 +234,7 @@ limited to 5 MB.
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/trips/{id}/captures` | The captures of a trip, with the action "reparse capture" (see below) |
 | `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
+| `/settings` | The capture retention period: the number of days that the raw captures are kept (see below) |
 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
@@ -303,11 +304,32 @@ shows the number of captured offers.
 The parser reads the fare name with its class and its BahnCard discount. It gives each station its own timezone. A
 connection with no price goes to the errors of the capture and is not stored as an offer.
 
+### NS International userscript
+
+The NS International userscript captures the search results of nsinternational.com: the connections, their times and
+their fares. It reads only the responses that the nsinternational.com page itself gets. It sends no request to
+nsinternational.com.
+
+To install it, add the file `userscripts/ns.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On nsinternational.com, search for a connection.
+The panel shows the number of captured offers.
+
+The parser reads the fare name with its flexibility level. It gives each station its own timezone. A connection that
+the parser cannot read goes to the errors of the capture and is not stored as an offer.
+
 ### Reparse a capture
 
 Open `/trips/{id}/captures` and press "reparse capture" on a capture. The app runs the current parser on the stored raw
 data of that capture and shows how many offers it read. Use this after the parser of a source is fixed. The button
 does not send a request to the travel site. A capture with no raw data, or a source with no parser, cannot be reparsed.
+
+### Capture retention
+
+A capture is the raw data that the userscript sent to the server. The app keeps each capture for a number of days.
+Open `/settings` to set the retention period. The default is 90 days. Enter `0` to keep all captures. The maximum is
+3650 days. Each ingest deletes the captures that are older than the period. The offers and their price history stay.
+
+A deleted capture cannot be reparsed (see above). Set a longer period before you need to reparse an old capture.
 
 ## Ranking
 

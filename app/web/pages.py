@@ -22,7 +22,7 @@ from app.db import get_session
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.history import chart
-from app.risk import mode_extras, self_transfer_extras, transfer_extras
+from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.models import AccessTime, ApiToken, Itinerary, ScoreProfile, Setting, Trip
@@ -213,6 +213,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               flex_flexible: Decimal | None = Query(None, ge=-1000, le=1000),
               self_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
               stale_hours: int | None = Query(None, ge=1, le=720),
+              stale_penalty: Decimal | None = Query(None, ge=0, le=1000),
               sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
               dir: str = Query("asc", pattern="^(asc|desc)$"),
               mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
@@ -224,12 +225,17 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               earliest_depart: str = Query("", pattern=CLOCK_PATTERN), latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
-              show_hidden: bool = Query(False), hide_stale: bool = Query(False)) -> HTMLResponse:
+              show_hidden: bool = Query(False), hide_stale: bool = Query(False),
+              profile: int | None = Query(None)) -> HTMLResponse:
     # the weights of the URL; None = not in the URL, the default profile gives the value (#230)
     overrides = {k: v for k, v in locals().items() if k in WEIGHT_NAMES}
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    # the profile of the URL wins over the default one; an unknown id gives the default profile (#231)
+    chosen = session.get(ScoreProfile, profile) if profile is not None else None
+    profiles = list_profiles(session)
+    active_id = chosen.id if chosen is not None else next((p.id for p in profiles if p.is_default), None)
     # an empty box of the form is no limit (#180); a number is capped to its range
     limit_transfers = min(int(max_transfers), 10) if max_transfers.isdigit() else None
     limit_duration = min(int(max_duration_min), 10080) if max_duration_min.isdigit() else None
@@ -241,7 +247,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, *hidden_filter)
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
-    weights = active_weights(default_weights(session), overrides)  # the score is computed here and never stored
+    base = from_config(chosen.config_json) if chosen is not None else default_weights(session)
+    weights = active_weights(base, overrides)  # the score is computed here and never stored
     now = datetime.now(timezone.utc)
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
     rows, modes, sources, carriers = [], set(), set(), set()
@@ -266,7 +273,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # "hide stale" hides a row whose newest capture is stale (#277)
         base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
                 + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
-                + transfer_extras(it, weights))
+                + transfer_extras(it, weights) + stale_extras(it, weights, stale_before))
         # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
         fare, cost = min(((f, effective_cost(f.latest_price, it.duration_min, it.transfers, weights,
                                              base + flexibility_extras(f, weights) + self_transfer_extras(f, weights)))
@@ -298,8 +305,10 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
     if hide_stale:
         query["hide_stale"] = True  # the sort links keep it (#277)
+    if chosen is not None:
+        query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
-               "now": now, "stale_before": stale_before}
+               "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     return templates.TemplateResponse(request, "trip.html", context)
@@ -347,6 +356,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       flex_flexible: Decimal = Form(Weights.flex_flexible, ge=-1000, le=1000),
                       self_transfer_penalty: Decimal = Form(Weights.self_transfer_penalty, ge=0, le=1000),
                       stale_hours: int = Form(Weights.stale_hours, ge=1, le=720),
+                      stale_penalty: Decimal = Form(Weights.stale_penalty, ge=0, le=1000),
                       session: Session = Depends(get_session)) -> RedirectResponse:
     """Store the present weights of the trip page as a named profile (#229); the same ranges as `trip_page`."""
     if session.get(Trip, trip_id) is None:
@@ -360,7 +370,8 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
                       ferry_markup=ferry_markup, flex_non_refundable=flex_non_refundable,
                       flex_partly_refundable=flex_partly_refundable, flex_flexible=flex_flexible,
-                      self_transfer_penalty=self_transfer_penalty, stale_hours=stale_hours)
+                      self_transfer_penalty=self_transfer_penalty, stale_hours=stale_hours,
+                      stale_penalty=stale_penalty)
     save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
