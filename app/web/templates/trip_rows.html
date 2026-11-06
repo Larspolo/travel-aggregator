@@ -44,7 +44,7 @@
         {% endfor %}
         </ol>
         <ul class="fares">
-        {% for f in it.fares | sort(attribute="latest_price") %}
+        {% for f in it.fares | by_eur(rates) %}
           <li>{{ f.source }}: {{ f.fare_name or "" }} {{ f.currency }} {{ "%.2f" | format(f.latest_price) }}
             {% if f.booking_url %}<a href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">Book</a>{% endif %}</li>
         {% endfor %}

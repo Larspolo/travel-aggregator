@@ -7,6 +7,7 @@ from decimal import Decimal
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
+from app.currency import load_rates, to_eur
 from app.models import Fare, Itinerary
 
 
@@ -38,7 +39,10 @@ def trip_drops(session: Session, trip_id: int) -> list[Drop]:
 
 
 def drops_by_trip(session: Session) -> dict[int, tuple[str, Decimal]]:
-    """The largest price drop of each trip (trip id to currency and amount), for the trips list (#356)."""
+    """The largest price drop of each trip (trip id to currency and amount), for the trips list (#356).
+
+    The largest is the one with the largest EUR value (#425); a drop with no rate comes after the others."""
+    rates = load_rates(session)
     amount = func.max(Fare.seen_price - Fare.latest_price)
     rows = session.execute(
         select(Itinerary.trip_id, Fare.currency, amount.label("amount"))
@@ -48,8 +52,13 @@ def drops_by_trip(session: Session) -> dict[int, tuple[str, Decimal]]:
         .group_by(Itinerary.trip_id, Fare.currency)
         .order_by(Itinerary.trip_id, amount.desc(), Fare.currency)).all()
     result: dict[int, tuple[str, Decimal]] = {}
-    for trip_id, currency, drop in rows:
-        result.setdefault(trip_id, (currency, drop))  # the first row of a trip is its largest drop
+    best: dict[int, tuple[bool, Decimal, Decimal]] = {}
+    for trip_id, currency, drop in rows:  # one row per trip and currency: its largest drop in that currency
+        eur = to_eur(drop, currency, rates)
+        key = (eur is not None, eur if eur is not None else Decimal(0), drop)
+        if trip_id not in best or key > best[trip_id]:
+            best[trip_id] = key
+            result[trip_id] = (currency, drop)
     return result
 
 
