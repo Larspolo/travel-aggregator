@@ -131,6 +131,15 @@ def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None]:
     return result.offers, result.errors, None
 
 
+def set_result(capture: Capture, counts: dict, errors: list[dict], unreadable: str | None) -> None:
+    """Keep the result of the last parse on the capture (#346): the counts, the first 50 errors (index and short
+    reason only, P5) and the reason of an unreadable payload."""
+    capture.offer_count = counts["created"] + counts["updated"] + counts["unchanged"]
+    capture.rejected_count = len(errors)
+    capture.errors_json = [{"index": e.get("index"), "reason": str(e.get("reason", ""))[:200]} for e in errors[:50]]
+    capture.unreadable = unreadable
+
+
 def reparse(session: Session, capture: Capture) -> dict | None:
     """Run the current parser of the source again on the stored raw of the capture (after a parser fix), and upsert
     its offers with the capture id and time. None when the capture has no raw or the source has no parser. Returns
@@ -142,9 +151,14 @@ def reparse(session: Session, capture: Capture) -> dict | None:
         result = parser.parse(raw)
     except ValueError as e:
         log.warning("capture %s: reparse of %s raw payload failed: %s", capture.id, capture.source, e)
-        return {"created": 0, "updated": 0, "unchanged": 0, "rejected": 0, "unreadable": str(e)[:200]}
+        counts = {"created": 0, "updated": 0, "unchanged": 0}
+        set_result(capture, counts, [], str(e)[:200])
+        session.commit()
+        return {**counts, "rejected": 0, "unreadable": str(e)[:200]}
     counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
                            captured_at=capture.captured_at)
+    set_result(capture, counts, result.errors, None)
+    session.commit()
     return {**counts, "rejected": len(result.errors), "unreadable": None}
 
 
@@ -166,6 +180,7 @@ def store(session: Session, body: IngestIn) -> dict:
                     body.parser_version or "-", err.get("index"), err.get("reason"))
     counts = upsert_offers(session, body.trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at)
+    set_result(capture, counts, errors, unreadable)
     delete_old_captures(session, retention_days(session), datetime.now(UTC))
     session.commit()
     return {**counts, "rejected": len(errors), "errors": errors}

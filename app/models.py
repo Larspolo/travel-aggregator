@@ -128,6 +128,11 @@ class Capture(Base):
     search_context_json: Mapped[dict | None] = mapped_column(JSON)
     raw_gz: Mapped[bytes | None] = mapped_column(LargeBinary)
     captured_at: Mapped[datetime] = mapped_column(_tz())
+    # The result of the last parse (#346); NULL for the captures before 0010.
+    offer_count: Mapped[int | None] = mapped_column(Integer)
+    rejected_count: Mapped[int | None] = mapped_column(Integer)
+    errors_json: Mapped[list | None] = mapped_column(JSON)
+    unreadable: Mapped[str | None] = mapped_column(String(200))
 
 
 class ApiToken(Base):

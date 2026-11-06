@@ -86,7 +86,7 @@ def test_migration_0009_up_and_down(empty_database_url):
     engine = create_engine(empty_database_url)
     try:
         assert "profile_id" in {c["name"] for c in inspect(engine).get_columns("trips")}
-        command.downgrade(cfg, "-1")
+        command.downgrade(cfg, "0008")
         assert "profile_id" not in {c["name"] for c in inspect(engine).get_columns("trips")}
         command.upgrade(cfg, "head")
     finally:
