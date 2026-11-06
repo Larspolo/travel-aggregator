@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Exchange rates – travel-aggregator{% endblock %}
+{% block content %}
+<h1>Exchange rates</h1>
+<p><a href="/">Trips</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a></p>
+<p class="muted">The value in EUR of one unit of a currency. A save of an existing code changes its rate.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" action="/rates">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <label>Code <input name="code" required maxlength="3" pattern="[A-Za-z]{3}" placeholder="CHF"></label>
+  <label>Rate (€) <input name="rate" required inputmode="decimal" placeholder="1.07"></label>
+  <button type="submit">Save rate</button>
+</form>
+{% if rates %}
+<table>
+  <thead><tr><th>Rate</th><th>Updated</th><th></th></tr></thead>
+  <tbody>
+  {% for r in rates %}
+  <tr>
+    <td>1 {{ r.code }} = €{{ "{:f}".format(r.eur_per_unit.normalize()) }}</td>
+    <td>{{ r.updated_at.strftime("%Y-%m-%d %H:%M") }} UTC</td>
+    <td><form method="post" action="/rates/{{ r.code }}/delete">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button type="submit">Delete</button>
+    </form></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>You have no exchange rates.</p>
+{% endif %}
+{% endblock %}
