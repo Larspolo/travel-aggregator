@@ -1,4 +1,4 @@
-"""The web pages: login, logout, the trips list and the trip page. Jinja2 escapes all output: captured text is
+"""The web pages: login, logout, the trips list, the trip page and the API tokens. Jinja2 escapes all output: captured text is
 untrusted (P5)."""
 
 from datetime import datetime, timedelta, timezone
@@ -15,9 +15,10 @@ from sqlalchemy.orm import Session, selectinload
 from app.auth import SESSION_KEY, check_password, csrf_token, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
-from app.models import Itinerary, Trip
+from app.models import ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
+from app.tokens import create as create_token, revoke as revoke_token
 from app.trips import list_trips
 
 router = APIRouter()
@@ -136,3 +137,30 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_rows.html", context)
     return templates.TemplateResponse(request, "trip.html", context)
+
+
+def _tokens_page(request: Request, session: Session, new_token: str | None = None, code: int = 200) -> HTMLResponse:
+    tokens = session.scalars(select(ApiToken).order_by(ApiToken.created_at.desc(), ApiToken.id.desc())).all()
+    server_url = str(request.base_url).rstrip("/")
+    return templates.TemplateResponse(request, "tokens.html", {"tokens": tokens, "new_token": new_token,
+                                                               "server_url": server_url}, status_code=code)
+
+
+@router.get("/tokens", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def tokens_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return _tokens_page(request, session)
+
+
+@router.post("/tokens", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
+def new_token(request: Request, name: str = Form(""), session: Session = Depends(get_session)) -> HTMLResponse:
+    name = name.strip()[:100]
+    if not name:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "a token needs a name")
+    # The value shows only in this response; the database keeps only its hash (P5).
+    return _tokens_page(request, session, create_token(session, name))
+
+
+@router.post("/tokens/{token_id}/revoke", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def revoke(token_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    revoke_token(session, token_id)
+    return RedirectResponse("/tokens", status_code=303)
