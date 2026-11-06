@@ -22,7 +22,9 @@ plan (the `new-project` skill writes it). Do not plan work that needs a resource
 ticket for it.
 
 - Computers: macOS, Windows and Linux, each with Docker. The development server (`/try`) must work on all three.
-- A home server with Docker, behind the owner's reverse proxy (Caddy or nginx) with HTTPS.
+- A server with Docker and Traefik (external network `proxy`, HTTPS). It runs the preview at
+  `https://travel-preview.larspolo.nl` (`deploy/preview/`): Traefik basic auth on the pages until the login exists,
+  none on `/api`. The agents cannot reach it (the network allows only `github.com`): they check in CI.
 - A browser with Tampermonkey: the owner installs the userscripts and captures real payloads for the fixtures.
 - A phone for the mobile layout: the owner tests on it only after a feature works on a computer.
 - Budget: free only. A service with a cost (mail, push, hosting) gets a decision ticket.

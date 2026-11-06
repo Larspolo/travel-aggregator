@@ -50,10 +50,12 @@ other areas the agents decide, and ask only when two options are equally good.
 
 How the owner tries a new feature. The agents make what this needs for each feature or epic.
 
-- Development server: `dev` in `[commands]` of `agent.toml` (`docker compose up --build`) starts the app on the
-  owner's computer (macOS, Windows or Linux). The owner types `/try` in a local session.
+- Preview server: each green merge to `main` becomes the image `:preview`, and `https://travel-preview.larspolo.nl`
+  (the owner's server: Traefik, a scoped watchtower, its own database with test data) runs it within 5 minutes
+  (`deploy/preview/`, `.github/workflows/preview.yml`). The owner types `/try` in a local session: it lists what is
+  new, with the steps to try it on the preview. `dev` in `[commands]` stays for a run on the owner's computer.
 - Screenshots in each PR: each PR that changes a page has screenshots at desktop width (1280 px) and phone width
   (390 px), as an artifact of the CI job, with a description in the PR body (the REST API cannot upload images).
-- A release image per epic: each closed epic makes a tagged Docker image on GHCR that the owner pulls on the home
-  server (`host:deploy`).
+- A release image per epic: each closed epic makes a tagged Docker image on GHCR and moves `:latest`; the owner's
+  real instance with the real data follows `:latest` (`host:deploy`). The preview never uses the real data.
 - The owner tests on a phone or a tablet only after a feature works on a computer.

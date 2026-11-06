@@ -1,0 +1,65 @@
+# The preview of travel-aggregator at travel-preview.larspolo.nl: the newest green main, with its own database
+# (test data only: reset it at any time). Settings and secrets live in .env (copy .env.example; never commit .env).
+# The real instance with the owner's data follows :latest, which moves only when an epic closes (host:deploy).
+# The names of the variables are a contract: the app reads DATABASE_URL, SECRET_KEY and GIT_SHA (capture:skeleton).
+networks:
+  proxy:
+    external: true
+
+services:
+  app:
+    image: ghcr.io/larspolo/travel-aggregator:preview
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - proxy
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      # The pages: Traefik basic auth until the app has its own login (trip:list).
+      - traefik.http.routers.travel-preview.rule=Host(`travel-preview.larspolo.nl`)
+      - traefik.http.routers.travel-preview.middlewares=travel-preview-auth
+      - traefik.http.routers.travel-preview.service=travel-preview
+      - traefik.http.middlewares.travel-preview-auth.basicauth.users=${TRAVEL_AUTH_USERS:?set TRAVEL_AUTH_USERS in .env}
+      # The API: no basic auth, because the userscript sends its own "Authorization: Bearer" token. The longer rule wins.
+      - traefik.http.routers.travel-preview-api.rule=Host(`travel-preview.larspolo.nl`) && PathPrefix(`/api`)
+      - traefik.http.routers.travel-preview-api.service=travel-preview
+      - traefik.http.services.travel-preview.loadbalancer.server.port=8000
+      # Updated by the updater below, not by the global watchtower.
+      - com.centurylinklabs.watchtower.scope=travel-preview
+
+  # Only on the default network: the other services of the proxy network cannot reach it.
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 10
+    labels:
+      # The updater installs the patch releases of PostgreSQL 16 (never a new major version).
+      - com.centurylinklabs.watchtower.scope=travel-preview
+
+  # Polls the registry every 5 minutes and restarts `app` on a new image. Scoped, so it and the global
+  # watchtower leave each other's containers alone.
+  updater:
+    image: nickfedor/watchtower:latest
+    restart: unless-stopped
+    environment:
+      WATCHTOWER_SCOPE: travel-preview
+      WATCHTOWER_POLL_INTERVAL: "300"
+      WATCHTOWER_CLEANUP: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - com.centurylinklabs.watchtower.scope=travel-preview
+
+volumes:
+  db:

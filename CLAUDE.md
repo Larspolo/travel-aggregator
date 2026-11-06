@@ -32,7 +32,8 @@ Playwright uses the browser at `/opt/pw-browsers/chromium`: do not run `playwrig
 - `migrations/` – Alembic. They run at the start of the container.
 - `userscripts/` – `core.js` (panel, queue, config, `GM_xmlhttpRequest`) and one `<source>.user.js` per site.
 - `tests/` – pytest; `tests/fixtures/<source>/` holds trimmed raw payloads.
-- `deploy/` – Caddy and nginx examples. `Dockerfile`, `docker-compose.yml`, `.env.example`, `Makefile` at the root.
+- `deploy/` – `preview/` (the owner's preview server: Traefik, watchtower, its own database), Caddy and nginx
+  examples. `Dockerfile` (with `ARG GIT_SHA`), `docker-compose.yml`, `.env.example`, `Makefile` at the root.
 
 A new source is one userscript and one server parser, with its fixtures, and nothing else.
 
@@ -44,6 +45,9 @@ A new source is one userscript and one server parser, with its fixtures, and not
   `steering/project/PRINCIPLES.md`.
 - All times are timezone-aware: store UTC and the original offset. Money is `Decimal`, never `float`.
 - The score is computed at query time from the active profile; derived values (duration, transfers) at ingest.
+- Each merge goes live: a green `main` becomes the image `:preview` at `travel-preview.larspolo.nl` within 5 minutes
+  (`deploy/preview/`). Its migrations run with no person in the loop: each migration needs a working `downgrade`,
+  and one that drops or changes data says so in the PR. Keep the variable names of `deploy/preview/.env.example`.
 
 @framework/CLAUDE.md
 @docs/LEARNINGS.md

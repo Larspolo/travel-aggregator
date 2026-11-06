@@ -10,6 +10,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [ ] `capture:skeleton` Walking skeleton: `docker compose up` (app + db), Alembic migrations at start, an API token, `POST /api/ingest` with normalized offers, the offers in a list on the trip page
   - `docker compose up` starts `app` and `db`, and `GET /api/health` answers "ok"
   - A POST with a valid token shows its offers on the trip page; a request with a bad token gets 401
+  - Each green CI on `main` pushes the image `:preview` (`.github/workflows/preview.yml`), and `travel-preview.larspolo.nl` runs it within 5 minutes (`deploy/preview/`); `/api/health` shows its commit (`GIT_SHA`)
 - [ ] `capture:upsert` Idempotent upsert by itinerary fingerprint, price history, the raw capture stored compressed, the counts in the response
   - The same itinerary sent twice gives 1 itinerary and 2 price rows
   - One bad offer is rejected and the other offers of the batch are stored (`{created, updated, unchanged, rejected, errors[]}`)
@@ -64,8 +65,9 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 
 ## 4. Run it on my home server
 
-- [ ] `host:deploy` Production setup: multi-stage image with a non-root user, healthcheck, `.env.example`, configurable port, Caddy and nginx examples; a tagged Docker image on GHCR at the end of each epic
-  - The owner pulls the image of the newest epic and runs it behind the reverse proxy with HTTPS
+- [ ] `host:deploy` Production setup: multi-stage image with a non-root user, healthcheck, `.env.example`, configurable port, Caddy, nginx and Traefik examples; at the end of each epic a tagged Docker image on GHCR and the tag `:latest`
+  - The owner's real instance follows `:latest` (it moves only when an epic closes) behind the reverse proxy with HTTPS
+  - A migration that drops or changes data makes a backup first
 - [ ] `host:backup` `pg_dump` backup and restore, a `Makefile` (up, down, logs, test, migrate, backup)
   - A restore of a backup gives back all trips and the price history
 - [ ] `host:retention` Cleanup of raw captures after the retention period, with the setting in the UI
