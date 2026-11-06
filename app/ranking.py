@@ -44,3 +44,22 @@ def effective_cost(price: Decimal, duration_min: int, transfers: int, weights: W
     time_part = _cents(Decimal(duration_min) * weights.hour_markup / 60)  # multiply first: exact halves
     transfer_part = _cents(Decimal(transfers) * weights.transfer_markup)
     return Breakdown(price_part, time_part, transfer_part, price_part + time_part + transfer_part)
+
+
+def _amount(value: Decimal) -> str:
+    """Whole euros without decimals, otherwise two cent digits."""
+    if value == value.to_integral_value():
+        return f"€{int(value)}"
+    return f"€{value:.2f}"
+
+
+def format_breakdown(b: Breakdown) -> str:
+    """Give the breakdown as short plain text, e.g. '€90 price + €62 time + €30 transfers = €182'.
+
+    A part that is 0 is left out. The text is plain: the template escapes it (P5).
+    """
+    labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost))
+    parts = [f"{_amount(value)} {label}" for label, value in labels if value != 0]
+    if not parts:
+        return _amount(b.total)
+    return f"{' + '.join(parts)} = {_amount(b.total)}"

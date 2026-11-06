@@ -2,21 +2,15 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
 
 from app.auth import check_password, make_password_hash
 from app.main import app
-from app.models import Base
 
 PASSWORD = "correct horse"
 
 
 @pytest.fixture
-def client(monkeypatch, empty_database_url):
-    engine = create_engine(empty_database_url)
-    Base.metadata.create_all(engine)
-    engine.dispose()
-    monkeypatch.setenv("DATABASE_URL", empty_database_url)
+def client(monkeypatch, sessions):
     monkeypatch.setenv("OWNER_PASSWORD_HASH", make_password_hash(PASSWORD, iterations=1000))
     return TestClient(app)
 

@@ -25,13 +25,13 @@ def make_sessionmaker(engine: Engine) -> sessionmaker[Session]:
     return sessionmaker(bind=engine, expire_on_commit=False)
 
 
-_sessionmakers: dict[str, sessionmaker[Session]] = {}
+_sessions: sessionmaker[Session] | None = None
 
 
-def get_db() -> Iterator[Session]:
-    """A FastAPI dependency: one session per request, with one engine per database URL."""
-    url = get_settings().database_url
-    if url not in _sessionmakers:
-        _sessionmakers[url] = make_sessionmaker(make_engine(url))
-    with _sessionmakers[url]() as session:
+def get_session() -> Iterator[Session]:
+    """FastAPI dependency: one session per request, from DATABASE_URL (the tests override it)."""
+    global _sessions
+    if _sessions is None:
+        _sessions = make_sessionmaker(make_engine())
+    with _sessions() as session:
         yield session

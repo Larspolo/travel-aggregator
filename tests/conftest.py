@@ -62,3 +62,35 @@ def empty_database_url(postgres_url):
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)'))
         admin.dispose()
+
+
+@pytest.fixture
+def migrated_url(empty_database_url):
+    """An empty database with all migrations."""
+    from alembic import command
+    from alembic.config import Config
+
+    cfg = Config("alembic.ini")
+    cfg.set_main_option("sqlalchemy.url", empty_database_url)
+    cfg.attributes["configure_logger"] = False
+    command.upgrade(cfg, "head")
+    return empty_database_url
+
+
+@pytest.fixture
+def sessions(migrated_url):
+    """The sessionmaker of a migrated database; the app uses it for its requests in this test."""
+    from app.db import get_session, make_engine, make_sessionmaker
+    from app.main import app
+
+    engine = make_engine(migrated_url)
+    maker = make_sessionmaker(engine)
+
+    def override():
+        with maker() as s:
+            yield s
+
+    app.dependency_overrides[get_session] = override
+    yield maker
+    app.dependency_overrides.pop(get_session, None)
+    engine.dispose()

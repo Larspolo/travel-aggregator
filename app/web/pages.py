@@ -1,19 +1,31 @@
-"""The web pages: login, logout and the trips list."""
+"""The web pages: login, logout, the trips list and the trip page. Jinja2 escapes all output: captured text is
+untrusted (P5)."""
 
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.orm import Session, selectinload
 
 from app.auth import SESSION_KEY, check_password, require_login
 from app.config import get_settings
-from app.db import get_db
+from app.db import get_session
+from app.models import Itinerary, Trip
 from app.trips import list_trips
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+
+
+def local(t: datetime, offset_min: int) -> datetime:
+    """The time as the travel site showed it: UTC back to its original offset."""
+    return t.astimezone(timezone(timedelta(minutes=offset_min)))
+
+
+templates.env.filters["local"] = local
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -37,5 +49,17 @@ def logout(request: Request) -> RedirectResponse:
 
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def index(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
-    return templates.TemplateResponse(request, "trips.html", {"trips": list_trips(db)})
+def index(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return templates.TemplateResponse(request, "trips.html", {"trips": list_trips(session)})
+
+
+@router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+    trip = session.get(Trip, trip_id)
+    if trip is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
+    itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
+                                  .options(selectinload(Itinerary.legs), selectinload(Itinerary.fares))).all()
+    rows = [(it, min(it.fares, key=lambda f: f.latest_price)) for it in itineraries if it.fares]
+    rows.sort(key=lambda r: (r[1].latest_price, r[0].depart_at))   # ranking comes with rank:base
+    return templates.TemplateResponse(request, "trip.html", {"trip": trip, "rows": rows})

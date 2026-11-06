@@ -5,12 +5,12 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
+from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 from app.auth import make_password_hash
 from app.main import app
-from app.models import Base, Fare, Itinerary, Trip
+from app.models import Fare, Itinerary, Trip
 from app.trips import list_trips
 
 PASSWORD = "pw"
@@ -18,11 +18,8 @@ T = datetime(2026, 12, 1, 8, 0, tzinfo=timezone.utc)
 
 
 @pytest.fixture
-def engine(empty_database_url):
-    engine = create_engine(empty_database_url)
-    Base.metadata.create_all(engine)
-    yield engine
-    engine.dispose()
+def engine(sessions):
+    return sessions.kw["bind"]
 
 
 def _offer(trip: Trip, fp: str, *prices: str) -> Itinerary:
@@ -56,23 +53,22 @@ def test_query_one_statement(engine):
     assert empty.offer_count == 0 and empty.best_price is None
 
 
-def _client(monkeypatch, url):
-    monkeypatch.setenv("DATABASE_URL", url)
+def _client(monkeypatch):
     monkeypatch.setenv("OWNER_PASSWORD_HASH", make_password_hash(PASSWORD, iterations=1000))
     c = TestClient(app)
     c.post("/login", data={"password": PASSWORD})
     return c
 
 
-def test_page(engine, empty_database_url, monkeypatch):
+def test_page(engine, monkeypatch):
     _seed(engine)
-    html = _client(monkeypatch, empty_database_url).get("/").text
+    html = _client(monkeypatch).get("/").text
     assert "Utrecht → Berlin" in html and "2026-12-01 – 2026-12-05" in html
     assert "EUR 45.50" in html and "active" in html
     assert "no offers yet" in html and "<td>0</td>" in html
     assert "<script>alert" not in html and "&lt;script&gt;alert(1)&lt;/script&gt;" in html
 
 
-def test_empty_list(engine, empty_database_url, monkeypatch):
-    html = _client(monkeypatch, empty_database_url).get("/").text
+def test_empty_list(engine, monkeypatch):
+    html = _client(monkeypatch).get("/").text
     assert 'href="/trips/new"' in html and "<table>" not in html
