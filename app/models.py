@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
-    JSON, Boolean, Date, DateTime, ForeignKey, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, func,
+    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, func,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -135,3 +135,19 @@ class ApiToken(Base):
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
     last_used_at: Mapped[datetime | None] = mapped_column(_tz())
     revoked_at: Mapped[datetime | None] = mapped_column(_tz())
+
+
+class AccessTime(Base):
+    """A way from a place to a station (`access`) or from a station to a place (`egress`), #97."""
+    __tablename__ = "access_times"
+    __table_args__ = (
+        CheckConstraint("kind IN ('access', 'egress')", name="ck_access_times_kind"),
+        CheckConstraint("minutes >= 0", name="ck_access_times_minutes"),
+        CheckConstraint("cost >= 0", name="ck_access_times_cost"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    place_text: Mapped[str] = mapped_column(String(200))
+    kind: Mapped[str] = mapped_column(String(10))
+    minutes: Mapped[int] = mapped_column(Integer)
+    cost: Mapped[Decimal] = mapped_column(Money)

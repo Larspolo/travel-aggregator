@@ -1,8 +1,8 @@
-"""The web pages: login, logout, the trips list, the trip page and the API tokens. Jinja2 escapes all output: captured text is
+"""The web pages: login, logout, the trips list, the trip page, the API tokens and the access and egress places. Jinja2 escapes all output: captured text is
 untrusted (P5)."""
 
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.auth import SESSION_KEY, check_password, csrf_token, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
-from app.models import ApiToken, Itinerary, Trip
+from app.models import AccessTime, ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
 from app.tokens import create as create_token, revoke as revoke_token
@@ -164,3 +164,39 @@ def new_token(request: Request, name: str = Form(""), session: Session = Depends
 def revoke(token_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
     revoke_token(session, token_id)
     return RedirectResponse("/tokens", status_code=303)
+
+
+PLACE_KINDS = ("access", "egress")
+
+
+@router.get("/places", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def places_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    places = session.scalars(select(AccessTime).order_by(AccessTime.kind, AccessTime.place_text, AccessTime.id)).all()
+    return templates.TemplateResponse(request, "places.html", {"places": places, "kinds": PLACE_KINDS})
+
+
+@router.post("/places", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def new_place(place_text: str = Form(""), kind: str = Form(""), minutes: str = Form(""), cost: str = Form(""),
+              session: Session = Depends(get_session)) -> RedirectResponse:
+    place_text = place_text.strip()
+    try:
+        minutes_value = int(minutes)
+        cost_value = Decimal(cost.strip() or "0")
+    except (ValueError, InvalidOperation):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "minutes and cost must be numbers")
+    if (not place_text or len(place_text) > 200 or kind not in PLACE_KINDS or minutes_value < 0
+            or not cost_value.is_finite() or cost_value < 0 or cost_value >= Decimal("100000000")):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "a place needs a text, a kind and values >= 0")
+    session.add(AccessTime(place_text=place_text, kind=kind, minutes=minutes_value,
+                           cost=cost_value.quantize(Decimal("0.01"))))
+    session.commit()
+    return RedirectResponse("/places", status_code=303)
+
+
+@router.post("/places/{place_id}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def delete_place(place_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    place = session.get(AccessTime, place_id)
+    if place is not None:
+        session.delete(place)
+        session.commit()
+    return RedirectResponse("/places", status_code=303)
