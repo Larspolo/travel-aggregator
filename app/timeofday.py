@@ -57,3 +57,22 @@ def night_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]
     if _night_minutes(start, end, weights) >= weights.night_min:
         return (("night travel", amount),)
     return ()
+
+
+def night_time_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the part "night hours": the night minutes × (night_hour_markup − hour_markup) / 60 (#143).
+
+    The base time part does not change. The amount may be negative. An amount of 0 adds no part.
+    """
+    if weights.night_hour_markup is None or not itinerary.legs:
+        return ()
+    diff = Decimal(weights.night_hour_markup) - Decimal(weights.hour_markup)
+    if diff == 0:
+        return ()
+    first, last = itinerary.legs[0], itinerary.legs[-1]
+    start = (first.depart_at + timedelta(minutes=first.depart_offset_min)).replace(tzinfo=None)
+    end = (last.arrive_at + timedelta(minutes=last.arrive_offset_min)).replace(tzinfo=None)
+    minutes = _night_minutes(start, end, weights)
+    if minutes == 0:
+        return ()
+    return (("night hours", Decimal(minutes) * diff / 60),)
