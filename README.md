@@ -281,6 +281,15 @@ Each row of the trip table has buttons at its left side:
 To write a note on an offer, open "Legs and fares" in its row, change the text in the box and click "Save note".
 A note has at most 2000 characters. The row shows the note under its route.
 
+### Price drops of a pinned offer
+
+A pinned offer whose price went down since the last view of its trip page shows a mark:
+- The trips list shows "price dropped EUR X" after the best price of the trip. X is the largest drop of the trip.
+- The trip page shows a box "Price drops" with the pinned offers that dropped.
+
+Opening the trip page ends the mark: the next view shows no mark, unless the price drops again.
+An unpinned offer or a hidden offer gives no mark.
+
 ### Compare offers side by side
 
 To compare 2 to 4 offers of a trip:
