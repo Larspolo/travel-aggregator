@@ -54,6 +54,21 @@ def save(session: Session, name: str, weights: Weights) -> ScoreProfile:
     return profile
 
 
+def default_weights(session: Session) -> Weights:
+    """The weights of the default profile (#230); with no default profile, the `Weights` defaults."""
+    profile = session.scalars(select(ScoreProfile).where(ScoreProfile.is_default.is_(True))).first()
+    return from_config(profile.config_json) if profile is not None else Weights()
+
+
+def active_weights(base: Weights, overrides: dict) -> Weights:
+    """`base` with each field of `overrides` that is not `None` (#230): a weight in the URL wins over the profile.
+
+    The keys are the `Weights` field names, so a new weight needs no change here. A `None` override keeps the base
+    value; `night_hour_markup` `None` in the base still means "the same as hour_markup"."""
+    names = {f.name for f in dataclasses.fields(Weights)}
+    return dataclasses.replace(base, **{k: v for k, v in overrides.items() if k in names and v is not None})
+
+
 def list_profiles(session: Session) -> list[ScoreProfile]:
     """All profiles in the order of their creation (#233)."""
     return list(session.scalars(select(ScoreProfile).order_by(ScoreProfile.id)).all())
