@@ -28,6 +28,10 @@ class Weights:
     night_adjust: Decimal = Decimal("0")
     # The hour markup inside the night window (#143); None = the same as hour_markup.
     night_hour_markup: Decimal | None = None
+    # The flexibility amounts per tier (#175): signed (negative = bonus); 0 disables each.
+    flex_non_refundable: Decimal = Decimal("0")
+    flex_partly_refundable: Decimal = Decimal("0")
+    flex_flexible: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)

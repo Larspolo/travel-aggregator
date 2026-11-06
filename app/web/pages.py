@@ -19,6 +19,7 @@ from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, req
 from app.config import get_settings
 from app.db import get_session
 from app.door import door_extras, flight_extras
+from app.flexibility import flexibility_extras
 from app.models import AccessTime, ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
@@ -180,6 +181,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               night_min: int = Query(Weights.night_min, ge=0, le=1440),
               night_adjust: Decimal = Query(Weights.night_adjust, ge=-1000, le=1000),
               night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
+              flex_non_refundable: Decimal = Query(Weights.flex_non_refundable, ge=-1000, le=1000),
+              flex_partly_refundable: Decimal = Query(Weights.flex_partly_refundable, ge=-1000, le=1000),
+              flex_flexible: Decimal = Query(Weights.flex_flexible, ge=-1000, le=1000),
               sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
               dir: str = Query("asc", pattern="^(asc|desc)$"),
               mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
@@ -194,7 +198,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     places = session.scalars(select(AccessTime)).all()  # once per request
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
                       early_limit, late_limit, time_window_penalty,
-                      night_start, night_end, night_min, night_adjust, night_hour_markup)  # the score is computed here and never stored
+                      night_start, night_end, night_min, night_adjust, night_hour_markup,
+                      flex_non_refundable, flex_partly_refundable, flex_flexible)  # the score is computed here and never stored
     rows, modes, sources, carriers = [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
@@ -208,11 +213,12 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # the filter hides this row (#112)
         if any(leg.mode in exclude_mode or leg.carrier in exclude_carrier for leg in it.legs):
             continue  # an excluded mode or carrier hides each offer with one of its legs
-        fare = min(fares, key=lambda f: f.latest_price)
-        cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights,
-                              door_extras(it, places, hour_markup) + flight_extras(it, weights)
-                              + time_extras(it, weights) + night_extras(it, weights)
-                              + night_time_extras(it, weights))
+        base = (door_extras(it, places, hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
+                + night_extras(it, weights) + night_time_extras(it, weights))
+        # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
+        fare, cost = min(((f, effective_cost(f.latest_price, it.duration_min, it.transfers, weights,
+                                             base + flexibility_extras(f, weights))) for f in fares),
+                         key=lambda fc: (fc[1].total, fc[0].latest_price))
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
@@ -231,6 +237,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              "time_window_penalty": time_window_penalty,
              "night_start": night_start.strftime("%H:%M"), "night_end": night_end.strftime("%H:%M"),
              "night_min": night_min, "night_adjust": night_adjust,
+             "flex_non_refundable": flex_non_refundable, "flex_partly_refundable": flex_partly_refundable,
+             "flex_flexible": flex_flexible,
              **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
