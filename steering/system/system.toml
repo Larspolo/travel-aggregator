@@ -7,7 +7,7 @@ max_ci_queue = 5                # flow brake: at this many queued CI runs the pa
 weights = { haiku = 0.25, deep = 4.0 }   # a lane run in Opus runs (start value); deep: high effort
 reserved = ["haiku", "deep"]    # lanes whose tickets Opus runs never take; with deep, only deep runs do the reviews and the refill
 pacer = "workflow"              # pacer.yml starts the runs (framework/tools/pacer.py); another value stops its loop
-trigger = ""                    # the ID of the scheduled task "NAME autopilot": framework/docs/OPERATOR.md, section 3
+trigger = "trig_01HEyJbcmgrWgkRE4dEbjL66"                 # the ID of the scheduled task "NAME autopilot": framework/docs/OPERATOR.md, section 3
 
 [review]                        # the process review (`improve` skill): merged PRs, never hours
 gap = 80                        # merged PRs: the first gap, and the reset when the result of the reviews turns
