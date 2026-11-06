@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app import ingest
 from app.auth import require_login, verify_csrf
 from app.db import get_session
-from app.models import Capture
+from app.models import Capture, Trip
 from app.parsers import get_parser
 from app.web.pages import _get_trip, templates
 
@@ -22,6 +22,17 @@ def captures_page(request: Request, trip_id: int, session: Session = Depends(get
     captures = session.scalars(select(Capture).where(Capture.trip_id == trip_id)
                                .order_by(Capture.captured_at.desc(), Capture.id.desc())).all()
     return templates.TemplateResponse(request, "captures.html", {"trip": trip, "captures": captures})
+
+
+@router.get("/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def all_captures_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    """The newest 200 captures of all trips (#347): a format change of a site shows in one place."""
+    captures = session.scalars(select(Capture).order_by(Capture.captured_at.desc(), Capture.id.desc())
+                               .limit(200)).all()
+    trip_ids = {c.trip_id for c in captures}
+    trip_titles = {t.id: t.title for t in session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()}
+    return templates.TemplateResponse(request, "captures.html",
+                                      {"trip": None, "captures": captures, "trip_titles": trip_titles})
 
 
 @router.post("/captures/{capture_id}/reparse", response_class=HTMLResponse,
