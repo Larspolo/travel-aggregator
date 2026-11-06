@@ -111,5 +111,8 @@ def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers
 
 
 def store(session: Session, body: IngestIn) -> dict[str, int]:
-    """Store the offers of the body. Returns the counts {"created", "updated", "unchanged"}."""
-    return upsert_offers(session, body.trip_id, None, body.offers, source=body.source, captured_at=body.captured_at)
+    """Store the capture of the body (with its raw, if any), then its offers; each price row links to the capture.
+    Returns the counts {"created", "updated", "unchanged"}."""
+    capture = store_capture(session, body.trip_id, body)
+    session.commit()
+    return upsert_offers(session, body.trip_id, capture.id, body.offers, source=body.source, captured_at=body.captured_at)
