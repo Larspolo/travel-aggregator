@@ -53,6 +53,24 @@ def day_gap(arrive_local: datetime, depart_local: datetime) -> int:
     return (arrive_local.date() - depart_local.date()).days
 
 
+CLOCK_PATTERN = r"^(|([01]\d|2[0-3]):[0-5]\d)$"  # HH:MM, or empty for no limit (#181)
+
+
+def in_time_window(it, earliest_depart: time | None, latest_arrive: time | None) -> bool:
+    """True when the first leg departs at or after earliest_depart and the last leg arrives by latest_arrive (#181).
+
+    The local times of the stored offsets decide. An arrival on a later day than the departure is after any limit.
+    """
+    first, last = it.legs[0], it.legs[-1]
+    dep = (first.depart_at + timedelta(minutes=first.depart_offset_min)).replace(tzinfo=None)
+    arr = (last.arrive_at + timedelta(minutes=last.arrive_offset_min)).replace(tzinfo=None)
+    if earliest_depart is not None and dep.time() < earliest_depart:
+        return False
+    if latest_arrive is not None and (arr.date() > dep.date() or arr.time() > latest_arrive):
+        return False
+    return True
+
+
 def ago(t: datetime, now: datetime) -> str:
     """The age of a capture, for example '2 h ago'."""
     seconds = max(0, int((now - t).total_seconds()))
@@ -194,6 +212,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               flight_markup: Decimal = Query(Weights.flight_markup, ge=-1000, le=1000),
               ferry_markup: Decimal = Query(Weights.ferry_markup, ge=-1000, le=1000),
               max_transfers: str = Query("", max_length=5), max_duration_min: str = Query("", max_length=6),
+              earliest_depart: str = Query("", pattern=CLOCK_PATTERN), latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([])) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
@@ -202,6 +221,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     # an empty box of the form is no limit (#180); a number is capped to its range
     limit_transfers = min(int(max_transfers), 10) if max_transfers.isdigit() else None
     limit_duration = min(int(max_duration_min), 10080) if max_duration_min.isdigit() else None
+    # an empty box is no limit (#181); the pattern admits only HH:MM
+    limit_depart = time.fromisoformat(earliest_depart) if earliest_depart else None
+    limit_arrive = time.fromisoformat(latest_arrive) if latest_arrive else None
     # subqueryload: one statement per relation; selectinload adds one per 500 offers (#115)
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
@@ -229,6 +251,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # the limits of transfers and duration hide this row
         if any(leg.mode in exclude_mode or leg.carrier in exclude_carrier for leg in it.legs):
             continue  # an excluded mode or carrier hides each offer with one of its legs
+        if it.legs and not in_time_window(it, limit_depart, limit_arrive):
+            continue  # the time limits hide this row (#181)
         base = (door_extras(it, places, hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
                 + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights))
         # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
@@ -246,6 +270,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges,
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
+            "earliest_depart": earliest_depart, "latest_arrive": latest_arrive,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     query = {"hour_markup": hour_markup, "transfer_markup": transfer_markup, "airport_before_min": airport_before_min,
@@ -261,6 +286,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
              **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
              **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
+             **({"earliest_depart": earliest_depart} if limit_depart is not None else {}),
+             **({"latest_arrive": latest_arrive} if limit_arrive is not None else {}),
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "now": datetime.now(timezone.utc)}
