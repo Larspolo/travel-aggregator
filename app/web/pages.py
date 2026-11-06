@@ -23,8 +23,9 @@ from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.history import chart
 from app.risk import mode_extras, self_transfer_extras, transfer_extras
-from app.profiles import active_weights, default_weights, save as save_profile, to_config
-from app.models import AccessTime, ApiToken, Itinerary, Setting, Trip
+from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
+from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
+from app.models import AccessTime, ApiToken, Itinerary, ScoreProfile, Setting, Trip
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
@@ -354,6 +355,44 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       self_transfer_penalty=self_transfer_penalty)
     save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+def _profiles_page(request: Request, session: Session, error: str | None = None, code: int = 200) -> HTMLResponse:
+    rows = [(p, from_config(p.config_json)) for p in list_profiles(session)]
+    return templates.TemplateResponse(request, "profiles.html", {"rows": rows, "error": error}, status_code=code)
+
+
+@router.get("/profiles", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def profiles_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return _profiles_page(request, session)
+
+
+@router.post("/profiles/{profile_id}/default", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def set_default_profile_page(profile_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    if not set_default_profile(session, profile_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no profile {profile_id}")
+    return RedirectResponse("/profiles", status_code=303)
+
+
+@router.post("/profiles/{profile_id}/rename", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def rename_profile_page(profile_id: int, request: Request, name: str = Form(""),
+                        session: Session = Depends(get_session)):
+    name = name.strip()
+    if session.get(ScoreProfile, profile_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no profile {profile_id}")
+    if not name or len(name) > 100:
+        return _profiles_page(request, session, "A name needs 1 to 100 characters; nothing changed.", 422)
+    if not rename_profile(session, profile_id, name):
+        return _profiles_page(request, session, f'The name "{name}" exists already; nothing changed.', 422)
+    return RedirectResponse("/profiles", status_code=303)
+
+
+@router.post("/profiles/{profile_id}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def delete_profile_page(profile_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    if not delete_profile(session, profile_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no profile {profile_id}")
+    return RedirectResponse("/profiles", status_code=303)
 
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/booked",

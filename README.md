@@ -213,6 +213,10 @@ The body can also have the field `raw`: the original response of the travel site
 stores it as a capture, so a later parser fix can run again on it (see "Reparse a capture" below). A body with `raw`
 and no `offers` is valid. The app reports a connection that the parser cannot read in `errors`.
 
+Each leg of an offer can have the field `ticket`: a whole number from 1 to 20 for the ticket of the leg. When the number
+changes between two legs, the fare counts one self-transfer. A leg with no `ticket` keeps the ticket of the leg before
+it. See "Risk" under "Ranking".
+
 All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
 limited to 5 MB.
 
@@ -251,6 +255,17 @@ Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 - `exclude_carrier`: a carrier hides each offer with one of its legs.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
+
+### Pin, hide, book and note an offer
+
+Each row of the trip table has buttons at its left side:
+- "Pin" keeps the offer at the top of the table, in every sort order. "Unpin" removes the pin.
+- "Hide" removes the offer from the table and marks it "hidden". "Unhide" shows it again.
+  The table does not show hidden offers, unless you tick "show hidden" above the table.
+- "Mark as booked" adds a "booked" badge to the row. "Not booked" removes it.
+
+To write a note on an offer, open "Legs and fares" in its row, change the text in the box and click "Save note".
+A note has at most 2000 characters. The row shows the note under its route.
 
 ### Add an offer by hand
 
@@ -336,6 +351,24 @@ times of the stored offset.
   A value of 0 removes the part.
 - **Night hour markup €/h**, default empty. Empty means the same as the hour markup. A value sets the hour markup inside
   the night window. The difference to the hour markup adds the part `night hours` for the night minutes.
+
+### Risk
+
+The **Advanced** section under the sliders also sets the risk extras. Each setting has a default. A value of 0 removes
+its part from the ranking. Each part shows its own label in the breakdown.
+
+- **Short transfer minutes**, default `10`. A transfer is short when it lasts less than this many minutes. A transfer
+  is the time from the arrival of one leg to the departure of the next leg.
+- **Short transfer penalty €**, default `0`. The part `short transfer` is this amount times the count of short transfers.
+- **Train markup €**, **Bus markup €**, **Flight markup €** and **Ferry markup €**, each default `0`. An itinerary that
+  uses the mode adds the part `<mode> markup` once. A negative amount is a discount.
+- **Non-refundable fare €**, **Partly refundable fare €** and **Flexible fare €**, each default `0`. A fare of that tier
+  adds the part `non-refundable`, `partly refundable` or `flexible`. A negative amount is a bonus. The tier comes from
+  the `flexibility` text of the offer. The text `non_refundable`, `nonrefundable`, `no_refund` or `saver` gives
+  non-refundable. The text `partly_refundable`, `partially_refundable` or `semi_flexible` gives partly refundable.
+  The text `flexible`, `flex`, `refundable` or `fully_refundable` gives flexible. Any other text, or no text, adds nothing.
+- **Self-transfer €**, default `0`. The part `self-transfer` is this amount times the count of self-transfers of the fare.
+  The count comes from the `ticket` field of the legs (see "API").
 
 ## Development
 
