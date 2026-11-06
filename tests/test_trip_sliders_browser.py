@@ -42,7 +42,7 @@ def test_a_slider_change_reranks_without_a_reload(live):
         cells = page.locator("#rows td.cost")
         assert cells.first.inner_text().endswith("= €210")  # the direct one first with the default markups
         page.evaluate("window.__same = true")
-        page.locator("input[name=hour_markup]").fill("0")  # fill dispatches input on a range field
+        page.locator("form.weights input[name=hour_markup]").fill("0")  # fill dispatches input on a range field
         page.wait_for_function("document.querySelector('#rows td.cost').textContent.endsWith('= €99.90')")
         assert page.evaluate("window.__same") is True  # no reload
         assert page.locator("output[name=hour_value]").inner_text() == "0"
