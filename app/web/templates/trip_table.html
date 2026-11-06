@@ -1,4 +1,5 @@
 {# The table of the trip page; an htmx request gets only this part (#14, #112). A header link sorts by its column. #}
+{% if request.headers.get("HX-Request") %}{% with oob = true %}{% include "compare_form.html" %}{% endwith %}{% endif %}
 {% set columns = [("route", "Route"), ("depart", "Departure"), ("arrive", "Arrival"), ("carrier", "Carrier"),
                   ("fare", "Fare"), ("price", "Price"), ("cost", "Effective cost")] %}
 <table>
