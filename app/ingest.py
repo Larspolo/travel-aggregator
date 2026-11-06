@@ -5,11 +5,14 @@ The counts of each case and the raw capture come with `capture:upsert`."""
 import gzip
 import hashlib
 import json
-from datetime import UTC
+from datetime import UTC, datetime
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.derived import Leg as DerivedLeg
+from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 
@@ -40,10 +43,10 @@ def load_raw(capture: Capture):
 
 def _new_itinerary(trip_id: int, offer: OfferIn, fp: str) -> Itinerary:
     first, last = offer.legs[0], offer.legs[-1]
-    modes = list(dict.fromkeys(leg.mode for leg in offer.legs))
-    it = Itinerary(trip_id=trip_id, fingerprint=fp, mode_summary="+".join(modes), depart_at=first.depart_at,
-                   arrive_at=last.arrive_at, transfers=len(offer.legs) - 1,
-                   duration_min=int((last.arrive_at - first.depart_at).total_seconds() // 60))
+    d = derive([DerivedLeg(leg.depart_at, leg.arrive_at, leg.mode) for leg in offer.legs])
+    it = Itinerary(trip_id=trip_id, fingerprint=fp, mode_summary=d.mode_summary, depart_at=first.depart_at,
+                   arrive_at=last.arrive_at, transfers=d.transfers, duration_min=d.duration_min,
+                   first_seen_at=datetime.now(UTC), last_seen_at=datetime.now(UTC))
     for seq, leg in enumerate(offer.legs, 1):
         it.legs.append(Leg(seq=seq, mode=leg.mode, carrier=leg.carrier, service_no=leg.service_no,
                            from_name=leg.from_name, from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code,
@@ -52,29 +55,61 @@ def _new_itinerary(trip_id: int, offer: OfferIn, fp: str) -> Itinerary:
     return it
 
 
+def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: OfferIn, source: str,
+                captured_at: datetime) -> str:
+    """Store one offer. Returns "created" (new itinerary), "updated" (known itinerary with a new fare or a changed
+    price) or "unchanged". The caller commits."""
+    fp = fingerprint(offer.legs)
+    it = session.scalar(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.fingerprint == fp))
+    result = "unchanged"
+    if it is None:
+        it = _new_itinerary(trip_id, offer, fp)
+        session.add(it)
+        result = "created"
+    else:
+        it.last_seen_at = max(it.last_seen_at, captured_at)
+    fare = next((f for f in it.fares if f.source == source and f.fare_name == offer.fare_name), None)
+    if fare is None:
+        fare = Fare(source=source, fare_name=offer.fare_name, latest_price=offer.price_amount,
+                    currency=offer.price_currency, latest_captured_at=captured_at)
+        it.fares.append(fare)
+    elif fare.latest_price == offer.price_amount and fare.currency == offer.price_currency:
+        fare.flexibility, fare.booking_url = offer.flexibility, offer.booking_url
+        return result
+    if captured_at >= fare.latest_captured_at:
+        fare.latest_price, fare.currency, fare.latest_captured_at = (offer.price_amount, offer.price_currency,
+                                                                      captured_at)
+    fare.flexibility, fare.booking_url = offer.flexibility, offer.booking_url
+    fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=captured_at,
+                                 capture_id=capture_id))
+    session.flush()
+    return "created" if result == "created" else "updated"
+
+
+def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers: list[OfferIn], *, source: str,
+                  captured_at: datetime) -> dict[str, int]:
+    """Upsert the offers, one transaction per offer: one failure does not roll back the others. An itinerary is
+    matched by (trip, fingerprint), a fare by (itinerary, source, fare name). A new fare or a changed price adds one
+    price row; the same price adds none. A race on the unique constraint is retried once."""
+    counts = {"created": 0, "updated": 0, "unchanged": 0}
+    for offer in offers:
+        for attempt in (1, 2):
+            try:
+                result = _upsert_one(session, trip_id, capture_id, offer, source, captured_at)
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                if attempt == 2:
+                    raise
+            except Exception:
+                session.rollback()
+                raise
+            else:
+                counts[result] += 1
+                break
+    return counts
+
+
 def store(session: Session, body: IngestIn) -> dict[str, int]:
-    """Store the offers of the body in one transaction. Returns {"created": new itineraries, "updated": known ones}."""
-    created = updated = 0
-    for offer in body.offers:
-        fp = fingerprint(offer.legs)
-        it = session.scalar(select(Itinerary).where(Itinerary.trip_id == body.trip_id, Itinerary.fingerprint == fp))
-        if it is None:
-            it = _new_itinerary(body.trip_id, offer, fp)
-            session.add(it)
-            created += 1
-        else:
-            it.last_seen_at = max(it.last_seen_at, body.captured_at)
-            updated += 1
-        fare = next((f for f in it.fares if f.source == body.source and f.fare_name == offer.fare_name), None)
-        if fare is None:
-            fare = Fare(source=body.source, fare_name=offer.fare_name, latest_price=offer.price_amount,
-                        currency=offer.price_currency, latest_captured_at=body.captured_at)
-            it.fares.append(fare)
-        if body.captured_at >= fare.latest_captured_at:
-            fare.latest_price, fare.currency, fare.latest_captured_at = (offer.price_amount, offer.price_currency,
-                                                                          body.captured_at)
-            fare.flexibility, fare.booking_url = offer.flexibility, offer.booking_url
-        fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=body.captured_at))
-        session.flush()        # the next offer of the batch finds this itinerary by its fingerprint
-    session.commit()
-    return {"created": created, "updated": updated}
+    """Store the offers of the body. Returns the counts {"created", "updated", "unchanged"}."""
+    return upsert_offers(session, body.trip_id, None, body.offers, source=body.source, captured_at=body.captured_at)
