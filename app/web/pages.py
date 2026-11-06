@@ -214,7 +214,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               max_transfers: str = Query("", max_length=5), max_duration_min: str = Query("", max_length=6),
               earliest_depart: str = Query("", pattern=CLOCK_PATTERN), latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
-              exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([])) -> HTMLResponse:
+              exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
+              show_hidden: bool = Query(False)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
@@ -225,7 +226,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     limit_depart = time.fromisoformat(earliest_depart) if earliest_depart else None
     limit_arrive = time.fromisoformat(latest_arrive) if latest_arrive else None
     # subqueryload: one statement per relation; selectinload adds one per 500 offers (#115)
-    itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.hidden.is_(False))
+    hidden_filter = [] if show_hidden else [Itinerary.hidden.is_(False)]  # "show hidden" (#200)
+    itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, *hidden_filter)
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
@@ -262,14 +264,15 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
-    if rows:
+    shown = [r for r in rows if not r[0].hidden]  # a hidden row gets no highlight (#200)
+    if shown:
         for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[1].latest_price),
                           ("fastest", lambda r: r[0].duration_min)):
-            badges.setdefault(min(rows, key=key)[0].id, []).append(name)
+            badges.setdefault(min(shown, key=key)[0].id, []).append(name)
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
-    view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges,
+    view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "show_hidden": show_hidden,
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
@@ -290,6 +293,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              **({"earliest_depart": earliest_depart} if limit_depart is not None else {}),
              **({"latest_arrive": latest_arrive} if limit_arrive is not None else {}),
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
+    if show_hidden:
+        query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "now": datetime.now(timezone.utc)}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
@@ -311,6 +316,17 @@ def toggle_pin(trip_id: int, itinerary_id: int, session: Session = Depends(get_s
     if it is None or it.trip_id != trip_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
     it.pinned = not it.pinned
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/hide",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def toggle_hide(trip_id: int, itinerary_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    it.hidden = not it.hidden
     session.commit()
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
