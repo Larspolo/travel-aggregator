@@ -8,6 +8,8 @@ services:
         GIT_SHA: ${GIT_SHA:-dev}
     restart: unless-stopped
     env_file: .env
+    volumes:
+      - backups:/backups
     ports:
       - "${APP_PORT:-8000}:8000"
     depends_on:
@@ -27,3 +29,4 @@ services:
 
 volumes:
   db:
+  backups:
