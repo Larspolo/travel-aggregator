@@ -41,12 +41,12 @@ def test_migration_changes_active(empty_database_url):
         with engine.begin() as conn:
             conn.execute(text("INSERT INTO trips (title) VALUES ('a')"))
             assert conn.execute(text("SELECT status FROM trips")).scalar() == "active"
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, "0003")
         with engine.begin() as conn:
             assert conn.execute(text("SELECT status FROM trips")).scalar() == "planning"
             conn.execute(text("INSERT INTO trips (title) VALUES ('b')"))
             assert conn.execute(text("SELECT count(*) FROM trips WHERE status = 'planning'")).scalar() == 2
-        command.downgrade(cfg, "-1")
+        command.downgrade(cfg, "0002")
         with engine.begin() as conn:
             assert conn.execute(text("SELECT count(*) FROM trips WHERE status = 'active'")).scalar() == 2
     finally:
