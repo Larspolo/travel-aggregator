@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from sqlalchemy import func, select
 from pydantic import Field, ValidationError
 from sqlalchemy.orm import Session, subqueryload
 
@@ -29,7 +29,7 @@ from app.history import chart
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
-from app.models import AccessTime, ApiToken, CurrencyRate, Itinerary, ScoreProfile, Setting, Trip
+from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, ScoreProfile, Setting, Trip
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown, in_eur
@@ -188,6 +188,23 @@ def edit_trip_form(request: Request, trip_id: int, session: Session = Depends(ge
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 async def edit_trip(request: Request, trip_id: int, session: Session = Depends(get_session)):
     return await _save(request, session, _get_trip(session, trip_id))
+
+
+@router.get("/trips/{trip_id}/delete", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def delete_trip_confirm(request: Request, trip_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+    trip = _get_trip(session, trip_id)
+    counts = {"itineraries": session.scalar(select(func.count(Itinerary.id)).where(Itinerary.trip_id == trip_id)),
+              "captures": session.scalar(select(func.count(Capture.id)).where(Capture.trip_id == trip_id))}
+    return templates.TemplateResponse(request, "trip_delete.html", {"trip": trip, "counts": counts})
+
+
+@router.post("/trips/{trip_id}/delete", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def delete_trip_page(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    # The database deletes the offers, prices and captures (CASCADE); a return trip keeps, unlinked (SET NULL).
+    session.delete(_get_trip(session, trip_id))
+    session.commit()
+    return RedirectResponse("/", status_code=303)
 
 
 WEIGHT_NAMES = {f.name for f in dataclasses.fields(Weights)}  # the query parameters of the weights (#230)

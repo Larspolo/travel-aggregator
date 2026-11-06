@@ -23,4 +23,5 @@
   <p><label>Notes <textarea name="notes" maxlength="5000">{{ values.notes or '' }}</textarea></label></p>
   <p><button type="submit">Save</button> <a href="/">Cancel</a></p>
 </form>
+{% if trip_id %}<p><a href="/trips/{{ trip_id }}/delete">Delete trip</a></p>{% endif %}
 {% endblock %}
