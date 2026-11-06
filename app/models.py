@@ -153,3 +153,11 @@ class AccessTime(Base):
     kind: Mapped[str] = mapped_column(String(10))
     minutes: Mapped[int] = mapped_column(Integer)
     cost: Mapped[Decimal] = mapped_column(Money)
+
+
+class Setting(Base):
+    """A value that the owner sets on the settings page (#207)."""
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)
