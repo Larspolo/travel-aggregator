@@ -88,7 +88,33 @@ installs each new image within 5 minutes.
 The pages need the basic auth login and then the login of the app. `/api` needs no basic auth: the API has its own
 tokens. `GET /api/health` shows the commit that runs.
 
-The preview is for test data. A release image for your real data follows later (roadmap item `host:deploy`).
+The preview is for test data.
+
+### The production instance
+
+For your real data, use the release images. [`deploy/production/`](deploy/production/) runs the image
+`ghcr.io/larspolo/travel-aggregator:latest`, with its own database volume and its own scoped watchtower. The watchtower
+checks the registry every 5 minutes. `:latest` changes only when an epic closes, so the production instance does not
+follow each merge.
+
+1. Copy `deploy/production/docker-compose.yml` and `deploy/production/.env.example` to a folder on the server. Rename the
+   second file to `.env`, and set the values as in the preview steps above (`POSTGRES_PASSWORD`, `DATABASE_URL`,
+   `SECRET_KEY`, `OWNER_PASSWORD_HASH`). The production file has no basic auth: the app has its own login.
+2. Put a reverse proxy in front of `127.0.0.1:8000`. The app is published on localhost only. Pick one:
+   - Traefik: copy `deploy/traefik/docker-compose.override.yml` to `deploy/production/docker-compose.override.yml`, and
+     change the host name `travel.example.com` in it. Traefik must run on the external network `proxy`.
+   - Caddy: copy `deploy/caddy/Caddyfile` to `/etc/caddy/Caddyfile` and change the host name. Caddy gets the HTTPS
+     certificate itself.
+   - nginx: copy `deploy/nginx/travel-aggregator.conf` to `/etc/nginx/conf.d/`, change the host name and the
+     certificate paths.
+   All three examples set `X-Forwarded-Proto` and forward `/api` too. The app trusts these headers.
+3. `docker compose up -d`, then make an API token: `docker compose exec app python -m app.tokens create laptop`.
+
+Before each migration that changes data, the container writes a `pg_dump` backup to the volume `backups-production`
+(mounted at `/backups`). If the backup fails, the migration and the start of the app stop.
+
+Each closed epic makes a release: the workflow `.github/workflows/release.yml` pushes the git tag `vX.Y.Z` and the
+images `:vX.Y.Z` and `:latest`. `GET /api/health` shows the commit that runs.
 
 ## Configuration
 
