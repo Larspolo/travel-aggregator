@@ -33,6 +33,8 @@ class Weights:
     bus_markup: Decimal = Decimal("0")
     flight_markup: Decimal = Decimal("0")
     ferry_markup: Decimal = Decimal("0")
+    # The penalty per self-transfer of a fare (#176); 0 disables it.
+    self_transfer_penalty: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
