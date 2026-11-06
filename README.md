@@ -300,6 +300,19 @@ shows the number of captured offers.
 The parser reads the fare name with its class and its BahnCard discount. It gives each station its own timezone. A
 connection with no price goes to the errors of the capture and is not stored as an offer.
 
+### NS International userscript
+
+The NS International userscript captures the search results of nsinternational.com: the connections, their times and
+their fares. It reads only the responses that the nsinternational.com page itself gets. It sends no request to
+nsinternational.com.
+
+To install it, add the file `userscripts/ns.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On nsinternational.com, search for a connection.
+The panel shows the number of captured offers.
+
+The parser reads the fare name with its flexibility level. It gives each station its own timezone. A connection that
+the parser cannot read goes to the errors of the capture and is not stored as an offer.
+
 ### Reparse a capture
 
 Open `/trips/{id}/captures` and press "reparse capture" on a capture. The app runs the current parser on the stored raw
