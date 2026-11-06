@@ -241,6 +241,12 @@ limited to 5 MB.
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
 
+### Use a phone
+
+All pages work at a phone width of 390 px. No page scrolls sideways.
+A wide table scrolls sideways in its own box: this is the trip table and the compare table.
+The sliders, the filter fields and the buttons of the trip page are large enough for a finger: each is at least 40 px high.
+
 ### Compare offers in the trip table
 
 The table of `/trips/{id}` has one row per offer. Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
