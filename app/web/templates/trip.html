@@ -5,13 +5,18 @@
 {% if trip.origin_text or trip.destination_text %}
 <p class="muted">{{ trip.origin_text or "?" }} → {{ trip.destination_text or "?" }}</p>
 {% endif %}
-{% if rows %}
-<form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#rows" hx-trigger="input changed delay:150ms"
+{% if rows or view.mode or view.source %}
+<form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
   <label>Hour markup €<output name="hour_value">{{ weights.hour_markup }}</output>
     <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
   <label>Transfer markup €<output name="transfer_value">{{ weights.transfer_markup }}</output>
     <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
+  <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
+  <label>Mode <select name="mode"><option value="">All</option>
+    {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
+  <label>Source <select name="source"><option value="">All</option>
+    {% for s in view.sources %}<option value="{{ s }}"{% if s == view.source %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
   <details class="advanced"><summary>Advanced</summary>
     <label>Airport before departure (min)
       <input type="number" name="airport_before_min" min="0" max="1440" step="1" value="{{ weights.airport_before_min }}"></label>
@@ -21,15 +26,8 @@
       <input type="number" name="baggage_fee" min="0" max="1000" step="0.01" value="{{ weights.baggage_fee }}"></label>
   </details>
 </form>
-<div class="scroll">
-<table>
-  <thead>
-    <tr><th>Route</th><th>Departure</th><th>Arrival</th><th>Carrier</th><th>Fare</th><th>Price</th><th>Effective cost</th></tr>
-  </thead>
-  <tbody id="rows">
-  {% include "trip_rows.html" %}
-  </tbody>
-</table>
+<div class="scroll" id="table">
+{% include "trip_table.html" %}
 </div>
 {% else %}
 <p>No offers yet. Search on a travel site with the userscript, or send offers to <code>POST /api/ingest</code>.</p>

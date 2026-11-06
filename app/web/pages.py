@@ -143,13 +143,27 @@ async def edit_trip(request: Request, trip_id: int, session: Session = Depends(g
     return await _save(request, session, _get_trip(session, trip_id))
 
 
+SORT_KEYS = {  # the sort keys of the trip table columns (#112); None sorts as the empty text
+    "route": lambda r: (r[0].legs[0].from_name or "", r[0].legs[-1].to_name or ""),
+    "depart": lambda r: r[0].depart_at,
+    "arrive": lambda r: r[0].arrive_at,
+    "carrier": lambda r: [leg.carrier or "" for leg in r[0].legs],
+    "fare": lambda r: (r[1].fare_name or "", r[1].source),
+    "price": lambda r: r[1].latest_price,
+    "cost": lambda r: r[2].total,
+}
+
+
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
               hour_markup: Decimal = Query(Weights.hour_markup, ge=0, le=100),
               transfer_markup: Decimal = Query(Weights.transfer_markup, ge=0, le=100),
               airport_before_min: int = Query(Weights.airport_before_min, ge=0, le=1440),
               airport_after_min: int = Query(Weights.airport_after_min, ge=0, le=1440),
-              baggage_fee: Decimal = Query(Weights.baggage_fee, ge=0, le=1000)) -> HTMLResponse:
+              baggage_fee: Decimal = Query(Weights.baggage_fee, ge=0, le=1000),
+              sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
+              dir: str = Query("asc", pattern="^(asc|desc)$"),
+              mode: str = Query("", max_length=50), source: str = Query("", max_length=50)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
@@ -157,19 +171,31 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                                   .options(selectinload(Itinerary.legs), selectinload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee)  # the score is computed here and never stored
-    rows = []
+    rows, modes, sources = [], set(), set()
     for it in itineraries:
         if not it.fares:
             continue  # an itinerary with no fare has no cost: it is not a row
-        fare = min(it.fares, key=lambda f: f.latest_price)
+        it_modes = {m for m in (it.mode_summary or "").split("+") if m}
+        modes |= it_modes
+        sources |= {f.source for f in it.fares}
+        fares = [f for f in it.fares if not source or f.source == source]
+        if not fares or (mode and mode not in it_modes):
+            continue  # the filter hides this row (#112)
+        fare = min(fares, key=lambda f: f.latest_price)
         cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights,
                               door_extras(it, places, hour_markup) + flight_extras(it, weights))
         rows.append((it, fare, cost))
-    rows.sort(key=lambda r: (r[2].total, r[0].depart_at))
-    context = {"trip": trip, "rows": rows, "weights": weights, "format_breakdown": format_breakdown,
+    rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
+    if sort != "cost" or dir == "desc":
+        rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
+    view = {"sort": sort, "dir": dir, "mode": mode, "source": source,
+            "modes": sorted(modes), "sources": sorted(sources)}
+    query = {"hour_markup": hour_markup, "transfer_markup": transfer_markup, "airport_before_min": airport_before_min,
+             "airport_after_min": airport_after_min, "baggage_fee": baggage_fee, "mode": mode, "source": source}
+    context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "format_breakdown": format_breakdown,
                "now": datetime.now(timezone.utc)}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
-        return templates.TemplateResponse(request, "trip_rows.html", context)
+        return templates.TemplateResponse(request, "trip_table.html", context)
     return templates.TemplateResponse(request, "trip.html", context)
 
 
