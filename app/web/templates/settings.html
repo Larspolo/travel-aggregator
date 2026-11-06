@@ -2,7 +2,7 @@
 {% block title %}Settings – travel-aggregator{% endblock %}
 {% block content %}
 <h1>Settings</h1>
-<p><a href="/">Trips</a> · <a href="/logout">Log out</a></p>
+<p><a href="/">Trips</a> · <a href="/rates">Exchange rates</a> · <a href="/logout">Log out</a></p>
 <form method="post" action="/settings">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <label>Keep raw captures for (days)

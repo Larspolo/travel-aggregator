@@ -3,6 +3,7 @@ untrusted (P5)."""
 
 import dataclasses
 import math
+import re
 from datetime import datetime, time, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -27,7 +28,7 @@ from app.history import chart
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
-from app.models import AccessTime, ApiToken, Itinerary, ScoreProfile, Setting, Trip
+from app.models import AccessTime, ApiToken, CurrencyRate, Itinerary, ScoreProfile, Setting, Trip
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
@@ -592,6 +593,52 @@ def delete_place(place_id: int, session: Session = Depends(get_session)) -> Redi
         session.delete(place)
         session.commit()
     return RedirectResponse("/places", status_code=303)
+
+
+RATE_CODE = re.compile(r"^[A-Z]{3}$")
+
+
+def _rates_page(request: Request, session: Session, error: str | None = None, code: int = 200) -> HTMLResponse:
+    rates = session.scalars(select(CurrencyRate).order_by(CurrencyRate.code)).all()
+    return templates.TemplateResponse(request, "rates.html", {"rates": rates, "error": error}, status_code=code)
+
+
+@router.get("/rates", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def rates_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return _rates_page(request, session)
+
+
+@router.post("/rates", response_model=None, dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_rate(request: Request, code: str = Form(""), rate: str = Form(""),
+              session: Session = Depends(get_session)) -> HTMLResponse | RedirectResponse:
+    """Add or change the EUR value of one unit of a currency (#384)."""
+    code = code.strip().upper()
+    try:
+        value = Decimal(rate.strip())
+    except InvalidOperation:
+        value = None
+    if not RATE_CODE.match(code) or code == "EUR":
+        return _rates_page(request, session, "The code must be 3 letters and not EUR.", 422)
+    if (value is None or not value.is_finite() or value <= 0 or value >= Decimal("100000000")
+            or value.as_tuple().exponent < -6):
+        return _rates_page(request, session, "The rate must be a number more than 0 with at most 6 decimals.", 422)
+    row = session.get(CurrencyRate, code)
+    now = datetime.now(timezone.utc)
+    if row is None:
+        session.add(CurrencyRate(code=code, eur_per_unit=value, updated_at=now))
+    else:
+        row.eur_per_unit, row.updated_at = value, now
+    session.commit()
+    return RedirectResponse("/rates", status_code=303)
+
+
+@router.post("/rates/{code}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def delete_rate(code: str, session: Session = Depends(get_session)) -> RedirectResponse:
+    row = session.get(CurrencyRate, code)
+    if row is not None:
+        session.delete(row)
+        session.commit()
+    return RedirectResponse("/rates", status_code=303)
 
 
 @router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
