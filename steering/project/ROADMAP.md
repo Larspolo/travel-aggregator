@@ -73,6 +73,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The trips list shows the two trips together, with the sum of their best offers
 - [x] `trip:drops` (#354) Price-drop marks for pinned offers: a new capture with a lower price of a pinned fare shows a mark (in the app; e-mail or push later)
   - The trips list and the trip page show "price dropped €X" for a pinned fare until the owner opens it
+- [ ] `trip:delete` Delete a trip with all its offers, prices and captures (`docs/SPEC.md`, milestone 1: trips CRUD)
+  - "Delete trip" on the edit page asks for a confirmation; then the trip is not in the trips list, not on its pages and not in the dropdown of the userscript
+- [ ] `trip:notify` Price-drop notifications outside the app for the pinned fares (`docs/SPEC.md`, milestone 6), by the channel of the decision #418
+  - A new capture with a lower price of a pinned fare sends one notification to the owner's phone
 
 ## 4. Run it on my home server
 
@@ -85,3 +89,6 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A capture older than the period is deleted; its offers and prices stay
 - [x] `host:docs` (#245) Setup guide: install, reverse proxy, userscripts, tokens, backup
   - A new user can follow the guide from an empty server to a first captured offer
+- [ ] `host:ratelimit` A modest rate limit on the API (`docs/SPEC.md`, section 5): per API token, and per address for bad tokens
+  - A token that sends more than 120 requests in one minute gets 429 with `Retry-After`; the userscript keeps the payload and sends it later
+  - An address that sends 20 bad tokens in 15 minutes gets 429 for 15 minutes
