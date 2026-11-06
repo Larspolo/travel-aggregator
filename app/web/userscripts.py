@@ -21,9 +21,26 @@ CORE_VERSION_LINE = re.compile(r"^const CORE_VERSION = (\d+);", re.MULTILINE)
 END_HEADER = "// ==/UserScript=="
 
 
+NAME_LINE = re.compile(r"^// @name[ \t]+(.+?)[ \t]*$", re.MULTILINE)
+
+
+def userscript_list() -> list[dict[str, str]]:
+    """Each *.user.js file of the directory (#390): its file name, its @name and its served @version."""
+    core_path = USERSCRIPTS_DIR / CORE
+    core = core_version(core_path.read_text(encoding="utf-8")) if core_path.is_file() else 0
+    result = []
+    for path in sorted(USERSCRIPTS_DIR.glob("*.user.js")):
+        text = path.read_text(encoding="utf-8")
+        name = NAME_LINE.search(text)
+        version = VERSION_LINE.search(text)
+        result.append({"file": path.name, "name": name.group(1) if name else path.name,
+                       "version": f"{version.group(1) if version else '0'}.{core}"})
+    return result
+
+
 def allowed_names() -> set[str]:
     """The allow-list: core.js and each *.user.js file of the directory, read at each request."""
-    names = {p.name for p in USERSCRIPTS_DIR.glob("*.user.js")}
+    names = {s["file"] for s in userscript_list()}
     if (USERSCRIPTS_DIR / CORE).is_file():
         names.add(CORE)
     return names

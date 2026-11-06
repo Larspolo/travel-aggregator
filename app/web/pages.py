@@ -16,6 +16,7 @@ from sqlalchemy import select
 from pydantic import Field, ValidationError
 from sqlalchemy.orm import Session, subqueryload
 
+from app.web.userscripts import userscript_list
 from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
@@ -378,7 +379,8 @@ def _tokens_page(request: Request, session: Session, new_token: str | None = Non
     tokens = session.scalars(select(ApiToken).order_by(ApiToken.created_at.desc(), ApiToken.id.desc())).all()
     server_url = str(request.base_url).rstrip("/")
     return templates.TemplateResponse(request, "tokens.html", {"tokens": tokens, "new_token": new_token,
-                                                               "server_url": server_url}, status_code=code)
+                                                               "server_url": server_url,
+                                                               "userscripts": userscript_list()}, status_code=code)
 
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/pin",
