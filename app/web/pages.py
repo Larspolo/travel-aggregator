@@ -128,9 +128,11 @@ def index(request: Request, session: Session = Depends(get_session)) -> HTMLResp
 FORM_FIELDS = tuple(TripForm.model_fields)
 
 
-def _form_page(request: Request, values: dict, errors: list[str], trip_id: int | None, code: int = 200):
+def _form_page(request: Request, values: dict, errors: list[str], trip_id: int | None, session: Session,
+               code: int = 200):
     return templates.TemplateResponse(request, "trip_form.html",
-                                      {"values": values, "errors": errors, "trip_id": trip_id}, status_code=code)
+                                      {"values": values, "errors": errors, "trip_id": trip_id,
+                                       "profiles": list_profiles(session)}, status_code=code)
 
 
 async def _save(request: Request, session: Session, trip: Trip | None):
@@ -140,7 +142,10 @@ async def _save(request: Request, session: Session, trip: Trip | None):
         data = TripForm.model_validate(values)
     except ValidationError as e:
         errors = [f"{'.'.join(map(str, err['loc'])) or 'form'}: {err['msg']}" for err in e.errors()]
-        return _form_page(request, values, errors, trip.id if trip else None, 422)
+        return _form_page(request, values, errors, trip.id if trip else None, session, 422)
+    if data.profile_id is not None and session.get(ScoreProfile, data.profile_id) is None:
+        return _form_page(request, values, [f"profile_id: no profile {data.profile_id}"], trip.id if trip else None,
+                          session, 422)
     if trip is None:
         trip = Trip()
         session.add(trip)
@@ -158,8 +163,8 @@ def _get_trip(session: Session, trip_id: int) -> Trip:
 
 
 @router.get("/trips/new", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def new_trip_form(request: Request) -> HTMLResponse:
-    return _form_page(request, {"travelers": 1, "status": "planning"}, [], None)
+def new_trip_form(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return _form_page(request, {"travelers": 1, "status": "planning"}, [], None, session)
 
 
 @router.post("/trips/new", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
@@ -171,7 +176,7 @@ async def new_trip(request: Request, session: Session = Depends(get_session)):
 def edit_trip_form(request: Request, trip_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
     trip = _get_trip(session, trip_id)
     values = {k: ("" if getattr(trip, k) is None else getattr(trip, k)) for k in FORM_FIELDS}
-    return _form_page(request, values, [], trip_id)
+    return _form_page(request, values, [], trip_id, session)
 
 
 @router.post("/trips/{trip_id}/edit", response_class=HTMLResponse,
@@ -232,8 +237,12 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
-    # the profile of the URL wins over the default one; an unknown id gives the default profile (#231)
-    chosen = session.get(ScoreProfile, profile) if profile is not None else None
+    # the order (#232): a weight in the URL, the profile of the URL (#231), the profile of the trip, the default one;
+    # an unknown id in the URL gives the default profile, no error
+    if profile is not None:
+        chosen = session.get(ScoreProfile, profile)
+    else:
+        chosen = session.get(ScoreProfile, trip.profile_id) if trip.profile_id is not None else None
     profiles = list_profiles(session)
     active_id = chosen.id if chosen is not None else next((p.id for p in profiles if p.is_default), None)
     # an empty box of the form is no limit (#180); a number is capped to its range
