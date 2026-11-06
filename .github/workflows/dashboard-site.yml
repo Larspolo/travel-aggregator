@@ -1,0 +1,60 @@
+name: Dashboard site
+
+# Builds the owner's dashboard (travel-aggregator Autopilot) with tools/dashboard_site.py and publishes it to GitHub
+# Pages (https://larspolo.github.io/travel-aggregator): no Claude session and no quota. The pacer loop (pacer.yml) starts it each cycle,
+# because GitHub fires the cron of this repository only a few times per day; the cron is a fallback.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read     # checkout and the `metrics` branch (the Usage: lines)
+  issues: read       # the tickets and epics
+  pull-requests: read   # the merged PRs
+  pages: write       # the deploy
+  id-token: write    # the deploy
+
+concurrency:
+  group: dashboard-site
+  cancel-in-progress: false   # a deploy that stops halfway can leave Pages without a site
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5  # pip for numpy (framework/tools/health.py): the system Python refuses it (#2631)
+        with:
+          python-version: "3.12"
+      - run: python3 -m pip install -q numpy
+      # The issues and PRs of the last build: the build reads only the changed ones (tools/dashboard_data.py, `cached`):
+      # all of them were about 60 API pages in each build (2026-10-29). The cache service counts no REST call.
+      - uses: actions/cache/restore@v4
+        with:
+          path: .dashboard-cache
+          key: dashboard-cache-${{ github.run_id }}
+          restore-keys: dashboard-cache-
+      - name: Build the page and the data files
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DASHBOARD_CACHE: .dashboard-cache
+        run: python3 tools/dashboard_site.py site
+      - uses: actions/cache/save@v4
+        with:
+          path: .dashboard-cache
+          key: dashboard-cache-${{ github.run_id }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
