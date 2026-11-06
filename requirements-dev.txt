@@ -2,3 +2,4 @@ numpy         # framework/tools/health.py
 pytest
 pytest-xdist  # -n auto
 ruff
+playwright    # slow tests (pytest -m slow); the cloud has the browser at /opt/pw-browsers/chromium
