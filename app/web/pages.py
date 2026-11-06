@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session, subqueryload
 from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
 from app.config import get_settings
 from app.db import get_session
+from app.drops import mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.history import chart
@@ -336,6 +337,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
+    context["drops"] = trip_drops(session, trip_id)  # the drops since the last full view (#355)
+    mark_seen(session, trip_id)
+    session.commit()
     return templates.TemplateResponse(request, "trip.html", context)
 
 

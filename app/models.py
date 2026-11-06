@@ -103,6 +103,7 @@ class Fare(Base):
     latest_price: Mapped[Decimal] = mapped_column(Money)
     currency: Mapped[str] = mapped_column(String(3))
     latest_captured_at: Mapped[datetime] = mapped_column(_tz())
+    seen_price: Mapped[Decimal | None] = mapped_column(Money)  # the price at the last view of the trip page (#355)
 
     itinerary: Mapped[Itinerary] = relationship(back_populates="fares")
     prices: Mapped[list["FarePrice"]] = relationship(back_populates="fare", cascade="all, delete-orphan")
