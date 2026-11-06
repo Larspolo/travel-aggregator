@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.post("/ingest")
 def post_ingest(body: IngestIn, _: ApiToken = Depends(require_token),
-                session: Session = Depends(get_session)) -> dict[str, int]:
+                session: Session = Depends(get_session)) -> dict:
     if session.get(Trip, body.trip_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {body.trip_id}")
     return ingest.store(session, body)

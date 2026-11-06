@@ -110,6 +110,8 @@ def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers
     return counts
 
 
-def store(session: Session, body: IngestIn) -> dict[str, int]:
-    """Store the offers of the body. Returns the counts {"created", "updated", "unchanged"}."""
-    return upsert_offers(session, body.trip_id, None, body.offers, source=body.source, captured_at=body.captured_at)
+def store(session: Session, body: IngestIn) -> dict:
+    """Store the valid offers of the body. Returns {"created", "updated", "unchanged", "rejected", "errors"}: the
+    errors are the offers that the schema rejected, with their index (#54)."""
+    counts = upsert_offers(session, body.trip_id, None, body.offers, source=body.source, captured_at=body.captured_at)
+    return {**counts, "rejected": len(body.offer_errors), "errors": body.offer_errors}
