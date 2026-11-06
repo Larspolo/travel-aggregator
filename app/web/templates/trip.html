@@ -70,7 +70,15 @@
       <input type="number" name="flex_flexible" min="-1000" max="1000" step="0.01" value="{{ weights.flex_flexible }}"></label>
     <label>Self-transfer €
       <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
+    <label>Profile name <input type="text" name="name" form="save-profile" required maxlength="100"></label>
+    <button type="submit" form="save-profile">Save as profile</button>
   </details>
+</form>
+<form id="save-profile" method="post" action="/profiles">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <input type="hidden" name="trip_id" value="{{ trip.id }}">
+  {% for k, v in sort_query.items() if k in weights.__dataclass_fields__ %}<input type="hidden" name="{{ k }}" value="{{ v }}">
+  {% endfor %}
 </form>
 <div class="scroll" id="table">
 {% include "trip_table.html" %}
