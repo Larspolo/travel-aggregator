@@ -1,6 +1,7 @@
 """The web pages: login, logout, the trips list, the trip page, the API tokens and the access and egress places and the settings. Jinja2 escapes all output: captured text is
 untrusted (P5)."""
 
+import dataclasses
 import math
 from datetime import datetime, time, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -22,8 +23,8 @@ from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.history import chart
 from app.risk import mode_extras, self_transfer_extras, transfer_extras
-from app.profiles import delete as delete_profile, from_config, list_profiles, rename as rename_profile
-from app.profiles import save as save_profile, set_default as set_default_profile
+from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
+from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.models import AccessTime, ApiToken, Itinerary, ScoreProfile, Setting, Trip
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
@@ -179,6 +180,7 @@ async def edit_trip(request: Request, trip_id: int, session: Session = Depends(g
     return await _save(request, session, _get_trip(session, trip_id))
 
 
+WEIGHT_NAMES = {f.name for f in dataclasses.fields(Weights)}  # the query parameters of the weights (#230)
 SORT_KEYS = {  # the sort keys of the trip table columns (#112); None sorts as the empty text
     "route": lambda r: (r[0].legs[0].from_name or "", r[0].legs[-1].to_name or ""),
     "depart": lambda r: r[0].depart_at,
@@ -192,36 +194,38 @@ SORT_KEYS = {  # the sort keys of the trip table columns (#112); None sorts as t
 
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
-              hour_markup: Decimal = Query(Weights.hour_markup, ge=0, le=100),
-              transfer_markup: Decimal = Query(Weights.transfer_markup, ge=0, le=100),
-              airport_before_min: int = Query(Weights.airport_before_min, ge=0, le=1440),
-              airport_after_min: int = Query(Weights.airport_after_min, ge=0, le=1440),
-              baggage_fee: Decimal = Query(Weights.baggage_fee, ge=0, le=1000),
-              early_limit: time = Query(Weights.early_limit),
-              late_limit: time = Query(Weights.late_limit),
-              time_window_penalty: Decimal = Query(Weights.time_window_penalty, ge=0, le=1000),
-              night_start: time = Query(Weights.night_start), night_end: time = Query(Weights.night_end),
-              night_min: int = Query(Weights.night_min, ge=0, le=1440),
-              night_adjust: Decimal = Query(Weights.night_adjust, ge=-1000, le=1000),
+              hour_markup: Decimal | None = Query(None, ge=0, le=100),
+              transfer_markup: Decimal | None = Query(None, ge=0, le=100),
+              airport_before_min: int | None = Query(None, ge=0, le=1440),
+              airport_after_min: int | None = Query(None, ge=0, le=1440),
+              baggage_fee: Decimal | None = Query(None, ge=0, le=1000),
+              early_limit: time | None = Query(None),
+              late_limit: time | None = Query(None),
+              time_window_penalty: Decimal | None = Query(None, ge=0, le=1000),
+              night_start: time | None = Query(None), night_end: time | None = Query(None),
+              night_min: int | None = Query(None, ge=0, le=1440),
+              night_adjust: Decimal | None = Query(None, ge=-1000, le=1000),
               night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
-              short_transfer_min: int = Query(Weights.short_transfer_min, ge=0, le=240),
-              short_transfer_penalty: Decimal = Query(Weights.short_transfer_penalty, ge=0, le=1000),
-              flex_non_refundable: Decimal = Query(Weights.flex_non_refundable, ge=-1000, le=1000),
-              flex_partly_refundable: Decimal = Query(Weights.flex_partly_refundable, ge=-1000, le=1000),
-              flex_flexible: Decimal = Query(Weights.flex_flexible, ge=-1000, le=1000),
-              self_transfer_penalty: Decimal = Query(Weights.self_transfer_penalty, ge=0, le=1000),
+              short_transfer_min: int | None = Query(None, ge=0, le=240),
+              short_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
+              flex_non_refundable: Decimal | None = Query(None, ge=-1000, le=1000),
+              flex_partly_refundable: Decimal | None = Query(None, ge=-1000, le=1000),
+              flex_flexible: Decimal | None = Query(None, ge=-1000, le=1000),
+              self_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
               sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
               dir: str = Query("asc", pattern="^(asc|desc)$"),
               mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
-              train_markup: Decimal = Query(Weights.train_markup, ge=-1000, le=1000),
-              bus_markup: Decimal = Query(Weights.bus_markup, ge=-1000, le=1000),
-              flight_markup: Decimal = Query(Weights.flight_markup, ge=-1000, le=1000),
-              ferry_markup: Decimal = Query(Weights.ferry_markup, ge=-1000, le=1000),
+              train_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+              bus_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+              flight_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+              ferry_markup: Decimal | None = Query(None, ge=-1000, le=1000),
               max_transfers: str = Query("", max_length=5), max_duration_min: str = Query("", max_length=6),
               earliest_depart: str = Query("", pattern=CLOCK_PATTERN), latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
               show_hidden: bool = Query(False)) -> HTMLResponse:
+    # the weights of the URL; None = not in the URL, the default profile gives the value (#230)
+    overrides = {k: v for k, v in locals().items() if k in WEIGHT_NAMES}
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
@@ -236,14 +240,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, *hidden_filter)
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
-    weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
-                      early_limit, late_limit, time_window_penalty,
-                      night_start, night_end, night_min, night_adjust, night_hour_markup,
-                      short_transfer_min, short_transfer_penalty,
-                      flex_non_refundable=flex_non_refundable, flex_partly_refundable=flex_partly_refundable,
-                      flex_flexible=flex_flexible, self_transfer_penalty=self_transfer_penalty,
-                      train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
-                      ferry_markup=ferry_markup)  # the score is computed here and never stored
+    weights = active_weights(default_weights(session), overrides)  # the score is computed here and never stored
     rows, modes, sources, carriers = [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
@@ -262,7 +259,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # an excluded mode or carrier hides each offer with one of its legs
         if it.legs and not in_time_window(it, limit_depart, limit_arrive):
             continue  # the time limits hide this row (#181)
-        base = (door_extras(it, places, hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
+        base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
                 + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
                 + transfer_extras(it, weights))
         # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
@@ -285,18 +282,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
-    query = {"hour_markup": hour_markup, "transfer_markup": transfer_markup, "airport_before_min": airport_before_min,
-             "airport_after_min": airport_after_min, "baggage_fee": baggage_fee,
-             "early_limit": early_limit.strftime("%H:%M"), "late_limit": late_limit.strftime("%H:%M"),
-             "time_window_penalty": time_window_penalty,
-             "night_start": night_start.strftime("%H:%M"), "night_end": night_end.strftime("%H:%M"),
-             "night_min": night_min, "night_adjust": night_adjust, "self_transfer_penalty": self_transfer_penalty,
-             "ferry_markup": ferry_markup,
-             "flex_flexible": flex_flexible,
-             "flex_non_refundable": flex_non_refundable, "flex_partly_refundable": flex_partly_refundable,
-             "train_markup": train_markup, "bus_markup": bus_markup, "flight_markup": flight_markup,
-             "short_transfer_min": short_transfer_min, "short_transfer_penalty": short_transfer_penalty,
-             **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
+    # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
+    query = {**{k: v for k, v in to_config(weights).items() if v is not None}, "mode": mode, "source": source,
              **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
              **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
              **({"earliest_depart": earliest_depart} if limit_depart is not None else {}),
