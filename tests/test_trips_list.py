@@ -1,5 +1,6 @@
 """The trips list page (#21)."""
 
+import re
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
@@ -56,7 +57,8 @@ def test_query_one_statement(engine):
 def _client(monkeypatch):
     monkeypatch.setenv("OWNER_PASSWORD_HASH", make_password_hash(PASSWORD, iterations=1000))
     c = TestClient(app)
-    c.post("/login", data={"password": PASSWORD})
+    token = re.search(r'name="csrf_token" value="([^"]+)"', c.get("/login").text).group(1)
+    c.post("/login", data={"password": PASSWORD, "csrf_token": token})
     return c
 
 

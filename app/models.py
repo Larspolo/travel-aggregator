@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
-    Boolean, Date, DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, func,
+    JSON, Boolean, Date, DateTime, ForeignKey, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, func,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -106,9 +106,24 @@ class FarePrice(Base):
     price: Mapped[Decimal] = mapped_column(Money)
     currency: Mapped[str] = mapped_column(String(3))
     captured_at: Mapped[datetime] = mapped_column(_tz())
-    # capture_id comes with the captures table (a later ticket).
+    capture_id: Mapped[int | None] = mapped_column(ForeignKey("captures.id", ondelete="SET NULL"), index=True)
 
     fare: Mapped[Fare] = relationship(back_populates="prices")
+
+
+class Capture(Base):
+    """One ingest call. `raw_gz` is the gzip of the JSON of `raw` (NULL when the call had no raw), for a reparse.
+    Privacy (P5): no request headers and no cookies."""
+    __tablename__ = "captures"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), index=True)
+    source: Mapped[str] = mapped_column(String(50))
+    parser_version: Mapped[str | None] = mapped_column(String(50))
+    page_url: Mapped[str | None] = mapped_column(String(2000))
+    search_context_json: Mapped[dict | None] = mapped_column(JSON)
+    raw_gz: Mapped[bytes | None] = mapped_column(LargeBinary)
+    captured_at: Mapped[datetime] = mapped_column(_tz())
 
 
 class ApiToken(Base):

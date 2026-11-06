@@ -2,13 +2,15 @@
 source and fare name, and a price row per capture. Derived values (duration, transfers) are computed here.
 The counts of each case and the raw capture come with `capture:upsert`."""
 
+import gzip
 import hashlib
+import json
 from datetime import UTC
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Fare, FarePrice, Itinerary, Leg
+from app.models import Capture, Fare, FarePrice, Itinerary, Leg
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 
 
@@ -17,6 +19,23 @@ def fingerprint(legs: list[LegIn]) -> str:
     parts = [f"{leg.mode}|{leg.carrier or ''}|{leg.service_no or ''}|{leg.depart_at.astimezone(UTC).isoformat()}|"
              f"{leg.arrive_at.astimezone(UTC).isoformat()}" for leg in legs]
     return hashlib.sha256("\n".join(parts).encode()).hexdigest()
+
+
+def store_capture(session: Session, trip_id: int, payload: IngestIn) -> Capture:
+    """Add the capture row of one ingest call; `raw` is stored as gzip of its JSON (NULL with no raw). Only the
+    fields of P5: no request headers, no cookies. The caller commits; the row id is set after the flush."""
+    raw_gz = None if payload.raw is None else gzip.compress(json.dumps(payload.raw, separators=(",", ":")).encode())
+    capture = Capture(trip_id=trip_id, source=payload.source, parser_version=payload.parser_version,
+                      page_url=payload.page_url, search_context_json=payload.search_context, raw_gz=raw_gz,
+                      captured_at=payload.captured_at)
+    session.add(capture)
+    session.flush()
+    return capture
+
+
+def load_raw(capture: Capture):
+    """The raw payload of a capture, as stored by `store_capture` (None when it had no raw)."""
+    return None if capture.raw_gz is None else json.loads(gzip.decompress(capture.raw_gz))
 
 
 def _new_itinerary(trip_id: int, offer: OfferIn, fp: str) -> Itinerary:
