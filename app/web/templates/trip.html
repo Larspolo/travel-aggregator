@@ -13,6 +13,7 @@
     <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
   <label>Transfer markup €<output name="transfer_value">{{ weights.transfer_markup }}</output>
     <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
+  <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
   <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
   <label>Mode <select name="mode"><option value="">All</option>
     {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>

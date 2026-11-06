@@ -2,6 +2,11 @@
     {% set first, last = it.legs[0], it.legs[-1] %}
     <tr>
       <td>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/hide">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button type="submit">{{ "Unhide" if it.hidden else "Hide" }}</button>
+          {% if it.hidden %}<span class="muted">hidden</span>{% endif %}
+        </form>
         <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/pin">
           <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
           <button type="submit">{{ "Unpin" if it.pinned else "Pin" }}</button>
