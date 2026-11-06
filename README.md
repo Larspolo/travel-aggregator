@@ -233,6 +233,7 @@ limited to 5 MB.
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/trips/{id}/captures` | The captures of a trip, with the action "reparse capture" (see below) |
+| `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
@@ -255,6 +256,8 @@ Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 - `exclude_carrier`: a carrier hides each offer with one of its legs.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
+The expanded row also shows the price history chart of each fare: one point for each capture of the fare.
+The route `/trips/{id}/itineraries/{id}/history` shows the same chart and the table of the prices.
 
 ### Pin, hide, book and note an offer
 
