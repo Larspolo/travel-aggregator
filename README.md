@@ -169,6 +169,13 @@ The Mode and Source lists show only one mode or one source.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
 
+### Add an offer by hand
+
+The trip page has a link "Add an offer by hand" above the offer table. It opens the form `/trips/{id}/offers/new`.
+The form has a price (required), a currency (EUR by default), an optional fare name and the UTC offset of the times.
+Each leg has a mode, a from and to place, a departure and an arrival. The form has up to four legs. A leg with no field filled in is left out.
+The app saves the offer with the source `manual`. Save returns you to the trip page, where the offer is ranked with the others.
+
 ## Userscript panel
 
 Each userscript shows a small panel at the bottom right of the travel site. The panel shows `Captured N offers → sent ✓`
