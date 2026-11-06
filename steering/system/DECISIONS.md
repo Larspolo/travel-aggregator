@@ -8,3 +8,4 @@ the owner chose another option, `-`: no recommendation) · principle (`P<n>`, or
 
 - 2026-11-06 · setup · Three lanes: main, haiku and deep (`weights` and `reserved` in `system.toml`) · - · -
 - 2026-11-06 · setup · Budget for services: free only · taken · P7
+- 2026-11-06 · session · Make an owner ticket (`needs-human`) as soon as the owner can do it: inputs when the epic is made (and 2 features ahead), a check when its last agent ticket closes; never a `needs-human` ticket that waits for agent work · changed · new
