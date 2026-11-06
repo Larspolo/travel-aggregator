@@ -28,6 +28,8 @@ class Weights:
     night_adjust: Decimal = Decimal("0")
     # The hour markup inside the night window (#143); None = the same as hour_markup.
     night_hour_markup: Decimal | None = None
+    # The penalty per self-transfer of a fare (#176); 0 disables it.
+    self_transfer_penalty: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
