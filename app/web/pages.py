@@ -20,7 +20,7 @@ from app.config import get_settings
 from app.db import get_session
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
-from app.risk import mode_extras, self_transfer_extras
+from app.risk import mode_extras, self_transfer_extras, transfer_extras
 from app.models import AccessTime, ApiToken, Itinerary, Trip
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown
@@ -200,6 +200,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               night_min: int = Query(Weights.night_min, ge=0, le=1440),
               night_adjust: Decimal = Query(Weights.night_adjust, ge=-1000, le=1000),
               night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
+              short_transfer_min: int = Query(Weights.short_transfer_min, ge=0, le=240),
+              short_transfer_penalty: Decimal = Query(Weights.short_transfer_penalty, ge=0, le=1000),
               flex_non_refundable: Decimal = Query(Weights.flex_non_refundable, ge=-1000, le=1000),
               flex_partly_refundable: Decimal = Query(Weights.flex_partly_refundable, ge=-1000, le=1000),
               flex_flexible: Decimal = Query(Weights.flex_flexible, ge=-1000, le=1000),
@@ -231,6 +233,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
                       early_limit, late_limit, time_window_penalty,
                       night_start, night_end, night_min, night_adjust, night_hour_markup,
+                      short_transfer_min, short_transfer_penalty,
                       flex_non_refundable=flex_non_refundable, flex_partly_refundable=flex_partly_refundable,
                       flex_flexible=flex_flexible, self_transfer_penalty=self_transfer_penalty,
                       train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
@@ -254,7 +257,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         if it.legs and not in_time_window(it, limit_depart, limit_arrive):
             continue  # the time limits hide this row (#181)
         base = (door_extras(it, places, hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
-                + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights))
+                + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
+                + transfer_extras(it, weights))
         # the main fare has the lowest effective cost; a tie goes to the lowest price (#175)
         fare, cost = min(((f, effective_cost(f.latest_price, it.duration_min, it.transfers, weights,
                                              base + flexibility_extras(f, weights) + self_transfer_extras(f, weights)))
@@ -284,6 +288,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              "flex_flexible": flex_flexible,
              "flex_non_refundable": flex_non_refundable, "flex_partly_refundable": flex_partly_refundable,
              "train_markup": train_markup, "bus_markup": bus_markup, "flight_markup": flight_markup,
+             "short_transfer_min": short_transfer_min, "short_transfer_penalty": short_transfer_penalty,
              **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
              **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
              **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
