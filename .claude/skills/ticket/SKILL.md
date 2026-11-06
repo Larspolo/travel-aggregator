@@ -159,10 +159,9 @@ does not say?
 | Deep (Opus, high effort) | `lane:deep` | A choice where a wrong answer can pass the tests and cost later: a bug with an unknown cause, a race or shared state, a new structure, a change to how the runs decide or plan, a ticket that failed before (red CI after 3 tries, a takeover, reopened), a `size:L` ticket to split. | 4.5 times or more the tokens of a main run |
 
 - The kind label does not choose the lane: a clear `process` ticket can be Haiku or main.
-- Trial (owner, 2026-11-06, decision #158, option A): each `size:S` ticket gets `lane:haiku`, also when the 3 rules of
-  the Haiku row are not all true, unless it needs a render, a screenshot or a judgment of a look. In the queue refill,
-  also give `lane:haiku` to the ready `size:S` tickets with no lane that meet this rule. The trial ends after 30
-  merged `size:S` PRs: its measure ticket then keeps or ends this rule.
+- Each `size:S` ticket gets `lane:haiku` (decision #158, kept by #161: rework 0 / 34, CI runs per run 1.2 before
+  1.1), also when the 3 rules of the Haiku row are not all true, unless it needs a render, a screenshot or a judgment
+  of a look. In the queue refill, also give `lane:haiku` to the ready `size:S` tickets with no lane that meet this rule.
 - Not sure between Haiku and main: Haiku (owner, 2026-10-28). A Haiku run that finds the ticket unclear removes the
   label (`autopilot` skill, `queue.md`). Not sure between main and deep: main.
 - Write tickets for Haiku (owner, 2026-10-29: 40 % of the closed tickets had `lane:haiku`, but 2 of 25 ready ones).
