@@ -109,7 +109,10 @@ The preview is for test data. A release image for your real data follows later (
 | `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>"}`. No token. |
 | `GET /api/trips` | The trips, newest first; `?status=active` filters them |
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
-| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n}`; an offer of a known journey adds a price row |
+| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` |
+
+`POST /api/ingest` stores each offer by its journey. The same journey sent twice gives one itinerary. A changed price
+adds a price row; the same price adds none and counts as `unchanged`. Each offer is stored in its own transaction.
 
 All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
 limited to 5 MB.
