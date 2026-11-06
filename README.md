@@ -128,6 +128,7 @@ limited to 5 MB.
 | `/trips/{id}/edit` | The form to change a trip |
 | `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
+| `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
@@ -151,13 +152,29 @@ when the offers reached your server, or an error message.
 The trip page `/trips/{id}` ranks the offers by effective cost, lowest first:
 
 ```
-effective cost = price + hours × hour markup + transfers × transfer markup
+effective cost = price + hours × hour markup + transfers × transfer markup + door-to-door parts
 ```
+
+The door-to-door parts are described below.
 
 Each row shows the breakdown of its cost, for example `€90 price + €62 time + €30 transfers = €182`. A part that is
 0 is not shown. Two sliders above the list set the hour markup (default €15) and the transfer markup (default €10),
 from €0 to €100. When you move a slider, the list ranks again at once.
 The values are not stored: a link such as `/trips/1?hour_markup=20&transfer_markup=5` opens the page with them.
+
+### Door-to-door
+
+The effective cost also counts the time and cost outside the vehicle. The breakdown shows each part on its own.
+
+- **Access and egress places.** `/places` lists the places that you set. A place has a text, a kind, minutes and a cost.
+  Kind `access` is the way from the place to the first station; kind `egress` is the way from the last station to the
+  place. A leg matches a place when its station name has the same text (case and outer spaces do not count). An offer
+  with a matching access place adds the parts `access time` (minutes × hour markup) and `access cost`. An offer with a
+  matching egress place adds `egress time` and `egress cost`. An offer with no matching place adds nothing.
+- **Airport time and baggage (flights).** An offer with a flight leg adds two parts. `airport time` is the minutes before
+  departure plus the minutes after landing, at the hour markup. `baggage` is the baggage fee.
+  The **Advanced** section under the sliders sets them. The defaults are 120 minutes before departure, 30 minutes after
+  landing and a baggage fee of €0. A value of 0 removes that part from the ranking.
 
 ## Development
 
