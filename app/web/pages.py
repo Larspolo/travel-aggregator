@@ -5,12 +5,14 @@ import math
 from datetime import datetime, time, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
+from typing import Annotated
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
-from pydantic import ValidationError
+from pydantic import Field, ValidationError
 from sqlalchemy.orm import Session, subqueryload
 
 from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
@@ -180,7 +182,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
               sort: str = Query("cost", pattern="^(" + "|".join(SORT_KEYS) + ")$"),
               dir: str = Query("asc", pattern="^(asc|desc)$"),
-              mode: str = Query("", max_length=50), source: str = Query("", max_length=50)) -> HTMLResponse:
+              mode: str = Query("", max_length=50), source: str = Query("", max_length=50),
+              exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
+              exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([])) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {trip_id}")
@@ -191,16 +195,19 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     weights = Weights(hour_markup, transfer_markup, airport_before_min, airport_after_min, baggage_fee,
                       early_limit, late_limit, time_window_penalty,
                       night_start, night_end, night_min, night_adjust, night_hour_markup)  # the score is computed here and never stored
-    rows, modes, sources = [], set(), set()
+    rows, modes, sources, carriers = [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
             continue  # an itinerary with no fare has no cost: it is not a row
         it_modes = {m for m in (it.mode_summary or "").split("+") if m}
         modes |= it_modes
         sources |= {f.source for f in it.fares}
+        carriers |= {leg.carrier for leg in it.legs if leg.carrier}
         fares = [f for f in it.fares if not source or f.source == source]
         if not fares or (mode and mode not in it_modes):
             continue  # the filter hides this row (#112)
+        if any(leg.mode in exclude_mode or leg.carrier in exclude_carrier for leg in it.legs):
+            continue  # an excluded mode or carrier hides each offer with one of its legs
         fare = min(fares, key=lambda f: f.latest_price)
         cost = effective_cost(fare.latest_price, it.duration_min, it.transfers, weights,
                               door_extras(it, places, hour_markup) + flight_extras(it, weights)
@@ -216,15 +223,17 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges,
-            "modes": sorted(modes), "sources": sorted(sources)}
+            "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
+            "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     query = {"hour_markup": hour_markup, "transfer_markup": transfer_markup, "airport_before_min": airport_before_min,
              "airport_after_min": airport_after_min, "baggage_fee": baggage_fee,
              "early_limit": early_limit.strftime("%H:%M"), "late_limit": late_limit.strftime("%H:%M"),
              "time_window_penalty": time_window_penalty,
              "night_start": night_start.strftime("%H:%M"), "night_end": night_end.strftime("%H:%M"),
              "night_min": night_min, "night_adjust": night_adjust,
-             **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source}
-    context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "format_breakdown": format_breakdown,
+             **({"night_hour_markup": night_hour_markup} if night_hour_markup is not None else {}), "mode": mode, "source": source,
+             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
+    context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "now": datetime.now(timezone.utc)}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
