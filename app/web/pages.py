@@ -336,6 +336,18 @@ def toggle_booked(trip_id: int, itinerary_id: int, session: Session = Depends(ge
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/note",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_note(trip_id: int, itinerary_id: int, note: str = Form("", max_length=2000),
+              session: Session = Depends(get_session)) -> RedirectResponse:
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    it.note = note.strip() or None
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/hide",
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 def toggle_hide(trip_id: int, itinerary_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
