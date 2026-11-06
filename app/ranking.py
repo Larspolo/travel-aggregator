@@ -1,6 +1,6 @@
 """Effective cost of one fare (docs/SPEC.md, section 7.1)."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import time
 from decimal import ROUND_HALF_EVEN, Decimal
 
@@ -57,6 +57,8 @@ class Breakdown:
     transfer_cost: Decimal
     total: Decimal
     extras: tuple[tuple[str, Decimal], ...] = ()
+    original: str = ""  # the price in its own currency when it is not EUR, e.g. "CHF 120" (#385)
+    no_rate: str = ""  # the currency code when it has no rate: then the price and the total are Infinity (#385)
 
 
 def _cents(value: Decimal) -> Decimal:
@@ -92,11 +94,23 @@ def effective_cost(
     return Breakdown(price_part, time_part, transfer_part, total, extra_parts)
 
 
-def _amount(value: Decimal) -> str:
+def _amount(value: Decimal, symbol: str = "€") -> str:
     """Whole euros without decimals, otherwise two cent digits."""
     if value == value.to_integral_value():
-        return f"€{int(value)}"
-    return f"€{value:.2f}"
+        return f"{symbol}{int(value)}"
+    return f"{symbol}{value:.2f}"
+
+
+def in_eur(b: Breakdown, amount: Decimal, currency: str, eur: Decimal | None) -> Breakdown:
+    """The breakdown of a fare whose price is not in EUR (#385): `b` was computed with the EUR value `eur`.
+    With no rate (`eur` None) the total is Infinity, so that the row sorts after the rows with a cost."""
+    if currency == "EUR":
+        return b
+    if eur is None:
+        inf = Decimal("Infinity")
+        return Breakdown(price=inf, time_cost=b.time_cost, transfer_cost=b.transfer_cost, total=inf,
+                         extras=b.extras, no_rate=currency)
+    return replace(b, original=_amount(amount, f"{currency} "))
 
 
 def format_breakdown(b: Breakdown) -> str:
@@ -104,8 +118,12 @@ def format_breakdown(b: Breakdown) -> str:
 
     A part that is 0 is left out. The text is plain: the template escapes it (P5).
     """
+    if b.no_rate:
+        return f"no rate for {b.no_rate}"
+    price_label = f"{b.original} ({_amount(b.price)}) price" if b.original else None
     labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost)) + b.extras
-    parts = [f"{_amount(value)} {label}" for label, value in labels if value != 0]
+    parts = [price_label if label == "price" and price_label else f"{_amount(value)} {label}"
+             for label, value in labels if value != 0]
     if not parts:
         return _amount(b.total)
     return f"{' + '.join(parts)} = {_amount(b.total)}"

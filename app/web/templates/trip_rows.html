@@ -30,7 +30,7 @@
       <td>{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</td>
       <td>{{ fare.fare_name or "" }}<div class="muted">{{ fare.source }}{% set newest = it.fares | map(attribute="latest_captured_at") | max %}, {{ newest | ago(now) }}{% if newest < stale_before %} <span class="stale">stale, price may have changed</span>{% endif %}</div></td>
       <td class="price">{{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }}</td>
-      <td class="cost">{{ format_breakdown(cost) }}</td>
+      <td class="cost">{{ format_breakdown(cost) }}{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</td>
     </tr>
     <tr class="detail">
       <td colspan="7"><details><summary>Legs and fares</summary>
