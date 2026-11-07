@@ -116,21 +116,43 @@ HOOK = r"""(() => {
   const X = w.XMLHttpRequest && w.XMLHttpRequest.prototype;
   if (X) {
     const open = X.open, send = X.send, setHeader = X.setRequestHeader;
+    const descText = Object.getOwnPropertyDescriptor(X, "responseText");
+    const descResp = Object.getOwnPropertyDescriptor(X, "response");
+    // One XHR response is recorded once: at loadend (open/send wrappers) or when the page reads it through the
+    // getters (#169: the open/send wrappers may not see the request). The original getters are called directly.
+    const doneX = new WeakSet();
+    const recordXhr = (xhr) => {
+      try {
+        if (xhr.readyState !== 4 || doneX.has(xhr)) return;
+        doneX.add(xhr);
+        const m = xhr.__ta || {};
+        const t = xhr.responseType;
+        const text = !t || t === "text" ? descText.get.call(xhr) : t === "json" ? JSON.stringify(descResp.get.call(xhr)) : null;
+        const url = m.url !== undefined ? m.url : xhr.responseURL;
+        add(m.method === undefined ? null : m.method, url, m.type || "", typeof m.body === "string" ? m.body : null,
+          xhr.status, xhr.statusText, xhr.getResponseHeader("content-type"), text, m.t0 || Date.now());
+      } catch (e) { /* the page must not break */ }
+    };
     X.open = function (method, url) { this.__ta = {method, url, type: ""}; return open.apply(this, arguments); };
     X.setRequestHeader = function (name, value) {
       if (this.__ta && String(name).toLowerCase() === "content-type") this.__ta.type = String(value);
       return setHeader.apply(this, arguments);
     };
     X.send = function (body) {
-      const m = this.__ta, t0 = Date.now();
-      if (m) this.addEventListener("loadend", () => {
-        const t = this.responseType;
-        const text = !t || t === "text" ? this.responseText : t === "json" ? JSON.stringify(this.response) : null;
-        add(m.method, m.url, m.type, typeof body === "string" ? body : null, this.status, this.statusText,
-          this.getResponseHeader("content-type"), text, t0);
-      });
+      const m = this.__ta;
+      if (m) {
+        m.body = body;
+        m.t0 = Date.now();
+        this.addEventListener("loadend", () => recordXhr(this));
+      }
       return send.apply(this, arguments);
     };
+    try {
+      if (descText && descText.get) Object.defineProperty(X, "responseText", {configurable: true, enumerable: descText.enumerable,
+        get() { const v = descText.get.call(this); recordXhr(this); return v; }});
+      if (descResp && descResp.get) Object.defineProperty(X, "response", {configurable: true, enumerable: descResp.enumerable,
+        get() { const v = descResp.get.call(this); recordXhr(this); return v; }});
+    } catch (e) { /* the page keeps its own getters: the open/send wrappers still record */ }
   }
   cap.list = () => JSON.stringify(cap.entries.map((e) => ({method: e.request.method, url: e.request.url,
     status: e.response.status, size: e.response.content.size})));
