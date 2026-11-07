@@ -18,9 +18,22 @@ body {
 }
 a { color: var(--accent); }
 nav.topbar {
-  display: flex; flex-wrap: wrap; gap: var(--space-4); padding-bottom: var(--space-2);
-  margin-bottom: var(--space-3); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4);
+  padding: var(--space-2) 0; margin-bottom: var(--space-4); border-bottom: 1px solid var(--line); background: var(--bg);
 }
+nav.topbar .brand { font-weight: 700; color: var(--text); text-decoration: none; }
+nav.topbar .nav-links { display: flex; flex-wrap: wrap; gap: var(--space-1); flex: 1; }
+nav.topbar .nav-links a {
+  padding: var(--space-1) var(--space-3); border-radius: var(--radius); color: var(--muted); text-decoration: none;
+}
+nav.topbar .nav-links a:hover { background: var(--surface); color: var(--text); }
+nav.topbar .nav-links a.active { background: var(--surface); color: var(--accent); font-weight: 600; }
+nav.topbar .nav-links a.logout { margin-left: auto; }
+h1, h2, h3 { line-height: 1.2; margin: var(--space-4) 0 var(--space-2); }
+h1 { font-size: 1.5rem; }
+button, input[type=submit] { padding: var(--space-1) var(--space-3); cursor: pointer; }
+button:hover { background: var(--surface); border-color: var(--accent); }
+tbody tr:hover { background: var(--surface); }
 table { border-collapse: collapse; width: 100%; }
 th, td { border-bottom: 1px solid var(--line); padding: var(--space-1) var(--space-2); text-align: left; vertical-align: top; }
 th { background: var(--surface); }
