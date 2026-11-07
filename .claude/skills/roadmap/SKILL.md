@@ -19,7 +19,8 @@ as work left and stopped with no refill, 113k eq for no ticket).
    epic body names its key ("Roadmap: `<key>`"). A `muted` epic counts too.
 2. Pick the goal whose newest epic is the oldest (a goal without an epic first). Tie: the order of the file.
 3. In that goal, take the first missing feature without an epic. Grep the code for it first: when the code does it
-   already, mark it `[x]` in the next PR and take the next one.
+   already, mark it `[x]` in the next PR and take the next one. A feature whose line names an open decision ticket
+   (`needs-human`, "Kind: decision") waits for the answer: take the next one (`usage.held`, #432).
 4. Make the epic with the `ticket` skill: the goal (what the user sees), the sub-items of the feature as acceptance
    criteria, a criterion that checks the whole feature, the criterion "`README.md` describes what this epic added, and
    `python3 -m pytest -m readme` passes" (one README PR at the end, `steering/project/PRINCIPLES.md`, "Try a
