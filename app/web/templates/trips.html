@@ -6,6 +6,13 @@
   {% if not archived and archived_count %}<a class="btn" href="/?archived=1">Archived trips ({{ archived_count }})</a>{% endif %}
   <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
 {% endcall %}
+{% if failing %}
+<div class="source-warning" role="alert">
+  {% for h in failing %}
+  <p class="chip warn"><a href="/captures?{{ {"failed": 1, "source": h.source} | urlencode }}">{{ h.source }}: the last {{ h.failed_after }} capture{{ "" if h.failed_after == 1 else "s" }} failed</a></p>
+  {% endfor %}
+</div>
+{% endif %}
 {% if lines %}
 <div class="trip-grid">
   {% for kind, t, note in lines %}
