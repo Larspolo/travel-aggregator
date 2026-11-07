@@ -242,6 +242,8 @@ The body can also have the field `raw`: the original response of the travel site
 stores it as a capture, so a later parser fix can run again on it (see "Reparse a capture" below). A body with `raw`
 and no `offers` is valid. The app reports a connection that the parser cannot read in `errors`.
 
+An offer can have the field `travel_class`: `first` (1st class), `standard` (2nd class) or no field (not set). A fare with the class `first` gets the badge "1st" and the part `1st class` of "Risk" under "Ranking".
+
 Each leg of an offer can have the field `ticket`: a whole number from 1 to 20 for the ticket of the leg. When the number
 changes between two legs, the fare counts one self-transfer. A leg with no `ticket` keeps the ticket of the leg before
 it. See "Risk" under "Ranking".
@@ -305,6 +307,7 @@ The fields under "Advanced" on the trip page show in two columns, also at a phon
 
 The table of `/trips/{id}` has one row per journey. The same train from bahn.de and NS International shows once, with the fares of both sources in its "Legs and fares". Two offers are one journey when their modes and service numbers are the same, and their first departure and last arrival are at the same UTC time (the carrier and the times of the legs between do not count). The pin, hide, booked, note and price history are per journey.
 Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
+A fare of the 1st class shows the badge "1st" after its name. The badge shows in the fare list of each row and on the compare page.
 An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on).
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
 If the newest capture is older than the stale hours, the row also shows "stale, price may have changed". See "Stale offers".
@@ -428,7 +431,7 @@ Each direction is a normal trip. The userscripts capture offers into it when you
 - The trip page `/trips/{id}` has the links "Export CSV" and "Export JSON". They are in the "More" menu of the page.
 - Both links need the login. They do not need an API token.
 - The JSON file (`/trips/{id}/export.json`) has the trip, its itineraries, the legs of each itinerary, the fares of each itinerary and the price history of each fare. The times are in UTC with the original offset. The money is text, not a number.
-- The CSV file (`/trips/{id}/export.csv`) has one row per fare. The columns are the route, the departure, the arrival, the duration, the transfers, the modes, the carriers, the service numbers, the source, the fare, the class, the price, the currency, the capture time, the pinned, hidden and booked flags, the note and the booking link. The file starts with a UTF-8 byte order mark, so that a spreadsheet opens the accents correctly.
+- The CSV file (`/trips/{id}/export.csv`) has one row per fare. The columns are the route, the departure, the arrival, the duration, the transfers, the modes, the carriers, the service numbers, the source, the fare, the column `travel_class` (`first`, `standard` or empty), the price, the currency, the capture time, the pinned, hidden and booked flags, the note and the booking link. The file starts with a UTF-8 byte order mark, so that a spreadsheet opens the accents correctly.
 - A cell that a spreadsheet could run as a formula starts with a quote `'`. Such a cell starts with `=`, `+`, `-`, `@`, a tab or a carriage return.
 - The raw captures are not in the export.
 
@@ -452,7 +455,7 @@ If you tick fewer than 2 or more than 4 offers, the page shows an error and asks
 
 
 The trip page has a link "Add an offer by hand" above the offer table. It opens the form `/trips/{id}/offers/new`.
-The form has a price (required), a currency (EUR by default), an optional fare name and the UTC offset of the times.
+The form has a price (required), a currency (EUR by default), an optional fare name, a field "Class" (`Not set`, `1st class` or `2nd class`; `Not set` stores no class) and the UTC offset of the times.
 Each leg has a mode, a from and to place, a departure and an arrival. The form has up to four legs. A leg with no field filled in is left out.
 The app saves the offer with the source `manual`. Save returns you to the trip page, where the offer is ranked with the others.
 
@@ -482,7 +485,7 @@ To install it, add the file `userscripts/bahn.user.js` of this repository to Tam
 Then set the server URL and the API token in the Tampermonkey menu. On bahn.de, search for a connection. The panel
 shows the number of captured offers.
 
-The parser reads the fare name with its class and its BahnCard discount. It gives each station its own timezone. A
+The parser reads the fare name with its class and its BahnCard discount. The class of each fare is stored as the travel class (see "API"). It gives each station its own timezone. A
 connection with no price goes to the errors of the capture and is not stored as an offer.
 
 ### NS International userscript
@@ -686,6 +689,9 @@ its part from the ranking. Each part shows its own label in the breakdown.
   the `flexibility` text of the offer. The text `non_refundable`, `nonrefundable`, `no_refund` or `saver` gives
   non-refundable. The text `partly_refundable`, `partially_refundable` or `semi_flexible` gives partly refundable.
   The text `flexible`, `flex`, `refundable` or `fully_refundable` gives flexible. Any other text, or no text, adds nothing.
+- **1st class €/hour**, default `0`. The part `1st class` is this amount times the hours of the itinerary, for a fare of the
+  travel class `first` only (see "API"). A negative amount is a bonus, so it lowers the effective cost of a 1st class fare.
+  A value of 0 removes the part.
 - **Self-transfer €**, default `0`. The part `self-transfer` is this amount times the count of self-transfers of the fare.
   The count comes from the `ticket` field of the legs (see "API").
 
