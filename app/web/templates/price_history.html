@@ -15,11 +15,13 @@
 </svg>
 {% endif %}
 {% for fare in fares %}
+<section class="card data-card"><div class="scroll">
 <table class="history">
   <caption>{{ fare.source }}: {{ fare.fare_name or "" }}</caption>
-  <tr><th>Captured</th><th>Price</th></tr>
+  <thead><tr><th>Captured</th><th class="price">Price</th></tr></thead>
   {% for p in fare.prices | sort(attribute="captured_at", reverse=true) %}
   <tr><td>{{ p.captured_at.strftime("%Y-%m-%d %H:%M") }}</td><td class="price">{{ p.currency }} {{ "%.2f" | format(p.price) }}</td></tr>
   {% endfor %}
 </table>
+</div></section>
 {% endfor %}

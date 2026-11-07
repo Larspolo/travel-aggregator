@@ -6,7 +6,7 @@
 {% if error %}
 <p class="error">{{ error }}</p>
 {% else %}
-<div class="scroll"><table class="compare">
+<section class="card data-card"><div class="scroll"><table class="compare">
   <tbody>
   <tr><th scope="row">Route</th>{% for it, fare, cost in columns %}<td>{{ it.legs[0].from_name }} → {{ it.legs[-1].to_name }}</td>{% endfor %}</tr>
   <tr><th scope="row">Depart</th>{% for it, fare, cost in columns %}{% set first = it.legs[0] %}<td>{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }}</td>{% endfor %}</tr>
@@ -19,6 +19,6 @@
   <tr><th scope="row">Price</th>{% for it, fare, cost in columns %}<td class="price{{ ' best' if loop.index0 in best.price }}">{{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }}</td>{% endfor %}</tr>
   <tr><th scope="row">Effective cost</th>{% for it, fare, cost in columns %}<td class="cost{{ ' best' if loop.index0 in best.cost }}"><span class="breakdown">{{ format_breakdown(cost) }}</span>{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</td>{% endfor %}</tr>
   </tbody>
-</table></div>
+</table></div></section>
 {% endif %}
 {% endblock %}

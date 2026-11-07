@@ -68,6 +68,13 @@ th { background: var(--surface); }
 
 td { font-variant-numeric: tabular-nums; }
 td.price { text-align: right; white-space: nowrap; }
+th.price { text-align: right; }
+/* A data table in a card (#632): no outer border, a sticky head; on a phone it scrolls inside its card. */
+.data-card { padding: var(--space-2); }
+.data-card .scroll { overflow-x: auto; max-height: 80vh; }
+.data-card thead th { position: sticky; top: 0; z-index: 1; font-size: var(--text-sm); }
+.data-card caption { text-align: left; font-weight: 600; padding: var(--space-2); }
+td.capture-failed summary { list-style: none; cursor: pointer; }
 /* == Forms == */
 input, select, textarea {
   background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius);
