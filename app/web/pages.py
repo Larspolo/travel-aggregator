@@ -30,7 +30,7 @@ from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_e
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, ScoreProfile, Setting, Trip
-from app.notify import CHANNEL_KEY, CHANNELS, NTFY_URL_KEY, setting
+from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown, in_eur
@@ -679,12 +679,14 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  "max_days": MAX_RETENTION_DAYS,
                                                                  "channel": setting(session, CHANNEL_KEY, "none"),
                                                                  "channels": CHANNELS,
-                                                                 "ntfy_url": setting(session, NTFY_URL_KEY)})
+                                                                 "ntfy_url": setting(session, NTFY_URL_KEY),
+                                                                 "notify_email": setting(session, EMAIL_KEY),
+                                                                 "smtp_ready": bool(get_settings().smtp_host)})
 
 
 @router.post("/settings", dependencies=[Depends(require_login), Depends(verify_csrf)])
 def save_settings(retention: str = Form(""), notify_channel: str = Form("none"), ntfy_url: str = Form(""),
-                  session: Session = Depends(get_session)) -> RedirectResponse:
+                  notify_email: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
     value = retention.strip()
     if not value.isdigit() or int(value) > MAX_RETENTION_DAYS:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -696,6 +698,14 @@ def save_settings(retention: str = Form(""), notify_channel: str = Form("none"),
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the ntfy topic URL must start with https://")
     if notify_channel == "ntfy" and not url:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the channel ntfy needs a topic URL")
+    address = notify_email.strip()
+    if address and ("@" not in address or len(address) > 254):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the e-mail address needs an @")
+    if notify_channel == "email" and not get_settings().smtp_host:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "E-mail needs SMTP_HOST on the server")
+    if notify_channel == "email" and not address:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the channel email needs an address")
+    session.merge(Setting(key=EMAIL_KEY, value=address))
     session.merge(Setting(key=RETENTION_KEY, value=str(int(value))))
     session.merge(Setting(key=CHANNEL_KEY, value=notify_channel))
     session.merge(Setting(key=NTFY_URL_KEY, value=url))
