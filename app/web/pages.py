@@ -86,6 +86,12 @@ def in_time_window(it, earliest_depart: time | None, latest_arrive: time | None)
     return True
 
 
+def depart_day(it) -> str:
+    """The local date (YYYY-MM-DD) of the first leg's departure, as the stored offset gives it (#709)."""
+    first = it.legs[0]
+    return (first.depart_at + timedelta(minutes=first.depart_offset_min)).date().isoformat()
+
+
 def ago(t: datetime, now: datetime) -> str:
     """The age of a capture, for example '2 h ago'."""
     seconds = max(0, int((now - t).total_seconds()))
@@ -343,6 +349,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               max_duration_min: str = Query("", max_length=6),
               earliest_depart: str = Query("", pattern=CLOCK_PATTERN),
               latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
+              day: str = Query("", pattern=r"^(\d{4}-\d{2}-\d{2})?$"),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
               show_hidden: bool = Query(False),
@@ -386,6 +393,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # an excluded mode or carrier hides each offer with one of its legs
         if it.legs and not in_time_window(it, limit_depart, limit_arrive):
             continue  # the time limits hide this row (#181)
+        if day and it.legs and depart_day(it) != day:
+            continue  # the day filter shows only the offers that depart on that local day (#709)
         if hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before:
             continue  # "hide stale" hides a row whose newest capture is stale (#277)
         fare, cost = row_cost(it, fares, places, weights, stale_before, rates)
@@ -402,7 +411,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
     view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "show_hidden": show_hidden,
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
-            "earliest_depart": earliest_depart, "latest_arrive": latest_arrive,
+            "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale}
     # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
@@ -411,6 +420,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
              **({"earliest_depart": earliest_depart} if limit_depart is not None else {}),
              **({"latest_arrive": latest_arrive} if limit_arrive is not None else {}),
+             **({"day": day} if day else {}),
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     if show_hidden:
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
