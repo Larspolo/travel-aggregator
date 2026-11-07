@@ -158,7 +158,7 @@ differs from the address that installed the userscript.
 
 Check: the Tampermonkey dashboard shows the script as on.
 
-The repository also has the userscripts (`userscripts/bahn.user.js`, `userscripts/ns.user.js`). To install from the
+The repository also has the userscripts (`userscripts/bahn.user.js`, `userscripts/ns.user.js`, `userscripts/flixbus.user.js`, `userscripts/kiwi.user.js`). To install from the
 repository instead, add the file as a new script in Tampermonkey and set the server URL (`https://<host>`).
 
 #### 6. Capture a first offer
@@ -392,6 +392,19 @@ The panel shows the number of captured offers.
 
 The parser reads the fare name with its flexibility level. It gives each station its own timezone. A connection that
 the parser cannot read goes to the errors of the capture and is not stored as an offer.
+
+### Kiwi.com userscript
+
+The Kiwi.com userscript captures the flight offers of kiwi.com: the flights, their times and the price of each fare.
+It reads only the responses that the kiwi.com page itself gets. It sends no request to kiwi.com or skypicker.com.
+
+To install it, add the file `userscripts/kiwi.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On kiwi.com, search for a flight.
+The panel shows the number of captured offers.
+
+The parser makes one offer per fare. It reads the time zone of each airport from the times of the response. A
+segment with a guarantee starts a new ticket, so the flights of that offer count as a self-transfer. A flight that the
+parser cannot read goes to the errors of the capture and is not stored as an offer.
 
 ### Flixbus userscript
 
