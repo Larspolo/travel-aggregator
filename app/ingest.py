@@ -17,7 +17,7 @@ from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg, Trip
 from app.parsers import get_parser
 from app.parsers.ns import CHANGE_STATION
-from app.tripmatch import mismatch
+from app.tripmatch import best_trip, mismatch
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 from app.notify import PriceDrop
@@ -291,12 +291,13 @@ def _give_flags(session: Session, trip_id: int, flags: dict[str, tuple]) -> None
 def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     """Store the capture of the body (with its raw, if any), then its valid offers; each price row links to the
     capture. The offers of a raw payload come from its parser (`app/parsers`); one bad connection is an entry of
-    the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors"}: the
+    the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors", "warning", "trip_id", "trip_title"}: the
     errors are the offers that the schema or the parser rejected, with their index (#54). Each failure is logged
     with the capture id (P3)."""
-    capture = store_capture(session, body.trip_id, body)
-    session.commit()
     raw_offers, raw_errors, unreadable = parse_raw(body)
+    trip_id = _choose_trip(session, body, list(body.offers) + raw_offers)
+    capture = store_capture(session, trip_id, body)
+    session.commit()
     if unreadable is not None:
         log.warning("capture %s: %s raw payload not read: %s", capture.id, body.source, unreadable)
     offers = list(body.offers) + raw_offers
@@ -304,14 +305,25 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     for err in errors:
         log.warning("capture %s: %s %s rejected at index %s: %s", capture.id, body.source,
                     body.parser_version or "-", err.get("index"), err.get("reason"))
-    counts = upsert_offers(session, body.trip_id, capture.id, offers, source=body.source,
+    counts = upsert_offers(session, trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at, drops=drops)
     set_result(capture, counts, errors, unreadable)
-    reason = _trip_mismatch(session, body.trip_id, offers)
+    reason = _trip_mismatch(session, trip_id, offers)
     capture.mismatch = reason
     delete_old_captures(session, retention_days(session), datetime.now(UTC))
     session.commit()
-    return {**counts, "rejected": len(errors), "errors": errors, "warning": _warning_text(reason)}
+    trip = session.get(Trip, trip_id)
+    return {**counts, "rejected": len(errors), "errors": errors, "warning": _warning_text(reason),
+            "trip_id": trip_id, "trip_title": None if trip is None else trip.title}
+
+
+def _choose_trip(session: Session, body: IngestIn, offers: list[OfferIn]) -> int:
+    """The trip_id of the body; with `auto_trip`, the trip of tripmatch.best_trip (#719)."""
+    selected = session.get(Trip, body.trip_id)
+    if not getattr(body, "auto_trip", False) or selected is None:
+        return body.trip_id
+    planning = list(session.scalars(select(Trip).where(Trip.status == "planning")))
+    return best_trip(planning, offers, selected).id
 
 
 def _trip_mismatch(session: Session, trip_id: int, offers: list[OfferIn]) -> str | None:
