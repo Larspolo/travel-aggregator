@@ -28,6 +28,7 @@ def captures_page(request: Request, trip_id: int, failed: bool = False,
     captures = session.scalars(query.order_by(Capture.captured_at.desc(), Capture.id.desc())).all()
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": trip, "captures": captures, "failed": failed,
+                                       "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session) if failed else []})
 
 
@@ -43,6 +44,7 @@ def all_captures_page(request: Request, failed: bool = False,
     trip_titles = {t.id: t.title for t in session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()}
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed,
+                                       "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session) if failed else []})
 
 
@@ -96,6 +98,37 @@ def reparse_capture(request: Request, capture_id: int, session: Session = Depend
         message = (f"Reparsed with {capture.source} {parser.version}: {counts['created']} created, "
                    f"{counts['updated']} updated, {counts['unchanged']} unchanged, {counts['rejected']} rejected.")
     return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
+
+
+@router.post("/captures/{capture_id}/move", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def move_capture(capture_id: int, trip_id: int = Form(...), session: Session = Depends(get_session)) -> HTMLResponse:
+    """Move the offers of a capture into the wrong trip to the trip `trip_id` (#580, epic #578)."""
+    capture = session.get(Capture, capture_id)
+    if capture is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no capture {capture_id}")
+    target = session.get(Trip, trip_id)
+    if target is None:
+        message = f"There is no trip {trip_id}: nothing moved."
+    elif target.id == capture.trip_id:
+        message = "The capture is already in this trip: nothing moved."
+    else:
+        counts = ingest.move_capture(session, capture, target.id)
+        if counts is None:
+            message = ("This capture has no raw data: nothing moved." if capture.raw_gz is None
+                       else f"The source {capture.source} has no parser: nothing moved.")
+        elif counts["unreadable"]:
+            message = f"The parser cannot read the raw data: {counts['unreadable']}. Nothing moved."
+        else:
+            message = (f"Moved to {target.title}: {counts['created']} created, {counts['updated']} updated, "
+                       f"{counts['unchanged']} unchanged, {counts['rejected']} rejected.")
+    return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
+
+
+def _move_trips(session: Session) -> list[Trip]:
+    """The trips that a capture can move to: not archived, newest first (#580)."""
+    query = select(Trip).where(Trip.status != "archived").order_by(Trip.created_at.desc(), Trip.id.desc())
+    return list(session.scalars(query).all())
 
 
 def _failed_clause():
