@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
+GUARDS = ("userscripts/*", "tests/data/userscript_versions.json")   # ship_pr runs this file for these changes
 DIR = Path(__file__).resolve().parents[1] / "userscripts"
 SERVER = "https://travel.example"
 USER_FILES = sorted(p.name for p in DIR.glob("*.user.js"))
