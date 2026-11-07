@@ -16,6 +16,10 @@
   <button type="submit">Make the return trip</button>
 </form>
 {% endif %}
+<form method="post" action="/trips/{{ trip.id }}/next">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <button type="submit">Add next trip</button>
+</form>
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 {% if profiles %}
 <form class="profile" method="get" action="/trips/{{ trip.id }}">
