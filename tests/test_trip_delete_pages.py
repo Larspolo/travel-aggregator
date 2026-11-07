@@ -28,6 +28,7 @@ TRIP_PAGES = [
     "/trips/{trip_id}/captures",
     "/trips/{trip_id}/export.json",
     "/trips/{trip_id}/export.csv",
+    "/trips/{trip_id}/itineraries/{itinerary_id}/calendar.ics",
 ]
 
 
