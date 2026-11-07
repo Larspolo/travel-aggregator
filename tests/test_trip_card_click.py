@@ -1,5 +1,7 @@
 """A click anywhere on a trip card of the trips list opens the trip; the edit button still opens the edit form (#736)."""
 
+import os
+
 import pytest
 from playwright.sync_api import sync_playwright
 
@@ -17,7 +19,8 @@ def _click_at(page, selector):
 def test_a_click_on_the_card_opens_the_trip_and_edit_still_works(live):  # noqa: F811
     base, trip_id, _ = live
     with sync_playwright() as p:
-        browser = p.chromium.launch(executable_path="/opt/pw-browsers/chromium")
+        exe = "/opt/pw-browsers/chromium"  # the cloud session; CI has the browser of `playwright install`
+        browser = p.chromium.launch(executable_path=exe) if os.path.exists(exe) else p.chromium.launch()
         page = browser.new_page(viewport={"width": 1280, "height": 900})
         page.goto(base + "/")
         _click_at(page, ".trip-grid .card .trip-route")  # not the title: the point of a real tap
