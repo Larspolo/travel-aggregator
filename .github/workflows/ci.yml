@@ -37,6 +37,35 @@ jobs:
       - name: Fast tests
         run: python3 -m pytest -n auto
 
+  # The browser tests (`pytest -m slow`, about 20 s): each page at 390 px and 1280 px with no sideways scroll, the phone
+  # check with touch (tests/test_mobile_touch.py), and the userscripts on local test pages (never a travel site, P1).
+  # They gate each PR: no person checks what this job can check (owner, 2026-11-07). The job is not named `slow`,
+  # because the pacer and Automerge do not count a job `slow` (#5462).
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U test" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://test:test@localhost:5432/test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 -m pip install --quiet --disable-pip-version-check --root-user-action=ignore -r requirements-dev.txt
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Browser tests
+        run: python3 -m pytest -m slow -n auto
+
   # The local run as the owner starts it (`docker compose up --build`, the `dev` command): docker-compose.yml with
   # .env.example, the db container, the migrations at the start, then /api/health (the commit), the non-root user,
   # the healthcheck, and the login with the CSRF token up to the trips list. The cloud sessions have no Docker daemon,

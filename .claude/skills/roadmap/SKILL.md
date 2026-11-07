@@ -33,8 +33,14 @@ as work left and stopped with no refill, 113k eq for no ticket).
    - An input that the owner can give now: a real payload of a travel site (P1, P5), a setting or a secret on a
      server, an account, a decision. Make it now as the first sub-issue; each agent sub-issue that needs it gets
      "Depends on: #<it>".
-   - A check that needs agent work first: a test with Tampermonkey in the owner's browser, a test on the phone,
-     `docker compose up` on the owner's computer, a login on the preview. Make no ticket yet. Write it in the epic
+   - Agent checks first (owner, 2026-11-07): never ask a person to check what an agent can check. A layout, a
+     sideways scroll, a width, a text, a value, a click flow or a page at phone width (Playwright with the device of
+     the phone, `hasTouch`), the API of the preview (`scripts/preview_check.sh`): the agent checks it on a local server
+     with the same commit and comments the evidence (`autopilot` skill, `owner.md`, "Check tickets"). These are never
+     steps of an owner ticket, also when the agents cannot log in to the pages of the preview.
+   - A check that only a person can do, after agent work: a real travel site with Tampermonkey in the owner's browser
+     (P1), the feel of a control under a finger on a real phone, `docker compose up` on the owner's computer. Make no
+     ticket yet. Write it in the epic
      body, in a section `## Owner checks`, one line each: `- After #a, #b: <what the owner checks>` (write the line when its sub-issues exist, in step 7 or
      in a later refill). The run whose
      PR closes the last of these tickets makes the `needs-human` ticket at once (`autopilot` skill, `report.md`),
