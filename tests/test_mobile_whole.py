@@ -31,9 +31,7 @@ def live(trip, sessions):  # noqa: F811
     thread.start()
     while not server.started:
         time.sleep(0.05)
-    with sessions() as s:
-        its = [i.id for i in s.query(Itinerary).filter_by(trip_id=trip_id).order_by(Itinerary.id).limit(2)]
-    yield f"http://127.0.0.1:{port}", trip_id, its
+    yield f"http://127.0.0.1:{port}", trip_id
     server.should_exit = True
     thread.join(5)
 
@@ -43,10 +41,12 @@ def _launch(p):
     return p.chromium.launch(executable_path=exe) if os.path.exists(exe) else p.chromium.launch()
 
 
-def test_every_page_fits_both_widths_and_the_phone_controls_are_big(live):
+def test_every_page_fits_both_widths_and_the_phone_controls_are_big(live, sessions):  # noqa: F811
     from playwright.sync_api import sync_playwright
 
-    base, tid, (first, second) = live
+    base, tid = live
+    with sessions() as s:
+        first, second = [i.id for i in s.query(Itinerary).filter_by(trip_id=tid).order_by(Itinerary.id).limit(2)]
     paths = ["/", f"/trips/{tid}", f"/trips/{tid}/captures", "/profiles", "/places", "/tokens", "/settings",
              "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/offers/new", "/sources/new", "/login",
              f"/trips/{tid}/delete", "/captures", "/rates", f"/trips/{tid}/compare?it={first}&it={second}",
