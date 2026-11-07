@@ -148,6 +148,23 @@ input:hover:not([type=checkbox]):not([type=radio]):not([type=range]), select:hov
 input:focus:not([type=checkbox]):not([type=radio]):not([type=range]), select:focus, textarea:focus {
   outline: none; border-color: var(--accent); box-shadow: var(--ring);
 }
+/* A select: no browser arrow; an own chevron in --muted (two gradients, so no colour value is in the rule). */
+select {
+  appearance: none; padding-right: calc(var(--space-3) + 18px); cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%; background-size: 5px 5px; background-repeat: no-repeat;
+}
+select[multiple] { background-image: none; padding-right: var(--space-3); }
+/* A date and a time input: the picker icon is a mask in --muted, so it is light in dark mode. */
+input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-calendar-picker-indicator {
+  width: 16px; height: 16px; padding: 0; margin-left: var(--space-1); cursor: pointer; background: var(--muted);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M16 3v4M8 3v4M3 11h18'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+input[type=time]::-webkit-calendar-picker-indicator {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E");
+}
+input[type=date]::-webkit-calendar-picker-indicator:hover, input[type=time]::-webkit-calendar-picker-indicator:hover { background: var(--text); }
+input[type=date]::-webkit-datetime-edit, input[type=time]::-webkit-datetime-edit { padding: 0; }
 input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
 /* A check box and a radio: own drawing in the accent colour. */
 input[type=checkbox], input[type=radio] {
