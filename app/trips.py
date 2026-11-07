@@ -75,7 +75,7 @@ def _trip_row(info: dict, rates: dict[str, Decimal]) -> TripRow:
     )
 
 
-def _journey_total(rows: list[TripRow]) -> str:
+def _journey_total(*rows: TripRow) -> str:
     """The sum of the best offers of the trips of a journey in EUR (#341, #386, #561); "no total" when one trip has
     no price or no rate."""
     if any(r.best_price is None or r.no_rate for r in rows):
@@ -110,7 +110,7 @@ def in_journeys(rows: list[TripRow]) -> list[tuple[str, TripRow, str]]:
             kind = "return" if len(journey) == 2 else "next"
             for prev, t in zip(journey, journey[1:]):
                 lines.append((kind, t, prev.title))
-            lines.append(("total", journey[-1], _journey_total(journey)))
+            lines.append(("total", journey[-1], _journey_total(*journey)))
     return lines
 
 
