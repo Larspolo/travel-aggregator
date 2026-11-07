@@ -3,13 +3,16 @@
 A migration marks itself with `changes_data = True` at module level. A missing marker means "no data change".
 The step reads the pending revisions with the Alembic API. If one has the marker, it writes `pg_dump --format=custom`
 to BACKUP_DIR. `python -m app.backup --now` writes a manual backup at any time. A failed dump gives a non-zero exit code, so the entrypoint stops before any migration.
+`python -m app.backup --daily` runs as a service: it writes a `<UTC stamp>-daily.dump` when the newest one is older than
+BACKUP_INTERVAL_HOURS (default 24), and retries a failed dump after an hour.
 """
 
 import argparse
 import os
 import subprocess
 import sys
-from datetime import UTC, datetime
+import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from alembic.config import Config
@@ -71,12 +74,47 @@ def backup_if_needed(url: str, backup_dir: Path, cfg: Config | None = None) -> P
     return dump(url, backup_dir, revisions[-1])
 
 
+DAILY_RETRY_SECONDS = 3600
+STAMP_FORMAT = "%Y%m%dT%H%M%SZ"
+
+
+def newest_daily(backup_dir: Path) -> datetime | None:
+    """The time in the name of the newest `*-daily.dump` in backup_dir, or None."""
+    names = sorted(p.name for p in backup_dir.glob("*-daily.dump")) if backup_dir.is_dir() else []
+    if not names:
+        return None
+    return datetime.strptime(names[-1].split("-", 1)[0], STAMP_FORMAT).replace(tzinfo=UTC)
+
+
+def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | None = None) -> float:
+    """One step of the daily loop: dump when due. Return the seconds until the next step.
+
+    The time of the newest daily dump decides, so a restart writes no extra dump. A failed dump prints an error and
+    returns the retry delay of one hour; it does not raise.
+    """
+    now = now or datetime.now(UTC)
+    last = newest_daily(backup_dir)
+    if last is None or now - last >= interval:
+        try:
+            dump(url, backup_dir, "daily")
+        except BackupError as exc:
+            print(f"ERROR: daily backup failed: {exc}; retry in {DAILY_RETRY_SECONDS} s", file=sys.stderr)
+            return float(DAILY_RETRY_SECONDS)
+        return interval.total_seconds()
+    return (last + interval - now).total_seconds()
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m app.backup", description="Back up the database")
     ap.add_argument("--now", action="store_true", help="write a backup now (<UTC stamp>-manual.dump) and print its path")
+    ap.add_argument("--daily", action="store_true", help="loop: a daily backup each BACKUP_INTERVAL_HOURS (default 24)")
     a = ap.parse_args([] if argv is None else argv)
     url = get_settings().database_url
     backup_dir = Path(os.environ.get("BACKUP_DIR", "/backups"))
+    if a.daily:
+        interval = timedelta(hours=float(os.environ.get("BACKUP_INTERVAL_HOURS", "24")))
+        while True:
+            time.sleep(daily_step(url, backup_dir, interval))
     if a.now:
         try:
             target = dump(url, backup_dir, "manual")
