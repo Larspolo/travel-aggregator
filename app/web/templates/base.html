@@ -8,7 +8,18 @@
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body{% block body_attrs %}{% endblock %}>
-  {% block nav %}<nav class="topbar"><a href="/">Trips</a> <a href="/captures">Captures</a> <a href="/settings">Settings</a> <a href="/logout">Log out</a></nav>{% endblock %}
+  {% block nav %}{% set here = request.url.path if request is defined else "" %}
+  <nav class="topbar" aria-label="Main">
+    <a class="brand" href="/">travel-aggregator</a>
+    <div class="nav-links">
+      {% for href, label in [("/", "Trips"), ("/captures", "Captures"), ("/profiles", "Profiles"), ("/places", "Places"), ("/settings", "Settings")] %}
+      <a href="{{ href }}"{% if here == href or (href != "/" and here.startswith(href)) or (href == "/" and here.startswith("/trips")) %} class="active" aria-current="page"{% endif %}>{{ label }}</a>
+      {% endfor %}
+      <a class="logout" href="/logout">Log out</a>
+    </div>
+  </nav>{% endblock %}
+  <main>
   {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
