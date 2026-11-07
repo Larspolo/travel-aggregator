@@ -16,17 +16,31 @@ from app.derived import Leg as DerivedLeg
 from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg
 from app.parsers import get_parser
+from app.parsers.ns import CHANGE_STATION
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 
 log = logging.getLogger(__name__)
 
 
+def service_key(service_no: str | None) -> str:
+    """The service number in one form for all sources (#481): upper case, no spaces ("ICE 121" gives "ICE121")."""
+    return "".join((service_no or "").split()).upper()
+
+
 def fingerprint(legs: list[LegIn]) -> str:
-    """The hash of mode, carrier, service number and the UTC times of each leg (docs/SPEC.md section 5)."""
-    parts = [f"{leg.mode}|{leg.carrier or ''}|{leg.service_no or ''}|{leg.depart_at.astimezone(UTC).isoformat()}|"
-             f"{leg.arrive_at.astimezone(UTC).isoformat()}" for leg in legs]
-    return hashlib.sha256("\n".join(parts).encode()).hexdigest()
+    """The hash of the journey key (#481, docs/SPEC.md section 5): the mode and the normalized service number of each
+    leg, the UTC time of the first departure and of the last arrival. The carrier and the times of the legs between
+    do not count, so the same train from two sources (bahn.de, NS International) gives one itinerary."""
+    parts = [f"{leg.mode}|{service_key(leg.service_no)}" for leg in legs]
+    parts += [legs[0].depart_at.astimezone(UTC).isoformat(), legs[-1].arrive_at.astimezone(UTC).isoformat()]
+    return hashlib.sha256(("journey\n" + "\n".join(parts)).encode()).hexdigest()
+
+
+def has_real_legs(legs) -> bool:
+    """True when each leg has its own stations and times: no leg goes to or from an unknown change station of the
+    NS International parser (only the journey start and end are real there)."""
+    return all(CHANGE_STATION not in (leg.from_name, leg.to_name) for leg in legs)
 
 
 def store_capture(session: Session, trip_id: int, payload: IngestIn) -> Capture:
@@ -46,18 +60,30 @@ def load_raw(capture: Capture):
     return None if capture.raw_gz is None else json.loads(gzip.decompress(capture.raw_gz))
 
 
+def _legs(offer: OfferIn) -> list[Leg]:
+    return [Leg(seq=seq, mode=leg.mode, carrier=leg.carrier, service_no=leg.service_no, from_name=leg.from_name,
+                from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code, depart_at=leg.depart_at,
+                depart_offset_min=utc_offset_min(leg.depart_at), arrive_at=leg.arrive_at,
+                arrive_offset_min=utc_offset_min(leg.arrive_at))
+            for seq, leg in enumerate(offer.legs, 1)]
+
+
 def _new_itinerary(trip_id: int, offer: OfferIn, fp: str) -> Itinerary:
     first, last = offer.legs[0], offer.legs[-1]
     d = derive([DerivedLeg(leg.depart_at, leg.arrive_at, leg.mode) for leg in offer.legs])
     it = Itinerary(trip_id=trip_id, fingerprint=fp, mode_summary=d.mode_summary, depart_at=first.depart_at,
                    arrive_at=last.arrive_at, transfers=d.transfers, duration_min=d.duration_min,
                    first_seen_at=datetime.now(UTC), last_seen_at=datetime.now(UTC))
-    for seq, leg in enumerate(offer.legs, 1):
-        it.legs.append(Leg(seq=seq, mode=leg.mode, carrier=leg.carrier, service_no=leg.service_no,
-                           from_name=leg.from_name, from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code,
-                           depart_at=leg.depart_at, depart_offset_min=utc_offset_min(leg.depart_at),
-                           arrive_at=leg.arrive_at, arrive_offset_min=utc_offset_min(leg.arrive_at)))
+    it.legs.extend(_legs(offer))
     return it
+
+
+def _replace_legs(session: Session, it: Itinerary, offer: OfferIn) -> None:
+    """Give a stored itinerary the real legs of an offer of the same journey (#484). The journey key keeps the
+    first departure, the last arrival, the modes and the count of legs, so the derived values stay the same."""
+    it.legs.clear()
+    session.flush()  # delete the old legs first: the new legs use the same (itinerary_id, seq)
+    it.legs.extend(_legs(offer))
 
 
 def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: OfferIn, source: str,
@@ -73,6 +99,8 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         result = "created"
     else:
         it.last_seen_at = max(it.last_seen_at, captured_at)
+        if not has_real_legs(it.legs) and has_real_legs(offer.legs):
+            _replace_legs(session, it, offer)
     fare = next((f for f in it.fares if f.source == source and f.fare_name == offer.fare_name), None)
     if fare is None:
         fare = Fare(source=source, fare_name=offer.fare_name, latest_price=offer.price_amount,
