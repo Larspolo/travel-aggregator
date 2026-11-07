@@ -19,6 +19,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [ ] `capture:userscript` Shared userscript core: floating panel, trip dropdown, "+ new trip", auto-send on by default, queue and retry, config menu, `GM_xmlhttpRequest`; the API tokens page (create, revoke, config snippet)
   - The panel shows "Captured N offers → sent ✓" or a clear error
   - Payloads that were not sent go again later, with no lost offer
+- [ ] `capture:merge` One itinerary for the same journey from two sources (#481)
+  - The same ICE from bahn.de and NS International shows as one row with the fares of both sites
+- [ ] `capture:reparse-all` Reparse all failed captures of a source in one step (#488)
+  - After a parser fix, one button on the failed captures page reparses them all and shows the counts
 - [ ] `capture:bahn` bahn.de: JSON interception, server parser, trimmed fixtures, fail-soft parsing, "reparse capture"
   - A search on bahn.de shows all fare classes on the trip page within seconds, with no manual step
   - After a parser fix, "reparse" of a stored capture gives the correct offers
@@ -51,6 +55,9 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 
 - [ ] `trip:list` Single-user login (session and CSRF), the trips list (route, dates, offer count, best offer, status), create and edit a trip
   - A page or a form with no login goes to the login page
+- [x] `trip:delete` Delete a trip with its offers (#415)
+- [ ] `trip:archive` Archive the past trips: a separate list of the archived trips (#486)
+  - The trips list does not show an archived trip; "Archived trips (N)" opens them
 - [ ] `trip:table` The full ranked table: mode icons, "+1 day" mark, freshness, sort, filters, highlights (cheapest, fastest, best value), expandable rows (legs, transfer times, all fares, booking and search links)
   - The trip page stays fast with 1,000 offers
   - An expanded row shows all fares of all sources of its itinerary
