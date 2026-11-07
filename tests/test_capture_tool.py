@@ -85,7 +85,7 @@ def test_cli_scrub_writes_the_file_and_a_summary(tmp_path, monkeypatch, capsys):
 
 def test_hook_has_the_pattern_as_a_javascript_string():
     js = capture.hook(r"/web/api/angebote/")
-    assert 'new RegExp("/web/api/angebote/")' in js and js.startswith("(() =>")
+    assert 'const MATCH_TEXT = "/web/api/angebote/";' in js and "new RegExp(MATCH_TEXT)" in js and js.startswith("(() =>")
     with pytest.raises(Exception):
         capture.hook("(")
 

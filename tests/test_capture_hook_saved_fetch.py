@@ -59,7 +59,7 @@ def test_hook_records_a_fetch_that_the_page_kept_from_before_the_hook(page):
 def test_hook_records_a_page_response_once_when_window_fetch_cannot_be_replaced(page):
     page.evaluate("Object.defineProperty(window, 'fetch', {value: window.fetch, writable: false})")
     state = json.loads(page.evaluate(capture.hook(r"/web/api/angebote/")))
-    assert state == {"installed": True, "again": False, "fetch": False, "xhr": True, "response": True}
+    assert state == {"installed": True, "again": False, "auto": None, "fetch": False, "xhr": True, "response": True}
     text = page.evaluate("async () => (await (await fetch('/web/api/angebote/fahrplan', {method: 'POST', body: '{}'}))"
                          ".text())")
     page.wait_for_function("window.__taCap.entries.length === 1")

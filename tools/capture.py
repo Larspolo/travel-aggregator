@@ -2,12 +2,14 @@
 and push the HAR to a capture branch (`.claude/skills/capture/SKILL.md`).
 
     python3 tools/capture.py hook --match REGEX           # the JavaScript for the page: it records the responses
+    python3 tools/capture.py userscript [--check]       # write scripts/capture-hook.user.js (Tampermonkey, document start)
     python3 tools/capture.py scrub RAW.har ... --out OUT.har [--match REGEX] [--private TEXT ...]
     python3 tools/capture.py publish OUT.har --issue N --source bahn.de [--branch owner/bahn-captures]
 
 The hook only observes the responses that the page requested itself, as a userscript does: it sends no request (P1).
 In the page, `window.__taCap.inline(TEXT)` adds the inline scripts that contain TEXT (results in the HTML, as Google
-Flights does), `list()` lists the entries and `save(NAME)` downloads them as one HAR.
+Flights does), `list()` lists the entries, `save(NAME)` downloads them as one HAR and `stop()` turns off the capture script
+of Tampermonkey (`userscript`) for the tab.
 `scrub` keeps only the content type of the headers, no cookies, and replaces e-mail addresses, the values of personal
 keys and the `--private` words (and the name and e-mail of `git config`) with REDACTED (P5). `publish` refuses a
 file that `scrub` did not clean. It commits in a temporary git worktree, so the checkout of the user does not change.
@@ -37,10 +39,17 @@ KEEP_HEADERS = {"content-type"}
 MAX_BYTES = 50_000_000      # GitHub refuses a file of more than 100 MB; a capture is much smaller
 
 HOOK = r"""(() => {
-  const MATCH = new RegExp(__MATCH__);
+  const MATCH_TEXT = __MATCH__;
+  const MATCH = new RegExp(MATCH_TEXT);
   const MAX = 20000000;
   const w = window;
-  if (w.__taCap) { w.__taCap.match = MATCH; return JSON.stringify({installed: true, again: true, entries: w.__taCap.entries.length}); }
+  // The flag turns on the capture script of Tampermonkey (`capture.py userscript`) for the next page loads of this
+  // tab and site. sessionStorage is per tab: a closed tab or `stop()` turns it off.
+  const FLAG = "ta-capture";
+  const arm = () => { try { w.sessionStorage.setItem(FLAG, JSON.stringify({match: MATCH_TEXT})); } catch (e) { /* ignore */ } };
+  arm();
+  const auto = w.__taCapAuto || null;
+  if (w.__taCap) { w.__taCap.match = MATCH; return JSON.stringify({installed: true, again: true, auto, entries: w.__taCap.entries.length}); }
   const cap = {match: MATCH, entries: [], size: 0};
   // A relative request URL is relative to the base of the document: bahn.de has `<base href="/web/">` and opens
   // `api/angebote/recon` (#238). `location.href` would give a wrong URL that does not match.
@@ -73,16 +82,30 @@ HOOK = r"""(() => {
   if (typeof origFetch === "function") {
     const hooked = function (input, init) {
       const t0 = Date.now();
+      // The page can send a Request object (Skyscanner, #463): fetch uses up its body, so copy it first. Reading the
+      // copy is local and sends nothing (P1).
+      let copy = null;
+      try {
+        if (input && typeof input === "object" && typeof input.clone === "function" && !input.bodyUsed &&
+            !(init && init.body != null)) copy = input.clone();
+      } catch (e) { copy = null; }
       const promise = origFetch.apply(this, arguments);
       try {
         const url = input && typeof input === "object" && "url" in input ? input.url : input;
         const method = (init && init.method) || (input && input.method) || "GET";
-        const body = init && typeof init.body === "string" ? init.body : null;
+        const b = init && init.body;
+        let bodyP = Promise.resolve(null);
+        if (typeof b === "string") bodyP = Promise.resolve(b);
+        else if (w.URLSearchParams && b instanceof w.URLSearchParams) bodyP = Promise.resolve(b.toString());
+        else if (b && typeof b.text === "function") bodyP = b.text();
+        else if (copy && !/^(GET|HEAD)$/i.test(method)) bodyP = copy.text().then((t) => (t === "" ? null : t));
+        bodyP = bodyP.then((t) => (typeof t === "string" ? t : null), () => null);
         let reqType = "";
         try { reqType = new Headers((init && init.headers) || {}).get("content-type") || ""; } catch (e) { /* ignore */ }
+        try { if (!reqType && copy) reqType = copy.headers.get("content-type") || ""; } catch (e) { /* ignore */ }
         promise.then((res) => {
           seen.add(res);
-          return readText(res.clone()).then((text) =>
+          return Promise.all([readText(res.clone()), bodyP]).then(([text, body]) =>
             add(method, url, reqType, body, res.status, res.statusText, res.headers.get("content-type"), text, t0));
         }, () => {}).catch(() => {});
       } catch (e) { /* ignore */ }
@@ -200,13 +223,77 @@ HOOK = r"""(() => {
     a.remove();
     return JSON.stringify({saved: a.download, entries: cap.entries.length, bytes: blob.size});
   };
-  return JSON.stringify({installed: true, again: false, fetch: !!(w.fetch && w.fetch.__taCap), xhr: !!X, response});
+  cap.stop = () => {
+    try { w.sessionStorage.removeItem(FLAG); } catch (e) { /* ignore */ }
+    return JSON.stringify({stopped: true});
+  };
+  return JSON.stringify({installed: true, again: false, auto, fetch: !!(w.fetch && w.fetch.__taCap), xhr: !!X, response});
 })()"""
 
 
 def hook(match):
     re.compile(match)
     return HOOK.replace("__MATCH__", json.dumps(match))
+
+
+# The capture script of Tampermonkey (#463): the owner installs it once, and Tampermonkey updates it from `main`.
+# It installs the hook at document start, but only in a tab where `capture.py hook` set the flag: a search that is a
+# full page load with fast results (Skyscanner) is recorded from the first request. With no flag it does nothing.
+# Not in tools/: the file names the repository, and only agent.toml may name it in a tool (test_agent_config.py).
+USERSCRIPT_FILE = ROOT / "scripts" / "capture-hook.user.js"
+# The sites with no userscript in `userscripts/` that a capture ticket can need.
+EXTRA_SITES = ("https://www.skyscanner.nl/*", "https://www.google.com/travel/*")
+# Change the script (HOOK, AUTO, the sites) → add 1 to the version and set the new hash, else Tampermonkey does not
+# update it. `tests/test_capture_userscript.py` fails when the hash does not agree.
+USERSCRIPT_VERSION = 1
+USERSCRIPT_HASH = "4d305ecb1619c302"
+AUTO = r"""(() => {
+  window.__taCapAuto = __VERSION__;
+  let cfg = null;
+  try { cfg = JSON.parse(window.sessionStorage.getItem("ta-capture") || "null"); } catch (e) { cfg = null; }
+  if (!cfg || typeof cfg.match !== "string") return;
+  try { new RegExp(cfg.match); } catch (e) { return; }
+  __HOOK__;
+})();
+"""
+MATCH_LINE = re.compile(r"^// @match[ \t]+(https://\S+)[ \t]*$", re.MULTILINE)
+
+
+def capture_sites():
+    """The @match lines of the site userscripts and EXTRA_SITES, sorted and with no duplicate."""
+    sites = set(EXTRA_SITES)
+    for path in (ROOT / "userscripts").glob("*.user.js"):
+        sites.update(MATCH_LINE.findall(path.read_text("utf-8")))
+    return sorted(sites)
+
+
+def userscript_url():
+    """The raw GitHub address of the script on the main branch (`repo` and `branch` of agent.toml)."""
+    rel = USERSCRIPT_FILE.relative_to(ROOT).as_posix()
+    return f"https://raw.githubusercontent.com/{config().get('repo', '')}/{main_branch()}/{rel}"
+
+
+def userscript_hash():
+    import hashlib
+    text = "\n".join([HOOK, AUTO, userscript_url(), *capture_sites()])
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def userscript():
+    head = ["// ==UserScript==",
+            "// @name         TA capture hook",
+            "// @namespace    travel-aggregator",
+            f"// @version      {USERSCRIPT_VERSION}",
+            "// @description  Passive and off by default: in a tab where the capture skill turned it on, it records "
+            "the responses that the page requested itself (P1). Generated by tools/capture.py userscript.",
+            *[f"// @match        {s}" for s in capture_sites()],
+            "// @run-at       document-start",
+            "// @grant        none",
+            f"// @updateURL    {userscript_url()}",
+            f"// @downloadURL  {userscript_url()}",
+            "// ==/UserScript=="]
+    body = AUTO.replace("__VERSION__", str(USERSCRIPT_VERSION)).replace("__HOOK__", HOOK.replace("__MATCH__", "cfg.match"))
+    return "\n".join(head) + "\n" + body
 
 
 def private_words(extra=(), identity=True):
@@ -408,6 +495,8 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     h = sub.add_parser("hook", help="print the JavaScript that records the responses of the page")
     h.add_argument("--match", default=".", help="a regular expression of the URLs to keep")
+    u = sub.add_parser("userscript", help="write scripts/capture-hook.user.js, the capture script of Tampermonkey")
+    u.add_argument("--check", action="store_true", help="exit 1 when the file is not up to date; write nothing")
     s = sub.add_parser("scrub", help="clean one or more HAR files into one HAR")
     s.add_argument("files", nargs="+")
     s.add_argument("--out", required=True)
@@ -423,6 +512,14 @@ def main(argv=None):
     if a.cmd == "hook":
         print(hook(a.match))
         return 0
+    if a.cmd == "userscript":
+        text = userscript()
+        same = USERSCRIPT_FILE.is_file() and USERSCRIPT_FILE.read_text("utf-8") == text
+        if not a.check and not same:
+            USERSCRIPT_FILE.write_text(text, "utf-8")
+        print(json.dumps({"file": str(USERSCRIPT_FILE.relative_to(ROOT)), "version": USERSCRIPT_VERSION,
+                          "up_to_date": same, "install": userscript_url()}))
+        return 1 if a.check and not same else 0
     if a.cmd == "scrub":
         har, replaced = scrub(a.files, a.match, a.private)
         bad = problems(har, a.private)

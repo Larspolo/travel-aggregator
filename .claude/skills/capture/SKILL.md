@@ -66,6 +66,16 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
    the hook (after a full page load), do the search one more time inside the page (for example a change in the search
    form of the results page), and count it in the 3 searches. The hook records fetch and XHR, also when the page
    keeps its own `fetch`, `open` or `send` (it records when the page reads the response).
+   **The capture script of Tampermonkey** (#463): the hook also turns on "TA capture hook"
+   (`scripts/capture-hook.user.js`) for this tab, when it is installed: its answer has `"auto":<version>`. Then each
+   next page load of the site in this tab gets the hook at document start, before the scripts of the page, so a
+   search that is a full page load with fast results (Skyscanner) is recorded from the first request. A new page load
+   starts with no entries: save (step 5) before it. With `"auto":null` the script is not installed. For a site that
+   needs it (the list "Sites"), ask the person who started `/capture` to install it once from the
+   `install` address that `python3 tools/capture.py userscript --check` prints (Tampermonkey opens its install dialog); when no person answers, stop the ticket (the comment of step 9). Tampermonkey updates
+   it from `main`, and it does nothing in a tab with no flag, so the person never removes it. A site with no
+   `@match` in it: add the site to `EXTRA_SITES` of `tools/capture.py` (section 5); a new userscript in `userscripts/`
+   adds its own sites.
    Some sites put the results into the HTML of a full page load and send no request for them (Google Flights: the
    inline script `AF_initDataCallback({key: 'ds:1', ...})`). Then use a `--match` that also matches the address of
    the results page, and after the page load run `window.__taCap.inline("key: 'ds:1'")` (it reads the page and
@@ -106,9 +116,32 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
    2026-11-07): an agent makes a new ticket for what is left.
    Not done (no file): the comment starts with "Capture skill: could not do this ticket.", then the step that failed,
    what the page showed, and "@Jeroenvb3, please do the steps of the ticket by hand." Keep `needs-human`.
-10. Close the tab. `rm -f` the raw downloads of this ticket (they have the data before the scrub).
+10. Run `window.__taCap.stop()` (it turns off the capture script for the tab), then close the tab. `rm -f` the raw downloads of this ticket (they have the data before the scrub).
 
 ## 4. End
 
 Give one line per ticket: the number, done or not done, and the link of the file or the cause. A ticket that the
 skill skipped: the number and the reason. Delete `~/.cache/ta-capture/*.har`.
+
+## 5. Improve the skill (owner, 2026-11-07)
+
+Each run makes the skill better. When a step failed, needed a workaround, or a file misses data (for example an empty
+request body), fix the cause before the end of the run:
+1. A small fix: on a new branch `capture-<topic>` from `main`, change this file and `tools/capture.py`, with a test
+   in a new file `tests/test_capture_<topic>.py` (a Playwright test serves all URLs itself: no travel site, P1). Run
+   `ruff check .` and the capture tests (`-m slow` for the hook), then open one PR for the run. A change of the hook
+   or of the sites changes the capture script: add 1 to `USERSCRIPT_VERSION`, set `USERSCRIPT_HASH` (the test
+   `tests/test_capture_userscript.py` prints it) and run `python3 tools/capture.py userscript`, else Tampermonkey does
+   not update it. The ticket comment
+   (step 9) names the gap; the end report names the PR.
+2. A larger fix or a choice: make a ticket with the `ticket` skill.
+3. A fact about one site (a full page load, a block, the URL part to keep): write it in the list "Sites" below.
+
+## Sites
+
+- Skyscanner (`www.skyscanner.nl`): no block (2026-11-07). The search form and the date arrows are full page loads;
+  all results can come in one `POST /g/radar/api/v2/web-unified-search/` in less than 1 s, with no polls. It needs
+  the capture script (step 2): open the start page `https://www.skyscanner.nl/` (not a search), run the hook with
+  `--match 'skyscanner\.nl/g/(radar|michelin)'` there, then open the results URL below (one search) and save. The page sends `Request`
+  objects. The results URL `/transport/vluchten/<from>/<to>/<yymmdd>/?adultsv2=1&cabinclass=economy&rtn=0` opens
+  the search directly (one search).
