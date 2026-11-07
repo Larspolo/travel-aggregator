@@ -50,7 +50,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A change of the profile re-ranks the trip page at once
 - [x] `rank:stale` (#274) Offers that were not captured again for N hours get a "stale" flag and an optional penalty
   - A stale offer shows "stale, price may have changed"
-- [ ] `rank:currency` Prices in other currencies: exchange rates to EUR in Settings, and the score uses the EUR value
+- [x] `rank:currency` (#382) Prices in other currencies: exchange rates to EUR in Settings, and the score uses the EUR value
   - A CHF offer ranks by its EUR value, and its breakdown shows the CHF price and the EUR price; an offer in a currency with no rate shows "no rate for CHF"
 
 ## 3. Plan a trip in one place
@@ -89,6 +89,6 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A capture older than the period is deleted; its offers and prices stay
 - [x] `host:docs` (#245) Setup guide: install, reverse proxy, userscripts, tokens, backup
   - A new user can follow the guide from an empty server to a first captured offer
-- [ ] `host:ratelimit` A modest rate limit on the API (`docs/SPEC.md`, section 5): per API token, and per address for bad tokens
+- [x] `host:ratelimit` (#410) A modest rate limit on the API (`docs/SPEC.md`, section 5): per API token, and per address for bad tokens
   - A token that sends more than 120 requests in one minute gets 429 with `Retry-After`; the userscript keeps the payload and sends it later
   - An address that sends 20 bad tokens in 15 minutes gets 429 for 15 minutes
