@@ -6,7 +6,7 @@ from tests.test_trip_hide import trip  # noqa: F401
 
 GROUPS = ["Airport", "Time windows", "Night", "Modes", "Fares", "Staleness", "Profile"]
 NAMES = {"hour_markup", "transfer_markup", "show_hidden", "hide_stale", "sort", "dir", "mode", "earliest_depart",
-         "latest_arrive", "source", "max_transfers", "max_duration_min", "airport_before_min", "airport_after_min",
+         "latest_arrive", "day", "source", "max_transfers", "max_duration_min", "airport_before_min", "airport_after_min",
          "baggage_fee", "early_limit", "late_limit", "time_window_penalty", "night_start", "night_end", "night_min",
          "night_adjust", "night_hour_markup", "short_transfer_min", "short_transfer_penalty", "stale_hours",
          "stale_penalty", "train_markup", "bus_markup", "flight_markup", "ferry_markup", "flex_non_refundable",
