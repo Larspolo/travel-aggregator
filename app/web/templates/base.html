@@ -5,33 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}travel-aggregator{% endblock %}</title>
   <script src="/static/htmx.min.js"></script>
-  <style>
-    :root { color-scheme: light dark; --line: #8884; }
-    body { font-family: system-ui, sans-serif; margin: 0 auto; max-width: 70rem; padding: 1rem; line-height: 1.4; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border-bottom: 1px solid var(--line); padding: .4rem .5rem; text-align: left; vertical-align: top; }
-    td.price { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .muted { opacity: .7; font-size: .9em; }
-    .stale { color: #e65100; font-weight: 600; }
-    .best { font-weight: bold; }
-    tr.return td:first-child { padding-left: 2em; }
-    tr.total td { font-weight: bold; }
-    .badge { display: inline-block; padding: 0 .4em; border-radius: .6em; background: #2e7d32; color: #fff; font-size: .8em; }
-    .weights { display: flex; gap: 2rem; flex-wrap: wrap; margin: .5rem 0 1rem; }
-    .scroll { overflow-x: auto; }
-    @media (max-width: 40rem) {
-      body { padding: .5rem; }
-      .weights { flex-direction: column; gap: .5rem; }
-      input, select, textarea { max-width: 100%; box-sizing: border-box; }
-      input, select, textarea, button { min-height: 40px; }
-      input[type=checkbox], input[type=radio] { width: 40px; height: 40px; }
-      input[type=range] { min-height: 40px; }
-      input[type=range]::-webkit-slider-thumb { width: 24px; height: 24px; }
-    }
-  </style>
+  <link rel="stylesheet" href="/static/app.css">
 </head>
 <body{% block body_attrs %}{% endblock %}>
-  {% block nav %}<nav class="muted"><a href="/">Trips</a> <a href="/captures">Captures</a> <a href="/settings">Settings</a></nav>{% endblock %}
+  {% block nav %}<nav class="topbar"><a href="/">Trips</a> <a href="/captures">Captures</a> <a href="/settings">Settings</a> <a href="/logout">Log out</a></nav>{% endblock %}
   {% block content %}{% endblock %}
 </body>
 </html>
