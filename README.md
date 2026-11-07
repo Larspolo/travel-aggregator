@@ -378,7 +378,14 @@ A round trip is two trips that are linked: an outbound trip and its return trip.
 - The mark "The return departs before the outbound arrives" shows when the return departs before the outbound trip arrives.
 - Deleting the outbound trip keeps the return trip. The link between the two trips goes away.
 
-Each direction is a normal trip. The userscripts capture offers into it when you choose the trip in the dropdown of the panel. Trips with more than two cities are not supported.
+A journey can have three or more linked trips (multi-city). Each trip after the second one is a "next" trip.
+- The trip page of a trip has the button "Add next trip". It makes a new trip at the end of the journey. The origin of the new trip is the destination of the last trip of the journey, and its destination is empty. Its title is the title of the first trip with "(part N)", where N is the number of the new trip. It opens the edit form of that trip. The button adds the trip to the end of the journey, also when you press it on a middle trip.
+- The trips list shows the trips of a journey together, in sequence, under the first trip. The line "Journey price total" shows the sum of the EUR values of the best offer of each trip. It shows no total when one trip has no offer or has only fares with no rate.
+- The box "Journey" on the trip page of each trip has a link to every other trip of the journey. It shows the chosen offer of each part (the booked offer, else the pinned offer, else the offer with the best effective cost), labelled "Part 1", "Part 2" and so on, and the total effective cost. The mark "departs before the previous part arrives" shows at each part that departs before the previous part arrives.
+- Deleting a middle trip removes it from the journey. The next trip links to the trip before the deleted trip, so the other trips stay in sequence.
+- Archiving the journey (see "Archive a trip") moves all its trips to the archived list.
+
+Each direction is a normal trip. The userscripts capture offers into it when you choose the trip in the dropdown of the panel.
 
 ### Delete a trip
 
