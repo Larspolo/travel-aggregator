@@ -51,7 +51,7 @@ def test_the_box_shows_both_directions_and_the_total(setup, sessions):  # noqa: 
     for page_id in (trip_id, ret):
         box = _box(c, page_id)
         assert f'href="/trips/{trip_id}"' in box and f'href="/trips/{ret}"' in box
-        assert "EUR 89.90" in box and "EUR 50.00" in box and "Total effective cost €" in box
+        assert "€89.90" in box and "€50.00" in box and "Total effective cost €" in box
         assert "departs before" not in box
     total = box.split("Total effective cost €")[1].split("<")[0]
     assert Decimal(total) > Decimal("139.90")
@@ -62,13 +62,13 @@ def test_booked_wins_over_pinned_and_pinned_over_cheaper(setup, sessions):  # no
     ret = _return(c, sessions, trip_id)
     ingest(c, auth, trip_id, [offer("50.00", "ICE 1"), offer("80.00", "ICE 2"), offer("120.00", "ICE 3")])
     ingest(c, auth, ret, [_late("40.00", "ICE 9")])
-    assert "EUR 50.00" in _box(c, ret)
+    assert "€50.00" in _box(c, ret)
     _set(sessions, trip_id, "ICE 2", pinned=True)
-    assert "EUR 80.00" in _box(c, ret) and "EUR 50.00" not in _box(c, ret)
+    assert "€80.00" in _box(c, ret) and "€50.00" not in _box(c, ret)
     _set(sessions, trip_id, "ICE 3", booked=True)
-    assert "EUR 120.00" in _box(c, ret) and "EUR 80.00" not in _box(c, ret)
+    assert "€120.00" in _box(c, ret) and "€80.00" not in _box(c, ret)
     _set(sessions, trip_id, "ICE 3", hidden=True)  # a hidden offer never counts
-    assert "EUR 80.00" in _box(c, ret)
+    assert "€80.00" in _box(c, ret)
 
 
 def test_the_mark_shows_when_the_return_departs_before_the_outbound_arrives(setup, sessions):  # noqa: F811

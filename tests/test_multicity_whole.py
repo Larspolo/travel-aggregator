@@ -63,7 +63,7 @@ def test_a_journey_of_four_trips_from_the_ingest_to_the_archive(setup, sessions)
         box = _box(c, page_id)
         for t in trips:
             assert f'href="/trips/{t}"' in box
-        assert "EUR 89.90" in box and "EUR 50.00" in box and "EUR 30.00" in box and "EUR 20.00" in box
+        assert "€89.90" in box and "€50.00" in box and "€30.00" in box and "€20.00" in box
         total, costs = _total(box)
         assert len(costs) == 4 and total == sum(costs)  # the effective cost also counts the hour and transfer weights
         assert box.count("departs before the previous part arrives") == 1
