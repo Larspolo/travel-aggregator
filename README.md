@@ -415,6 +415,15 @@ Each direction is a normal trip. The userscripts capture offers into it when you
 - The trip dropdown of the userscript panel shows only the trips with the status `planning`.
 - An archived trip keeps its offers and captures. Set the status again to bring it back to the trips list.
 
+### Export a trip
+
+- The trip page `/trips/{id}` has the links "Export CSV" and "Export JSON". They are in the "More" menu of the page.
+- Both links need the login. They do not need an API token.
+- The JSON file (`/trips/{id}/export.json`) has the trip, its itineraries, the legs of each itinerary, the fares of each itinerary and the price history of each fare. The times are in UTC with the original offset. The money is text, not a number.
+- The CSV file (`/trips/{id}/export.csv`) has one row per fare. The columns are the route, the departure, the arrival, the duration, the transfers, the modes, the carriers, the service numbers, the source, the fare, the class, the price, the currency, the capture time, the pinned, hidden and booked flags, the note and the booking link. The file starts with a UTF-8 byte order mark, so that a spreadsheet opens the accents correctly.
+- A cell that a spreadsheet could run as a formula starts with a quote `'`. Such a cell starts with `=`, `+`, `-`, `@`, a tab or a carriage return.
+- The raw captures are not in the export.
+
 ### Compare offers side by side
 
 To compare 2 to 4 offers of a trip:
