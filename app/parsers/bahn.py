@@ -1,4 +1,4 @@
-"""The parser of a bahn.de fahrplan payload (`POST /web/api/angebote/fahrplan`, tests/fixtures/bahn.de/README.md).
+"""The parser of a bahn.de fahrplan or recon payload (`POST /web/api/angebote/fahrplan` or `/recon`, tests/fixtures/bahn.de/README.md).
 
 The payload has local times with no offset. The UIC country code (the first 2 digits of the station `extId`) gives the
 timezone of each station; Europe/Berlin is the default. The parser sends no request (P1)."""
@@ -73,7 +73,7 @@ class BahnParser:
         result = ParseResult()
         for i, conn in enumerate(conns):
             try:
-                result.offers.append(self._offer(conn, extra))
+                result.offers.extend(self._offers(conn, extra))
             except NoPrice as e:
                 result.errors.append({"index": i, "reason": str(e)})
             except ValidationError as e:
@@ -82,10 +82,21 @@ class BahnParser:
                 result.errors.append({"index": i, "reason": f"bad connection: {type(e).__name__} {e}"[:200]})
         return result
 
-    def _offer(self, conn: dict, extra: list[str]) -> OfferIn:
-        price = conn.get("angebotsPreis")
-        if not price or price.get("betrag") is None:
-            raise NoPrice("no price (angebotsPreis)")
+    def _offers(self, conn: dict, extra: list[str]) -> list[OfferIn]:
+        """One offer per fare class of `reiseAngebote` (the recon response), else the one `angebotsPreis` (#445)."""
+        fares, seen = [], set()
+        for a in conn.get("reiseAngebote") or []:
+            name, klasse = (a.get("name") or "").strip(), a.get("klasse")
+            # a BahnCard trial is no ticket, and the prices after it are the prices with that trial card
+            if name.startswith("Probe ") or (name, klasse) in seen or (a.get("preis") or {}).get("betrag") is None:
+                continue
+            seen.add((name, klasse))
+            fares.append((a["preis"], [name, CLASSES.get(klasse, "")]))
+        if not fares:
+            price = conn.get("angebotsPreis")
+            if not price or price.get("betrag") is None:
+                raise NoPrice("no price (angebotsPreis)")
+            fares = [(price, [CLASSES.get(conn.get("angebotsPreisKlasse"), "")])]
         legs = []
         for a in conn["verbindungsAbschnitte"]:
             vm = a.get("verkehrsmittel") or {}
@@ -103,13 +114,12 @@ class BahnParser:
                 depart_at=local_time(a["abfahrt"], a.get("abfahrtsOrtExtId")),
                 arrive_at=local_time(a["ankunft"], a.get("ankunftsOrtExtId")),
             ))
-        fare = [CLASSES.get(conn.get("angebotsPreisKlasse"), "")] + extra
-        return OfferIn(
+        return [OfferIn(
             external_id=conn.get("tripId"),
             # str() first: a JSON float such as 130.99 must not become a long binary Decimal
             price_amount=Decimal(str(price["betrag"])).quantize(Decimal("0.01")),
             price_currency=price.get("waehrung") or "EUR",
-            fare_name=", ".join(x for x in fare if x) or None,
+            fare_name=", ".join(x for x in fare + extra if x) or None,
             legs=legs,
             booking_url=BOOKING_URL,
-        )
+        ) for price, fare in fares]
