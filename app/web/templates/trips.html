@@ -9,7 +9,7 @@
   <tbody>
   {% for kind, t, note in lines %}
     {% if kind == "total" %}
-    <tr class="total"><td colspan="6">Journey total: {{ note }}</td></tr>
+    <tr class="total"><td colspan="6">Journey price total: {{ note }}</td></tr>
     {% else %}
     <tr{% if kind == "return" %} class="return"{% endif %}>
       <td>{% if kind == "return" %}<span class="muted">Return of {{ note }}</span><br>{% endif %}{{ t.title }}</td>
