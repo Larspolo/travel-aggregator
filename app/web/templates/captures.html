@@ -8,6 +8,11 @@
 <h1>Captures of all trips</h1>
 {% endif %}
 <p>{% if failed %}<a href="{{ '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' }}">Show all captures</a>{% else %}<a href="{{ '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' }}?failed=1">Only failed captures</a>{% endif %}</p>
+{% for source in failed_sources %}
+<p id="reparse-source-{{ loop.index }}"><button name="source" value="{{ source }}" hx-post="/captures/reparse-failed"
+  hx-vals='{{ {"source": source} | tojson }}' hx-target="#reparse-source-{{ loop.index }}"
+  hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button></p>
+{% endfor %}
 {% if captures %}
 <div class="scroll"><table>
   <tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Raw</th><th></th></tr>

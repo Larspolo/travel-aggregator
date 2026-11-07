@@ -1,7 +1,7 @@
 """The captures of a trip and the "reparse capture" action (#154): after a parser fix, the owner runs the current
 parser version again on the stored raw data of a capture."""
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
@@ -15,6 +15,8 @@ from app.web.pages import _get_trip, templates
 
 router = APIRouter()
 
+REPARSE_LIMIT = 500
+
 
 @router.get("/trips/{trip_id}/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def captures_page(request: Request, trip_id: int, failed: bool = False,
@@ -25,7 +27,8 @@ def captures_page(request: Request, trip_id: int, failed: bool = False,
         query = query.where(_failed_clause())
     captures = session.scalars(query.order_by(Capture.captured_at.desc(), Capture.id.desc())).all()
     return templates.TemplateResponse(request, "captures.html",
-                                      {"trip": trip, "captures": captures, "failed": failed})
+                                      {"trip": trip, "captures": captures, "failed": failed,
+                                       "failed_sources": _failed_sources(session) if failed else []})
 
 
 @router.get("/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
@@ -39,7 +42,41 @@ def all_captures_page(request: Request, failed: bool = False,
     trip_ids = {c.trip_id for c in captures}
     trip_titles = {t.id: t.title for t in session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()}
     return templates.TemplateResponse(request, "captures.html",
-                                      {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed})
+                                      {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed,
+                                       "failed_sources": _failed_sources(session) if failed else []})
+
+
+@router.post("/captures/reparse-failed", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def reparse_failed(source: str = Form(...), session: Session = Depends(get_session)) -> HTMLResponse:
+    """Reparse all failed captures of one source with raw data (#489), at most REPARSE_LIMIT in one request."""
+    parser = get_parser(source)
+    if parser is None:
+        return HTMLResponse(f'<span class="reparse-result">{_escape(f"The source {source} has no parser.")}</span>')
+    query = select(Capture).where(_failed_clause(), Capture.source == source, Capture.raw_gz.is_not(None))
+    captures = session.scalars(query.order_by(Capture.id).limit(REPARSE_LIMIT + 1)).all()
+    more = len(captures) > REPARSE_LIMIT
+    ok = still = created = updated = 0
+    for capture in captures[:REPARSE_LIMIT]:
+        counts = ingest.reparse(session, capture)
+        if counts is None:
+            continue
+        if counts["unreadable"] or counts["rejected"]:
+            still += 1
+        else:
+            ok += 1
+        created += counts["created"]
+        updated += counts["updated"]
+    message = (f"Reparsed {ok + still} captures of {source} with {parser.version}: {ok} now parse, {still} still fail; "
+               f"{created} created, {updated} updated.")
+    if more:
+        message += f" More than {REPARSE_LIMIT} captures wait: click again."
+    return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
+
+
+def _failed_sources(session: Session) -> list[str]:
+    query = select(Capture.source).where(_failed_clause(), Capture.raw_gz.is_not(None)).distinct()
+    return sorted(session.scalars(query).all())
 
 
 @router.post("/captures/{capture_id}/reparse", response_class=HTMLResponse,
