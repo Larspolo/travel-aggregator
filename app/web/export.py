@@ -1,5 +1,7 @@
-"""The export of one trip as a JSON file (#700). `trip_export` gives the data as a dict: the CSV export uses it too."""
+"""The export of one trip as a JSON file (#700) or a CSV file (#701). `trip_export` gives the data as a dict."""
 
+import csv
+import io
 import json
 import re
 import unicodedata
@@ -100,4 +102,67 @@ def export_json(trip_id: int, session: Session = Depends(get_session)) -> Respon
     body = json.dumps(trip_export(trip), ensure_ascii=False, indent=2)
     filename = f"trip-{trip.id}-{slug(trip.title)}.json"
     return Response(body, media_type="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+CSV_COLUMNS = [
+    "route", "departure", "arrival", "duration_min", "transfers", "modes", "carriers", "service_numbers",
+    "source", "fare_name", "travel_class", "latest_price", "currency", "last_captured", "pinned", "hidden",
+    "booked", "note", "booking_url",
+]
+_FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _cell(value: object) -> str:
+    """A text cell. A value that a spreadsheet could run as a formula gets a leading quote (CSV injection)."""
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    text = str(value)
+    return "'" + text if text.startswith(_FORMULA_START) else text
+
+
+def _join(values) -> str:
+    """The distinct non-empty values in their order, joined for one cell."""
+    return "; ".join(dict.fromkeys(v for v in values if v))
+
+
+def csv_rows(data: dict) -> list[list[object]]:
+    """One row per fare, built from the `trip_export` dict."""
+    rows = []
+    for it in data["itineraries"]:
+        legs = sorted(it["legs"], key=lambda leg: leg["seq"])
+        first, last = (legs[0], legs[-1]) if legs else ({}, {})
+        for fare in it["fares"]:
+            rows.append([
+                f"{first.get('from_name') or ''} - {last.get('to_name') or ''}",
+                first.get("depart_at") or it["depart_at"] or "",
+                last.get("arrive_at") or it["arrive_at"] or "",
+                it["duration_min"], it["transfers"],
+                _join(leg["mode"] for leg in legs),
+                _join(leg["carrier"] for leg in legs),
+                _join(leg["service_no"] for leg in legs),
+                fare["source"], fare["fare_name"], fare["travel_class"],
+                fare["latest_price"], fare["currency"], fare["latest_captured_at"],
+                it["pinned"], it["hidden"], it["booked"], it["note"], fare["booking_url"],
+            ])
+    return rows
+
+
+def trip_csv(data: dict) -> bytes:
+    """The CSV file as UTF-8 with a byte order mark, so that a spreadsheet reads the text correctly."""
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(CSV_COLUMNS)
+    for row in csv_rows(data):
+        writer.writerow([_cell(value) for value in row])
+    return ("﻿" + out.getvalue()).encode("utf-8")
+
+
+@router.get("/trips/{trip_id}/export.csv", dependencies=[Depends(require_login)])
+def export_csv(trip_id: int, session: Session = Depends(get_session)) -> Response:
+    trip = load_trip(session, trip_id)
+    filename = f"trip-{trip.id}-{slug(trip.title)}.csv"
+    return Response(trip_csv(trip_export(trip)), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="{filename}"'})
