@@ -13,6 +13,19 @@
   hx-vals='{{ {"source": source} | tojson }}' hx-target="#reparse-source-{{ loop.index }}"
   hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button></p>
 {% endfor %}
+{% if sources %}
+<section class="card data-card" id="source-health"><h2>Sources</h2><div class="scroll"><table>
+  <thead><tr><th>Source</th><th>Last good capture</th><th>Parser</th><th>Failed after it</th></tr></thead>
+  <tbody>
+  {% for s in sources %}
+  <tr class="source-row"><td class="source-name">{{ s.source }}</td>
+    <td>{% if s.last_good_at %}<time datetime="{{ s.last_good_at.isoformat() }}" title="{{ s.last_good_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ s.last_good_at | ago(now) }}</time>{% else %}never{% endif %}</td>
+    <td>{{ s.parser_version or "-" }}</td>
+    <td>{% if s.failed_after %}<span class="chip danger">{{ s.failed_after }}</span>{% else %}0{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></section>
+{% endif %}
 {% if captures %}
 <section class="card data-card"><div class="scroll"><table>
   <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
