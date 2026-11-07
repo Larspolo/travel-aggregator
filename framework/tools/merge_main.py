@@ -77,6 +77,42 @@ def test_files(conflicted, changed, tests):
     return (own + users, []) if len(own) + len(users) <= MAX_TESTS else (own, users)
 
 
+TEXT = re.compile(r"'([^'\n]{4,})'|\"([^\"\n]{4,})\"|>([^<>\n]{4,})<")
+
+
+def removed_texts(diff, new):
+    """The string literals and tag texts (4 or more characters) of the removed lines of `diff` (`git diff -U0` of
+    one file) that are not in `new`, the new text of the file (#653)."""
+    out = set()
+    for line in diff.splitlines():
+        if line.startswith("-") and not line.startswith("---"):
+            for m in TEXT.finditer(line[1:]):
+                t = next(g for g in m.groups() if g).strip()
+                if len(t) >= 4 and t not in new:
+                    out.add(t)
+    return out
+
+
+def text_tests(changed, tests, base="origin/main"):
+    """The test files that contain a text that the branch removes from a template or a `.py` file of `app/` (#653):
+    no import leads from a template to the tests that get a page."""
+    texts, news = set(), []
+    for f in changed:
+        if f.startswith("app/web/templates/") or (f.startswith("app/") and f.endswith(".py")):
+            diff = git("diff", "-U0", f"{base}...HEAD", "--", f, check=False).stdout
+            new = open(f, encoding="utf-8").read() if os.path.exists(f) else ""
+            texts |= removed_texts(diff, new)
+            news.append(new)
+    return sorted(f for f, text in tests.items() if asserts_removed(text, texts, "\n".join(news)))
+
+
+def asserts_removed(test, texts, new):
+    """True when the text of a test file contains a removed text, or has a literal (`'🚌'`) that is part of a removed
+    text and is not in `new` (the new texts of the changed files)."""
+    lits = {a or b for a, b in re.findall(r"'([^'\n]+)'|\"([^\"\n]+)\"", test)}
+    return any(t in test for t in texts) or any(x in t and x not in new for x in lits for t in texts)
+
+
 def show(path, left):
     """The text of the hunks that stay in `path`: `left` = [(line, reason)] of `unconflict.solve_some`."""
     lines = open(path, encoding="utf-8").read().splitlines()
