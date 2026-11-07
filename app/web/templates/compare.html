@@ -16,7 +16,7 @@
   <tr><th scope="row">Modes</th>{% for it, fare, cost in columns %}<td>{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{% if m | mode_icon %}{{ ui.icon(m | mode_icon, m) }}{% else %}•{% endif %}</span> {% endfor %}{{ it.mode_summary }}</td>{% endfor %}</tr>
   <tr><th scope="row">Carriers</th>{% for it, fare, cost in columns %}<td>{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</td>{% endfor %}</tr>
   <tr><th scope="row">Fare</th>{% for it, fare, cost in columns %}<td>{{ fare.fare_name or "" }}<div class="muted">{{ fare.source }}</div></td>{% endfor %}</tr>
-  <tr><th scope="row">Price</th>{% for it, fare, cost in columns %}<td class="price{{ ' best' if loop.index0 in best.price }}">{{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Price</th>{% for it, fare, cost in columns %}<td class="price{{ ' best' if loop.index0 in best.price }}">{{ fare.latest_price | money(fare.currency) }}</td>{% endfor %}</tr>
   <tr><th scope="row">Effective cost</th>{% for it, fare, cost in columns %}<td class="cost{{ ' best' if loop.index0 in best.cost }}"><span class="breakdown">{{ format_breakdown(cost) }}</span>{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</td>{% endfor %}</tr>
   </tbody>
 </table></div></section>

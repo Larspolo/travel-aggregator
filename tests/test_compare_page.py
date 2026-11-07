@@ -34,7 +34,7 @@ def test_two_columns_in_the_order_of_the_url(trip, sessions):  # noqa: F811
     client, auth, trip_id = trip
     a, b = _setup(client, auth, trip_id, sessions)
     page = client.get(f"/trips/{trip_id}/compare", params={"it": [b, a]}).text
-    assert page.index("EUR 150.00") < page.index("EUR 89.90")
+    assert page.index("€150.00") < page.index("€89.90")
     assert "DB ICE 105, SBB IC 61" in page and "Sun 20 Dec 07:34" in page and len(_costs(page)) == 2
     assert f'href="/trips/{trip_id}?' in page and "Back to the trip" in page
 

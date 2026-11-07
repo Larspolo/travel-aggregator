@@ -28,6 +28,7 @@ from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.history import chart
+from app.money import money
 from app.search_links import links_for_trip
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
@@ -92,18 +93,6 @@ def ago(t: datetime, now: datetime) -> str:
     if seconds < 48 * 3600:
         return f"{seconds // 3600} h ago"
     return f"{seconds // 86400} days ago"
-
-
-CURRENCY_SYMBOLS = {"EUR": "€", "GBP": "£", "USD": "$"}
-
-
-def money(amount: Decimal, currency: str = "EUR") -> str:
-    """One money format for the trip rows (DESIGN.md section 3, #627): the symbol and two decimals, e.g. '€80.90'.
-
-    A currency with no symbol keeps its code: 'CHF 120.00'.
-    """
-    symbol = CURRENCY_SYMBOLS.get(currency)
-    return f"{symbol}{amount:.2f}" if symbol else f"{currency} {amount:.2f}"
 
 
 templates.env.filters["money"] = money
