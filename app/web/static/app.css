@@ -329,11 +329,11 @@ td.actions { white-space: nowrap; text-align: right; }
 td.actions form { display: inline; }
 td.actions .pick { display: inline-flex; align-items: center; gap: var(--space-2); vertical-align: middle; margin-right: var(--space-1); }
 td.actions .pick-text { display: none; }
-button.icon {
+button.icon, a.icon {
   display: inline-grid; place-content: center; width: 30px; height: 30px; padding: 0; border: 1px solid transparent;
   border-radius: var(--radius); background: transparent; color: var(--muted); transition: background-color 120ms, color 120ms;
 }
-button.icon:hover { background: var(--surface); border-color: var(--line); color: var(--text); }
+button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(--line); color: var(--text); }
 .drops { padding: var(--space-4) var(--space-5); }
 .drops h2 { margin: 0 0 var(--space-2); }
 .drops ul { margin: 0; padding-left: var(--space-5); }
@@ -467,7 +467,7 @@ button.icon:hover { background: var(--surface); border-color: var(--line); color
   .panel.card { padding: var(--space-2) var(--space-4); }
   .panel-toggle[open] > summary { margin-bottom: var(--space-3); }
   .weights { flex-direction: column; gap: var(--space-2); }
-  button.icon { width: 44px; height: 44px; }
+  button.icon, a.icon { width: 44px; height: 44px; }
   /* A check box and a radio: a hit area of 44 px around a box of 20 px (a clear border of 12 px). */
   input[type=checkbox], input[type=radio] {
     width: 44px; height: 44px; border: 12px solid transparent; border-radius: 16px; background-clip: padding-box;
