@@ -11,11 +11,22 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult
+from app.parsers import ParseResult, count
 from app.schemas import LegIn, OfferIn, _short_reason
 
 log = logging.getLogger(__name__)
 BOOKING_BASE = "https://www.kiwi.com"
+
+
+def _travelers(passengers: Any) -> int | None:
+    """The travelers of the request (#766): the sum of adults, children and infants; None when a count is not an
+    integer or the sum is outside 1 to 9 (P5: the payload is untrusted)."""
+    if not isinstance(passengers, dict):
+        return None
+    parts = [passengers.get(k) for k in ("adults", "children", "infants")]
+    if not all(isinstance(v, int) and not isinstance(v, bool) and v >= 0 for v in parts):
+        return None
+    return count(sum(parts))
 
 
 def _time(station: dict) -> datetime:
@@ -32,7 +43,7 @@ def _time(station: dict) -> datetime:
 
 class KiwiParser:
     source = "kiwi.com"
-    version = "1.0.0"
+    version = "1.1.0"
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"currency", "response"} or of the response body only: one per fare."""
@@ -45,7 +56,7 @@ class KiwiParser:
         if not isinstance(itins, list):
             raise ValueError("the kiwi.com payload has no data.onewayItineraries.itineraries list")
         currency = str(raw.get("currency") or "EUR").upper()
-        result = ParseResult()
+        result = ParseResult(travelers=_travelers(raw.get("passengers")))
         for i, it in enumerate(itins):
             try:
                 result.offers.extend(self._offers(it, currency))
