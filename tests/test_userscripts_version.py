@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 import app.web.userscripts as userscripts
 from app.main import app
 
+GUARDS = ("userscripts/*", "tests/data/userscript_versions.json")   # ship_pr runs this file for these changes
 DIR = Path(__file__).resolve().parents[1] / "userscripts"
 SERVER = "https://travel.example"
 VERSION = re.compile(r"^// @version[ \t]+(\S+)[ \t]*$", re.MULTILINE)

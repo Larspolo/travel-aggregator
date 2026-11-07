@@ -19,6 +19,7 @@ checked too, #5040). Exit 2: ruff or a test fails.
 Exit 3: the guard or the push fails (do not push by hand).
 """
 import argparse
+import fnmatch
 import glob
 import os
 import re
@@ -30,6 +31,7 @@ import unconflict  # noqa: E402
 
 MAX_TESTS = 30      # more test files import a conflicted module (the main module): run only the branch's, CI runs the rest
 HUNK_LINES = 40     # lines of each conflict hunk in the output
+GUARDS = re.compile(r"^GUARDS\s*=\s*\(([^)]*)\)", re.M)   # a test file that checks files no import finds (#595)
 IMPORT = re.compile(r"^\s*(?:from\s+([\w.]+)\s+)?import\s+\(?([\w., ]+)", re.M)
 
 
@@ -57,9 +59,19 @@ def imports(text):
     return out
 
 
+def guards(text):
+    """The path patterns of the line `GUARDS = ("userscripts/*.user.js", ...)` of a test file (none: empty)."""
+    m = GUARDS.search(text)
+    return re.findall(r"[\"']([^\"']+)[\"']", m.group(1)) if m else []
+
+
 def test_files(conflicted, changed, tests):
-    """(test files to run, test files left to CI). `tests`: {path: text} of the test files of the repository."""
-    own = sorted({f for f in changed + conflicted if f in tests})
+    """(test files to run, test files left to CI). `tests`: {path: text} of the test files of the repository.
+    A test file whose `GUARDS` patterns match a changed file always runs: no import leads from a `.js` or `.json`
+    file to its test (5 of 9 red fast-test runs of 100 PRs: the userscript lock test, 2026-11-07)."""
+    paths = changed + conflicted
+    own = sorted({f for f in paths if f in tests}
+                 | {f for f, text in tests.items() if any(fnmatch.fnmatchcase(p, g) for g in guards(text) for p in paths)})
     mods = set().union(*map(modules, conflicted)) if conflicted else set()
     users = sorted(f for f, text in tests.items() if f not in own and mods & imports(text))
     return (own + users, []) if len(own) + len(users) <= MAX_TESTS else (own, users)
