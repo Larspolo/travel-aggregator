@@ -96,7 +96,9 @@ def test_the_trips_list_and_the_trip_page_work_with_touch_on_a_phone(live):
         table.evaluate("e => { e.scrollLeft = 0; }")
         summary = page.locator("#table tr.detail summary").first
         summary.tap()
-        assert summary.locator("xpath=..").evaluate("d => d.open")
+        # The browser makes the click of a tap from a gesture after the touch events: it can come after tap() returns,
+        # so wait for the open row and do not read it once (#508).
+        page.wait_for_function("document.querySelector('#table tr.detail summary').parentElement.open", timeout=5000)
         if os.environ.get("TOUCH_SHOT"):  # an image for the evidence comment of a check ticket
             page.screenshot(path=os.environ["TOUCH_SHOT"], full_page=True)
         browser.close()
