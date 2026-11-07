@@ -66,6 +66,14 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
    the hook (after a full page load), do the search one more time inside the page (for example a change in the search
    form of the results page), and count it in the 3 searches. The hook records fetch and XHR, also when the page
    keeps its own `fetch`, `open` or `send` (it records when the page reads the response).
+   **A search that is always a full page load with fast results** (Skyscanner: the search form and the date arrows
+   both load a new page, and the radar request ends in less than 1 s, #463): a hook from `javascript_tool` comes too
+   late. Use the hook at document start before the first search, so no search is lost:
+   `python3 tools/capture.py userscript --match '<URL part>' --site 'https://<host>/*' > ~/.cache/ta-capture/<site>.user.js`,
+   copy it with `pbcopy <`, and ask the person who started `/capture` to add it in the Tampermonkey dashboard ("+",
+   paste, Cmd+S) and to tell you when it is on. It records only what the page requests itself (P1). Then each page
+   load of the site has `window.__taCap`; save (step 5) before the next page load. When no person answers, stop the
+   ticket (the comment of step 9). At the end (section 4), ask the person to remove the script.
    Some sites put the results into the HTML of a full page load and send no request for them (Google Flights: the
    inline script `AF_initDataCallback({key: 'ds:1', ...})`). Then use a `--match` that also matches the address of
    the results page, and after the page load run `window.__taCap.inline("key: 'ds:1'")` (it reads the page and
@@ -112,3 +120,24 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
 
 Give one line per ticket: the number, done or not done, and the link of the file or the cause. A ticket that the
 skill skipped: the number and the reason. Delete `~/.cache/ta-capture/*.har`.
+When a ticket used the document-start script, ask the person to turn off or remove "TA capture hook (temporary)" in
+Tampermonkey.
+
+## 5. Improve the skill (owner, 2026-11-07)
+
+Each run makes the skill better. When a step failed, needed a workaround, or a file misses data (for example an empty
+request body), fix the cause before the end of the run:
+1. A small fix: on a new branch `capture-<topic>` from `main`, change this file and `tools/capture.py`, with a test
+   in a new file `tests/test_capture_<topic>.py` (a Playwright test serves all URLs itself: no travel site, P1). Run
+   `ruff check .` and the capture tests (`-m slow` for the hook), then open one PR for the run. The ticket comment
+   (step 9) names the gap; the end report names the PR.
+2. A larger fix or a choice: make a ticket with the `ticket` skill.
+3. A fact about one site (a full page load, a block, the URL part to keep): write it in the list "Sites" below.
+
+## Sites
+
+- Skyscanner (`www.skyscanner.nl`): no block (2026-11-07). The search form and the date arrows are full page loads;
+  all results can come in one `POST /g/radar/api/v2/web-unified-search/` in less than 1 s, with no polls. Use the
+  document-start script (step 2) with `--match 'skyscanner\.nl/g/(radar|michelin)'`. The page sends `Request`
+  objects. The results URL `/transport/vluchten/<from>/<to>/<yymmdd>/?adultsv2=1&cabinclass=economy&rtn=0` opens
+  the search directly (one search).

@@ -2,6 +2,7 @@
 and push the HAR to a capture branch (`.claude/skills/capture/SKILL.md`).
 
     python3 tools/capture.py hook --match REGEX           # the JavaScript for the page: it records the responses
+    python3 tools/capture.py userscript --match REGEX --site 'https://www.skyscanner.nl/*'   # the hook at document start
     python3 tools/capture.py scrub RAW.har ... --out OUT.har [--match REGEX] [--private TEXT ...]
     python3 tools/capture.py publish OUT.har --issue N --source bahn.de [--branch owner/bahn-captures]
 
@@ -73,16 +74,30 @@ HOOK = r"""(() => {
   if (typeof origFetch === "function") {
     const hooked = function (input, init) {
       const t0 = Date.now();
+      // The page can send a Request object (Skyscanner, #463): fetch uses up its body, so copy it first. Reading the
+      // copy is local and sends nothing (P1).
+      let copy = null;
+      try {
+        if (input && typeof input === "object" && typeof input.clone === "function" && !input.bodyUsed &&
+            !(init && init.body != null)) copy = input.clone();
+      } catch (e) { copy = null; }
       const promise = origFetch.apply(this, arguments);
       try {
         const url = input && typeof input === "object" && "url" in input ? input.url : input;
         const method = (init && init.method) || (input && input.method) || "GET";
-        const body = init && typeof init.body === "string" ? init.body : null;
+        const b = init && init.body;
+        let bodyP = Promise.resolve(null);
+        if (typeof b === "string") bodyP = Promise.resolve(b);
+        else if (w.URLSearchParams && b instanceof w.URLSearchParams) bodyP = Promise.resolve(b.toString());
+        else if (b && typeof b.text === "function") bodyP = b.text();
+        else if (copy && !/^(GET|HEAD)$/i.test(method)) bodyP = copy.text().then((t) => (t === "" ? null : t));
+        bodyP = bodyP.then((t) => (typeof t === "string" ? t : null), () => null);
         let reqType = "";
         try { reqType = new Headers((init && init.headers) || {}).get("content-type") || ""; } catch (e) { /* ignore */ }
+        try { if (!reqType && copy) reqType = copy.headers.get("content-type") || ""; } catch (e) { /* ignore */ }
         promise.then((res) => {
           seen.add(res);
-          return readText(res.clone()).then((text) =>
+          return Promise.all([readText(res.clone()), bodyP]).then(([text, body]) =>
             add(method, url, reqType, body, res.status, res.statusText, res.headers.get("content-type"), text, t0));
         }, () => {}).catch(() => {});
       } catch (e) { /* ignore */ }
@@ -207,6 +222,27 @@ HOOK = r"""(() => {
 def hook(match):
     re.compile(match)
     return HOOK.replace("__MATCH__", json.dumps(match))
+
+
+SITE = re.compile(r"https://[\w.*-]+/\S*")
+
+
+def userscript(match, site):
+    """A Tampermonkey script that installs the hook at document start on `site` (a `@match` pattern). For a site whose
+    search is a full page load with fast results (Skyscanner, #463): a hook from the browser tool comes too late."""
+    if not SITE.fullmatch(site):
+        raise SystemExit(f"--site must be one https `@match` pattern, for example https://www.skyscanner.nl/*: {site!r}")
+    head = ("// ==UserScript==\n"
+            "// @name         TA capture hook (temporary)\n"
+            "// @namespace    travel-aggregator\n"
+            "// @version      1\n"
+            "// @description  Passive: records the responses that the page requested itself (P1). Remove it after "
+            "the capture.\n"
+            f"// @match        {site}\n"
+            "// @run-at       document-start\n"
+            "// @grant        none\n"
+            "// ==/UserScript==\n")
+    return head + hook(match) + ";\n"
 
 
 def private_words(extra=(), identity=True):
@@ -408,6 +444,9 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     h = sub.add_parser("hook", help="print the JavaScript that records the responses of the page")
     h.add_argument("--match", default=".", help="a regular expression of the URLs to keep")
+    u = sub.add_parser("userscript", help="print a Tampermonkey script that installs the hook at document start")
+    u.add_argument("--match", default=".", help="a regular expression of the URLs to keep")
+    u.add_argument("--site", required=True, help="the @match pattern, for example https://www.skyscanner.nl/*")
     s = sub.add_parser("scrub", help="clean one or more HAR files into one HAR")
     s.add_argument("files", nargs="+")
     s.add_argument("--out", required=True)
@@ -422,6 +461,9 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.cmd == "hook":
         print(hook(a.match))
+        return 0
+    if a.cmd == "userscript":
+        print(userscript(a.match, a.site))
         return 0
     if a.cmd == "scrub":
         har, replaced = scrub(a.files, a.match, a.private)
