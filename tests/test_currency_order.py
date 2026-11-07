@@ -79,5 +79,5 @@ def test_the_list_shows_the_eur_drop(sessions, trip):  # noqa: F811
     client, _, _ = trip
     _trip_with_drops(sessions, [("CZK", Decimal("100")), ("EUR", Decimal("10"))])
     html = client.get("/").text
-    assert "price dropped EUR 10" in html
+    assert "price dropped €10" in html
     assert "price dropped CZK" not in html

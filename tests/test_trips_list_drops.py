@@ -29,8 +29,8 @@ def test_the_list_shows_the_largest_drop(trip, sessions):  # noqa: F811
     _view_trip(client, trip_id)
     ingest(client, auth, trip_id, [offer("79.90", "ICE 105"), offer("50.00", "ICE 7")])
     html = client.get("/").text
-    assert "price dropped EUR 20.00" in html
-    assert "price dropped EUR 10.00" not in html
+    assert "price dropped €20.00" in html
+    assert "price dropped €10.00" not in html
 
 
 def test_the_mark_is_gone_after_the_trip_page_is_viewed(trip, sessions):  # noqa: F811
@@ -39,7 +39,7 @@ def test_the_mark_is_gone_after_the_trip_page_is_viewed(trip, sessions):  # noqa
     _pin(client, sessions, trip_id, "ICE 105", _token(client, trip_id))
     _view_trip(client, trip_id)
     ingest(client, auth, trip_id, [offer("79.90", "ICE 105")])
-    assert "price dropped EUR 20.00" in client.get("/").text
+    assert "price dropped €20.00" in client.get("/").text
     _view_trip(client, trip_id)
     assert "price dropped" not in client.get("/").text
 
