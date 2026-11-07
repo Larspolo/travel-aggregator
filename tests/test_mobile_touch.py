@@ -1,5 +1,5 @@
 """The phone check of #338 with touch, so that no person checks it: on a phone device the pages do not scroll
-sideways, a tap on a weight slider ranks the table again, a swipe scrolls the table in its box, and a tap opens a row."""
+sideways, a tap on a weight slider ranks the table again, each itinerary is a card that fits the box (#593), and a tap opens a row."""
 
 import copy
 import os
@@ -69,6 +69,9 @@ def test_the_trips_list_and_the_trip_page_work_with_touch_on_a_phone(live):
         assert page.evaluate("document.documentElement.scrollWidth") <= width
         assert "ICE 105" in _first_service(page)  # the cheap offer with 1 transfer ranks first
 
+        # On a phone the weights are one closed <details> (#593): a tap opens it.
+        page.locator(".panel-toggle > summary").tap()
+        page.wait_for_function("document.querySelector('.panel-toggle').open", timeout=5000)
         # A tap at the right end of the transfer slider sets a high markup: the direct offer ranks first.
         slider = page.locator('input[type="range"][name="transfer_markup"]')
         slider.scroll_into_view_if_needed()
@@ -78,22 +81,12 @@ def test_the_trips_list_and_the_trip_page_work_with_touch_on_a_phone(live):
         assert int(slider.input_value()) > 90
         page.wait_for_function("document.querySelector('#table tbody td:nth-child(4)').innerText.includes('ICE 77')")
 
-        # A swipe to the left in the table box scrolls the box, not the page.
+        # Each itinerary is a card (#593): the table box does not scroll sideways, and the page does not either.
         table = page.locator("#table")
-        table.scroll_into_view_if_needed()
-        assert table.evaluate("e => e.scrollWidth > e.clientWidth")
-        box = table.bounding_box()
-        cdp = context.new_cdp_session(page)
-        x, y = width - 30, min(max(box["y"], 0) + 40, page.viewport_size["height"] - 40)
-        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]})
-        for step in range(1, 11):
-            cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x - 25 * step, "y": y}]})
-        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
-        page.wait_for_function("document.querySelector('#table').scrollLeft > 0", timeout=5000)
+        assert table.evaluate("e => e.scrollWidth <= e.clientWidth")
         assert page.evaluate("window.scrollX") == 0
 
         # A tap on "Legs and fares" opens the row.
-        table.evaluate("e => { e.scrollLeft = 0; }")
         summary = page.locator("#table tr.detail summary").first
         summary.tap()
         # The browser makes the click of a tap from a gesture after the touch events: it can come after tap() returns,
