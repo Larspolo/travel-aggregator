@@ -48,6 +48,19 @@ def _launch(p):
     return p.chromium.launch(executable_path=exe) if os.path.exists(exe) else p.chromium.launch()
 
 
+def _wait_for_scroll_end(locator):
+    """Wait until the element stops to scroll: the same `scrollLeft` for 10 frames (at most 300 frames).
+    A swipe ends in a fling, and a tap during a fling only stops the fling and gives no click (#605)."""
+    locator.evaluate("""e => new Promise(done => {
+        let last = e.scrollLeft, same = 0, frames = 0;
+        const frame = () => {
+            if (e.scrollLeft === last) { same++; } else { last = e.scrollLeft; same = 0; }
+            if (same >= 10 || ++frames >= 300) { done(); } else { requestAnimationFrame(frame); }
+        };
+        requestAnimationFrame(frame);
+    })""")
+
+
 def _first_service(page):
     return page.locator("#table tbody tr:not(.detail)").first.locator("td").nth(3).inner_text()
 
@@ -92,7 +105,8 @@ def test_the_trips_list_and_the_trip_page_work_with_touch_on_a_phone(live):
         page.wait_for_function("document.querySelector('#table').scrollLeft > 0", timeout=5000)
         assert page.evaluate("window.scrollX") == 0
 
-        # A tap on "Legs and fares" opens the row.
+        # A tap on "Legs and fares" opens the row. Wait for the end of the fling of the swipe first (#605).
+        _wait_for_scroll_end(table)
         table.evaluate("e => { e.scrollLeft = 0; }")
         summary = page.locator("#table tr.detail summary").first
         summary.tap()
