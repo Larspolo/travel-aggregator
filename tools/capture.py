@@ -6,6 +6,8 @@ and push the HAR to a capture branch (`.claude/skills/capture/SKILL.md`).
     python3 tools/capture.py publish OUT.har --issue N --source bahn.de [--branch owner/bahn-captures]
 
 The hook only observes the responses that the page requested itself, as a userscript does: it sends no request (P1).
+In the page, `window.__taCap.inline(TEXT)` adds the inline scripts that contain TEXT (results in the HTML, as Google
+Flights does), `list()` lists the entries and `save(NAME)` downloads them as one HAR.
 `scrub` keeps only the content type of the headers, no cookies, and replaces e-mail addresses, the values of personal
 keys and the `--private` words (and the name and e-mail of `git config`) with REDACTED (P5). `publish` refuses a
 file that `scrub` did not clean. It commits in a temporary git worktree, so the checkout of the user does not change.
@@ -115,23 +117,72 @@ HOOK = r"""(() => {
   }
   const X = w.XMLHttpRequest && w.XMLHttpRequest.prototype;
   if (X) {
+    // One record per XHR, at the first of: the page reads the response (also when it sends with its own saved
+    // `open` and `send`, as bahn.de does, #238), or `loadend` of the wrapped `send`. The request part is known only
+    // through the wrappers; else the method is "" and the URL is `responseURL`.
+    const done = new WeakSet();
+    const native = (name) => { const d = Object.getOwnPropertyDescriptor(X, name); return d && d.get; };
+    const getText = native("responseText"), getResp = native("response");
+    const asText = (x) => {
+      const t = x.responseType, v = getResp ? getResp.call(x) : x.response;
+      if (!t || t === "text") return Promise.resolve(getText ? getText.call(x) : x.responseText);
+      if (t === "json") return Promise.resolve(v == null ? null : JSON.stringify(v));
+      if (t === "arraybuffer" && v) return Promise.resolve(new TextDecoder().decode(v));
+      if (t === "blob" && v) return v.text();
+      return Promise.resolve(null);
+    };
+    const record = (x) => {
+      try {
+        if (done.has(x) || x.readyState !== 4) return;
+        const m = x.__ta || {method: null, url: x.responseURL, type: "", body: null, t0: Date.now()};
+        const abs = new URL(String(m.url || x.responseURL), location.href).href;
+        if (!cap.match.test(abs) && !cap.match.test(x.responseURL)) return;
+        done.add(x);
+        asText(x).then((text) => add(m.method, m.url || x.responseURL, m.type, m.body, x.status, x.statusText,
+          x.getResponseHeader("content-type"), text, m.t0), () => {}).catch(() => {});
+      } catch (e) { /* the page must not break */ }
+    };
+    for (const [name, get] of [["responseText", getText], ["response", getResp]]) {
+      if (!get) continue;
+      try {
+        Object.defineProperty(X, name, {configurable: true, enumerable: true,
+          get: function () { const v = get.call(this); record(this); return v; }});
+      } catch (e) { /* the page keeps the native getter */ }
+    }
     const open = X.open, send = X.send, setHeader = X.setRequestHeader;
-    X.open = function (method, url) { this.__ta = {method, url, type: ""}; return open.apply(this, arguments); };
+    X.open = function (method, url) {
+      this.__ta = {method, url, type: "", body: null, t0: Date.now()};
+      return open.apply(this, arguments);
+    };
     X.setRequestHeader = function (name, value) {
       if (this.__ta && String(name).toLowerCase() === "content-type") this.__ta.type = String(value);
       return setHeader.apply(this, arguments);
     };
     X.send = function (body) {
-      const m = this.__ta, t0 = Date.now();
-      if (m) this.addEventListener("loadend", () => {
-        const t = this.responseType;
-        const text = !t || t === "text" ? this.responseText : t === "json" ? JSON.stringify(this.response) : null;
-        add(m.method, m.url, m.type, typeof body === "string" ? body : null, this.status, this.statusText,
-          this.getResponseHeader("content-type"), text, t0);
-      });
+      if (this.__ta) {
+        this.__ta.body = typeof body === "string" ? body : null;
+        this.__ta.t0 = Date.now();
+        this.addEventListener("loadend", () => record(this));
+      }
       return send.apply(this, arguments);
     };
   }
+  // A page that puts its results into the HTML (Google Flights: `AF_initDataCallback({key: 'ds:1', ...})`) sends no
+  // request for them. `inline(text)` adds each inline script that contains the text as one GET entry of the page URL:
+  // it reads the page and sends nothing (P1).
+  const inlineDone = new Set();
+  cap.inline = (needle) => {
+    let added = 0;
+    for (const s of document.scripts) {
+      const text = s.src ? "" : s.textContent;
+      if (!text || text.indexOf(String(needle)) < 0 || inlineDone.has(text)) continue;
+      inlineDone.add(text);
+      const before = cap.entries.length;
+      add("GET", location.href, "", null, 200, "OK", "text/javascript", text, Date.now());
+      added += cap.entries.length - before;
+    }
+    return JSON.stringify({added, entries: cap.entries.length});
+  };
   cap.list = () => JSON.stringify(cap.entries.map((e) => ({method: e.request.method, url: e.request.url,
     status: e.response.status, size: e.response.content.size})));
   cap.save = (name) => {
