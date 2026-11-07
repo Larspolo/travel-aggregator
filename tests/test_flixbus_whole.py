@@ -15,7 +15,7 @@ from app.models import Trip
 from app.parsers.flixbus import FlixbusParser
 
 FIX = Path(__file__).parent / "fixtures" / "flixbus.com"
-FIXTURES = ["search-amsterdam-berlin.json", "search-amsterdam-paris.json"]
+FIXTURES = ["search-amsterdam-berlin.json", "search-amsterdam-paris.json", "search-utrecht-berlin.json"]
 
 
 @pytest.fixture

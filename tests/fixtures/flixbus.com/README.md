@@ -11,9 +11,9 @@ ids and no tokens. The searches are for 2026-12-01, in GBP, for 1 adult.
 |---|---|---|
 | `search-amsterdam-paris.json` | Amsterdam Central → Paris (`search_by=cities`) | 2 direct connections and 1 connection with 1 change (bus, then bus the next day); a `direct express` product |
 | `search-amsterdam-berlin.json` | Amsterdam Central → Berlin | 2 direct connections and 1 connection with 1 change (bus, then train); `transfer_type_key` `direct#train` |
+| `search-utrecht-berlin.json` | Utrecht → Berlin (2026-12-01) | 2 direct connections and 1 connection with 1 change (bus, then bus); `transfer_type_key` `direct#fast` |
 
-Not in the captures yet: Utrecht → Brussels. The HAR files have Utrecht → Berlin (a third search, not trimmed here).
-A fixture for Utrecht → Brussels needs a new capture.
+Utrecht → Berlin is the third search (bus, then bus).
 
 Notes for the parser:
 
