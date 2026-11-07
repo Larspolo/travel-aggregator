@@ -5,7 +5,7 @@ step 7 when the owner must check something in the game (part of the `autopilot` 
 
 ## Ask the owner
 
-Ask the owner (owner rule, #862): only with the label `needs-human` and a comment on the issue that needs the answer.
+Ask the owner (owner rule, #862): only with the label `needs-human`, the label `for-lars` or `for-jeroen` (`ticket` skill, #72) and a comment on the issue that needs the answer.
 The comment mentions the owner (`@` and `owner` of `agent.toml`) and says exactly what the owner must do. Never ask with PushNotification, in the
 session, or only in the status report. When the auto mode denies an action (for example closing an issue), do not send
 it through another tool: add `needs-human` to that issue and comment the evidence and the action. When the owner did

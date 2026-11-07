@@ -11,6 +11,7 @@ A conflicted file with no markers (one side deletes it, the other changes it) st
 A hunk whose base lines both sides keep is solved too: both sides that add a key before the first key of a table
 change its opening line `return {"KEY": ...` (`kept`, #5860). A merge in which a nested function of one side hides a
 module function of the other side stays a conflict (`hides`).
+A module with a second docstring or an import after a def that the two sides add stays a conflict (`stray`, #224).
 """
 import ast
 import json
@@ -153,6 +154,38 @@ def hidden(text):
             if d is not n and isinstance(d, FUNCS) and d.name in top}
 
 
+def stray_parts(text):
+    """The statements that a Python module must not have after its first def or class: a second string (a second
+    module docstring) and an import. Two sides that each add a new module to one file make them (#224)."""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return set()
+    out, seen_def = set(), False
+    for i, n in enumerate(tree.body):
+        if isinstance(n, (*FUNCS, ast.ClassDef)):
+            seen_def = True
+        elif isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant) and isinstance(n.value.value, str) and (
+                i > 0 or seen_def):
+            out.add(("string", n.value.value[:40]))
+        elif isinstance(n, (ast.Import, ast.ImportFrom)) and seen_def:
+            out.add(("import", ast.unparse(n)))
+    return out
+
+
+def stray(path, text):
+    """An error text when the merge puts a second docstring or an import after a def in a module (#224). Compiles and
+    passes ruff, but the module is a merge of two new modules."""
+    if not path.endswith(".py"):
+        return ""
+    sides = [subprocess.run(["git", "show", f":{n}:{path}"], capture_output=True, text=True).stdout for n in (2, 3)]
+    new = stray_parts(text) - stray_parts(sides[0]) - stray_parts(sides[1])
+    if not new:
+        return ""
+    names = sorted(str(v) for _, v in new)
+    return f"a second docstring or an import after a def ({', '.join(names)}): the two sides add one module: keep one"
+
+
 def hides(path, text):
     """An error text when the merge makes a nested function hide a module function: one side adds `def civ_name` in
     `host()`, the other a module `def civ_name` that `host()` calls (#5860). Compiles and passes ruff, but is wrong."""
@@ -172,7 +205,7 @@ def main():
             text, why = solve(open(f, encoding="utf-8").read())
         except (OSError, UnicodeDecodeError) as e:     # a rename/delete leaves no file, a binary file is no text
             text, why = None, f"cannot read: {e}"
-        why = why or check(f, text) or hides(f, text)
+        why = why or check(f, text) or hides(f, text) or stray(f, text)
         if why:
             print(f"{f}: {why}")
             return 1

@@ -1,0 +1,20 @@
+{
+  "core.js": {
+    "1": "9500fbb8f71486335b404a87809724287e0876b1d8b514739ec244bfb78cde25",
+    "2": "c931662ce8f2ce0fb46da0cd8b20f61dd4ce59ac09a09764851c4ee80e709203",
+    "3": "5573f745e7376647249c928070af225ce2868e024c6b603bc0b2e67369baeaa4"
+  },
+  "bahn.user.js": {
+    "1.0.0": "869ca9a64a4ea959dee994beeca5efcb6c78a81a2cd6089ba52522cba4d142f8",
+    "1.0.1": "8a12a524a43b3cdd9a713a8b943b04f1e1f3a6aa7b6fde4983b86901a01b04ae"
+  },
+  "ns.user.js": {
+    "1.0.0": "2e3860f2ffd61cd3bc95546d32738e121a010138013c416c8786a90baac754b5"
+  },
+  "flixbus.user.js": {
+    "1.0.0": "e60bd3cf8cc353a20b75a9ce785dc83640dbb33395ac9f57108041846b78350c"
+  },
+  "kiwi.user.js": {
+    "1.0.0": "b1637abf6eb43024f8c933a573c23729b2b8d2db511a23b1d2a76a22017d3b11"
+  }
+}

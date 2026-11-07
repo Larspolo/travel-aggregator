@@ -32,7 +32,7 @@ ticket for it.
   `https://travel-preview.larspolo.nl` (`deploy/preview/`): Traefik basic auth on the pages until the login exists,
   none on `/api`. The agents reach `/api` with the network secret (`scripts/preview_check.sh`), not the pages.
 - A browser with Tampermonkey: the owner installs the userscripts and captures real payloads for the fixtures.
-- A phone for the mobile layout: the owner tests on it only after a feature works on a computer.
+- A phone for the mobile layout: the owner tests on it only the feel under a finger, after the agents checked the layout.
 - Budget: free only. A service with a cost (mail, push, hosting) gets a decision ticket.
 - Claude plan: three scheduled tasks (main, haiku lane, deep lane).
 - GitHub: a public repository (free Actions minutes, free GHCR images for public packages).

@@ -164,6 +164,7 @@
     "anthropic-skills:pdf": "off",
     "anthropic-skills:pptx": "off",
     "anthropic-skills:xlsx": "off",
+    "capture": "user-invocable-only",
     "demo": "user-invocable-only",
     "human": "user-invocable-only",
     "new-project": "user-invocable-only",

@@ -53,9 +53,10 @@ WAIT = CONFIG.get("pacing", {}).get("max_waiting_prs", 10)   # flow brake: open 
 QUEUE = CONFIG.get("pacing", {}).get("max_ci_queue", 5)      # flow brake: queued CI runs (no runner yet)
 PR_MINUTES = CONFIG.get("pacing", {}).get("pr_minutes", 30)  # Automerge merges a green PR in a few minutes
 MAX_FIRE = CONFIG.get("pacing", {}).get("max_fire", 8)   # runs that the pacer starts per cycle: each run needs a few minutes to claim its ticket; the same as agent.toml (the pacer used an old 4, 2026-10-28)
-REFILL = CONFIG.get("pacing", {}).get("refill_runs", 1)   # runs beyond the ready tickets: each refills one epic (#609, #650)
+REFILL = CONFIG.get("pacing", {}).get("refill_runs", 3)   # the most refill runs at one time (`refill_count`, #609, #650)
+REFILL_TICKETS = CONFIG.get("pacing", {}).get("refill_tickets", 4)   # ready tickets that one refill run adds (`refill_count`)
+REFILL_MINUTES = CONFIG.get("pacing", {}).get("refill_minutes", 20)  # a refill lock this young: its run still makes tickets
 PENDING = 12                # minutes: a run that the pacer started and that has no claim yet counts as a claim
-REFILL_GAP = CONFIG.get("pacing", {}).get("refill_gap", 60)   # minutes after a refill lock with no refill run
 CALL = ["claude", "-p", "Reply with OK.", "--model", "claude-haiku-5-5", "--output-format", "stream-json", "--verbose"]
 
 
@@ -130,7 +131,7 @@ def week_line(usage, now):
     return line + (f" · runs out {at:%a %H:%M}" if out < reset7 else " · lasts to the reset")
 
 
-def runs_to_start(target, claims, ready, paused, hi=MAX_FIRE, refill=REFILL):
+def runs_to_start(target, claims, ready, paused, hi=MAX_FIRE, refill=1):
     """The number of runs that the pacer starts now: the runs that the target misses, not more than the ready tickets
     and `refill` more: these refill the queue, one epic each, then take a new ticket (#609). One refill run left the
     queue at 3 ready tickets for 40 target runs (2026-10-28).
@@ -140,21 +141,50 @@ def runs_to_start(target, claims, ready, paused, hi=MAX_FIRE, refill=REFILL):
     return max(0, min(target - claims, ready + refill, hi))
 
 
-def refill_runs(issues, now, minutes=60, refill=REFILL):
-    """`refill` when an open ticket is newer than `minutes` (the refills still find work), else 1: when the epics have
-    no goal left, the refill runs find nothing and stop, and one run is enough to start the next epic (`roadmap`).
+def new_ticket(issues, now, minutes=60):
+    """True when an open ticket is newer than `minutes`: the refills still find work. Else the epics have no goal
+    left, the refill runs find nothing and stop, and one run is enough to start the next epic (`roadmap`).
     issues: the open issues and PRs; now: Unix seconds."""
-    new = any("pull_request" not in i and now - datetime.datetime.fromisoformat(
+    return any("pull_request" not in i and now - datetime.datetime.fromisoformat(
         i["created_at"].replace("Z", "+00:00")).timestamp() < minutes * 60 for i in issues)
-    return refill if new else min(refill, 1)
 
 
-def refill_recent(lines, now, minutes=REFILL_GAP):
-    """True when a refill lock (`claim/refill-*`) is younger than `minutes`: a deep run refills now or did it a short
-    time ago. The pacer then starts no refill run, unless fewer tickets are ready than half the target. 16 of 30 deep runs made no PR (2026-10-29): most found the refill lock taken or nothing to refill, and
-    each cost about $1 to $2. lines: `health.claim_refs()`; now: Unix seconds."""
-    return any(k.startswith("refill-") and t.isdigit() and int(t) >= now - minutes * 60
-               for k, t, *_ in (x.split(" ", 2) for x in lines or ()))
+def refill_live(lines, now, minutes=REFILL_MINUTES):
+    """The runs that hold a refill lock (`claim/refill-*`) younger than `minutes`: they still make tickets, and the
+    queue does not show them yet. lines: `health.claim_refs()`; now: Unix seconds."""
+    runs = set()
+    for line in lines or ():
+        k, t, subject = (line.split(" ", 2) + ["", ""])[:3]
+        if k.startswith("refill-") and t.isdigit() and int(t) >= now - minutes * 60:
+            by = re.search(r" by (\S+)", subject)
+            runs.add(re.sub(r"-\d+$", "", by[1]) if by else k)
+    return len(runs)
+
+
+def refill_count(ready, target, live, epics, new=True, per=REFILL_TICKETS, most=REFILL, whole=True):
+    """The refill runs that the pacer starts now, from the tickets that the queue misses (owner, 2026-11-06): one run
+    for each `per` tickets of `target - ready`, at least 1 (the caller has refill work: `refill_need`), less the `live`
+    refill runs (`refill_live`). At most `most`, and at most one run per refill source with work (`refill_sources`):
+    the whole refill when `whole` (one lock per 10 minutes) and each of the `epics` (one lock each, #505). 0 when no
+    source has work: a due review gets its run from the caller. Only 1 when no ticket is new (`new_ticket`).
+    One epic check with 6 open epics started 3 runs, and 2 of them found no work (#378).
+    A fixed count with a 60-minute gap left the queue at 0 to 2 ready tickets in 31 of 33 cycles for a target of up
+    to 16 runs, and the 5-hour window ended at 43 % (2026-11-06). 16 of 30 deep runs found the lock taken or nothing
+    to refill (2026-10-29): so no more runs than sources."""
+    want = max(1, math.ceil(max(0, (target or 0) - ready) / max(per, 1)))
+    cap = min(most, int(whole) + max(epics, 0)) if new else min(1, int(whole) + max(epics, 0))
+    return max(0, min(want, cap) - live)
+
+
+def refill_sources(ready, target, issues, due=lambda: [], free=lambda: [], now=None, closing=lambda e: False):
+    """(epics, whole): the refill sources with work for `refill_count` (#378). epics: the epics that wait for an epic
+    check (`epic_checks`, not `closing`); an epic whose open sub-issues wait for the owner has no refill work. whole:
+    True when the whole refill has work: `rank` tickets, a release check with no ticket (`due`), or R < N and a free
+    source (`free`, `free_sources`). The arguments are those of `refill_need`."""
+    import dashboard
+    epics = sum(not closing(n) for n in epic_checks(issues, now))
+    rank = any(dashboard.RANK in dashboard.labels(i) for i in issues if "pull_request" not in i)
+    return epics, bool(rank or due() or (target is not None and ready < target and free()))
 
 
 def pending(started, lines, now, minutes=PENDING, refill_lane="deep"):
@@ -265,10 +295,16 @@ def due_reviews(remote="origin", starved=None):
 
 def held(numbers):
     """True when an open issue of `numbers` (of a roadmap line) is `after-release` or `muted`: the owner holds the
-    feature, and the refill leaves it out (#5301: `convert:export` named the held owner ticket #4198, no epic)."""
+    feature, and the refill leaves it out (#5301: `convert:export` named the held owner ticket #4198, no epic). Also
+    an open decision ticket (`needs-human` and "Kind: decision", the `ticket` skill): the epic waits for the answer
+    (#432: `trip:notify` named the decision #418, and the pacer started deep refill runs that found no source)."""
     import dashboard
-    return any((i := dashboard.api(f"issues/{n}"))["state"] == "open"
-               and {dashboard.AFTER, dashboard.MUTED} & dashboard.labels(i) for n in sorted(numbers))
+
+    def holds(i):
+        names = dashboard.labels(i)
+        return bool({dashboard.AFTER, dashboard.MUTED} & names
+                    or "needs-human" in names and re.search(r"^Kind: decision\b", i.get("body") or "", re.M))
+    return any((i := dashboard.api(f"issues/{n}"))["state"] == "open" and holds(i) for n in sorted(numbers))
 
 
 def roadmap_features(text):
@@ -322,7 +358,7 @@ def free_sources(root=None, epics=None, holds=held):
     return [f"{len(free)} roadmap features with no epic"] * bool(free) + [f"{fallbacks} fallbacks"] * bool(fallbacks)
 
 
-def plan(target, claims, ready, lanes, paused, hi=MAX_FIRE, refill=REFILL, refill_lane=None):
+def plan(target, claims, ready, lanes, paused, hi=MAX_FIRE, refill=1, refill_lane=None):
     """(K, {lane: runs}): the runs that the pacer starts now and the runs of each lane among them (#1715, #1727).
     lanes: [(name, ready tickets of the lane, weight)] in the order of their start. The target and the claims are in Opus
     runs, and a lane run counts its weight. Each lane gets runs for its ready tickets while the room lasts;
@@ -342,7 +378,7 @@ def plan(target, claims, ready, lanes, paused, hi=MAX_FIRE, refill=REFILL, refil
     return o + sum(out.values()), out
 
 
-def lane_plan(target, claims, ready, ready_haiku, weight, paused, hi=MAX_FIRE, refill=REFILL):
+def lane_plan(target, claims, ready, ready_haiku, weight, paused, hi=MAX_FIRE, refill=1):
     """(K, H): `plan` with the Haiku lane alone."""
     k, lanes = plan(target, claims, ready, [("haiku", ready_haiku, weight)], paused, hi, refill)
     return k, lanes["haiku"]
@@ -499,17 +535,22 @@ def fire(usage, now, burn=BURN, burn7=None, skip=(), status=None, started=None, 
     weights, source = health.lane_weights(comments)
     eq = claims if lanes is None else health.opus_equivalent(claims, lanes, weights)   # in Opus runs (#1727)
     target = target_runs(usage, now, burn, burn7=burn7) if target is None else target
+    free, due, closing = functools.cache(free_sources), functools.cache(release_due), functools.cache(autoclosing)
     reviews = functools.cache(lambda: due_reviews(starved=lambda: target is not None and ready < target
-                                                  and not free_sources()))
-    need = refill_need(ready, target, open_all, release_due, free=free_sources, reviews=reviews,
-                       now=now.timestamp() if hasattr(now, "timestamp") else now, closing=autoclosing)   # reviews after checks
-    only_review = False
-    if need and refill_recent(refs, now) and ready >= target // 2:
-        # A refill runs now or ran; a near-empty queue refills at once. A due review skips the gap (owner, 2026-10-29):
-        # its lock lets one run take it, and `pending` counts the started run until it claims.
+                                                  and not free()))
+    stamp = now.timestamp() if hasattr(now, "timestamp") else now
+    need = refill_need(ready, target, open_all, due, free=free, reviews=reviews, now=stamp, closing=closing)   # reviews after checks
+    live = refill_live(refs, stamp)
+    if need:                                                # #3547: no work, no run; #378: no run for a source with no work
+        epics, whole = refill_sources(ready, target, open_all, due, free=free, now=stamp, closing=closing)
+        refill = refill_count(ready, target, live, epics, new_ticket(open_all, stamp), whole=whole)
+    else:
+        refill = 0
+    if need and not refill:
+        # The live refill runs make the tickets. A due review has its own lock (owner, 2026-10-29): one run takes it,
+        # and `pending` counts the started run until it claims.
         kinds = reviews()
-        need, only_review = (" and ".join(kinds) + " due", True) if kinds else ("", False)
-    refill = (1 if only_review else refill_runs(open_all, now)) if need else 0   # #3547: no refill run with no work
+        need, refill = (" and ".join(kinds) + " due", 1) if kinds else (f"{live} refill runs live", 0)
     refill_lane = "deep" if "deep" in dashboard.RESERVED else None
     wait = pending(started or {}, refs, now, refill_lane=refill_lane)
     eq += sum(n * weights.get(t, 1) for t, n in wait.items())
@@ -525,7 +566,7 @@ def fire(usage, now, burn=BURN, burn7=None, skip=(), status=None, started=None, 
         k, runs = min(k, cap), dict.fromkeys(runs, 0)
     line = (f"{describe(usage, now, burn, burn7)} · claims {claims} ({eq:.2f} Opus runs) · ready {ready} · "
             + (f"pending {json.dumps(wait)} · " if wait else "")
-            + f"refill {refill} ({need or f'ready {ready}, target {target}: no refill source or a refill lock < {REFILL_GAP} min'}) · "
+            + f"refill {refill} ({need or f'ready {ready}, target {target}: no refill source'}) · "
             f"paused {paused} · {flow} · max_fire {MAX_FIRE} · weights "
             + ", ".join(f"{n} {w:.2f} ({source[n]})" for n, w in weights.items()) + note)
     return k, runs, line

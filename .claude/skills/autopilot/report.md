@@ -39,12 +39,15 @@ said `none`, most of them such checks); `checked` when a check ticket (or a deep
 and put its findings on the ticket (a comment, new bug tickets, `Depends on`) and the ticket stays open by design (#5782:
 8 of 18 given-back runs were such checks); `none` only when the run stopped without a PR and the ticket stays open.
 Before you give back a ticket whose next step only the owner can do, add `needs-human` (`owner.md`): with `none` and
-a release only, the next run takes it again in minutes (#5676: 2 runs). `framework/tools/health.py` counts the `pr #n` lines by the present PR state (#902).
+a release only, the next run takes it again in minutes (#5676: 2 runs).
+When your PR closes the last ticket of a line `- After #a, #b: ...` in the section `## Owner checks` of its epic,
+make that `needs-human` ticket now (`ticket` skill) with only the steps that no agent can do (do the other checks
+yourself first and link the evidence) with `parent: E` (a sub-issue of the epic: else the epic has no open sub-issue, and the pacer starts epic checks for it, #432), so the owner can check when the merge is live (owner, 2026-11-06). `framework/tools/health.py` counts the `pr #n` lines by the present PR state (#902).
 `framework/tools/report.py` puts the output of `python3 tools/release.py` (the release bar of each goal, #879) above the
 `Usage:` line, when the project has that tool (#1963).
-Below the metrics lines, put the output of `python3 framework/tools/tokens.py` (one `Tokens:` line for the run: the tokens of
-this session and its largest sinks; run it just before the comment). `report.py` adds it, the `Calls:` line and the `Run:` line
-(the session, the start, the model, the eq of each phase and ticket, the lane). `framework/tools/health.py` adds these lines, and the
+Below the metrics lines, `report.py` adds the `Tokens:` line (the tokens of this session and its largest sinks), the
+`Calls:` line and the `Run:` line (the session, the start, the model, the eq of each phase and ticket, the lane): do not
+run `tokens.py` yourself (owner, 2026-11-06: one call fewer at the end of the run, where each call costs the most). `framework/tools/health.py` adds these lines, and the
 `improve` skill uses them as one source to find the bottleneck.
 Put the `Usage:` line of step 1.2 (or of the brief of the pacer) above the metrics lines, unchanged: `framework/tools/health.py` measures the quota use of one
 run per hour from pairs of these lines, and `framework/tools/usage.py --target` uses that value (#462).

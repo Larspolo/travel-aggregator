@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Delete trip – travel-aggregator{% endblock %}
+{% block content %}
+<h1>Delete trip</h1>
+<p>Delete the trip {{ trip.title }} with {{ counts.itineraries }} itineraries and {{ counts.captures }} captures? This cannot be undone.</p>
+<form method="post" action="/trips/{{ trip.id }}/delete">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p><button type="submit">Delete</button> <a href="/trips/{{ trip.id }}/edit">Cancel</a></p>
+</form>
+{% endblock %}
