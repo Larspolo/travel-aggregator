@@ -30,15 +30,15 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A search on NS International shows its fares on the trip page
 - [ ] `capture:flixbus` Flixbus: userscript, server parser, trimmed fixtures
   - A search on Flixbus shows its offers on the trip page
-- [ ] `capture:flight` One flight source: the one that is easiest to intercept (the agents compare and record why), userscript, server parser, trimmed fixtures
+- [x] `capture:flight` (#327) One flight source: the one that is easiest to intercept (the agents compare and record why), userscript, server parser, trimmed fixtures
   - A flight offer and a train offer for the same trip show in one list
 - [x] `capture:errors` (#345) The captures page shows the result of each parse: the offer count, the rejected count and the errors, with a filter for the failed captures
   - When a site changes its format, the failed captures show with their errors, and "reparse" after a parser fix shows the new result
-- [ ] `capture:install` Install and update the userscripts from the app: the app serves its own userscripts and `core.js`, with the install links on the tokens page
+- [x] `capture:install` (#388) Install and update the userscripts from the app: the app serves its own userscripts and `core.js`, with the install links on the tokens page
   - A click on the install link of the tokens page installs the userscript; after a new image, Tampermonkey updates it to the version of the server
-- [ ] `capture:match-trip` A warning when the captured offers do not match the selected trip: the server compares the places and the date of the parsed offers with the trip
+- [x] `capture:match-trip` (#554) A warning when the captured offers do not match the selected trip: the server compares the places and the date of the parsed offers with the trip
   - A capture of Amsterdam → Lisbon into the trip Amsterdam → Zürich shows "These offers do not match the trip" in the panel and on the captures page
-- [ ] `capture:move` Move the offers of a capture to another trip, after a capture into the wrong trip
+- [x] `capture:move` (#578) Move the offers of a capture to another trip, after a capture into the wrong trip
   - "Move to trip" on the captures page moves the offers and their price rows of one capture, and the old trip does not show them
 
 ## 2. Rank offers by effective cost
@@ -75,7 +75,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [x] `trip:compare` (#291) Compare 2 to 4 offers side by side
 - [x] `trip:mobile` (#310) A responsive layout of all pages
   - All pages work at a phone width of 390 px with no horizontal scroll (agents check this with Playwright and screenshots; the owner tests on a phone only the feel)
-- [ ] `trip:links` Search links per source, filled with the values of the trip (they only open a page; they fetch nothing)
+- [x] `trip:links` (#315) Search links per source, filled with the values of the trip (they only open a page; they fetch nothing)
 - [x] `trip:return` (#339) Round trips: an outbound and a return trip linked as one journey (`docs/SPEC.md`, section 13)
   - "Add return trip" makes the linked trip with the swapped places, and each trip page links to the other
   - The trips list shows the two trips together, with the sum of their best offers
@@ -104,6 +104,6 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [x] `host:ratelimit` (#410) A modest rate limit on the API (`docs/SPEC.md`, section 5): per API token, and per address for bad tokens
   - A token that sends more than 120 requests in one minute gets 429 with `Retry-After`; the userscript keeps the payload and sends it later
   - An address that sends 20 bad tokens in 15 minutes gets 429 for 15 minutes
-- [ ] `host:backup-daily` A backup of the database each day, the newest backups kept, and the status on the settings page (#545)
+- [x] `host:backup-daily` (#545) A backup of the database each day, the newest backups kept, and the status on the settings page
   - With no manual step, the backups volume has one daily backup per day and not more than `BACKUP_KEEP` of them
   - The settings page shows a warning when the newest backup is older than 48 hours
