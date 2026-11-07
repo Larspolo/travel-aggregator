@@ -32,8 +32,8 @@ def select(comments, closed):
 
 def test_the_line_and_a_merged_ticket_close_the_epic():
     out = select([agent(CHECK)], {805: 830})
-    assert [(e, n, pr) for e, n, pr, _ in out] == [(9, 805, 830)]
-    assert "#805" in epic_autoclose.evidence(805, 830, out[0][3]) and "https://x/c/1" in epic_autoclose.evidence(805, 830, out[0][3])
+    assert [(e, n, pr) for e, n, pr, _ in out] == [(9, (805,), (830,))]
+    assert "#805" in epic_autoclose.evidence((805,), (830,), out[0][3]) and "https://x/c/1" in epic_autoclose.evidence((805,), (830,), out[0][3])
 
 
 def test_a_ticket_closed_as_not_planned_keeps_the_epic_check():
@@ -49,7 +49,7 @@ def test_the_line_must_end_the_comment():
 
 
 def test_the_form_of_813_at_the_end_of_a_line():
-    assert epic_autoclose.close_line([agent("- Roadmap line: in the PR of #834. Close this epic after #834 merges.")]) == 834
+    assert epic_autoclose.close_line([agent("- Roadmap line: in the PR of #834. Close this epic after #834 merges.")]) == (834,)
 
 
 def test_a_later_owner_comment_keeps_the_epic_check():
