@@ -13,6 +13,8 @@ from app.models import Itinerary, Trip
 from tests.test_trip_page import ingest, offer
 from tests.test_trip_ranking_page import direct
 
+GUARDS = ("app/web/templates/*.html", "app/web/static/*.css")   # ship_pr runs this file for these changes: no import leads to it (#730)
+
 PASSWORD = "pw"
 EMOJI = re.compile("[\U0001F300-\U0001FAFF☀-➿⭐⭕]")
 NO_LABEL = {"hidden", "submit", "button", "reset", "image"}

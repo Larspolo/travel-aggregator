@@ -13,6 +13,8 @@ from app.main import app
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg, Trip
 from tests.test_trips_list import _client
 
+GUARDS = ("app/web/*.py", "app/main.py")   # ship_pr runs this file for these changes: no import leads to it (#730)
+
 T = datetime(2026, 12, 1, 8, 0, tzinfo=timezone.utc)
 
 # every GET page under /trips/{trip_id}; a new one must be added here (the test below checks it)
