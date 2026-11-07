@@ -462,3 +462,14 @@ button.icon:hover { background: var(--surface); border-color: var(--line); color
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* The compare bar (#664): it shows when a row is ticked; a CSS counter gives the count. */
+.results { counter-reset: picked; }
+input[name=it]:checked { counter-increment: picked; }
+.compare-bar {
+  display: none; position: sticky; bottom: var(--space-3); z-index: 5; margin-top: var(--space-3);
+  align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-3);
+  box-shadow: var(--shadow);
+}
+.results:has(input[name=it]:checked) .compare-bar { display: flex; }
+.compare-count::before { content: "Compare " counter(picked) " selected"; font-weight: 500; }
