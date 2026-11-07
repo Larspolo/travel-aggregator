@@ -19,3 +19,4 @@ the owner chose another option, `-`: no recommendation) · principle (`P<n>`, or
 - 2026-11-06 · setup · Add a README; update it only at the end of each epic, in one PR, not in each ticket PR · changed · new
 - 2026-11-06 · #145 · Limit the failed logins (#145); no Cloudflare Turnstile: a single-user app, and no third-party script on the login page · taken · P5
 - 2026-11-06 · capture skill · Claude in Chrome on Jeroen's computer does the capture tickets in his own browser (only the searches of the ticket, the hook only records) and pushes the cleaned HAR · - · P1
+- 2026-11-07 · #418 · Price-drop notifications: all three channels (A ntfy, B e-mail, C Web Push), and the user chooses the channel in the settings · changed · new
