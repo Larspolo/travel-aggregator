@@ -200,7 +200,8 @@ The Jinja2 macros of the components are in `app/web/templates/ui.html` (P4: Jinj
 
 ## 10. Page checklist
 
-Each page meets all these points at 1280 px and 390 px, in light and dark mode:
+Each page meets all these points at 1280 px and 390 px, in light and dark mode. `tests/test_page_checklist.py`
+checks the points that the HTML can show (the `<h1>`, one primary button, labels, icons, no emoji, no `style=`):
 
 1. The app bar of section 4, and no second link line that repeats it.
 2. A page header with exactly one `<h1>`; the actions of the page in its toolbar.
