@@ -18,7 +18,7 @@ def test_a_chain_of_three_shows_three_parts_and_the_total(setup, sessions):  # n
         for t in (first, second, third):
             assert f'href="/trips/{t}"' in box
         assert "Part 1" in box and "Part 2" in box and "Part 3" in box and "Outbound" not in box
-        assert "EUR 89.90" in box and "EUR 50.00" in box and "EUR 30.00" in box
+        assert "€89.90" in box and "€50.00" in box and "€30.00" in box
         assert "Total effective cost €" in box and "departs before" not in box
 
 
