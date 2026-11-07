@@ -49,7 +49,7 @@ def test_a_single_bad_offer_gets_200_with_rejected(setup, sessions, path, value)
     target[path[-1]] = value
     r = client.post("/api/ingest", json={**copy.deepcopy(BODY), "trip_id": trip_id, "offers": [o]}, headers=auth)
     assert r.status_code == 200
-    assert set(r.json()) == {"created", "updated", "unchanged", "rejected", "errors"}
+    assert set(r.json()) == {"created", "updated", "unchanged", "rejected", "errors", "warning"}
     assert r.json()["rejected"] == 1 and r.json()["errors"][0]["index"] == 0
     with sessions() as s:
         assert s.scalar(select(func.count()).select_from(Itinerary)) == 0
