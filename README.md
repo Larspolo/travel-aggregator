@@ -248,6 +248,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/` | The list of your trips, with a link to each trip |
 | `/trips/new` | The form to make a trip |
 | `/trips/{id}/edit` | The form to change a trip |
+| `/trips/{id}/delete` | The confirm page to delete a trip |
 | `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
 | `/trips/{id}/compare` | 2 to 4 offers of a trip side by side, with the best value of each line marked (see below) |
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
@@ -321,6 +322,14 @@ A round trip is two trips that are linked: an outbound trip and its return trip.
 - Deleting the outbound trip keeps the return trip. The link between the two trips goes away.
 
 Each direction is a normal trip. The userscripts capture offers into it when you choose the trip in the dropdown of the panel. Trips with more than two cities are not supported.
+
+### Delete a trip
+
+- The edit form `/trips/{id}/edit` has the link "Delete trip". It opens the confirm page. The page shows the number of itineraries and captures of the trip.
+- Press "Delete" to delete the trip. Press "Cancel" to go back to the edit form. The delete cannot be undone.
+- The delete removes the trip with its offers (itineraries), their fares and price history, and its captures. The app then opens the trips list.
+- After the delete, the trip is not in the trips list, not in `GET /api/trips` and not in the trip dropdown of the userscript panel. Each page of the trip gives 404.
+- A linked return trip stays, with no link (see "Round trips" above).
 
 ### Compare offers side by side
 

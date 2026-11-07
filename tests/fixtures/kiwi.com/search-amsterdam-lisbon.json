@@ -1,0 +1,476 @@
+{
+  "currency": "gbp",
+  "response": {
+    "data": {
+      "onewayItineraries": {
+        "itineraries": [
+          {
+            "sector": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-01T06:35:00",
+                      "utcTimeIso": "2026-12-01T05:35:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-01T08:40:00",
+                      "utcTimeIso": "2026-12-01T08:40:00Z"
+                    },
+                    "carrier": {
+                      "code": "HV"
+                    },
+                    "operatingCarrier": {
+                      "code": "HV"
+                    },
+                    "code": "5951",
+                    "duration": 11100
+                  },
+                  "guarantee": null,
+                  "layover": null
+                }
+              ]
+            },
+            "price": {
+              "roundedFormattedValue": "£96",
+              "amount": "96",
+              "priceBeforeDiscount": "96"
+            },
+            "pnrCount": 1,
+            "travelHack": {
+              "isTrueHiddenCity": false,
+              "isVirtualInterlining": false,
+              "isThrowawayTicket": false
+            },
+            "bagsInfo": {
+              "includedCheckedBags": 0,
+              "includedHandBags": 0,
+              "hasNoBaggageSupported": false,
+              "hasNoCheckedBaggage": false,
+              "checkedBagTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "62.59"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 20
+                      }
+                    }
+                  ]
+                }
+              ],
+              "handBagTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "47.0"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 7
+                      }
+                    }
+                  ]
+                }
+              ],
+              "includedPersonalItem": 1,
+              "personalItemTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "0"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 3
+                      },
+                      "height": {
+                        "value": 30
+                      },
+                      "width": {
+                        "value": 20
+                      },
+                      "length": {
+                        "value": 40
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "bookingOptions": {
+              "edges": [
+                {
+                  "node": {
+                    "itineraryProvider": {
+                      "code": "KIWI-BASIC"
+                    },
+                    "price": {
+                      "amount": "96"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=oneWay&searchBags=0.0"
+                  }
+                },
+                {
+                  "node": {
+                    "itineraryProvider": {
+                      "code": "KIWI"
+                    },
+                    "price": {
+                      "amount": "109.480831"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=oneWay&searchBags=0.0"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "sector": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-01T19:00:00",
+                      "utcTimeIso": "2026-12-01T18:00:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "MAD"
+                      },
+                      "localTime": "2026-12-01T21:45:00",
+                      "utcTimeIso": "2026-12-01T20:45:00Z"
+                    },
+                    "carrier": {
+                      "code": "UX"
+                    },
+                    "operatingCarrier": {
+                      "code": "UX"
+                    },
+                    "code": "1094",
+                    "duration": 9900
+                  },
+                  "guarantee": null,
+                  "layover": null
+                },
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "MAD"
+                      },
+                      "localTime": "2026-12-02T06:30:00",
+                      "utcTimeIso": "2026-12-02T05:30:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-02T06:50:00",
+                      "utcTimeIso": "2026-12-02T06:50:00Z"
+                    },
+                    "carrier": {
+                      "code": "UX"
+                    },
+                    "operatingCarrier": {
+                      "code": "UX"
+                    },
+                    "code": "1159",
+                    "duration": 4800
+                  },
+                  "guarantee": null,
+                  "layover": {
+                    "duration": 31500,
+                    "isBaggageRecheck": false,
+                    "isWalkingDistance": true,
+                    "transferDuration": null
+                  }
+                }
+              ]
+            },
+            "price": {
+              "roundedFormattedValue": "£125",
+              "amount": "125",
+              "priceBeforeDiscount": "125"
+            },
+            "pnrCount": 1,
+            "travelHack": {
+              "isTrueHiddenCity": false,
+              "isVirtualInterlining": false,
+              "isThrowawayTicket": false
+            },
+            "bagsInfo": {
+              "includedCheckedBags": 0,
+              "includedHandBags": 1,
+              "hasNoBaggageSupported": false,
+              "hasNoCheckedBaggage": false,
+              "checkedBagTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "50.07"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 23
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tierPrice": {
+                    "amount": "112.66"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 23
+                      }
+                    }
+                  ]
+                }
+              ],
+              "handBagTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "0"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 10
+                      }
+                    }
+                  ]
+                }
+              ],
+              "includedPersonalItem": 1,
+              "personalItemTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "0"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 10
+                      },
+                      "height": {
+                        "value": 30
+                      },
+                      "width": {
+                        "value": 15
+                      },
+                      "length": {
+                        "value": 40
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "bookingOptions": {
+              "edges": [
+                {
+                  "node": {
+                    "itineraryProvider": {
+                      "code": "KIWI-BASIC"
+                    },
+                    "price": {
+                      "amount": "125"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=oneWay&searchBags=0.0"
+                  }
+                },
+                {
+                  "node": {
+                    "itineraryProvider": {
+                      "code": "KIWI"
+                    },
+                    "price": {
+                      "amount": "141.621217"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=oneWay&searchBags=0.0"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "sector": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-01T07:20:00",
+                      "utcTimeIso": "2026-12-01T06:20:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "OPO"
+                      },
+                      "localTime": "2026-12-01T09:05:00",
+                      "utcTimeIso": "2026-12-01T09:05:00Z"
+                    },
+                    "carrier": {
+                      "code": "HV"
+                    },
+                    "operatingCarrier": {
+                      "code": "HV"
+                    },
+                    "code": "6001",
+                    "duration": 9900
+                  },
+                  "guarantee": null,
+                  "layover": null
+                },
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "OPO"
+                      },
+                      "localTime": "2026-12-01T10:30:00",
+                      "utcTimeIso": "2026-12-01T10:30:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-01T11:25:00",
+                      "utcTimeIso": "2026-12-01T11:25:00Z"
+                    },
+                    "carrier": {
+                      "code": "TP"
+                    },
+                    "operatingCarrier": {
+                      "code": "NI"
+                    },
+                    "code": "1923",
+                    "duration": 3300
+                  },
+                  "guarantee": "KIWI_COM",
+                  "layover": {
+                    "duration": 5100,
+                    "isBaggageRecheck": true,
+                    "isWalkingDistance": true,
+                    "transferDuration": null
+                  }
+                }
+              ]
+            },
+            "price": {
+              "roundedFormattedValue": "£123",
+              "amount": "123",
+              "priceBeforeDiscount": "123"
+            },
+            "pnrCount": 2,
+            "travelHack": {
+              "isTrueHiddenCity": false,
+              "isVirtualInterlining": true,
+              "isThrowawayTicket": false
+            },
+            "bagsInfo": {
+              "includedCheckedBags": 0,
+              "includedHandBags": 0,
+              "hasNoBaggageSupported": false,
+              "hasNoCheckedBaggage": false,
+              "checkedBagTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "87.62"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 20
+                      }
+                    }
+                  ]
+                }
+              ],
+              "handBagTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "52.0"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 7
+                      }
+                    }
+                  ]
+                }
+              ],
+              "includedPersonalItem": 1,
+              "personalItemTiers": [
+                {
+                  "tierPrice": {
+                    "amount": "0"
+                  },
+                  "bags": [
+                    {
+                      "weight": {
+                        "value": 2
+                      },
+                      "height": {
+                        "value": 30
+                      },
+                      "width": {
+                        "value": 15
+                      },
+                      "length": {
+                        "value": 40
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "bookingOptions": {
+              "edges": [
+                {
+                  "node": {
+                    "itineraryProvider": {
+                      "code": "KIWI-BASIC"
+                    },
+                    "price": {
+                      "amount": "123"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=oneWay&searchBags=0.0"
+                  }
+                },
+                {
+                  "node": {
+                    "itineraryProvider": {
+                      "code": "KIWI"
+                    },
+                    "price": {
+                      "amount": "138.983326"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=oneWay&searchBags=0.0"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

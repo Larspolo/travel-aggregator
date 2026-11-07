@@ -13,7 +13,12 @@ The setup steps are in issue "Try the capture skill" (`for-jeroen`); `/chrome` s
 ## The rules (P1, P5)
 
 - Only Jeroen's own Chrome, in the tab group of this session. Use the page as a person does: open the page, click,
-  type, wait for the result. Do the searches of the ticket and no more: at most 3 searches per ticket.
+  type, wait for the result. Do the searches of the ticket and no more: at most 3 searches per ticket. Each click or
+  page load that makes the site look for connections again counts: a search button, a reload of a results page, a
+  change in the search form of the results page, and a button such as "earlier connections". A click that opens one
+  connection (for example "Weiter" to the fare classes) does not count.
+- A site that blocks the page (status 403 on its own requests, "are you a robot", a CAPTCHA): stop that site and say
+  "blocked" in the comment. Never try to get around a block or a bot check.
 - Never send a request from JavaScript (no `fetch`, no XHR, no replayed or changed request) and never loop over
   dates or stations. The hook of `tools/capture.py` only records the responses that the page requested itself.
 - Never log in, never book, never pay, never type a name, an e-mail or a card number. A cookie banner: select only
@@ -29,7 +34,8 @@ The setup steps are in issue "Try the capture skill" (`for-jeroen`); `/chrome` s
    browser tools come from `claude --chrome` (the tool `tabs_context_mcp` of `claude-in-chrome` answers).
 2. `<repo>` below is `repo` in `agent.toml`. `gh auth status` must show a login. With no login: stop and say
    "Run `gh auth login`".
-3. When the branch is `main` and `git status --porcelain` is empty: `git pull --ff-only`. Else keep the checkout.
+3. When the branch is `main` and `git status --porcelain` is empty: `git pull --ff-only origin main` (with `origin
+   main`: a clone can track a branch that no longer exists, #238). Else keep the checkout.
 4. The download folder: `$CAPTURE_DOWNLOADS`, else `~/Downloads`. The work folder: `mkdir -p ~/.cache/ta-capture`.
 
 ## 2. Find the tickets
@@ -58,7 +64,13 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
    `"fetch":true`. When the address of the tab changes with a full page load, the hook is gone: before such a step,
    save (step 5) with a part name (`<site>-<N>-1`), and after it install the hook again. When the results came before
    the hook (after a full page load), do the search one more time inside the page (for example a change in the search
-   form of the results page), and count it in the 3 searches.
+   form of the results page), and count it in the 3 searches. The hook records fetch and XHR, also when the page
+   keeps its own `fetch`, `open` or `send` (it records when the page reads the response).
+   Some sites put the results into the HTML of a full page load and send no request for them (Google Flights: the
+   inline script `AF_initDataCallback({key: 'ds:1', ...})`). Then use a `--match` that also matches the address of
+   the results page, and after the page load run `window.__taCap.inline("key: 'ds:1'")` (it reads the page and
+   sends nothing; it answers the number of added entries). Do not reload only for this: the page load of the search
+   is enough.
 3. Do the steps of the ticket: type the stations and select them from the list, set the date and the options, click
    the search button, and the buttons that the ticket names (for example the button that shows all fare classes of
    a connection). Wait for the result after each click. Take a screenshot only when a step fails.
@@ -88,8 +100,12 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
 
    Then `gh issue edit N --repo <repo> --remove-label needs-human`. Do not close the ticket:
    an agent trims the file into `tests/fixtures/` and closes it.
-   Not done: the comment starts with "Capture skill: could not do this ticket.", then the step that failed, what the
-   page showed, and "@Jeroenvb3, please do the steps of the ticket by hand." Keep `needs-human`.
+   Done in part (some files are published, for example 3 of 4 sites): the comment starts with "Capture skill: done in
+   part in Jeroen's browser.", has the lines above for each file, and a list "Left for Jeroen" with each search that
+   is not done and its cause (blocked, a login, the limit of 3 searches). Also remove `needs-human` (owner,
+   2026-11-07): an agent makes a new ticket for what is left.
+   Not done (no file): the comment starts with "Capture skill: could not do this ticket.", then the step that failed,
+   what the page showed, and "@Jeroenvb3, please do the steps of the ticket by hand." Keep `needs-human`.
 10. Close the tab. `rm -f` the raw downloads of this ticket (they have the data before the scrub).
 
 ## 4. End
