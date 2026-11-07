@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg, Trip
-from app.parsers import get_parser
+from app.parsers import count, get_parser
 from app.parsers.ns import CHANGE_STATION
 from app.tripmatch import best_trip, mismatch, suggest_trip
 from app.retention import delete_old_captures, retention_days
@@ -160,18 +160,24 @@ def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers
     return counts
 
 
-def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None]:
+def capture_travelers(capture: Capture, parsed: int | None) -> int | None:
+    """The traveler count of the parse, else the integer 1 to 9 of `search_context["travelers"]` (#764)."""
+    ctx = capture.search_context_json
+    return parsed if parsed is not None else count(ctx.get("travelers") if isinstance(ctx, dict) else None)
+
+
+def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None, int | None]:
     """The offers and the rejected connections of the raw payload, by the parser of the source (none when the source
     has no parser). The third value is the reason when the parser cannot read the payload as a whole (P3): the
-    capture is stored anyway, with the offers of the body."""
+    capture is stored anyway, with the offers of the body. The fourth value is the traveler count (#764)."""
     parser = get_parser(body.source)
     if body.raw is None or parser is None:
-        return [], [], None
+        return [], [], None, None
     try:
         result = parser.parse(body.raw)
     except ValueError as e:
-        return [], [], str(e)[:200]
-    return result.offers, result.errors, None
+        return [], [], str(e)[:200], None
+    return result.offers, result.errors, None, result.travelers
 
 
 def set_result(capture: Capture, counts: dict, errors: list[dict], unreadable: str | None) -> None:
@@ -197,12 +203,14 @@ def reparse(session: Session, capture: Capture) -> dict | None:
         counts = {"created": 0, "updated": 0, "unchanged": 0}
         set_result(capture, counts, [], str(e)[:200])
         capture.mismatch = None
+        capture.travelers = capture_travelers(capture, None)
         session.commit()
         return {**counts, "rejected": 0, "unreadable": str(e)[:200]}
     counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
                            captured_at=capture.captured_at)
     set_result(capture, counts, result.errors, None)
     capture.mismatch = _trip_mismatch(session, capture.trip_id, result.offers)
+    capture.travelers = capture_travelers(capture, result.travelers)
     session.commit()
     return {**counts, "rejected": len(result.errors), "unreadable": None}
 
@@ -242,6 +250,7 @@ def move_capture(session: Session, capture: Capture, target_trip_id: int) -> dic
         capture.trip_id = target_trip_id
         set_result(capture, counts, result.errors, None)
         capture.mismatch = _trip_mismatch(session, target_trip_id, result.offers)
+        capture.travelers = capture_travelers(capture, result.travelers)
         session.commit()
     except Exception:
         session.rollback()
@@ -294,7 +303,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors", "warning", "trip_id", "trip_title"}: the
     errors are the offers that the schema or the parser rejected, with their index (#54). Each failure is logged
     with the capture id (P3)."""
-    raw_offers, raw_errors, unreadable = parse_raw(body)
+    raw_offers, raw_errors, unreadable, travelers = parse_raw(body)
     trip_id = _choose_trip(session, body, list(body.offers) + raw_offers)
     capture = store_capture(session, trip_id, body)
     session.commit()
@@ -310,6 +319,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     set_result(capture, counts, errors, unreadable)
     reason = _trip_mismatch(session, trip_id, offers)
     capture.mismatch = reason
+    capture.travelers = capture_travelers(capture, travelers)
     # #720: an auto_trip capture that no trip matches suggests a new trip from its offers
     suggestion = suggest_trip(offers) if getattr(body, "auto_trip", False) and reason is not None else None
     delete_old_captures(session, retention_days(session), datetime.now(UTC))

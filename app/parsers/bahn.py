@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult
+from app.parsers import ParseResult, count
 from app.schemas import LegIn, OfferIn, _short_reason
 
 DEFAULT_TZ = "Europe/Berlin"
@@ -57,6 +57,16 @@ def discounts(request: dict | None) -> list[str]:
     return out
 
 
+def travelers(request: dict | None) -> int | None:
+    """The sum of `anzahl` of `request.reisende` (#764); None when the payload has no request."""
+    if not isinstance(request, dict) or not isinstance(request.get("reisende"), list):
+        return None
+    try:
+        return count(sum(int(r.get("anzahl") or 0) for r in request["reisende"]))
+    except (TypeError, ValueError, AttributeError):
+        return None
+
+
 class BahnParser:
     source = "bahn.de"
     version = "1.1.0"
@@ -71,7 +81,7 @@ class BahnParser:
         if not isinstance(conns, list):
             raise ValueError("the bahn.de payload has no verbindungen list")
         extra = discounts(request)
-        result = ParseResult()
+        result = ParseResult(travelers=travelers(request))
         for i, conn in enumerate(conns):
             try:
                 result.offers.extend(self._offers(conn, extra))

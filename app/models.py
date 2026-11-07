@@ -143,6 +143,8 @@ class Capture(Base):
     unreadable: Mapped[str | None] = mapped_column(String(200))
     # The trip warning of the last parse (#556): "places" or "date" (tripmatch.mismatch); NULL when the offers match.
     mismatch: Mapped[str | None] = mapped_column(String(200))
+    # The number of travelers of the prices (#764): from the payload, else from search_context; NULL = not known.
+    travelers: Mapped[int | None] = mapped_column(Integer)
 
 
 class ApiToken(Base):

@@ -33,7 +33,7 @@
   {% for c in captures %}
   <tr>
     {% if not trip %}<td><a href="/trips/{{ c.trip_id }}">{{ trip_titles[c.trip_id] }}</a></td>{% endif %}
-    <td><time datetime="{{ c.captured_at.isoformat() }}" title="{{ c.captured_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ c.captured_at | ago(now) }}</time></td><td>{{ c.source }}</td><td>{{ c.parser_version or "-" }}</td>
+    <td><time datetime="{{ c.captured_at.isoformat() }}" title="{{ c.captured_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ c.captured_at | ago(now) }}</time></td><td>{{ c.source }}{% if c.travelers %}<br><small class="capture-travelers">{{ c.travelers }} traveler{{ "s" if c.travelers != 1 }}</small>{% endif %}</td><td>{{ c.parser_version or "-" }}</td>
     <td>{{ c.offer_count if c.offer_count is not none else "-" }}</td>
     <td>{{ c.rejected_count if c.rejected_count is not none else "-" }}</td>
     {% set failed = c.unreadable or (c.rejected_count or 0) > 0 %}
