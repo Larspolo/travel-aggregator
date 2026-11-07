@@ -5,7 +5,7 @@ from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from app.currency import EUR, to_eur
 from app.models import CurrencyRate, Fare, Itinerary, Trip
@@ -110,3 +110,21 @@ def archived_journeys(rows: list[TripRow], archived: bool) -> list[tuple[str, Tr
         return (out or r).status == "archived"
 
     return in_journeys([r for r in rows if group_archived(r) == archived])
+
+
+def chain(trip: Trip) -> list[Trip]:
+    """The trips of one journey in order (#560): back along return_of to the first trip, then forward along
+    return_trip to the last. A trip that is already in the chain ends the walk (no cycle can hang the page)."""
+    first, back = trip, {trip.id}
+    while first.return_of is not None and first.return_of.id not in back:
+        first = first.return_of
+        back.add(first.id)
+    journey = [first]
+    while (nxt := _linked_after(journey[-1])) is not None and nxt.id not in {t.id for t in journey}:
+        journey.append(nxt)
+    return journey
+
+
+def _linked_after(trip: Trip) -> Trip | None:
+    """The trip that has this trip as return_of (the query, not the relationship: its join is not one-to-one)."""
+    return object_session(trip).scalar(select(Trip).where(Trip.return_of_id == trip.id))

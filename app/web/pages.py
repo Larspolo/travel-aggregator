@@ -38,7 +38,7 @@ from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown, in_eur
 from app.timeofday import night_extras, night_time_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
-from app.trips import archived_journeys, list_trips
+from app.trips import archived_journeys, chain, list_trips
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -444,6 +444,18 @@ def make_return_trip(trip_id: int, session: Session = Depends(get_session)) -> R
         session.add(ret)
         session.commit()
     return RedirectResponse(f"/trips/{ret.id}/edit", status_code=303)
+
+
+@router.post("/trips/{trip_id}/next", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def make_next_trip(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    """The next part of a journey (#560): a new trip from the destination of the last trip of the chain."""
+    journey = chain(_get_trip(session, trip_id))
+    first, last = journey[0], journey[-1]
+    new = Trip(title=f"{first.title[:180]} (part {len(journey) + 1})", origin_text=last.destination_text,
+               destination_text=None, travelers=last.travelers, profile_id=last.profile_id, return_of_id=last.id)
+    session.add(new)
+    session.commit()
+    return RedirectResponse(f"/trips/{new.id}/edit", status_code=303)
 
 
 @router.post("/profiles", dependencies=[Depends(require_login), Depends(verify_csrf)])
