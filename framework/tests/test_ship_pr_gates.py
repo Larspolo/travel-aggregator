@@ -18,7 +18,7 @@ def test_a_red_gate_ends_the_wait_for_the_merge():
 def test_red_gate_takes_only_a_failed_check(monkeypatch):
     monkeypatch.setattr(ship, "GATES", ("browser",))
     runs = {"browser": {"id": 3, "name": "browser", "status": "in_progress", "conclusion": None}}
-    monkeypatch.setattr(ship, "quick", lambda sha, name="quick": runs.get(name))
+    monkeypatch.setattr(dashboard, "api", lambda path: {"check_runs": [runs["browser"], {"name": "docker"}]})
     assert ship.red_gate("abc") is None
     runs["browser"] = {"id": 3, "name": "browser", "status": "completed", "conclusion": "success"}
     assert ship.red_gate("abc") is None
@@ -33,7 +33,7 @@ def test_a_red_browser_check_after_the_green_quick_ci_gives_exit_5(tmp_path, mon
     api = dashboard.api
 
     def ci_api(path, method="GET", data=None):
-        if path.startswith("commits/") and path.endswith("check_name=browser"):
+        if path.startswith("commits/") and path.endswith("check-runs?per_page=100"):   # all checks: one call (red_gate)
             return {"check_runs": [{"id": 3, "name": "browser", "status": "completed", "conclusion": "failure"}]}
         if path == "pulls/9":
             return {"mergeable_state": "blocked", "merged": False}
@@ -50,3 +50,15 @@ def test_a_red_browser_check_after_the_green_quick_ci_gives_exit_5(tmp_path, mon
     assert "quick CI success" in out and "browser CI failure" in out
     assert "failed step: Browser tests" in out and "e2e/book.spec.ts:12" in out
     assert "Automerge merges it" not in out
+
+
+def test_red_gate_reads_all_gates_in_one_call(monkeypatch):
+    monkeypatch.setattr(ship, "GATES", ("browser", "docker", "production"))
+    calls = []
+    runs = [{"id": 5, "name": "docker", "status": "completed", "conclusion": "failure"},
+            {"id": 4, "name": "browser", "status": "completed", "conclusion": "success"},
+            {"id": 2, "name": "docker", "status": "completed", "conclusion": "success"}]   # an older run of docker
+    monkeypatch.setattr(dashboard, "api", lambda path: calls.append(path) or {"check_runs": runs})
+    assert ship.red_gate("abc")["id"] == 5 and len(calls) == 1
+    monkeypatch.setattr(ship, "GATES", ())
+    assert ship.red_gate("abc") is None and len(calls) == 1

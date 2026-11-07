@@ -140,8 +140,15 @@ def quick(sha, name=QUICK):
 
 
 def red_gate(sha):
-    """The first failed check run of GATES of commit `sha`, or None (green, still running or not queued)."""
-    return next((c for c in (quick(sha, name) for name in GATES)
+    """The first failed check run of GATES of commit `sha`, or None (green, still running or not queued). One call for
+    all gates: a call per gate in each poll cost about 20 calls per PR with 3 gates (process review 2026-11-07)."""
+    if not GATES:
+        return None
+    runs = dashboard.api(f"commits/{sha}/check-runs?per_page=100").get("check_runs", [])
+    newest = {}
+    for c in runs:                                  # newest first: the first run of each name counts, as in quick()
+        newest.setdefault(c.get("name"), c)
+    return next((c for c in (newest.get(name) for name in GATES)
                  if c and c["status"] == "completed" and c["conclusion"] == "failure"), None)
 
 

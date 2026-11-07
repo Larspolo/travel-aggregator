@@ -18,7 +18,7 @@ server = ""
 dev = "docker compose up --build"  # starts the development server on the owner's computer (the `try` skill); "" = none
 
 [ci]                            # framework/tools/ship_pr.py
-gates = []                      # the PR checks of ci.yml besides `quick` that Automerge needs green (for example ["browser"])
+gates = ["browser", "docker", "production"]   # the PR jobs of ci.yml besides `quick`: Automerge needs all green (tests/test_ci_gates.py)
 
 [docs]
 system = "framework/docs/SYSTEM.md"
