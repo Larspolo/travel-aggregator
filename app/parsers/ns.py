@@ -35,7 +35,7 @@ def local_time(station: dict, kind: str) -> datetime:
 
 class NsParser:
     source = "nsinternational.com"
-    version = "1.0.0"
+    version = "1.1.0"
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"request", "response"} or of the response body only: one per fare."""
@@ -68,8 +68,9 @@ class NsParser:
             first, last = k == 0, k == len(trains) - 1
             legs.append(LegIn(
                 mode="bus" if m.get("type") == "BUS" else "train",
-                carrier=m.get("name") or m.get("code"),
-                service_no=m.get("number"),
+                # the category is no carrier; the service number is the category and the number ("ICE 121"), as bahn.de gives it
+                carrier=None,
+                service_no=" ".join(x for x in [m.get("name") or m.get("code"), m.get("number")] if x) or None,
                 from_name=orig["name"] if first else CHANGE_STATION,
                 from_code=orig.get("code") if first else None,
                 to_name=dest["name"] if last else CHANGE_STATION,
