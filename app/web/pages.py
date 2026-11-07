@@ -24,6 +24,7 @@ from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, req
 from app.backup import newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
+from app.days import day_summary
 from app.db import get_session
 from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
@@ -375,7 +376,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     rates = load_rates(session)  # once per request (#385)
     now = datetime.now(timezone.utc)
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
-    rows, modes, sources, carriers = [], set(), set(), set()
+    rows, all_rows, modes, sources, carriers = [], [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
             continue  # an itinerary with no fare has no cost: it is not a row
@@ -393,11 +394,12 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # an excluded mode or carrier hides each offer with one of its legs
         if it.legs and not in_time_window(it, limit_depart, limit_arrive):
             continue  # the time limits hide this row (#181)
-        if day and it.legs and depart_day(it) != day:
-            continue  # the day filter shows only the offers that depart on that local day (#709)
         if hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before:
             continue  # "hide stale" hides a row whose newest capture is stale (#277)
         fare, cost = row_cost(it, fares, places, weights, stale_before, rates)
+        all_rows.append((it, fare, cost))  # before the day filter: the days show all offers (#710)
+        if day and it.legs and depart_day(it) != day:
+            continue  # the day filter shows only the offers that depart on that local day (#709)
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
@@ -435,6 +437,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     context["drops"] = trip_drops(session, trip_id)  # the drops since the last full view (#355)
+    context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
+                                  lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     mark_seen(session, trip_id)
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
