@@ -8,7 +8,10 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 CSS = Path("app/web/static/app.css")
-TOKENS = ["--bg", "--surface", "--text", "--muted", "--line", "--accent", "--good", "--info", "--warn"]
+TOKENS = [
+    "--bg", "--surface", "--text", "--muted", "--line", "--accent", "--accent-text", "--accent-soft", "--good",
+    "--info", "--warn", "--danger", "--shadow", "--radius", "--radius-lg", "--text-sm", "--text-lg", "--text-xl",
+]
 
 
 def test_a_page_links_app_css_and_the_file_is_served():
@@ -25,6 +28,8 @@ def test_app_css_has_all_tokens_and_no_colour_outside_them():
     dark, rules = rest.split("}\n}", 1)
     rules = root.split("}", 1)[1] + rules
     for token in TOKENS:
-        assert f"{token}:" in root.split("}", 1)[0] and f"{token}:" in dark, token
+        assert f"{token}:" in root.split("}", 1)[0], token
+    for token in TOKENS[:13]:
+        assert f"{token}:" in dark, token
     assert not re.search(r"#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(", rules)
     assert "max-width: 80rem" in rules and "tabular-nums" in rules

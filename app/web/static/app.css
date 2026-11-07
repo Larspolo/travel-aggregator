@@ -1,22 +1,29 @@
-/* The look of all pages: theme A "Dense tool" (DESIGN.md, #535, #589). Rules use only the tokens of :root. */
+/* The look of all pages: theme A2 "Modern dense tool" (DESIGN.md version 2, #621, #623). Rules use only the tokens
+   of :root. Sections: DESIGN.md section 8. */
 :root {
   color-scheme: light dark;
-  --bg: #ffffff; --surface: #f7f7f8; --text: #18181b; --muted: #71717a; --line: #e4e4e7;
-  --accent: #5b5bd6; --good: #1a7f37; --info: #0969da; --warn: #9a4f00;
+  --bg: #f6f6f8; --surface: #ffffff; --text: #18181b; --muted: #5f5f69; --line: #e4e4e7;
+  --accent: #5b5bd6; --accent-text: #ffffff; --accent-soft: #ededfc;
+  --good: #1a7f37; --info: #0969da; --warn: #9a4f00; --danger: #c4302b;
+  --shadow: 0 1px 2px rgb(0 0 0 / .05), 0 2px 8px rgb(0 0 0 / .06);
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
-  --radius: 6px;
+  --radius: 8px; --radius-lg: 12px; --text-sm: 13px; --text-lg: 18px; --text-xl: 24px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b0b0d; --surface: #16161a; --text: #ededef; --muted: #8b8b93; --line: #26262b;
-    --accent: #8b8bf5; --good: #3fb950; --info: #58a6ff; --warn: #e3a03f;
+    --bg: #0b0b0d; --surface: #16161a; --text: #ededef; --muted: #9a9aa3; --line: #2a2a30;
+    --accent: #8b8bf5; --accent-text: #0b0b0d; --accent-soft: #1f1f3a;
+    --good: #3fb950; --info: #58a6ff; --warn: #e3a03f; --danger: #f47067;
+    --shadow: none;
   }
 }
+/* == Base == */
 body {
   font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.4; margin: 0 auto; max-width: 80rem;
   padding: var(--space-4); background: var(--bg); color: var(--text);
 }
 a { color: var(--accent); }
+/* == App bar == */
 nav.topbar {
   position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4);
   padding: var(--space-2) 0; margin-bottom: var(--space-4); border-bottom: 1px solid var(--line); background: var(--bg);
@@ -29,10 +36,12 @@ nav.topbar .nav-links a {
 nav.topbar .nav-links a:hover { background: var(--surface); color: var(--text); }
 nav.topbar .nav-links a.active { background: var(--surface); color: var(--accent); font-weight: 600; }
 nav.topbar .nav-links a.logout { margin-left: auto; }
+/* == Base (type and controls) == */
 h1, h2, h3 { line-height: 1.2; margin: var(--space-4) 0 var(--space-2); }
 h1 { font-size: 1.5rem; }
 button, input[type=submit] { padding: var(--space-1) var(--space-3); cursor: pointer; }
 button:hover { background: var(--surface); border-color: var(--accent); }
+/* == Tables == */
 tbody tr:hover { background: var(--surface); }
 table { border-collapse: collapse; width: 100%; }
 th, td { border-bottom: 1px solid var(--line); padding: var(--space-1) var(--space-2); text-align: left; vertical-align: top; }
@@ -40,6 +49,7 @@ th { background: var(--surface); }
 
 td { font-variant-numeric: tabular-nums; }
 td.price { text-align: right; white-space: nowrap; }
+/* == Forms == */
 input, select, textarea {
   background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius);
 }
@@ -47,6 +57,7 @@ button { border: 1px solid var(--line); border-radius: var(--radius); background
 input:focus, select:focus, textarea:focus, button:focus, a:focus { outline: 2px solid var(--accent); }
 input[type=range], input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 details, fieldset { border: 1px solid var(--line); border-radius: var(--radius); }
+/* == Trip page == */
 .muted { color: var(--muted); font-size: .9em; }
 .stale { color: var(--warn); font-weight: 600; }
 .best { font-weight: bold; }
@@ -69,6 +80,7 @@ svg.bar .part-2 { fill: var(--warn); }
 svg.bar .part-3 { fill: var(--muted); }
 .weights { display: flex; gap: var(--space-6); flex-wrap: wrap; margin: var(--space-2) 0 var(--space-4); }
 .scroll { overflow-x: auto; }
+/* == Phone == */
 @media (max-width: 40rem) {
   body { padding: var(--space-2); font-size: 16px; }
   .weights { flex-direction: column; gap: var(--space-2); }
@@ -79,6 +91,7 @@ svg.bar .part-3 { fill: var(--muted); }
   input[type=range]::-webkit-slider-thumb { width: 24px; height: 24px; }
   nav.topbar a { min-height: 40px; display: inline-flex; align-items: center; }
 }
+/* == Trip page (rows and panel) == */
 td.actions { white-space: nowrap; }
 td.actions form { display: inline; }
 button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
@@ -98,6 +111,7 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
   .panel-toggle > summary { display: none; }
   .panel-toggle::details-content { content-visibility: visible; display: contents; }
 }
+/* == Phone (trip cards) == */
 /* Phone cards (DESIGN.md section 7, #593): the table cells become a grid; the HTML stays one template. */
 @media (max-width: 40rem) {
   #table table, #table tbody { display: block; }
@@ -116,4 +130,69 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
   #table tr.detail td { display: block; border: 0; }
   #table tr.detail summary { min-height: 40px; display: flex; align-items: center; }
   #table td.cost { min-width: 0; }
+}
+/* == Page header == */
+.page-header {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-3);
+  margin: var(--space-4) 0 var(--space-5);
+}
+.page-header .back { display: block; font-size: var(--text-sm); margin-bottom: var(--space-1); text-decoration: none; }
+.page-header h1 { font-size: var(--text-xl); font-weight: 650; margin: 0; }
+.page-header .subtitle { color: var(--muted); margin: var(--space-1) 0 0; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+/* == Cards == */
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  padding: var(--space-5); margin-bottom: var(--space-5);
+}
+.card-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.card-header h2, .card > h2 { font-size: var(--text-lg); font-weight: 600; margin: 0 0 var(--space-3); }
+.chip {
+  display: inline-block; padding: 0 var(--space-2); border: 1px solid var(--line); border-radius: var(--radius);
+  font-size: var(--text-sm); color: var(--text); background: var(--surface);
+}
+.chip.good { color: var(--good); border-color: var(--good); }
+.chip.info { color: var(--info); border-color: var(--info); }
+.chip.warn { color: var(--warn); border-color: var(--warn); }
+.chip.danger { color: var(--danger); border-color: var(--danger); }
+.empty { text-align: center; color: var(--muted); padding: var(--space-6) var(--space-4); }
+.empty p { margin: 0 0 var(--space-4); }
+/* == Forms (components) == */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: 0 var(--space-4);
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text);
+  font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; box-sizing: border-box;
+  transition: background-color 120ms, border-color 120ms, color 120ms, box-shadow 120ms;
+}
+.btn:hover { border-color: var(--accent); background: var(--surface); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.btn-primary:hover { background: var(--accent); color: var(--accent-text); box-shadow: var(--shadow); }
+.btn-ghost { border-color: transparent; background: transparent; }
+.btn-ghost:hover { background: var(--accent-soft); border-color: transparent; }
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { border-color: var(--danger); }
+.btn-danger.confirm { background: var(--danger); color: var(--accent-text); }
+.field { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.field label { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
+.field input:not([type=checkbox]):not([type=radio]), .field select, .field textarea {
+  width: 100%; box-sizing: border-box; min-height: 36px; padding: var(--space-1) var(--space-3); font: inherit;
+}
+.field input:focus, .field select:focus, .field textarea:focus { outline-offset: 2px; }
+.field .help { font-size: var(--text-sm); color: var(--muted); }
+.field .error { font-size: var(--text-sm); color: var(--danger); }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+@media (min-width: 40rem) { .form-grid { grid-template-columns: 1fr 1fr; } }
+.form-grid .wide { grid-column: 1 / -1; }
+.form-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
+/* == Trips list == */
+/* == Login == */
+/* == Phone (components) == */
+@media (max-width: 40rem) {
+  .card { padding: var(--space-4); }
+  .btn { min-height: 44px; }
+  .page-header { flex-direction: column; align-items: stretch; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }
