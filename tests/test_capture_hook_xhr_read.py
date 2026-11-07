@@ -98,3 +98,21 @@ def test_inline_adds_the_matching_inline_scripts_of_the_page_as_entries(page):
     assert entry["response"]["content"]["text"] == INLINE
     assert entry["response"]["content"]["mimeType"] == "text/javascript"
     assert json.loads(page.evaluate("window.__taCap.inline(\"key: 'ds:1'\")")) == {"added": 0, "entries": 1}
+
+
+BASE_PAGE = '<html><head><base href="/web/"></head><body>bahn page</body></html>'
+
+
+def test_hook_resolves_a_relative_url_against_the_base_of_the_page(page):
+    page.route("**/buchung/**", lambda route: route.fulfill(status=200, content_type="text/html", body=BASE_PAGE))
+    page.goto("https://www.bahn.example/buchung/fahrplan/angebotsauswahl")
+    json.loads(page.evaluate(capture.hook(r"/web/api/angebote/")))
+    page.evaluate("""b => Promise.all([
+      new Promise(ok => { const x = new XMLHttpRequest(); x.open('POST', 'api/angebote/recon');
+        x.onload = () => ok(x.responseText); x.send(b); }),
+      fetch('api/angebote/fahrplan', {method: 'POST', body: b}).then(r => r.text()),
+    ])""", json.dumps(FIXTURE["request"]))
+    page.wait_for_function("window.__taCap.entries.length === 2")
+    urls = sorted(e["request"]["url"] for e in page.evaluate("window.__taCap.entries"))
+    assert urls == ["https://www.bahn.example/web/api/angebote/fahrplan",
+                    "https://www.bahn.example/web/api/angebote/recon"]
