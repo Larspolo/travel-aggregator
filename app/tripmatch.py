@@ -82,6 +82,18 @@ def mismatch(trip: Trip, offers: list[OfferIn]) -> str | None:
     return "date"
 
 
+def suggest_trip(offers: list[OfferIn]) -> dict | None:
+    """The trip that the offers suggest when no trip matches (#720): from the first leg of the first offer to its
+    last leg, on the earliest departure day of the offers. The keys are those of TripIn (app/api/trips.py), so
+    that the panel can POST the suggestion unchanged. None without offers."""
+    if not offers:
+        return None
+    origin, destination = offers[0].legs[0].from_name, offers[0].legs[-1].to_name
+    day = min(o.legs[0].depart_at.date() for o in offers)
+    title = f"{origin} → {destination}"[:200]  # the title of TripIn has a limit of 200 characters
+    return {"title": title, "origin_text": origin, "destination_text": destination, "date_from": day.isoformat()}
+
+
 def best_trip(trips: list[Trip], offers: list[OfferIn], selected: Trip) -> Trip:
     """The trip for the offers of an `auto_trip` capture (#719): the selected trip when it matches; else the one
     trip with the status "planning" that matches (of 2 or more: the shortest date range, then the newest); else the
