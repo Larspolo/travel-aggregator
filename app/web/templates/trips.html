@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Trips – travel-aggregator{% endblock %}
 {% block content %}
-<h1>Trips</h1>
-<p><a href="/trips/new">New trip</a> · <a href="/tokens">API tokens</a> · <a href="/places">Places</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a></p>
+<h1>{% if archived %}Archived trips{% else %}Trips{% endif %}</h1>
+<p><a href="/trips/new">New trip</a> · <a href="/tokens">API tokens</a> · <a href="/places">Places</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a>{% if archived %} · <a href="/">Trips</a>{% elif archived_count %} · <a href="/?archived=1">Archived trips ({{ archived_count }})</a>{% endif %}</p>
 {% if lines %}
 <div class="scroll"><table>
   <thead><tr><th>Trip</th><th>Route</th><th>Dates</th><th>Offers</th><th>Best offer</th><th>Status</th></tr></thead>
@@ -24,6 +24,6 @@
   </tbody>
 </table></div>
 {% else %}
-<p>You have no trips. <a href="/trips/new">Create a trip</a>.</p>
+{% if archived %}<p>No archived trips.</p>{% else %}<p>You have no trips. <a href="/trips/new">Create a trip</a>.</p>{% endif %}
 {% endif %}
 {% endblock %}

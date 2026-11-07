@@ -97,3 +97,16 @@ def in_journeys(rows: list[TripRow]) -> list[tuple[str, TripRow, str]]:
             lines.append(("return", ret, r.title))
             lines.append(("total", ret, _journey_total(r, ret)))
     return lines
+
+
+def archived_journeys(rows: list[TripRow], archived: bool) -> list[tuple[str, TripRow, str]]:
+    """The list lines of the archived trips (`archived` True) or of the other trips (#487).
+
+    A return trip stays with its outbound trip: the status of the outbound trip decides for both."""
+    by_id = {r.id: r for r in rows}
+
+    def group_archived(r: TripRow) -> bool:
+        out = by_id.get(r.return_of_id) if r.return_of_id is not None else None
+        return (out or r).status == "archived"
+
+    return in_journeys([r for r in rows if group_archived(r) == archived])

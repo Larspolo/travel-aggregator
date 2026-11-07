@@ -35,7 +35,7 @@ from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown, in_eur
 from app.timeofday import night_extras, night_time_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
-from app.trips import in_journeys, list_trips
+from app.trips import archived_journeys, list_trips
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -126,9 +126,12 @@ def logout(request: Request) -> RedirectResponse:
 
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def index(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+def index(request: Request, archived: bool = False, session: Session = Depends(get_session)) -> HTMLResponse:
+    rows = list_trips(session)
+    archived_count = sum(1 for kind, _, _ in archived_journeys(rows, True) if kind == "trip")
     return templates.TemplateResponse(request, "trips.html",
-                                      {"lines": in_journeys(list_trips(session)), "drops": drops_by_trip(session)})
+                                      {"lines": archived_journeys(rows, archived), "drops": drops_by_trip(session),
+                                       "archived": archived, "archived_count": archived_count})
 
 
 FORM_FIELDS = tuple(TripForm.model_fields)
