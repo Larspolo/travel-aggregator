@@ -17,7 +17,7 @@ from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg, Trip
 from app.parsers import get_parser
 from app.parsers.ns import CHANGE_STATION
-from app.tripmatch import best_trip, mismatch
+from app.tripmatch import best_trip, mismatch, suggest_trip
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 from app.notify import PriceDrop
@@ -310,11 +310,13 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     set_result(capture, counts, errors, unreadable)
     reason = _trip_mismatch(session, trip_id, offers)
     capture.mismatch = reason
+    # #720: an auto_trip capture that no trip matches suggests a new trip from its offers
+    suggestion = suggest_trip(offers) if getattr(body, "auto_trip", False) and reason is not None else None
     delete_old_captures(session, retention_days(session), datetime.now(UTC))
     session.commit()
     trip = session.get(Trip, trip_id)
     return {**counts, "rejected": len(errors), "errors": errors, "warning": _warning_text(reason),
-            "trip_id": trip_id, "trip_title": None if trip is None else trip.title}
+            "trip_id": trip_id, "trip_title": None if trip is None else trip.title, "suggestion": suggestion}
 
 
 def _choose_trip(session: Session, body: IngestIn, offers: list[OfferIn]) -> int:

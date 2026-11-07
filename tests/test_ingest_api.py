@@ -52,7 +52,7 @@ def test_a_valid_post_stores_itinerary_legs_fare_and_price(setup, sessions):
     r = client.post("/api/ingest", json=body(trip_id), headers=auth)
     assert r.status_code == 200 and r.json() == {"created": 1, "updated": 0, "unchanged": 0, "rejected": 0,
                                                  "errors": [], "warning": None, "trip_id": trip_id,
-        "trip_title": "Amsterdam – Zürich"}
+        "trip_title": "Amsterdam – Zürich", "suggestion": None}
     with sessions() as s:
         it = s.scalar(select(Itinerary))
         assert (it.trip_id, it.transfers, it.duration_min, it.mode_summary) == (trip_id, 1, 472, "train")
@@ -72,7 +72,7 @@ def test_the_same_journey_again_adds_a_price_row_not_an_itinerary(setup, session
     later["offers"][0]["price_amount"] = "79.90"
     assert client.post("/api/ingest", json=later, headers=auth).json() == {"created": 0, "updated": 1, "unchanged": 0,
                                                                                  "rejected": 0, "errors": [], "warning": None, "trip_id": trip_id,
-        "trip_title": "Amsterdam – Zürich"}
+        "trip_title": "Amsterdam – Zürich", "suggestion": None}
     with sessions() as s:
         assert s.scalar(select(func.count()).select_from(Itinerary)) == 1
         assert s.scalar(select(func.count()).select_from(FarePrice)) == 2
@@ -128,7 +128,7 @@ def test_raw_only_stores_one_capture_and_no_itinerary(setup, sessions):
     client, auth, trip_id = setup
     r = client.post("/api/ingest", json=body(trip_id, offers=[], raw={"journeys": []}), headers=auth)
     assert r.status_code == 200 and r.json() == {"created": 0, "updated": 0, "unchanged": 0, "rejected": 0, "errors": [], "warning": None, "trip_id": trip_id,
-        "trip_title": "Amsterdam – Zürich"}
+        "trip_title": "Amsterdam – Zürich", "suggestion": None}
     with sessions() as s:
         assert s.scalar(select(func.count()).select_from(Capture)) == 1
         assert s.scalar(select(func.count()).select_from(Itinerary)) == 0
