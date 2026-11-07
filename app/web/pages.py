@@ -30,6 +30,7 @@ from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_e
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, ScoreProfile, Setting, Trip
+from app.notify import CHANNEL_KEY, CHANNELS, NTFY_URL_KEY, setting
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown, in_eur
@@ -675,16 +676,29 @@ def delete_rate(code: str, session: Session = Depends(get_session)) -> RedirectR
 @router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def settings_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     return templates.TemplateResponse(request, "settings.html", {"retention_days": retention_days(session),
-                                                                 "max_days": MAX_RETENTION_DAYS})
+                                                                 "max_days": MAX_RETENTION_DAYS,
+                                                                 "channel": setting(session, CHANNEL_KEY, "none"),
+                                                                 "channels": CHANNELS,
+                                                                 "ntfy_url": setting(session, NTFY_URL_KEY)})
 
 
 @router.post("/settings", dependencies=[Depends(require_login), Depends(verify_csrf)])
-def save_settings(retention: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+def save_settings(retention: str = Form(""), notify_channel: str = Form("none"), ntfy_url: str = Form(""),
+                  session: Session = Depends(get_session)) -> RedirectResponse:
     value = retention.strip()
     if not value.isdigit() or int(value) > MAX_RETENTION_DAYS:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
                             f"the retention period must be a whole number from 0 to {MAX_RETENTION_DAYS}")
+    url = ntfy_url.strip()
+    if notify_channel not in CHANNELS:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"the channel must be one of {', '.join(CHANNELS)}")
+    if url and (not url.startswith("https://") or len(url) > 500):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the ntfy topic URL must start with https://")
+    if notify_channel == "ntfy" and not url:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the channel ntfy needs a topic URL")
     session.merge(Setting(key=RETENTION_KEY, value=str(int(value))))
+    session.merge(Setting(key=CHANNEL_KEY, value=notify_channel))
+    session.merge(Setting(key=NTFY_URL_KEY, value=url))
     session.commit()
     return RedirectResponse("/settings", status_code=303)
 

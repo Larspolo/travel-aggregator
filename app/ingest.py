@@ -19,6 +19,7 @@ from app.parsers import get_parser
 from app.parsers.ns import CHANGE_STATION
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
+from app.notify import PriceDrop
 
 log = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ def _replace_legs(session: Session, it: Itinerary, offer: OfferIn) -> None:
 
 
 def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: OfferIn, source: str,
-                captured_at: datetime) -> str:
+                captured_at: datetime, drops: list | None = None) -> str:
     """Store one offer. Returns "created" (new itinerary), "updated" (known itinerary with a new fare or a changed
     price) or "unchanged". The caller commits."""
     fp = fingerprint(offer.legs)
@@ -111,6 +112,11 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
                                                           offer.self_transfers)
         return result
     if captured_at >= fare.latest_captured_at:
+        if (drops is not None and it.pinned and not it.hidden and offer.price_currency == fare.currency
+                and offer.price_amount < fare.latest_price):
+            drops.append(PriceDrop(trip_id=trip_id, fare_name=fare.fare_name, source=source,
+                                   currency=fare.currency, old_price=fare.latest_price,
+                                   new_price=offer.price_amount))
         if offer.price_currency != fare.currency:
             fare.seen_price = None  # a drop in another currency is not a drop (#355)
         fare.latest_price, fare.currency, fare.latest_captured_at = (offer.price_amount, offer.price_currency,
@@ -124,15 +130,17 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
 
 
 def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers: list[OfferIn], *, source: str,
-                  captured_at: datetime) -> dict[str, int]:
+                  captured_at: datetime, drops: list | None = None) -> dict[str, int]:
     """Upsert the offers, one transaction per offer: one failure does not roll back the others. An itinerary is
     matched by (trip, fingerprint), a fare by (itinerary, source, fare name). A new fare or a changed price adds one
-    price row; the same price adds none. A race on the unique constraint is retried once."""
+    price row; the same price adds none. A race on the unique constraint is retried once. With a `drops` list, the
+    lower prices of pinned fares are added to it (#512)."""
     counts = {"created": 0, "updated": 0, "unchanged": 0}
     for offer in offers:
         for attempt in (1, 2):
+            pending: list | None = None if drops is None else []
             try:
-                result = _upsert_one(session, trip_id, capture_id, offer, source, captured_at)
+                result = _upsert_one(session, trip_id, capture_id, offer, source, captured_at, pending)
                 session.commit()
             except IntegrityError:
                 session.rollback()
@@ -143,6 +151,8 @@ def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers
                 raise
             else:
                 counts[result] += 1
+                if drops is not None:
+                    drops.extend(pending)
                 break
     return counts
 
@@ -192,7 +202,7 @@ def reparse(session: Session, capture: Capture) -> dict | None:
     return {**counts, "rejected": len(result.errors), "unreadable": None}
 
 
-def store(session: Session, body: IngestIn) -> dict:
+def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     """Store the capture of the body (with its raw, if any), then its valid offers; each price row links to the
     capture. The offers of a raw payload come from its parser (`app/parsers`); one bad connection is an entry of
     the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors"}: the
@@ -209,7 +219,7 @@ def store(session: Session, body: IngestIn) -> dict:
         log.warning("capture %s: %s %s rejected at index %s: %s", capture.id, body.source,
                     body.parser_version or "-", err.get("index"), err.get("reason"))
     counts = upsert_offers(session, body.trip_id, capture.id, offers, source=body.source,
-                           captured_at=body.captured_at)
+                           captured_at=body.captured_at, drops=drops)
     set_result(capture, counts, errors, unreadable)
     delete_old_captures(session, retention_days(session), datetime.now(UTC))
     session.commit()

@@ -7,6 +7,10 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <label>Keep raw captures for (days)
     <input name="retention" type="number" min="0" max="{{ max_days }}" step="1" required value="{{ retention_days }}"></label>
+  <label>Message on a price drop of a pinned fare
+    <select name="notify_channel">{% for c in channels %}<option value="{{ c }}"{% if c == channel %} selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+  <label>ntfy topic URL
+    <input name="ntfy_url" type="url" pattern="https://.*" placeholder="https://ntfy.sh/your-secret-topic" value="{{ ntfy_url }}"></label>
   <button type="submit">Save</button>
 </form>
 <p class="muted">0 keeps all captures. Each ingest deletes the older captures; the offers and their prices stay.</p>
