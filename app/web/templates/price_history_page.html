@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Price history · {{ trip.title }} · travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Price history: " ~ trip.title, back=("/trips/" ~ trip.id, "Back to the trip")) }}
+{% include "price_history.html" %}
+{% endblock %}

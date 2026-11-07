@@ -1,6 +1,6 @@
 {% if chart.lines %}
 <svg class="price-chart" viewBox="0 0 {{ chart.width }} {{ chart.height + 14 }}" width="100%" role="img"
-     aria-label="Price history" style="max-width: {{ chart.width }}px">
+     aria-label="Price history">
   {% for line in chart.lines %}
   <g class="fare-line">
     <title>{{ line.name }}</title>

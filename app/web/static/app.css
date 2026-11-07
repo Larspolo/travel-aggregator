@@ -189,6 +189,7 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 .page-header .back { display: block; font-size: var(--text-sm); margin-bottom: var(--space-1); text-decoration: none; }
 .page-header h1 { font-size: var(--text-xl); font-weight: 650; margin: 0; }
 .page-header .subtitle { color: var(--muted); margin: var(--space-1) 0 0; }
+.price-chart { max-width: 320px; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 /* == Cards == */
 .card {
