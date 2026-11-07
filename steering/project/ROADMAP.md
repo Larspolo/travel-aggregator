@@ -28,7 +28,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - After a parser fix, "reparse" of a stored capture gives the correct offers
 - [x] `capture:ns` (#210) NS International: userscript, server parser, trimmed fixtures
   - A search on NS International shows its fares on the trip page
-- [ ] `capture:flixbus` Flixbus: userscript, server parser, trimmed fixtures
+- [x] `capture:flixbus` (#248) Flixbus: userscript, server parser, trimmed fixtures
   - A search on Flixbus shows its offers on the trip page
 - [x] `capture:flight` (#327) One flight source: the one that is easiest to intercept (the agents compare and record why), userscript, server parser, trimmed fixtures
   - A flight offer and a train offer for the same trip show in one list
@@ -87,7 +87,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The trips list does not show an archived trip; "Archived trips (N)" opens them
 - [ ] `trip:notify` Price-drop notifications outside the app for the pinned fares (`docs/SPEC.md`, milestone 6), by the channel of the decision #418
   - A new capture with a lower price of a pinned fare sends one notification to the owner's phone
-- [ ] `trip:multicity` Multi-city journeys: three or more trips linked in sequence, as `trip:return` links two (`docs/SPEC.md`, section 13)
+- [x] `trip:multicity` (#559) Multi-city journeys: three or more trips linked in sequence, as `trip:return` links two (`docs/SPEC.md`, section 13)
   - "Add next trip" makes a linked trip from the destination of the last one, and the trips list shows the journey with the sum of the best offers
 
 ## 4. Run it on my home server
