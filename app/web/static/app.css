@@ -121,23 +121,23 @@ svg.bar .part-3 { fill: var(--muted); }
 .panel label.slider input[type=range] { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--accent); }
 .panel details.filters > label.field { margin-top: var(--space-3); gap: var(--space-1); }
 .panel details.filters label.field { display: flex; }
-@media (max-width: 40rem) { .panel.card { padding: var(--space-2); } .panel .field input:not([type=checkbox]):not([type=radio]), .panel .field select { min-height: 40px; } }
+@media (max-width: 40rem) { .panel.card { padding: var(--space-2); } .panel .field input:not([type=checkbox]):not([type=radio]), .panel .field select { min-height: 44px; } }
 /* == Phone == */
 @media (max-width: 40rem) {
   body { padding: var(--space-2); font-size: 16px; }
   .weights { flex-direction: column; gap: var(--space-2); }
   input, select, textarea { max-width: 100%; box-sizing: border-box; }
-  input, select, textarea, button { min-height: 40px; }
-  input[type=checkbox], input[type=radio] { width: 40px; height: 40px; }
-  input[type=range] { min-height: 40px; }
+  input, select, textarea, button { min-height: 44px; }
+  input[type=checkbox], input[type=radio] { width: 44px; height: 44px; }
+  input[type=range] { min-height: 44px; }
   input[type=range]::-webkit-slider-thumb { width: 24px; height: 24px; }
-  nav.topbar a { min-height: 40px; display: inline-flex; align-items: center; }
+  nav.topbar a { min-height: 44px; display: inline-flex; align-items: center; }
 }
 /* == Trip page (rows and panel) == */
 td.actions { white-space: nowrap; }
 td.actions form { display: inline; }
 button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
-@media (max-width: 40rem) { button.icon { min-width: 40px; min-height: 40px; } }
+@media (max-width: 40rem) { button.icon { min-width: 44px; min-height: 44px; } }
 .panel form.weights { display: flex; flex-direction: column; gap: var(--space-2); }
 .panel label { display: block; }
 .panel details, .panel fieldset { padding: var(--space-2); }
@@ -178,7 +178,7 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
   #table tbody tr:not(.detail) td.actions .pick-text { display: inline; }
   #table tr.detail { display: block; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 var(--radius) var(--radius); background: var(--surface); }
   #table tr.detail td { display: block; border: 0; }
-  #table tr.detail summary { min-height: 40px; display: flex; align-items: center; }
+  #table tr.detail summary { min-height: 44px; display: flex; align-items: center; }
   #table td.cost { min-width: 0; }
 }
 /* == Page header == */
@@ -279,6 +279,8 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
   .card { padding: var(--space-4); }
   .btn { min-height: 44px; }
   .btn-icon { width: 44px; }
+  .field input:not([type=checkbox]):not([type=radio]), .field select, .field textarea { min-height: 44px; }
+  summary { min-height: 44px; line-height: 44px; }
   .page-header { flex-direction: column; align-items: stretch; }
 }
 @media (prefers-reduced-motion: reduce) {
