@@ -9,6 +9,7 @@ import pytest
 import uvicorn
 
 from tests.test_mobile_controls import SMALL_CONTROLS
+from app.models import Itinerary
 from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a fixture)
 
 pytestmark = pytest.mark.slow
@@ -40,12 +41,16 @@ def _launch(p):
     return p.chromium.launch(executable_path=exe) if os.path.exists(exe) else p.chromium.launch()
 
 
-def test_every_page_fits_both_widths_and_the_phone_controls_are_big(live):
+def test_every_page_fits_both_widths_and_the_phone_controls_are_big(live, sessions):  # noqa: F811
     from playwright.sync_api import sync_playwright
 
     base, tid = live
+    with sessions() as s:
+        first, second = [i.id for i in s.query(Itinerary).filter_by(trip_id=tid).order_by(Itinerary.id).limit(2)]
     paths = ["/", f"/trips/{tid}", f"/trips/{tid}/captures", "/profiles", "/places", "/tokens", "/settings",
-             "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/offers/new", "/sources/new", "/login"]
+             "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/offers/new", "/sources/new", "/login",
+             f"/trips/{tid}/delete", "/captures", "/rates", f"/trips/{tid}/compare?it={first}&it={second}",
+             f"/trips/{tid}/itineraries/{first}/history"]
     wide = {}
     small = None
     with sync_playwright() as p:
