@@ -18,7 +18,7 @@ def load(name):
     return json.loads((FIX / name).read_text(encoding="utf-8"))
 
 
-@pytest.mark.parametrize("name", ["search-amsterdam-paris.json", "search-amsterdam-berlin.json"])
+@pytest.mark.parametrize("name", ["search-amsterdam-paris.json", "search-amsterdam-berlin.json", "search-utrecht-berlin.json"])
 def test_all_fixtures_give_offers(name):
     r = FlixbusParser().parse(load(name))
     assert len(r.offers) == 3
