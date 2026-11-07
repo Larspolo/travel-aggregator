@@ -40,8 +40,8 @@ def test_trip_page_lists_the_czk_fare_first(trip, sessions):  # noqa: F811
         s.add(it)
         s.commit()
     html = client.get(f"/trips/{trip_id}").text
-    fares = html[html.index('<ul class="fares">'):]
-    fares = fares[:fares.index("</ul>")]
+    fares = html[html.index('<div class="fares">'):]
+    fares = fares[:fares.index("<form")]
     assert fares.index("CZK 500.00") < fares.index("€25.00") < fares.index("XXX 1.00")
 
 

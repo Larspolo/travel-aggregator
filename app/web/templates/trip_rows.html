@@ -36,7 +36,7 @@
     </tr>
     <tr class="detail">
       <td colspan="5"><details><summary>Legs and fares</summary>
-        <div class="timeline">
+        <div class="timeline legs">
         {% for leg in it.legs %}
           {% if not loop.first %}{% set gap = ((leg.depart_at - loop.previtem.arrive_at).total_seconds() // 60) | int %}
           <div class="transfer muted">Transfer at {{ leg.from_name }}: {{ gap // 60 }}h {{ "%02d" | format(gap % 60) }}</div>{% endif %}
