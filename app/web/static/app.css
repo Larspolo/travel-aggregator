@@ -511,9 +511,8 @@ button.icon:hover { background: var(--surface); border-color: var(--line); color
   #table tr.detail details[open] { border: 0; padding: 0; margin: 0; }
   #table td.cost { min-width: 0; }
   .toolbar .btn { flex: 1 1 auto; justify-content: center; }
-  details.more { flex: 0 0 auto; }
+  details.more { flex: 0 0 auto; margin-left: auto; }  /* at the right edge: the menu opens to the left (#746) */
   details.more > summary.btn { flex: none; }
-  .more-menu { left: 0; right: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
