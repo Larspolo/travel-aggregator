@@ -56,6 +56,10 @@ details[open] > summary::after { transform: rotate(180deg); }
 nav.topbar {
   position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: var(--space-5);
   min-height: 56px; margin: 0 0 var(--space-2); background: var(--surface);
+}
+/* The full-width bar is a layer under the bar: a clip-path on the bar itself cut off its open menu (#688). */
+nav.topbar::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   box-shadow: 0 0 0 100vmax var(--surface), 0 1px 0 100vmax var(--line); clip-path: inset(0 -100vmax -1px);
 }
 nav.topbar a { display: inline-flex; align-items: center; gap: var(--space-2); text-decoration: none; }
