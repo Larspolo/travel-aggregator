@@ -182,7 +182,16 @@ A restore gives back the trips, the offers and the price history of the dump. It
 is missing or bad, the command stops with an error and the database does not change. The backups hold private data
 (your trips and offers). They stay in the volume: copy them only to a place that you trust.
 
-Check: `docker compose exec app ls /backups` shows the new `.dump` file.
+The service `backup` (it starts with `docker compose up -d`) also writes a daily dump to the same volume: a file
+`<UTC time>-daily.dump`. It writes a dump when the newest daily dump is older than `BACKUP_INTERVAL_HOURS` (default 24).
+If a dump fails, the service retries after one hour. Only the newest `BACKUP_KEEP` daily dumps stay (default 14); the
+older daily dumps are deleted. The manual dumps (`make backup`) and the dumps before a migration stay always.
+
+The settings page has the section "Backups". It shows the time (UTC) and the size of the newest backup. It shows a
+warning when the newest backup is older than 48 hours, or "No backup yet." when there is none.
+
+Check: `docker compose exec app ls /backups` shows the new `.dump` file (a manual dump, or a `-daily.dump` file of the
+service `backup`).
 
 #### 8. Update
 
@@ -207,6 +216,8 @@ Check: `curl https://<host>/api/health` shows the commit of the new release.
 | `SMTP_HOST`, `SMTP_PORT` | The SMTP server of the e-mail channel. Port `587` uses STARTTLS, port `465` uses SSL (default port `587`) |
 | `SMTP_USER`, `SMTP_PASSWORD` | The login of the SMTP server. The password stays in the environment, never in the database |
 | `SMTP_FROM` | The sender address of the e-mail |
+| `BACKUP_INTERVAL_HOURS` | The hours between two daily backups of the service `backup` (default `24`) |
+| `BACKUP_KEEP` | The number of daily dumps that stay; the older ones are deleted (default `14`, at least `1`) |
 
 To turn on Web Push, run `python3 -m app.notify` once. It prints `VAPID_PUBLIC_KEY=...` and `VAPID_PRIVATE_KEY=...`.
 Put both lines and a `VAPID_SUBJECT` in the `.env` file, then restart the app. The settings page then shows the
