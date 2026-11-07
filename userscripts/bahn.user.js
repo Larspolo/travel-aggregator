@@ -2,7 +2,7 @@
 // @name         travel-aggregator: bahn.de
 // @namespace    https://github.com/Larspolo/travel-aggregator
 // @version      1.0.0
-// @description  Send the bahn.de search results (fahrplan responses) to travel-aggregator.
+// @description  Send the bahn.de search results (fahrplan and recon responses) to travel-aggregator.
 // @match        https://www.bahn.de/*
 // @match        https://int.bahn.de/*
 // @run-at       document-start
@@ -19,10 +19,10 @@
   "use strict";
   const SOURCE = "bahn.de";
   const PARSER_VERSION = "1.0.0";
-  const PATH = "/web/api/angebote/fahrplan";
+  const PATHS = ["/web/api/angebote/fahrplan", "/web/api/angebote/recon"];
 
   const isFahrplan = (url) => {
-    try { return new URL(String(url), root.location.href).pathname === PATH; } catch (e) { return false; }
+    try { return PATHS.includes(new URL(String(url), root.location.href).pathname); } catch (e) { return false; }
   };
   const parseJson = (text) => {
     if (typeof text !== "string" || !text) return null;
