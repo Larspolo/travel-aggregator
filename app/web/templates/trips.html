@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% import "ui.html" as ui %}
 {% block title %}Trips – travel-aggregator{% endblock %}
 {% block content %}
-<h1>{% if archived %}Archived trips{% else %}Trips{% endif %}</h1>
-<p><a href="/trips/new">New trip</a> · <a href="/tokens">API tokens</a> · <a href="/places">Places</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a>{% if archived %} · <a href="/">Trips</a>{% elif archived_count %} · <a href="/?archived=1">Archived trips ({{ archived_count }})</a>{% endif %}</p>
+{% call ui.page_header("Archived trips" if archived else "Trips", back=("/", "Trips") if archived else none) %}
+  {% if not archived and archived_count %}<a class="btn" href="/?archived=1">Archived trips ({{ archived_count }})</a>{% endif %}
+  <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
+{% endcall %}
 {% if lines %}
 <div class="scroll"><table>
   <thead><tr><th>Trip</th><th>Route</th><th>Dates</th><th>Offers</th><th>Best offer</th><th>Status</th></tr></thead>

@@ -2,8 +2,7 @@
 {% import "ui.html" as ui %}
 {% block title %}Compare · {{ trip.title }} · travel-aggregator{% endblock %}
 {% block content %}
-<h1>Compare: {{ trip.title }}</h1>
-<p><a href="/trips/{{ trip.id }}?{{ sort_qs }}">Back to the trip</a></p>
+{{ ui.page_header("Compare: " ~ trip.title, back=("/trips/" ~ trip.id ~ "?" ~ sort_qs, "Back to the trip")) }}
 {% if error %}
 <p class="error">{{ error }}</p>
 {% else %}

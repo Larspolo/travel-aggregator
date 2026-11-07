@@ -1,5 +1,7 @@
 """The page header links to the trips list (#450)."""
 
+import re
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -17,4 +19,4 @@ def client(sessions):
 
 def test_the_header_links_to_the_trips_list(client):
     page = client.get("/captures").text
-    assert '<a href="/">Trips</a>' in page
+    assert re.search(r'<a href="/">(<svg[^>]*>.*?</svg>)?Trips</a>', page)

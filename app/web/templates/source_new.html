@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% import "ui.html" as ui %}
 {% block title %}Add a website – travel-aggregator{% endblock %}
 {% block content %}
-<h1>Add a website</h1>
+{{ ui.page_header("Add a website") }}
 <form method="get" action="/sources/new">
   <p><label>Website <input name="site" value="{{ site }}" placeholder="www.example.com"></label>
   <button>Update the link</button></p>

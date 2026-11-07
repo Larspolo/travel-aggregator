@@ -1,9 +1,8 @@
 {% extends "base.html" %}
+{% import "ui.html" as ui %}
 {% block title %}Places – travel-aggregator{% endblock %}
 {% block content %}
-<h1>Access and egress places</h1>
-<p><a href="/">Trips</a> · <a href="/logout">Log out</a></p>
-<p class="muted">Access: from a place to the first station. Egress: from the last station to a place.</p>
+{{ ui.page_header("Access and egress places", subtitle="Access: from a place to the first station. Egress: from the last station to a place.") }}
 <form method="post" action="/places">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <label>Place <input name="place_text" required maxlength="200" placeholder="home → Amsterdam Centraal"></label>

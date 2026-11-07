@@ -36,6 +36,25 @@ nav.topbar .nav-links a {
 nav.topbar .nav-links a:hover { background: var(--surface); color: var(--text); }
 nav.topbar .nav-links a.active { background: var(--surface); color: var(--accent); font-weight: 600; }
 nav.topbar .nav-links a.logout { margin-left: auto; }
+nav.topbar .brand { display: inline-flex; align-items: center; gap: var(--space-2); }
+nav.topbar a { display: inline-flex; align-items: center; gap: var(--space-1); }
+nav.topbar details.menu { display: none; border: 0; margin-left: auto; position: relative; }
+nav.topbar details.menu summary {
+  display: inline-flex; align-items: center; gap: var(--space-1); min-height: 44px; padding: 0 var(--space-3);
+  cursor: pointer; list-style: none; border: 1px solid var(--line); border-radius: var(--radius);
+}
+nav.topbar details.menu summary::-webkit-details-marker { display: none; }
+nav.topbar .menu-links {
+  position: absolute; right: 0; top: 100%; min-width: 14rem; display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+nav.topbar .menu-links a { min-height: 44px; padding: 0 var(--space-3); color: var(--text); text-decoration: none; }
+nav.topbar .menu-links a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+@media (max-width: 40rem) {
+  nav.topbar { flex-wrap: nowrap; }
+  nav.topbar .nav-links { display: none; }
+  nav.topbar details.menu { display: block; }
+}
 /* == Base (type and controls) == */
 h1, h2, h3 { line-height: 1.2; margin: var(--space-4) 0 var(--space-2); }
 h1 { font-size: 1.5rem; }
