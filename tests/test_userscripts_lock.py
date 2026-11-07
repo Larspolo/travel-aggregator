@@ -75,7 +75,9 @@ def test_changed_file_with_higher_version_and_new_entry_passes(tmp_path):
     lock = load_lock()
     bahn = copy / "bahn.user.js"
     text = bahn.read_text(encoding="utf-8") + "\n// a change with a higher version\n"
-    text = userscripts.VERSION_LINE.sub("// @version      1.0.1", text, count=1)
+    major, minor, patch = parts(current_version(bahn))
+    higher = f"{major}.{minor}.{patch + 1}"
+    text = userscripts.VERSION_LINE.sub(f"// @version      {higher}", text, count=1)
     bahn.write_text(text, encoding="utf-8")
-    lock["bahn.user.js"]["1.0.1"] = sha256(bahn)
+    lock["bahn.user.js"][higher] = sha256(bahn)
     assert lock_problems(copy, lock) == []

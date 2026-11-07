@@ -14,7 +14,12 @@ Set API token:  {{ new_token }}</pre>
 {% endif %}
 <section class="userscripts">
   <h2>Userscripts</h2>
-  <p>Install a userscript in Tampermonkey:</p>
+  <p>Install one script in Tampermonkey for all the sites. It also gets each new site with its updates:</p>
+  <p class="bundle"><strong>{{ bundle.name }} {{ bundle.version }}</strong> –
+    <a href="/userscripts/{{ bundle.file }}">Install</a></p>
+  <p>Do not also install a script of one site below: then each search is sent two times.
+    If you installed one before, remove it in the Tampermonkey dashboard.</p>
+  <p>Only one site:</p>
   <ul>
   {% for s in userscripts %}
     <li>{{ s.name }} {{ s.version }} – <a href="/userscripts/{{ s.file }}">Install</a></li>
