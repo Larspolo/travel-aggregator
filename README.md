@@ -286,9 +286,17 @@ The counts of the request limit live in the memory of the app: a restart of the 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
 
+Each page has the same app bar at the top: the name "travel-aggregator" links to the trips list. The links Trips, Captures,
+Profiles, Places and Settings follow it, and "Log out" ends the login session. The current page is marked in the bar.
+Most pages start with a page header: the title, a subtitle, and a link such as "Back to the trip" where one applies. Its buttons
+sit at the right side. The content is in cards, each with an optional title. A list with no item shows an empty state:
+a short text and, where it helps, a button to the next step (for example "Install the userscripts" on an empty captures page).
+
 ### Use a phone
 
 All pages work at a phone width of 390 px. No page scrolls sideways.
+At a width of 640 px or less, the links of the app bar move into one "Menu" button at the top right. Tap it to open
+the list of the same pages; each entry is at least 44 px high.
 A wide table scrolls sideways in its own box: this is the trip table and the compare table.
 The sliders, the filter fields and the buttons of the trip page are large enough for a finger: each is at least 40 px high.
 
