@@ -211,7 +211,7 @@ The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a sett
 | Method and path | Use |
 |---|---|
 | `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>"}`. No token. |
-| `GET /api/trips` | The trips, newest first; `?status=active` filters them |
+| `GET /api/trips` | The trips, newest first; `?status=planning` (or `booked`, `archived`) shows only the trips of that status |
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
 | `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` |
 
@@ -245,7 +245,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 |---|---|
 | `/login` | The login form: the password of `OWNER_PASSWORD_HASH`. The session is signed with `SECRET_KEY` |
 | `/logout` | Ends the login session |
-| `/` | The list of your trips, with a link to each trip |
+| `/` | The list of your trips that are not archived, with a link to each trip. `/?archived=1` shows the archived trips |
 | `/trips/new` | The form to make a trip |
 | `/trips/{id}/edit` | The form to change a trip |
 | `/trips/{id}/delete` | The confirm page to delete a trip |
@@ -330,6 +330,14 @@ Each direction is a normal trip. The userscripts capture offers into it when you
 - The delete removes the trip with its offers (itineraries), their fares and price history, and its captures. The app then opens the trips list.
 - After the delete, the trip is not in the trips list, not in `GET /api/trips` and not in the trip dropdown of the userscript panel. Each page of the trip gives 404.
 - A linked return trip stays, with no link (see "Round trips" above).
+
+### Archive a trip
+
+- A trip has the status `planning` (the default), `booked` or `archived`. Set it in the edit form `/trips/{id}/edit` (field "Status").
+- The trips list `/` does not show the archived trips. When there are archived trips, it has the link "Archived trips (N)". It opens `/?archived=1` with the title "Archived trips" and the link "Trips" back.
+- A return trip shows in the list of its outbound trip: the status of the outbound trip decides for both (see "Round trips" above).
+- The trip dropdown of the userscript panel shows only the trips with the status `planning`.
+- An archived trip keeps its offers and captures. Set the status again to bring it back to the trips list.
 
 ### Compare offers side by side
 
