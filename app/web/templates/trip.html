@@ -147,6 +147,7 @@
 </ul>
 </section>
 {% endif %}
+{% with oob = false %}{% include "trip_days.html" %}{% endwith %}
 <div class="card table-card" id="table">
 {% include "trip_table.html" %}
 </div>
