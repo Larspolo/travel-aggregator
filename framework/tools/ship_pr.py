@@ -87,6 +87,10 @@ def checks():
     changed = git("diff", "--name-only", f"origin/{CONFIG['branch']}...HEAD").stdout.split()
     tests = {f: open(f, encoding="utf-8").read() for f in glob.glob("tests/test_*.py") + glob.glob("framework/tests/test_*.py")}
     run = merge_main.test_files(changed, changed, tests)[0]
+    texts = [f for f in merge_main.text_tests(changed, tests) if f not in run]   # no import leads to them (#682)
+    if texts:
+        print("tests of a removed page text: " + " ".join(texts))
+        run = sorted(set(run) | set(texts))
     if any(f.endswith(".jsonl") or f.startswith(DATA_CHECKS) for f in changed):   # no import finds their tests (#4614)
         run = sorted(set(run) | {f for f in DATA_TESTS if f in tests})
     if not run:
