@@ -21,6 +21,8 @@
   <button type="submit">Add next trip</button>
 </form>
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
+<div class="trip-layout">
+<aside class="panel">
 {% if profiles %}
 <form class="profile" method="get" action="/trips/{{ trip.id }}">
   <label>Profile <select name="profile">
@@ -35,70 +37,86 @@
     <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
   <label>Transfer markup €<output name="transfer_value">{{ weights.transfer_markup }}</output>
     <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
-  <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
-  <label><input type="checkbox" name="hide_stale" value="true"{% if view.hide_stale %} checked{% endif %}> hide stale</label>
-  <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
-  <label>Mode <select name="mode"><option value="">All</option>
-    {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
-  <label>Earliest departure <input type="time" name="earliest_depart" value="{{ view.earliest_depart }}"></label>
-  <label>Latest arrival <input type="time" name="latest_arrive" value="{{ view.latest_arrive }}"></label>
-  <label>Source <select name="source"><option value="">All</option>
-    {% for s in view.sources %}<option value="{{ s }}"{% if s == view.source %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
-  <label>Max transfers <input type="number" name="max_transfers" min="0" max="10" step="1" value="{{ view.max_transfers if view.max_transfers is not none else '' }}"></label>
-  <label>Max duration (min) <input type="number" name="max_duration_min" min="0" max="10080" step="1" value="{{ view.max_duration_min if view.max_duration_min is not none else '' }}"></label>
-  <details class="exclude"><summary>Exclude</summary>
-    {% for m in view.modes %}<label><input type="checkbox" name="exclude_mode" value="{{ m }}"{% if m in view.exclude_mode %} checked{% endif %}> {{ m }}</label>{% endfor %}
-    {% for c in view.carriers %}<label><input type="checkbox" name="exclude_carrier" value="{{ c }}"{% if c in view.exclude_carrier %} checked{% endif %}> {{ c }}</label>{% endfor %}
+  <details class="filters" open><summary>Filters</summary>
+    <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
+    <label><input type="checkbox" name="hide_stale" value="true"{% if view.hide_stale %} checked{% endif %}> hide stale</label>
+    <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
+    <label>Mode <select name="mode"><option value="">All</option>
+      {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
+    <label>Earliest departure <input type="time" name="earliest_depart" value="{{ view.earliest_depart }}"></label>
+    <label>Latest arrival <input type="time" name="latest_arrive" value="{{ view.latest_arrive }}"></label>
+    <label>Source <select name="source"><option value="">All</option>
+      {% for s in view.sources %}<option value="{{ s }}"{% if s == view.source %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+    <label>Max transfers <input type="number" name="max_transfers" min="0" max="10" step="1" value="{{ view.max_transfers if view.max_transfers is not none else '' }}"></label>
+    <label>Max duration (min) <input type="number" name="max_duration_min" min="0" max="10080" step="1" value="{{ view.max_duration_min if view.max_duration_min is not none else '' }}"></label>
+    <details class="exclude"><summary>Exclude</summary>
+      {% for m in view.modes %}<label><input type="checkbox" name="exclude_mode" value="{{ m }}"{% if m in view.exclude_mode %} checked{% endif %}> {{ m }}</label>{% endfor %}
+      {% for c in view.carriers %}<label><input type="checkbox" name="exclude_carrier" value="{{ c }}"{% if c in view.exclude_carrier %} checked{% endif %}> {{ c }}</label>{% endfor %}
+    </details>
   </details>
   <details class="advanced"><summary>Advanced</summary>
-    <label>Airport before departure (min)
-      <input type="number" name="airport_before_min" min="0" max="1440" step="1" value="{{ weights.airport_before_min }}"></label>
-    <label>Airport after landing (min)
-      <input type="number" name="airport_after_min" min="0" max="1440" step="1" value="{{ weights.airport_after_min }}"></label>
-    <label>Baggage fee €
-      <input type="number" name="baggage_fee" min="0" max="1000" step="0.01" value="{{ weights.baggage_fee }}"></label>
-    <label>Early limit (local)
-      <input type="time" name="early_limit" value="{{ weights.early_limit.strftime('%H:%M') }}"></label>
-    <label>Late limit (local)
-      <input type="time" name="late_limit" value="{{ weights.late_limit.strftime('%H:%M') }}"></label>
-    <label>Early or late penalty €
-      <input type="number" name="time_window_penalty" min="0" max="1000" step="0.01" value="{{ weights.time_window_penalty }}"></label>
-    <label>Night start (local)
-      <input type="time" name="night_start" value="{{ weights.night_start.strftime('%H:%M') }}"></label>
-    <label>Night end (local)
-      <input type="time" name="night_end" value="{{ weights.night_end.strftime('%H:%M') }}"></label>
-    <label>Night minutes
-      <input type="number" name="night_min" min="0" max="1440" step="1" value="{{ weights.night_min }}"></label>
-    <label>Night travel € (negative = bonus)
-      <input type="number" name="night_adjust" min="-1000" max="1000" step="0.01" value="{{ weights.night_adjust }}"></label>
-    <label>Night hour markup €/h
-      <input type="number" name="night_hour_markup" min="0" max="100" step="0.01" value="{{ weights.night_hour_markup if weights.night_hour_markup is not none else weights.hour_markup }}"></label>
-    <label>Short transfer minutes
-      <input type="number" name="short_transfer_min" min="0" max="240" step="1" value="{{ weights.short_transfer_min }}"></label>
-    <label>Short transfer penalty €
-      <input type="number" name="short_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.short_transfer_penalty }}"></label>
-    <label>Stale after hours
-      <input type="number" name="stale_hours" min="1" max="720" step="1" value="{{ weights.stale_hours }}"></label>
-    <label>Stale penalty €
-      <input type="number" name="stale_penalty" min="0" max="1000" step="0.01" value="{{ weights.stale_penalty }}"></label>
-    <label>Train markup € (negative = discount)
-      <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
-    <label>Bus markup €
-      <input type="number" name="bus_markup" min="-1000" max="1000" step="0.01" value="{{ weights.bus_markup }}"></label>
-    <label>Flight markup €
-      <input type="number" name="flight_markup" min="-1000" max="1000" step="0.01" value="{{ weights.flight_markup }}"></label>
-    <label>Ferry markup €
-      <input type="number" name="ferry_markup" min="-1000" max="1000" step="0.01" value="{{ weights.ferry_markup }}"></label>
-    <label>Non-refundable fare € (negative = bonus)
-      <input type="number" name="flex_non_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_non_refundable }}"></label>
-    <label>Partly refundable fare € (negative = bonus)
-      <input type="number" name="flex_partly_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_partly_refundable }}"></label>
-    <label>Flexible fare € (negative = bonus)
-      <input type="number" name="flex_flexible" min="-1000" max="1000" step="0.01" value="{{ weights.flex_flexible }}"></label>
-    <label>Self-transfer €
-      <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
-    <label>Profile name <input type="text" name="name" form="save-profile" required maxlength="100"></label>
-    <button type="submit" form="save-profile">Save as profile</button>
+    <fieldset><legend>Airport</legend>
+      <label>Airport before departure (min)
+        <input type="number" name="airport_before_min" min="0" max="1440" step="1" value="{{ weights.airport_before_min }}"></label>
+      <label>Airport after landing (min)
+        <input type="number" name="airport_after_min" min="0" max="1440" step="1" value="{{ weights.airport_after_min }}"></label>
+    </fieldset>
+    <fieldset><legend>Time windows</legend>
+      <label>Early limit (local)
+        <input type="time" name="early_limit" value="{{ weights.early_limit.strftime('%H:%M') }}"></label>
+      <label>Late limit (local)
+        <input type="time" name="late_limit" value="{{ weights.late_limit.strftime('%H:%M') }}"></label>
+      <label>Early or late penalty €
+        <input type="number" name="time_window_penalty" min="0" max="1000" step="0.01" value="{{ weights.time_window_penalty }}"></label>
+    </fieldset>
+    <fieldset><legend>Night</legend>
+      <label>Night start (local)
+        <input type="time" name="night_start" value="{{ weights.night_start.strftime('%H:%M') }}"></label>
+      <label>Night end (local)
+        <input type="time" name="night_end" value="{{ weights.night_end.strftime('%H:%M') }}"></label>
+      <label>Night minutes
+        <input type="number" name="night_min" min="0" max="1440" step="1" value="{{ weights.night_min }}"></label>
+      <label>Night travel € (negative = bonus)
+        <input type="number" name="night_adjust" min="-1000" max="1000" step="0.01" value="{{ weights.night_adjust }}"></label>
+      <label>Night hour markup €/h
+        <input type="number" name="night_hour_markup" min="0" max="100" step="0.01" value="{{ weights.night_hour_markup if weights.night_hour_markup is not none else weights.hour_markup }}"></label>
+    </fieldset>
+    <fieldset><legend>Modes</legend>
+      <label>Train markup € (negative = discount)
+        <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
+      <label>Bus markup €
+        <input type="number" name="bus_markup" min="-1000" max="1000" step="0.01" value="{{ weights.bus_markup }}"></label>
+      <label>Flight markup €
+        <input type="number" name="flight_markup" min="-1000" max="1000" step="0.01" value="{{ weights.flight_markup }}"></label>
+      <label>Ferry markup €
+        <input type="number" name="ferry_markup" min="-1000" max="1000" step="0.01" value="{{ weights.ferry_markup }}"></label>
+      <label>Short transfer minutes
+        <input type="number" name="short_transfer_min" min="0" max="240" step="1" value="{{ weights.short_transfer_min }}"></label>
+      <label>Short transfer penalty €
+        <input type="number" name="short_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.short_transfer_penalty }}"></label>
+      <label>Self-transfer €
+        <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
+    </fieldset>
+    <fieldset><legend>Fares</legend>
+      <label>Baggage fee €
+        <input type="number" name="baggage_fee" min="0" max="1000" step="0.01" value="{{ weights.baggage_fee }}"></label>
+      <label>Non-refundable fare € (negative = bonus)
+        <input type="number" name="flex_non_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_non_refundable }}"></label>
+      <label>Partly refundable fare € (negative = bonus)
+        <input type="number" name="flex_partly_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_partly_refundable }}"></label>
+      <label>Flexible fare € (negative = bonus)
+        <input type="number" name="flex_flexible" min="-1000" max="1000" step="0.01" value="{{ weights.flex_flexible }}"></label>
+    </fieldset>
+    <fieldset><legend>Staleness</legend>
+      <label>Stale after hours
+        <input type="number" name="stale_hours" min="1" max="720" step="1" value="{{ weights.stale_hours }}"></label>
+      <label>Stale penalty €
+        <input type="number" name="stale_penalty" min="0" max="1000" step="0.01" value="{{ weights.stale_penalty }}"></label>
+    </fieldset>
+    <fieldset><legend>Profile</legend>
+      <label>Profile name <input type="text" name="name" form="save-profile" required maxlength="100"></label>
+      <button type="submit" form="save-profile">Save as profile</button>
+    </fieldset>
   </details>
 </form>
 <form id="save-profile" method="post" action="/profiles"
@@ -106,6 +124,8 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <input type="hidden" name="trip_id" value="{{ trip.id }}">
 </form>
+</aside>
+<div class="results">
 {% with oob = false %}{% include "compare_form.html" %}{% endwith %}
 {% if drops %}
 <section class="drops" id="drops">
@@ -119,6 +139,8 @@
 {% endif %}
 <div class="scroll" id="table">
 {% include "trip_table.html" %}
+</div>
+</div>
 </div>
 {% else %}
 <p>No offers yet. Search on a travel site with the userscript, or send offers to <code>POST /api/ingest</code>.</p>
