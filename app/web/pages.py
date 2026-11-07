@@ -33,6 +33,7 @@ from app.travelclass import class_extras
 from app.history import chart
 from app.money import money
 from app.search_links import links_for_trip
+from app.sourcehealth import failing_sources
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
@@ -146,7 +147,8 @@ def index(request: Request, archived: bool = False, session: Session = Depends(g
     archived_count = sum(1 for kind, _, _ in archived_journeys(rows, True) if kind == "trip")
     return templates.TemplateResponse(request, "trips.html",
                                       {"lines": archived_journeys(rows, archived), "drops": drops_by_trip(session),
-                                       "archived": archived, "archived_count": archived_count})
+                                       "archived": archived, "archived_count": archived_count,
+                                       "failing": failing_sources(session)})
 
 
 FORM_FIELDS = tuple(TripForm.model_fields)

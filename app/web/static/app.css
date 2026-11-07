@@ -532,3 +532,8 @@ input[name=it]:checked { counter-increment: picked; }
 .days-strip .chip.day { height: auto; padding: var(--space-1) var(--space-2); gap: var(--space-1); text-decoration: none; color: var(--text); }
 .days-strip .chip.day.empty { color: var(--muted); }
 .days-strip .chip.day.selected { border-color: var(--accent); font-weight: 600; }
+
+/* The warning of the trips list when the last captures of a source failed (#726). */
+.source-warning { display: flex; flex-direction: column; gap: var(--space-2, .5rem); margin-bottom: 1rem; }
+.source-warning .chip { height: auto; padding: 4px 9px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; align-self: flex-start; max-width: 100%; margin: 0; }
+.source-warning a { color: inherit; }

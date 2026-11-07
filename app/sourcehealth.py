@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.models import Capture
 
+WARN_FAILED = 2  # the trips list warns when this many captures failed after the last good one (#726)
+
 
 def failed_clause():
     """A capture failed when the parser could not read it or rejected an offer (#349)."""
@@ -32,3 +34,8 @@ def source_health(session: Session) -> list[dict]:
              .group_by(Capture.source).order_by(Capture.source))
     return [{"source": r.source, "last_good_at": r.last_good_at, "parser_version": r.parser_version,
              "failed_after": r.failed_after, "last_at": r.last_at} for r in session.execute(query)]
+
+
+def failing_sources(session: Session) -> list[dict]:
+    """The sources whose newest WARN_FAILED or more captures failed, for the warning of the trips list (#726)."""
+    return [h for h in source_health(session) if h["failed_after"] >= WARN_FAILED]
