@@ -306,21 +306,27 @@ def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: d
 
 
 def journey(session: Session, trip: Trip, weights: Weights, places, now: datetime):
-    """The journey box (#342): the chosen offer of each direction and the total effective cost, or None when the trip
-    has no link. The present direction uses the page weights; the other one its own profile."""
-    other = trip.return_of or trip.return_trip
-    if other is None:
+    """The journey box (#342, #562): the chosen offer of each part of the chain and the total effective cost, or None
+    when the trip has no link. The present part uses the page weights; the other parts their own profile."""
+    parts = chain(trip)
+    if len(parts) < 2:
         return None
-    other_weights, _ = resolve_weights(session, other, {}, None)
-    present = (trip, _chosen_offer(session, trip, weights, places, now))
-    linked = (other, _chosen_offer(session, other, other_weights, places, now))
-    outbound, back = (linked, present) if trip.return_of_id is not None else (present, linked)
-    total = early = None
-    if outbound[1] is not None and back[1] is not None:
-        total = outbound[1][2].total + back[1][2].total
+    rows = []
+    for t in parts:
+        w = weights if t.id == trip.id else resolve_weights(session, t, {}, None)[0]
+        rows.append((t, _chosen_offer(session, t, w, places, now)))
+    labels = ["Outbound", "Return"] if len(parts) == 2 else [f"Part {i}" for i in range(1, len(parts) + 1)]
+    directions, early_any = [], False
+    for i, (t, chosen) in enumerate(rows):
+        prev = rows[i - 1][1] if i else None
+        early = bool(prev and chosen and chosen[0].depart_at < prev[0].arrive_at)
+        early_any = early_any or early
+        directions.append((labels[i], t, chosen, early))
+    total = None
+    if all(chosen is not None for _, chosen in rows):
+        total = sum((chosen[2].total for _, chosen in rows), Decimal(0))
         total = total if total.is_finite() else None  # a fare with no rate has no cost (#385)
-        early = back[1][0].depart_at < outbound[1][0].arrive_at
-    return {"directions": [("Outbound", *outbound), ("Return", *back)], "total": total, "early": early}
+    return {"directions": directions, "total": total, "early": early_any and len(parts) == 2}
 
 
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
