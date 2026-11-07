@@ -98,6 +98,7 @@ class Fare(Base):
     source: Mapped[str] = mapped_column(String(50))
     fare_name: Mapped[str | None] = mapped_column(String(100))
     flexibility: Mapped[str | None] = mapped_column(String(50))
+    travel_class: Mapped[str | None] = mapped_column(String(10))
     self_transfers: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # #176, derived at ingest
     booking_url: Mapped[str | None] = mapped_column(Text)
     latest_price: Mapped[Decimal] = mapped_column(Money)

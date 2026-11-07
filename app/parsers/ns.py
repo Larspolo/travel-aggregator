@@ -22,6 +22,7 @@ COUNTRY_TZ = {
     "IT": "Europe/Rome", "DK": "Europe/Copenhagen", "CZ": "Europe/Prague", "PL": "Europe/Warsaw",
 }
 CHANGE_STATION = "change station"
+TRAVEL_CLASSES = {"1": "first", "2": "standard"}
 FLEX = {"NON_FLEXIBLE": "non-flexible", "SEMI_FLEXIBLE": "semi-flexible", "FULL_FLEXIBLE": "flexible"}
 BOOKING_URL = "https://www.nsinternational.com/"
 
@@ -35,7 +36,7 @@ def local_time(station: dict, kind: str) -> datetime:
 
 class NsParser:
     source = "nsinternational.com"
-    version = "1.1.0"
+    version = "1.2.0"
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"request", "response"} or of the response body only: one per fare."""
@@ -90,6 +91,7 @@ class NsParser:
                 # one fare per (itinerary, source, fare name): the name alone repeats for each flex level
                 fare_name=", ".join(x for x in [(o.get("name") or "").strip(), flex] if x) or None,
                 flexibility=flex,
+                travel_class=TRAVEL_CLASSES.get(str(o.get("classLevel"))),
                 legs=legs,
                 booking_url=BOOKING_URL,
             ))
