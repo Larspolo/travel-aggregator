@@ -3,6 +3,7 @@ untrusted (P5)."""
 
 import dataclasses
 import math
+import os
 import re
 from datetime import datetime, time, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -19,6 +20,7 @@ from sqlalchemy.orm import Session, subqueryload
 
 from app.web.userscripts import bundle_info, userscript_list
 from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
+from app.backup import newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.db import get_session
@@ -674,9 +676,16 @@ def delete_rate(code: str, session: Session = Depends(get_session)) -> RedirectR
     return RedirectResponse("/rates", status_code=303)
 
 
+BACKUP_MAX_AGE = timedelta(hours=48)
+
+
 @router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def settings_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
-    return templates.TemplateResponse(request, "settings.html", {"retention_days": retention_days(session),
+    newest = newest_backup(Path(os.environ.get("BACKUP_DIR", "/backups")))
+    return templates.TemplateResponse(request, "settings.html", {"backup": newest,
+                                                                 "backup_old": newest is not None and
+                                                                 datetime.now(timezone.utc) - newest[0] > BACKUP_MAX_AGE,
+                                                                 "retention_days": retention_days(session),
                                                                  "max_days": MAX_RETENTION_DAYS,
                                                                  "channel": setting(session, CHANNEL_KEY, "none"),
                                                                  "channels": CHANNELS,

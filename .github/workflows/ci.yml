@@ -65,6 +65,14 @@ jobs:
       - run: python3 -m playwright install --with-deps chromium
       - name: Browser tests
         run: python3 -m pytest -m slow -n auto
+        env:
+          SCREENSHOT_DIR: screenshots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/
+          if-no-files-found: ignore
 
   # The local run as the owner starts it (`docker compose up --build`, the `dev` command): docker-compose.yml with
   # .env.example, the db container, the migrations at the start, then /api/health (the commit), the non-root user,
