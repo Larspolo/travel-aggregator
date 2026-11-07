@@ -113,6 +113,29 @@ def in_eur(b: Breakdown, amount: Decimal, currency: str, eur: Decimal | None) ->
     return replace(b, original=_amount(amount, f"{currency} "))
 
 
+def bar_parts(b: Breakdown) -> list[tuple[str, Decimal, Decimal]]:
+    """Give the positive parts of the breakdown as (label, x, width), in percent of their sum, for the cost bar (#590).
+
+    No parts when the price has no rate or the sum is 0.
+    """
+    if b.no_rate:
+        return []
+    labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost)) + b.extras
+    positive = [(label, value) for label, value in labels if value > 0]
+    total = sum((value for _, value in positive), Decimal(0))
+    parts, x = [], Decimal(0)
+    for label, value in positive if total else []:
+        width = (value * 100 / total).quantize(Decimal("0.1"))
+        parts.append((label, x, width))
+        x += width
+    return parts
+
+
+def format_total(b: Breakdown) -> str:
+    """Give the effective cost alone, e.g. '€182' (#590)."""
+    return "no rate" if b.no_rate else _amount(b.total)
+
+
 def format_breakdown(b: Breakdown) -> str:
     """Give the breakdown as short plain text, e.g. '€90 price + €62 time + €30 transfers = €182'.
 

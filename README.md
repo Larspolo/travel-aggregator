@@ -182,7 +182,16 @@ A restore gives back the trips, the offers and the price history of the dump. It
 is missing or bad, the command stops with an error and the database does not change. The backups hold private data
 (your trips and offers). They stay in the volume: copy them only to a place that you trust.
 
-Check: `docker compose exec app ls /backups` shows the new `.dump` file.
+The service `backup` (it starts with `docker compose up -d`) also writes a daily dump to the same volume: a file
+`<UTC time>-daily.dump`. It writes a dump when the newest daily dump is older than `BACKUP_INTERVAL_HOURS` (default 24).
+If a dump fails, the service retries after one hour. Only the newest `BACKUP_KEEP` daily dumps stay (default 14); the
+older daily dumps are deleted. The manual dumps (`make backup`) and the dumps before a migration stay always.
+
+The settings page has the section "Backups". It shows the time (UTC) and the size of the newest backup. It shows a
+warning when the newest backup is older than 48 hours, or "No backup yet." when there is none.
+
+Check: `docker compose exec app ls /backups` shows the new `.dump` file (a manual dump, or a `-daily.dump` file of the
+service `backup`).
 
 #### 8. Update
 
@@ -207,6 +216,8 @@ Check: `curl https://<host>/api/health` shows the commit of the new release.
 | `SMTP_HOST`, `SMTP_PORT` | The SMTP server of the e-mail channel. Port `587` uses STARTTLS, port `465` uses SSL (default port `587`) |
 | `SMTP_USER`, `SMTP_PASSWORD` | The login of the SMTP server. The password stays in the environment, never in the database |
 | `SMTP_FROM` | The sender address of the e-mail |
+| `BACKUP_INTERVAL_HOURS` | The hours between two daily backups of the service `backup` (default `24`) |
+| `BACKUP_KEEP` | The number of daily dumps that stay; the older ones are deleted (default `14`, at least `1`) |
 
 To turn on Web Push, run `python3 -m app.notify` once. It prints `VAPID_PUBLIC_KEY=...` and `VAPID_PRIVATE_KEY=...`.
 Put both lines and a `VAPID_SUBJECT` in the `.env` file, then restart the app. The settings page then shows the
@@ -222,7 +233,7 @@ The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a sett
 | `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>"}`. No token. |
 | `GET /api/trips` | The trips, newest first; `?status=planning` (or `booked`, `archived`) shows only the trips of that status |
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
-| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` |
+| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` and the field `warning`: the text of the trip warning, or `null` (see "Trip warning of a capture") |
 
 `POST /api/ingest` stores each offer by its journey. The same journey sent twice gives one itinerary. A changed price
 adds a price row; the same price adds none and counts as `unchanged`. Each offer is stored in its own transaction.
@@ -503,6 +514,29 @@ text says "More than 500 captures wait: click again." A source with no parser sh
 The button does not send a request to the travel site.
 
 A reparse replaces the stored parse result with the new one. Reload the page to see it.
+
+### Trip warning of a capture
+
+The app checks the offers of a capture against the trip. When no offer matches the trip, the app shows a warning with
+the reason:
+
+- `places`: no offer goes from the origin of the trip to its destination. A station code (for example `LIS`) matches
+  the place, and so does the local name of a place (for example `München` for `Munich`). Words of fewer than 3 letters
+  do not count.
+- `date`: the offers of those places depart on a date outside the dates of the trip.
+
+One matching offer is enough for no warning. A part of the trip that is empty is not compared.
+
+The warning is a hint only: the app stores the offers in any case. The warning shows in two places:
+
+- The userscript panel: "Captured N offers → sent ✓, but these offers do not match the trip", in the warning style.
+- The captures pages (`/captures` and `/trips/{id}/captures`): the column of the capture shows "These offers do not
+  match the trip".
+
+The response of `POST /api/ingest` has the field `warning`: `"These offers do not match the trip (places)"` or
+`"... (date)"`, or `null` when there is no warning.
+
+A reparse (see "Reparse a capture") computes the warning again, for example after you change the places of the trip.
 
 ### Capture retention
 

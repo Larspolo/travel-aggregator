@@ -36,10 +36,10 @@ from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, P
 from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting, webpush_ready
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
-from app.ranking import Weights, effective_cost, format_breakdown, in_eur
+from app.ranking import Weights, bar_parts, effective_cost, format_breakdown, format_total, in_eur
 from app.timeofday import night_extras, night_time_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
-from app.trips import archived_journeys, list_trips
+from app.trips import archived_journeys, chain, list_trips
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -210,7 +210,17 @@ def delete_trip_confirm(request: Request, trip_id: int, session: Session = Depen
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 def delete_trip_page(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
     # The database deletes the offers, prices and captures (CASCADE); a return trip keeps, unlinked (SET NULL).
-    session.delete(_get_trip(session, trip_id))
+    # A middle trip of a journey: its next trip links to its previous trip (#563). The column is unique, so the
+    # link of this trip goes first.
+    trip = _get_trip(session, trip_id)
+    previous_id = trip.return_of_id
+    following = session.scalar(select(Trip).where(Trip.return_of_id == trip.id))
+    if previous_id is not None and following is not None:
+        trip.return_of_id = None
+        session.flush()
+        following.return_of_id = previous_id
+        session.flush()
+    session.delete(trip)
     session.commit()
     return RedirectResponse("/", status_code=303)
 
@@ -296,21 +306,27 @@ def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: d
 
 
 def journey(session: Session, trip: Trip, weights: Weights, places, now: datetime):
-    """The journey box (#342): the chosen offer of each direction and the total effective cost, or None when the trip
-    has no link. The present direction uses the page weights; the other one its own profile."""
-    other = trip.return_of or trip.return_trip
-    if other is None:
+    """The journey box (#342, #562): the chosen offer of each part of the chain and the total effective cost, or None
+    when the trip has no link. The present part uses the page weights; the other parts their own profile."""
+    parts = chain(trip)
+    if len(parts) < 2:
         return None
-    other_weights, _ = resolve_weights(session, other, {}, None)
-    present = (trip, _chosen_offer(session, trip, weights, places, now))
-    linked = (other, _chosen_offer(session, other, other_weights, places, now))
-    outbound, back = (linked, present) if trip.return_of_id is not None else (present, linked)
-    total = early = None
-    if outbound[1] is not None and back[1] is not None:
-        total = outbound[1][2].total + back[1][2].total
+    rows = []
+    for t in parts:
+        w = weights if t.id == trip.id else resolve_weights(session, t, {}, None)[0]
+        rows.append((t, _chosen_offer(session, t, w, places, now)))
+    labels = ["Outbound", "Return"] if len(parts) == 2 else [f"Part {i}" for i in range(1, len(parts) + 1)]
+    directions, early_any = [], False
+    for i, (t, chosen) in enumerate(rows):
+        prev = rows[i - 1][1] if i else None
+        early = bool(prev and chosen and chosen[0].depart_at < prev[0].arrive_at)
+        early_any = early_any or early
+        directions.append((labels[i], t, chosen, early))
+    total = None
+    if all(chosen is not None for _, chosen in rows):
+        total = sum((chosen[2].total for _, chosen in rows), Decimal(0))
         total = total if total.is_finite() else None  # a fare with no rate has no cost (#385)
-        early = back[1][0].depart_at < outbound[1][0].arrive_at
-    return {"directions": [("Outbound", *outbound), ("Return", *back)], "total": total, "early": early}
+    return {"directions": directions, "total": total, "early": early_any and len(parts) == 2}
 
 
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
@@ -400,6 +416,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if chosen is not None:
         query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
+               "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
                "rates": rates}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
@@ -446,6 +463,18 @@ def make_return_trip(trip_id: int, session: Session = Depends(get_session)) -> R
         session.add(ret)
         session.commit()
     return RedirectResponse(f"/trips/{ret.id}/edit", status_code=303)
+
+
+@router.post("/trips/{trip_id}/next", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def make_next_trip(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    """The next part of a journey (#560): a new trip from the destination of the last trip of the chain."""
+    journey = chain(_get_trip(session, trip_id))
+    first, last = journey[0], journey[-1]
+    new = Trip(title=f"{first.title[:180]} (part {len(journey) + 1})", origin_text=last.destination_text,
+               destination_text=None, travelers=last.travelers, profile_id=last.profile_id, return_of_id=last.id)
+    session.add(new)
+    session.commit()
+    return RedirectResponse(f"/trips/{new.id}/edit", status_code=303)
 
 
 @router.post("/profiles", dependencies=[Depends(require_login), Depends(verify_csrf)])

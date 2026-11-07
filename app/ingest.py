@@ -205,6 +205,87 @@ def reparse(session: Session, capture: Capture) -> dict | None:
     return {**counts, "rejected": len(result.errors), "unreadable": None}
 
 
+def move_capture(session: Session, capture: Capture, target_trip_id: int) -> dict | None:
+    """Move the offers of a capture into the wrong trip to the trip `target_trip_id` (#579, epic #578).
+
+    The stored raw is parsed again into the target trip, as `reparse` does, because the price rows alone do not give
+    all offers of a capture (an unchanged price adds no row). In the old trip, the price rows of the capture go, then
+    each fare with no price row left, then each itinerary with no fare left; an offer that another capture of the
+    old trip also has stays there (P5). A deleted itinerary gives its pin, booked mark, hidden mark and note to the
+    itinerary of the same journey in the target trip. No price-drop message (not a new capture).
+
+    One transaction: the offers go through `_upsert_one` with no commit per offer, so a failure (also a race with
+    a parallel ingest) rolls back the whole move and leaves both trips as before. None when the capture has no raw
+    or its source has no parser; {"unreadable": reason} when the parser cannot read the raw (nothing changes); else
+    the counts of `reparse` and "removed" (the itineraries deleted from the old trip). `ValueError` when the target
+    trip does not exist or is the trip of the capture."""
+    old_trip_id = capture.trip_id
+    if target_trip_id == old_trip_id:
+        raise ValueError("the capture is already in this trip")
+    if session.get(Trip, target_trip_id) is None:
+        raise ValueError(f"no trip {target_trip_id}")
+    raw, parser = load_raw(capture), get_parser(capture.source)
+    if raw is None or parser is None:
+        return None
+    try:
+        result = parser.parse(raw)
+    except ValueError as e:
+        return {"unreadable": str(e)[:200]}
+    try:
+        flags = _remove_from_old_trip(session, capture.id, old_trip_id)
+        counts = {"created": 0, "updated": 0, "unchanged": 0}
+        for offer in result.offers:
+            counts[_upsert_one(session, target_trip_id, capture.id, offer, capture.source, capture.captured_at)] += 1
+        _give_flags(session, target_trip_id, flags)
+        capture.trip_id = target_trip_id
+        set_result(capture, counts, result.errors, None)
+        capture.mismatch = _trip_mismatch(session, target_trip_id, result.offers)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    log.info("capture %s: moved from trip %s to trip %s", capture.id, old_trip_id, target_trip_id)
+    return {**counts, "rejected": len(result.errors), "unreadable": None, "removed": len(flags)}
+
+
+def _remove_from_old_trip(session: Session, capture_id: int, trip_id: int) -> dict[str, tuple]:
+    """Delete the price rows of the capture in the trip, then the fares with no price row and the itineraries with
+    no fare. A fare that keeps rows gets its latest price from its newest row. Returns the flags (pinned, booked,
+    hidden, note) of each deleted itinerary by its fingerprint. The caller commits."""
+    rows = session.scalars(select(FarePrice).join(Fare).join(Itinerary)
+                           .where(FarePrice.capture_id == capture_id, Itinerary.trip_id == trip_id)).all()
+    fares = list({id(r.fare): r.fare for r in rows}.values())
+    for r in rows:
+        r.fare.prices.remove(r)  # delete-orphan: the row is deleted at the flush
+    itineraries = list({id(f.itinerary): f.itinerary for f in fares}.values())
+    for fare in fares:
+        if fare.prices:
+            newest = max(fare.prices, key=lambda p: (p.captured_at, p.id))
+            fare.latest_price, fare.currency, fare.latest_captured_at = newest.price, newest.currency, newest.captured_at
+        else:
+            fare.itinerary.fares.remove(fare)
+    flags = {}
+    for it in itineraries:
+        if not it.fares:
+            flags[it.fingerprint] = (it.pinned, it.booked, it.hidden, it.note)
+            session.delete(it)
+    session.flush()
+    return flags
+
+
+def _give_flags(session: Session, trip_id: int, flags: dict[str, tuple]) -> None:
+    """Give the flags of the deleted itineraries (`_remove_from_old_trip`) to the same journeys in the trip. A flag
+    that is on stays on, and a note of the target is kept."""
+    if not flags:
+        return
+    for it in session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id,
+                                                      Itinerary.fingerprint.in_(flags))):
+        pinned, booked, hidden, note = flags[it.fingerprint]
+        it.pinned, it.booked, it.hidden = it.pinned or pinned, it.booked or booked, it.hidden or hidden
+        it.note = it.note or note
+    session.flush()
+
+
 def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     """Store the capture of the body (with its raw, if any), then its valid offers; each price row links to the
     capture. The offers of a raw payload come from its parser (`app/parsers`); one bad connection is an entry of

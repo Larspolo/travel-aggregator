@@ -9,7 +9,7 @@ from tests.test_trip_table_sort_filter import bus
 
 def badges(page):
     """The badges of each row, in the order of the rows."""
-    rows = [re.findall(r'<span class="badge">([^<]+)</span>', row) for row in page.split("<tr")[2:]]
+    rows = [re.findall(r'<span class="badge[^"]*">([^<]+)</span>', row) for row in page.split("<tr")[2:]]
     return [r for r in rows if r]
 
 

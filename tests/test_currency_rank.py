@@ -15,7 +15,7 @@ FLAT = {"hour_markup": "0", "transfer_markup": "0"}  # the times do not count: o
 
 
 def _costs(page):
-    return re.findall(r'<td class="cost[^"]*">([^<]*)', page)
+    return re.findall(r'<[a-z]+ class="breakdown">([^<]*)', page)
 
 
 def _setup(client, auth, trip_id, sessions, currency="CHF", rate="1.07"):

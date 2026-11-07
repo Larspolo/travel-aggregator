@@ -5,7 +5,7 @@ from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from app.currency import EUR, to_eur
 from app.models import CurrencyRate, Fare, Itinerary, Trip
@@ -75,38 +75,66 @@ def _trip_row(info: dict, rates: dict[str, Decimal]) -> TripRow:
     )
 
 
-def _journey_total(out: TripRow, ret: TripRow) -> str:
-    """The sum of the two best offers of a journey in EUR (#341, #386); "no total" when one has no price or no rate."""
-    if out.best_price is None or ret.best_price is None or out.no_rate or ret.no_rate:
+def _journey_total(*rows: TripRow) -> str:
+    """The sum of the best offers of the trips of a journey in EUR (#341, #386, #561); "no total" when one trip has
+    no price or no rate."""
+    if any(r.best_price is None or r.no_rate for r in rows):
         return "no total"
-    return f"{EUR} {out.best_price + ret.best_price}"
+    return f"{EUR} {sum(r.best_price for r in rows)}"
+
+
+def _first_of(r: TripRow, by_id: dict[int, TripRow]) -> TripRow:
+    """The first trip of the chain of return_of_id in these rows (a cycle stops the walk)."""
+    seen = {r.id}
+    while r.return_of_id in by_id and r.return_of_id not in seen:
+        r = by_id[r.return_of_id]
+        seen.add(r.id)
+    return r
 
 
 def in_journeys(rows: list[TripRow]) -> list[tuple[str, TripRow, str]]:
-    """The list lines: each outbound trip, then its return trip (kind "return", the note is the outbound title),
-    then the journey total (kind "total", the note is the total). The order of the outbound trips is kept (#341)."""
-    returns = {r.return_of_id: r for r in rows if r.return_of_id is not None}
-    outbound_ids = {r.id for r in rows}
+    """The list lines: each first trip, then the later trips of its chain in sequence, then the journey total (kind
+    "total", the note is the total). A chain of 2 has the kind "return" for its second trip, a longer chain the kind
+    "next"; the note is the title of the previous trip. The order of the first trips is kept (#341, #561)."""
+    by_id = {r.id: r for r in rows}
+    after = {r.return_of_id: r for r in rows if r.return_of_id is not None}
     lines: list[tuple[str, TripRow, str]] = []
     for r in rows:
-        if r.return_of_id is not None and r.return_of_id in outbound_ids:
-            continue  # placed under its outbound trip
+        if r.return_of_id is not None and r.return_of_id in by_id and _first_of(r, by_id) is not r:
+            continue  # placed under the first trip of its chain
+        journey = [r]
+        while (nxt := after.get(journey[-1].id)) is not None and nxt not in journey:
+            journey.append(nxt)
         lines.append(("trip", r, ""))
-        ret = returns.get(r.id)
-        if ret is not None:
-            lines.append(("return", ret, r.title))
-            lines.append(("total", ret, _journey_total(r, ret)))
+        if len(journey) > 1:
+            kind = "return" if len(journey) == 2 else "next"
+            for prev, t in zip(journey, journey[1:]):
+                lines.append((kind, t, prev.title))
+            lines.append(("total", journey[-1], _journey_total(*journey)))
     return lines
 
 
 def archived_journeys(rows: list[TripRow], archived: bool) -> list[tuple[str, TripRow, str]]:
     """The list lines of the archived trips (`archived` True) or of the other trips (#487).
 
-    A return trip stays with its outbound trip: the status of the outbound trip decides for both."""
+    The trips of a journey stay together: the status of the first trip of the chain decides for all (#561)."""
     by_id = {r.id: r for r in rows}
+    return in_journeys([r for r in rows if (_first_of(r, by_id).status == "archived") == archived])
 
-    def group_archived(r: TripRow) -> bool:
-        out = by_id.get(r.return_of_id) if r.return_of_id is not None else None
-        return (out or r).status == "archived"
 
-    return in_journeys([r for r in rows if group_archived(r) == archived])
+def chain(trip: Trip) -> list[Trip]:
+    """The trips of one journey in order (#560): back along return_of to the first trip, then forward along
+    return_trip to the last. A trip that is already in the chain ends the walk (no cycle can hang the page)."""
+    first, back = trip, {trip.id}
+    while first.return_of is not None and first.return_of.id not in back:
+        first = first.return_of
+        back.add(first.id)
+    journey = [first]
+    while (nxt := _linked_after(journey[-1])) is not None and nxt.id not in {t.id for t in journey}:
+        journey.append(nxt)
+    return journey
+
+
+def _linked_after(trip: Trip) -> Trip | None:
+    """The trip that has this trip as return_of (the query, not the relationship: its join is not one-to-one)."""
+    return object_session(trip).scalar(select(Trip).where(Trip.return_of_id == trip.id))

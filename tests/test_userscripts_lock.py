@@ -11,6 +11,7 @@ import app.web.userscripts as userscripts
 
 DIR = Path(__file__).resolve().parents[1] / "userscripts"
 LOCK = Path(__file__).resolve().parent / "data" / "userscript_versions.json"
+GUARDS = ("userscripts/*", "tests/data/userscript_versions.json")   # ship_pr runs this file for these changes
 HINT = ("raise CORE_VERSION (core.js) or @version (*.user.js), then add the new sha256 to "
         "tests/data/userscript_versions.json")
 
