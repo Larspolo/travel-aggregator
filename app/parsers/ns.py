@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult
+from app.parsers import ParseResult, count
 from app.schemas import LegIn, OfferIn, _short_reason
 
 DEFAULT_TZ = "Europe/Amsterdam"
@@ -47,7 +47,9 @@ class NsParser:
         conns = data.get("travelOffers") if isinstance(data, dict) else None
         if not isinstance(conns, list):
             raise ValueError("the nsinternational.com payload has no data.travelOffers list")
-        result = ParseResult()
+        request = raw.get("request") if "response" in raw else None
+        people = request.get("travelers") if isinstance(request, dict) else None
+        result = ParseResult(travelers=count(len(people)) if isinstance(people, list) else None)
         for i, conn in enumerate(conns):
             try:
                 result.offers.extend(self._offers(conn))

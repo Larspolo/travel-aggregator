@@ -5,6 +5,7 @@ time. The currency is the `currency` query parameter of the URL (the response ha
 `transfer_type` (the response has no fare name). The parser sends no request (P1)."""
 
 import hashlib
+import json
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
@@ -12,7 +13,7 @@ from urllib.parse import parse_qs, urlparse
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult
+from app.parsers import ParseResult, count
 from app.schemas import LegIn, OfferIn, _short_reason
 
 BOOKING_URL = "https://www.flixbus.com/"
@@ -30,6 +31,17 @@ def currency(url: Any) -> str:
     if not isinstance(url, str):
         return DEFAULT_CURRENCY
     return (parse_qs(urlparse(url).query).get("currency") or [DEFAULT_CURRENCY])[0].upper()
+
+
+def travelers(url: Any) -> int | None:
+    """The sum of the values of the JSON `products` query parameter (#764): `{"adult":1}` gives 1."""
+    if not isinstance(url, str):
+        return None
+    try:
+        products = json.loads((parse_qs(urlparse(url).query).get("products") or [""])[0])
+        return count(sum(v for v in products.values() if isinstance(v, int))) if isinstance(products, dict) else None
+    except (ValueError, TypeError):
+        return None
 
 
 def external_id(uid: Any) -> str | None:
@@ -52,7 +64,7 @@ class FlixbusParser:
         if not isinstance(trips, list):
             raise ValueError("the flixbus.com payload has no trips list")
         cur = currency(raw.get("url"))
-        result = ParseResult()
+        result = ParseResult(travelers=travelers(raw.get("url")))
         conns = [c for t in trips for c in ((t or {}).get("results") or {}).values()]
         for i, conn in enumerate(conns):
             try:

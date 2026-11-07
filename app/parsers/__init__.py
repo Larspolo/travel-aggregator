@@ -12,6 +12,13 @@ class ParseResult:
 
     offers: list[OfferIn] = field(default_factory=list)
     errors: list[dict[str, Any]] = field(default_factory=list)
+    # The number of travelers of the prices (#764); None when the payload does not tell it.
+    travelers: int | None = None
+
+
+def count(value: Any) -> int | None:
+    """A traveler count from 1 to 9, else None (P5: the payload is untrusted)."""
+    return value if isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 9 else None
 
 
 def get_parser(source: str):
