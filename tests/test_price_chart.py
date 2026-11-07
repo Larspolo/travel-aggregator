@@ -49,7 +49,7 @@ def test_page_has_svg_with_polyline(trip, sessions):  # noqa: F811
     client, trip_id = trip
     it = _itinerary_id(sessions, trip_id)
     _add_later_price(sessions, it, "85.00")
-    r = client.get(f"/trips/{trip_id}/itineraries/{it}/history")
+    r = client.get(f"/trips/{trip_id}/itineraries/{it}/history", headers={"HX-Request": "true"})  # the fragment
     assert r.text.count("<svg") == 1 and r.text.count("<polyline") == 1 and r.text.count("<circle") == 2
     assert "low EUR 85.00" in r.text and "high EUR 89.90" in r.text
     assert r.text.index("<svg") < r.text.index("<table")
