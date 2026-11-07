@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Captures{% if trip %} · {{ trip.title }}{% endif %} · travel-aggregator{% endblock %}
+{% block content %}
+{% if trip %}
+<h1>Captures of {{ trip.title }}</h1>
+<p><a href="/trips/{{ trip.id }}">Back to the trip</a></p>
+{% else %}
+<h1>Captures of all trips</h1>
+{% endif %}
+<p>{% if failed %}<a href="{{ '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' }}">Show all captures</a>{% else %}<a href="{{ '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' }}?failed=1">Only failed captures</a>{% endif %}</p>
+{% for source in failed_sources %}
+<p id="reparse-source-{{ loop.index }}"><button name="source" value="{{ source }}" hx-post="/captures/reparse-failed"
+  hx-vals='{{ {"source": source} | tojson }}' hx-target="#reparse-source-{{ loop.index }}"
+  hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button></p>
+{% endfor %}
+{% if captures %}
+<div class="scroll"><table>
+  <tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Raw</th><th></th></tr>
+  {% for c in captures %}
+  <tr>
+    {% if not trip %}<td><a href="/trips/{{ c.trip_id }}">{{ trip_titles[c.trip_id] }}</a></td>{% endif %}
+    <td>{{ c.captured_at.strftime('%Y-%m-%d %H:%M') }} UTC</td><td>{{ c.source }}</td><td>{{ c.parser_version or "-" }}</td>
+    <td>{{ c.offer_count if c.offer_count is not none else "-" }}</td>
+    <td>{{ c.rejected_count if c.rejected_count is not none else "-" }}</td>
+    {% set failed = c.unreadable or (c.rejected_count or 0) > 0 %}
+    {% if failed %}
+    <td class="capture-failed"><details><summary>failed</summary>
+      <ul>{% if c.unreadable %}<li>{{ c.unreadable }}</li>{% endif %}{% for e in c.errors_json or [] %}<li>offer {{ e.index }}: {{ e.reason }}</li>{% endfor %}</ul>
+    </details></td>
+    {% else %}
+    <td>{{ "-" if c.offer_count is none else "ok" }}</td>
+    {% endif %}
+    <td>{{ "yes" if c.raw_gz is not none else "no" }}</td>
+    <td id="reparse-{{ c.id }}">{% if c.raw_gz is not none %}<button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
+      hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse capture</button>{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% elif failed %}
+<p>No failed captures.</p>
+{% else %}
+<p>No captures yet.</p>
+{% endif %}
+{% endblock %}

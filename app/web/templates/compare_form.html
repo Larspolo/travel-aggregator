@@ -1,0 +1,7 @@
+{# The form that sends the ticked rows of the trip table to the compare page (#293). The boxes are linked to it by the
+   HTML attribute form="compare"; an htmx slider change swaps it out of band, so its weights stay the active ones. #}
+<form id="compare" method="get" action="/trips/{{ trip.id }}/compare"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% for k, v in sort_query.items() if k in weights.__dataclass_fields__ or k == "profile" %}<input type="hidden" name="{{ k }}" value="{{ v }}">
+  {% endfor %}
+  <button type="submit">Compare</button>
+</form>

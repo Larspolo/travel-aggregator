@@ -94,3 +94,17 @@ def sessions(migrated_url):
     yield maker
     app.dependency_overrides.pop(get_session, None)
     engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def _reset_limiters():
+    """Each test starts with empty limiters: the limiters of #145 and #412 are global state, and all TestClient
+    requests come from one address, so 20 bad tokens of earlier tests locked the API for a later test (#521)."""
+    from app.auth import api_limiter, login_limiter, token_limiter
+
+    limiters = (login_limiter, token_limiter, api_limiter)
+    for limiter in limiters:
+        limiter.reset()
+    yield
+    for limiter in limiters:
+        limiter.reset()

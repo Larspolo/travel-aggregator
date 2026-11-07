@@ -5,3 +5,4 @@ pytest
 pytest-xdist  # -n auto
 ruff
 playwright    # slow tests (pytest -m slow); the cloud has the browser at /opt/pw-browsers/chromium
+pyyaml  # tests/test_production_compose.py (the compose files)
