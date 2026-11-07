@@ -9,5 +9,8 @@
   },
   "ns.user.js": {
     "1.0.0": "2e3860f2ffd61cd3bc95546d32738e121a010138013c416c8786a90baac754b5"
+  },
+  "flixbus.user.js": {
+    "1.0.0": "e60bd3cf8cc353a20b75a9ce785dc83640dbb33395ac9f57108041846b78350c"
   }
 }
