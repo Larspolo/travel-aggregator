@@ -28,3 +28,8 @@
 {% macro icon(name, label=none) -%}
 <svg class="icon"{% if label %} role="img" aria-label="{{ label }}"{% else %} aria-hidden="true"{% endif %}><use href="/static/icons.svg#{{ name }}"></use></svg>
 {%- endmacro %}
+
+{# A "1st" badge for a 1st class fare (#692). A fare name with "1st class" in it (bahn.de) already says it. #}
+{% macro class_badge(fare) -%}
+{%- if fare.travel_class == "first" and "1st" not in (fare.fare_name or "") %} <span class="badge first-class" title="1st class">1st</span>{% endif -%}
+{%- endmacro %}

@@ -50,7 +50,7 @@
         </div>
         <div class="fares">
         {% for f in it.fares | by_eur(rates) %}
-          <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}</span> <strong>{{ f.latest_price | money(f.currency) }}</strong>
+          <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}{{ ui.class_badge(f) }}</span> <strong>{{ f.latest_price | money(f.currency) }}</strong>
             {% if f.booking_url %}<a class="btn" href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">{{ ui.icon("arrow-right") }}Book</a>{% endif %}</div>
         {% endfor %}
         </div>
