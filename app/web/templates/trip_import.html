@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Import trip – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Import trip", back=("/", "Trips")) }}
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<form class="card" method="post" action="/trips/import" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field wide"><label for="i-file">JSON export file</label><input id="i-file" type="file" name="file" accept=".json" required></div>
+    <div class="field wide"><label for="i-target">Import into</label><select id="i-target" name="target">
+      <option value="">A new trip</option>
+      {% for t in trips %}<option value="{{ t.id }}" data-match="{{ match_key(t.title, t.origin_text, t.destination_text, t.date_from, t.date_to) }}"{% if selected == t.id %} selected{% endif %}>{{ t.title }}</option>{% endfor %}
+    </select></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Import</button>
+    <a class="btn btn-ghost" href="/">Cancel</a>
+  </div>
+</form>
+<script src="/static/trip_import.js" defer></script>
+{% endblock %}

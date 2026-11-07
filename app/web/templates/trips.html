@@ -4,6 +4,7 @@
 {% block content %}
 {% call ui.page_header("Archived trips" if archived else "Trips", back=("/", "Trips") if archived else none) %}
   {% if not archived and archived_count %}<a class="btn" href="/?archived=1">Archived trips ({{ archived_count }})</a>{% endif %}
+  <a class="btn" href="/trips/import">{{ ui.icon("upload") }}Import trip</a>
   <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
 {% endcall %}
 {% if failing %}

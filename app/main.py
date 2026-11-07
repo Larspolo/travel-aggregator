@@ -11,7 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.api import health, ingest, trips
 from app.config import get_settings
 from app.schemas import MAX_BODY_BYTES
-from app.web import export, manual, pages, reparse, sources, userscripts
+from app.web import export, manual, pages, reparse, sources, trip_import, userscripts
 
 app = FastAPI(title="travel-aggregator")
 # With no SECRET_KEY, a random key: the sessions then end at each restart.
@@ -38,6 +38,7 @@ async def limit_body(request: Request, call_next):
 app.include_router(health.router, prefix="/api")
 app.include_router(ingest.router, prefix="/api")
 app.include_router(trips.router, prefix="/api")
+app.include_router(trip_import.router)  # before pages: /trips/{trip_id} also matches /trips/import
 app.include_router(pages.router)
 app.include_router(manual.router)
 app.include_router(sources.router)
