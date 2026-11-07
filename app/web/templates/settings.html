@@ -8,29 +8,51 @@
 {% endcall %}
 <form method="post" action="/settings">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-  <label>Keep raw captures for (days)
-    <input name="retention" type="number" min="0" max="{{ max_days }}" step="1" required value="{{ retention_days }}"></label>
-  <label>Message on a price drop of a pinned fare
-    <select name="notify_channel">{% for c in channels %}<option value="{{ c }}"{% if c == channel %} selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
-  <label>ntfy topic URL
-    <input name="ntfy_url" type="url" pattern="https://.*" placeholder="https://ntfy.sh/your-secret-topic" value="{{ ntfy_url }}"></label>
-  <label>E-mail address
-    <input name="notify_email" type="email" value="{{ notify_email }}"></label>
-  {% if not smtp_ready %}<p class="muted">E-mail needs SMTP_HOST on the server.</p>{% endif %}
-  <button type="submit">Save</button>
+  {% call ui.card("Captures") %}
+  <div class="form-grid">
+    <div class="field">
+      <label for="retention">Keep raw captures for (days)</label>
+      <input id="retention" name="retention" type="number" min="0" max="{{ max_days }}" step="1" required value="{{ retention_days }}">
+      <p class="help">0 keeps all captures. Each ingest deletes the older captures; the offers and their prices stay.</p>
+    </div>
+  </div>
+  {% endcall %}
+  {% call ui.card("Price-drop messages") %}
+  <div class="form-grid">
+    <div class="field wide">
+      <label for="notify_channel">Message on a price drop of a pinned fare</label>
+      <select id="notify_channel" name="notify_channel">{% for c in channels %}<option value="{{ c }}"{% if c == channel %} selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+    </div>
+    <div class="field">
+      <label for="ntfy_url">ntfy topic URL</label>
+      <input id="ntfy_url" name="ntfy_url" type="url" pattern="https://.*" placeholder="https://ntfy.sh/your-secret-topic" value="{{ ntfy_url }}">
+      <p class="help">For the channel ntfy. Use a secret topic name.</p>
+    </div>
+    <div class="field">
+      <label for="notify_email">E-mail address</label>
+      <input id="notify_email" name="notify_email" type="email" value="{{ notify_email }}">
+      {% if not smtp_ready %}<p class="help">E-mail needs SMTP_HOST on the server.</p>{% endif %}
+    </div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Save</button></div>
+  {% endcall %}
 </form>
-<p class="muted">0 keeps all captures. Each ingest deletes the older captures; the offers and their prices stay.</p>
-<h2>Backups</h2>
+{% call ui.card("Backups") %}
 {% if backup %}<p>Newest backup: {{ backup[0].strftime("%Y-%m-%d %H:%M") }} UTC, {{ "%.1f"|format(backup[1] / 1048576) }} MB ({{ backup[1] }} bytes).</p>
-{% if backup_old %}<p role="alert" class="badge">The newest backup is older than 48 hours.</p>{% endif %}
-{% else %}<p role="alert" class="badge">No backup yet.</p>{% endif %}
-<h2>Web Push</h2>
+{% if backup_old %}<p role="alert" class="chip warn backup-state">The newest backup is older than 48 hours.</p>
+{% else %}<p class="chip good backup-state">Recent backup</p>{% endif %}
+{% else %}<p role="alert" class="chip warn backup-state">No backup yet.</p>{% endif %}
+{% endcall %}
+{% call ui.card("Web Push") %}
 <div id="push" data-key="{{ vapid_public_key }}" data-csrf="{{ csrf_token(request) }}">
   <p>The channel webpush sends the message to each device that has push on ({{ push_count }} now).</p>
-  <button type="button" id="push-on">Turn on push on this device</button>
-  <button type="button" id="push-off">Remove push from this device</button>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="button" id="push-on">Turn on push on this device</button>
+    <button class="btn" type="button" id="push-off">Remove push from this device</button>
+  </div>
   <p id="push-status" class="muted" role="status">{% if not vapid_public_key %}Push needs VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT on the server.{% endif %}</p>
   <p class="muted">On an iPhone or iPad, Web Push works only in an app on the home screen: in Safari, tap Share, then "Add to Home Screen", and open this page from there.</p>
 </div>
+{% endcall %}
 <script src="/static/push.js" defer></script>
 {% endblock %}

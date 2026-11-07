@@ -208,6 +208,7 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 .btn-danger { color: var(--danger); border-color: var(--danger); }
 .btn-danger:hover { border-color: var(--danger); }
 .btn-danger.confirm { background: var(--danger); color: var(--accent-text); }
+.btn-icon { width: 32px; min-height: 32px; padding: 0; justify-content: center; }
 .field { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .field label { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
 .field input:not([type=checkbox]):not([type=radio]), .field select, .field textarea {
@@ -220,6 +221,9 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 @media (min-width: 40rem) { .form-grid { grid-template-columns: 1fr 1fr; } }
 .form-grid .wide { grid-column: 1 / -1; }
 .form-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
+/* == Settings == */
+.inline-form { display: inline; margin: 0; }
+.card .table-actions { text-align: right; }
 /* == Trips list == */
 /* == Login == */
 .login { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-height: 70vh; padding: var(--space-4) 0; }
@@ -234,6 +238,7 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 @media (max-width: 40rem) {
   .card { padding: var(--space-4); }
   .btn { min-height: 44px; }
+  .btn-icon { width: 44px; }
   .page-header { flex-direction: column; align-items: stretch; }
 }
 @media (prefers-reduced-motion: reduce) {
