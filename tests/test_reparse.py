@@ -87,8 +87,8 @@ def test_capture_with_no_raw_gives_a_clear_message(setup, sessions):
     with sessions() as s:
         s.add(Capture(trip_id=trip_id, source="bahn.de", captured_at=datetime.now(UTC)))
         s.commit()
-    page = f"/trips/{trip_id}/captures"
-    r = c.post(f"/captures/{_capture_id(sessions, trip_id)}/reparse", headers={"X-CSRF-Token": _csrf(c, page)})
+    # The button is not shown for a capture without raw data (#451): the token comes from the login page.
+    r = c.post(f"/captures/{_capture_id(sessions, trip_id)}/reparse", headers={"X-CSRF-Token": _csrf(c, "/login")})
     assert r.status_code == 200 and "no raw data" in r.text
 
 
