@@ -28,6 +28,7 @@ from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.history import chart
+from app.search_links import links_for_trip
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
@@ -407,6 +408,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     mark_seen(session, trip_id)
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
+    context["search_links"] = links_for_trip(trip)  # the search links per source (#318)
     return templates.TemplateResponse(request, "trip.html", context)
 
 

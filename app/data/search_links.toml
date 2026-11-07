@@ -1,0 +1,33 @@
+# Search link templates per source (#318, from the captures of #316).
+#
+# template: the search URL. The fields {from}, {to} and {date} get the values of a trip, each URL-encoded.
+# date_format: the strftime format of the trip date for that site.
+# places: the value of each trip place for that site (a station name, a station code or a city ID).
+#         A place with no value gives no link for that source.
+
+[bahn]
+name = "bahn.de"
+template = "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so={from}&zo={to}&hd={date}&kl=2&hza=D&s=true"
+date_format = "%Y-%m-%dT00:00:00"
+
+[bahn.places]
+Amsterdam = "Amsterdam Centraal"
+Berlin = "Berlin Hbf"
+
+[ns]
+name = "NS International"
+template = "https://www.nsinternational.com/en/traintickets-v3/#/search/{from}/{to}/{date}?pax=A"
+date_format = "%Y%m%d"
+
+[ns.places]
+Amsterdam = "NLASC"
+Berlin = "DEBHF"
+
+[flixbus]
+name = "Flixbus"
+template = "https://shop.flixbus.co.uk/search?departureCity={from}&arrivalCity={to}&rideDate={date}&adult=1&_locale=en_GB"
+date_format = "%d.%m.%Y"
+
+[flixbus.places]
+Amsterdam = "40dde3b8-8646-11e6-9066-549f350fcb0c"
+Berlin = "40d8f682-8646-11e6-9066-549f350fcb0c"
