@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 8;
+const CORE_VERSION = 9;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -51,6 +51,7 @@ const CORE_VERSION = 8;
     controls.innerHTML = `<label>Attach to trip: <select class="trip"></select></label>
       <button type="button" class="new-trip">+ new trip</button>
       <label><input type="checkbox" class="autosend"> auto-send</label>
+      <label><input type="checkbox" class="autotrip"> auto-select trip</label>
       <button type="button" class="send">Send</button>
       <button type="button" class="set-server">Server URL</button>
       <button type="button" class="set-token">API token</button>`;
@@ -69,6 +70,7 @@ const CORE_VERSION = 8;
       select: controls.querySelector(".trip"),
       newTrip: controls.querySelector(".new-trip"),
       autosend: controls.querySelector(".autosend"),
+      autotrip: controls.querySelector(".autotrip"),
       sendButton: controls.querySelector(".send"),
       serverButton: controls.querySelector(".set-server"),
       tokenButton: controls.querySelector(".set-token"),
@@ -105,6 +107,10 @@ const CORE_VERSION = 8;
     return Number.isInteger(id) && id > 0 ? id : null;
   };
   const autoSend = () => gm.getValue("autosend", true) !== false;
+  // "Auto-select trip" (#721): the server stores a capture into the trip that matches it (auto_trip, #719).
+  const autoTrip = () => gm.getValue("autotrip", true) !== false;
+  // The trip that the last response suggested (#720); the next "+ new trip" uses it. Null when there is none.
+  let suggestion = null;
   // The offers of a payload; a raw capture asks the counter of its site userscript (core.countRaw).
   const count = (payload) => {
     if (!payload) return 0;
@@ -116,13 +122,18 @@ const CORE_VERSION = 8;
   };
   // The warning of the ingest response (#557): the offers do not match the trip. Null when there is none.
   const warningOf = (r) => {
-    try {
-      const w = JSON.parse(String(r.responseText || "{}")).warning;
-      return w ? String(w) : null;
-    } catch (e) {
-      return null;
-    }
+    const w = responseOf(r).warning;
+    return w ? String(w) : null;
   };
+  // The parsed ingest response; {} when it is not a JSON object.
+  function responseOf(r) {
+    try {
+      const v = JSON.parse(String(r.responseText || "{}"));
+      return v && typeof v === "object" ? v : {};
+    } catch (e) {
+      return {};
+    }
+  }
   let busy = false;
 
   // POST one payload to the configured server only (P1). Resolves "ok", "retry" or "drop".
@@ -144,7 +155,7 @@ const CORE_VERSION = 8;
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         data: JSON.stringify(payload),
         onload: (r) => {
-          if (r.status >= 200 && r.status < 300) { core.sent(count(payload), warningOf(r)); resolve("ok"); }
+          if (r.status >= 200 && r.status < 300) { core.sent(count(payload), warningOf(r), responseOf(r)); resolve("ok"); }
           else if (r.status === 401) { panel.setStatus("Check the API token", "error"); resolve("retry"); }
           else if (r.status === 429) { panel.setStatus("Server busy: kept in the queue", "error"); resolve("retry"); }
           else if (r.status >= 500) fail();
@@ -217,9 +228,11 @@ const CORE_VERSION = 8;
   }
 
   async function newTrip() {
-    const title = root.prompt("Title of the new trip", "");
+    const suggested = suggestion;
+    const title = root.prompt("Title of the new trip", suggested ? String(suggested.title || "") : "");
     if (title === null || !title.trim()) return;
-    const trip = await trips("POST", { title: title.trim() });
+    suggestion = null;
+    const trip = await trips("POST", Object.assign({}, suggested || {}, { title: title.trim() }));
     if (!trip || !trip.id) return;
     addOption(trip);
     panel.select.value = String(trip.id);
@@ -228,6 +241,8 @@ const CORE_VERSION = 8;
 
   panel.select.addEventListener("change", () => gm.setValue("trip", Number(panel.select.value) || 0));
   panel.newTrip.addEventListener("click", newTrip);
+  panel.autotrip.checked = autoTrip();
+  panel.autotrip.addEventListener("change", () => gm.setValue("autotrip", panel.autotrip.checked));
   panel.autosend.checked = autoSend();
   panel.autosend.addEventListener("change", () => {
     gm.setValue("autosend", panel.autosend.checked);
@@ -316,7 +331,24 @@ const CORE_VERSION = 8;
     server: () => config().server,
     panel,
     report(n) { panel.setStatus(`Captured ${n} offers`, "info"); },
-    sent(n, warning) {
+    sent(n, warning, response) {
+      const resp = response || {};
+      if (resp.suggestion && typeof resp.suggestion === "object") {
+        suggestion = resp.suggestion;  // #720: no trip matches; "+ new trip" fills in this trip
+        panel.setStatus(`Captured ${n} offers → sent ✓. No trip matches: + new trip`, "warn");
+        return;
+      }
+      const id = Number(resp.trip_id);
+      if (Number.isInteger(id) && id > 0 && id !== tripId()) {
+        // #721: the server chose another trip: select it in the dropdown
+        if (!Array.from(panel.select.options).some((o) => o.value === String(id))) {
+          addOption({ id, title: resp.trip_title || `Trip ${id}` });
+        }
+        panel.select.value = String(id);
+        gm.setValue("trip", id);
+        panel.setStatus(`Captured ${n} offers → sent to ${resp.trip_title || `trip ${id}`} ✓`, "ok");
+        return;
+      }
       if (warning) panel.setStatus(`Captured ${n} offers → sent ✓, but these offers do not match the trip`, "warn");
       else panel.setStatus(`Captured ${n} offers → sent ✓`, "ok");
     },
@@ -328,7 +360,7 @@ const CORE_VERSION = 8;
     // Queue one payload for the chosen trip; send it now only when auto-send is on.
     send(payload) {
       const id = tripId();
-      const item = id ? Object.assign({}, payload, { trip_id: id }) : payload;
+      const item = Object.assign({}, payload, id ? { trip_id: id } : {}, autoTrip() ? { auto_trip: true } : {});
       gm.setValue("queue", loadQueue().concat([item]));
       if (!autoSend()) {
         panel.setStatus(`Captured ${count(item)} offers: ${loadQueue().length} waiting, press Send`, "info");
