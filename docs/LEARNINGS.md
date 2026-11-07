@@ -11,3 +11,4 @@ The agent writes here what it learned the hard way. Each line must save time in 
 - `addopts` of `pyproject.toml` has `-q`: do not add `-q` to pytest (`-qq` hides the "N passed" line). A Playwright script outside the tests: `chromium.launch(executable_path="/opt/pw-browsers/chromium")`.
 - A Playwright touch `tap()` returns before the click of the gesture: wait for its result (`wait_for_function`), never read it once (#508).
 - A trip-page layout: at 1280 px the results column is only about 935 px (the weights panel takes 18 rem). Measure the cell widths with Playwright before the screenshots (#627: 7 columns gave the route cell 97 px).
+- A `clip-path` on an element also clips its absolutely positioned children and their taps: put a full-width bar trick (`box-shadow` + `clip-path`) on a `::before` layer, and test a dropdown with `elementFromPoint`, not only with its box (#688).
