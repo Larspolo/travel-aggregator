@@ -70,3 +70,12 @@ td.actions { white-space: nowrap; }
 td.actions form { display: inline; }
 button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 @media (max-width: 40rem) { button.icon { min-width: 40px; min-height: 40px; } }
+.panel form.weights { display: flex; flex-direction: column; gap: var(--space-2); }
+.panel label { display: block; }
+.panel details, .panel fieldset { padding: var(--space-2); }
+.panel fieldset { margin: var(--space-2) 0; }
+.panel input[type=number], .panel input[type=time], .panel input[type=text], .panel select { width: 100%; box-sizing: border-box; }
+.results { min-width: 0; }
+@media (min-width: 64rem) {
+  .trip-layout { display: grid; grid-template-columns: 18rem minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+}
