@@ -8,7 +8,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.currency import load_rates, to_eur
-from app.models import Fare, Itinerary
+from app.models import Fare, Itinerary, Leg
 
 
 @dataclass(frozen=True)
@@ -23,19 +23,22 @@ class Drop:
     amount: Decimal
     depart_at: datetime | None
     mode_summary: str | None
+    depart_offset_min: int | None = None  # the original offset of the first leg: the local time (#448)
 
 
 def trip_drops(session: Session, trip_id: int) -> list[Drop]:
     """The fares of the pinned, shown itineraries that are cheaper than at the last view, the largest drop first."""
     amount = Fare.seen_price - Fare.latest_price
+    first_offset = select(Leg.depart_offset_min).where(Leg.itinerary_id == Itinerary.id).order_by(Leg.seq).limit(1)
     rows = session.execute(
-        select(Fare, Itinerary.depart_at, Itinerary.mode_summary, amount.label("amount"))
+        select(Fare, Itinerary.depart_at, Itinerary.mode_summary, amount.label("amount"),
+               first_offset.scalar_subquery().label("offset"))
         .join(Itinerary, Fare.itinerary_id == Itinerary.id)
         .where(Itinerary.trip_id == trip_id, Itinerary.pinned, Itinerary.hidden.is_(False),
                Fare.seen_price.is_not(None), Fare.latest_price < Fare.seen_price)
         .order_by(amount.desc(), Fare.id)).all()
-    return [Drop(f.itinerary_id, f.id, f.source, f.fare_name, f.currency, f.seen_price, f.latest_price, a, d, m)
-            for f, d, m, a in rows]
+    return [Drop(f.itinerary_id, f.id, f.source, f.fare_name, f.currency, f.seen_price, f.latest_price, a, d, m, o)
+            for f, d, m, a, o in rows]
 
 
 def drops_by_trip(session: Session) -> dict[int, tuple[str, Decimal]]:
