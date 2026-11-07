@@ -19,7 +19,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [ ] `capture:userscript` Shared userscript core: floating panel, trip dropdown, "+ new trip", auto-send on by default, queue and retry, config menu, `GM_xmlhttpRequest`; the API tokens page (create, revoke, config snippet)
   - The panel shows "Captured N offers → sent ✓" or a clear error
   - Payloads that were not sent go again later, with no lost offer
-- [ ] `capture:bahn` bahn.de: JSON interception, server parser, trimmed fixtures, fail-soft parsing, "reparse capture"
+- [x] `capture:bahn` (#151) bahn.de: JSON interception, server parser, trimmed fixtures, fail-soft parsing, "reparse capture"
   - A search on bahn.de shows all fare classes on the trip page within seconds, with no manual step
   - After a parser fix, "reparse" of a stored capture gives the correct offers
 - [ ] `capture:ns` NS International: userscript, server parser, trimmed fixtures
@@ -59,7 +59,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [ ] `trip:history` A price history chart per fare
   - Two captures with different prices show as two points of the chart
 - [ ] `trip:compare` Compare 2 to 4 offers side by side
-- [ ] `trip:mobile` A responsive layout of all pages
+- [x] `trip:mobile` (#310) A responsive layout of all pages
   - All pages work at a phone width of 390 px with no horizontal scroll (agents check with screenshots; the owner then tests on a phone)
 - [ ] `trip:links` Search links per source, filled with the values of the trip (they only open a page; they fetch nothing)
 
