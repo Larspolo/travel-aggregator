@@ -46,6 +46,7 @@
     <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
     <label><input type="checkbox" name="hide_stale" value="true"{% if view.hide_stale %} checked{% endif %}> hide stale</label>
     <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
+    <input type="hidden" name="day" value="{{ view.day }}">
     <label class="field">Mode <select name="mode"><option value="">All</option>
       {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
     <label class="field">Earliest departure <input type="time" name="earliest_depart" value="{{ view.earliest_depart }}"></label>
