@@ -2,6 +2,7 @@
 untrusted (P5)."""
 
 import dataclasses
+import inspect
 import math
 import os
 import re
@@ -442,6 +443,23 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     return templates.TemplateResponse(request, "trip.html", context)
 
 
+def trip_view(**params) -> dict:
+    """The query values of the trip page (sort, filters, weights) for a POST of a row action (#666)."""
+    return params
+
+
+trip_view.__signature__ = inspect.signature(trip_page).replace(parameters=[
+    p for name, p in inspect.signature(trip_page).parameters.items() if name not in ("request", "trip_id", "session")])
+
+
+def _rows_or_redirect(request: Request, trip_id: int, session: Session, view: dict) -> Response:
+    """An htmx row action gets the table with the new state, so the page keeps its scroll position (#666); a normal
+    POST (no JavaScript) gets the redirect to the trip page."""
+    if request.headers.get("HX-Request"):
+        return trip_page(request, trip_id, session, **view)
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
 def _tokens_page(request: Request, session: Session, new_token: str | None = None, code: int = 200) -> HTMLResponse:
     tokens = session.scalars(select(ApiToken).order_by(ApiToken.created_at.desc(), ApiToken.id.desc())).all()
     server_url = str(request.base_url).rstrip("/")
@@ -453,13 +471,14 @@ def _tokens_page(request: Request, session: Session, new_token: str | None = Non
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/pin",
              dependencies=[Depends(require_login), Depends(verify_csrf)])
-def toggle_pin(trip_id: int, itinerary_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+def toggle_pin(request: Request, trip_id: int, itinerary_id: int, session: Session = Depends(get_session),
+             view: dict = Depends(trip_view)) -> Response:
     it = session.get(Itinerary, itinerary_id)
     if it is None or it.trip_id != trip_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
     it.pinned = not it.pinned
     session.commit()
-    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+    return _rows_or_redirect(request, trip_id, session, view)
 
 
 @router.post("/trips/{trip_id}/return", dependencies=[Depends(require_login), Depends(verify_csrf)])
@@ -574,13 +593,14 @@ def delete_profile_page(profile_id: int, session: Session = Depends(get_session)
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/booked",
              dependencies=[Depends(require_login), Depends(verify_csrf)])
-def toggle_booked(trip_id: int, itinerary_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+def toggle_booked(request: Request, trip_id: int, itinerary_id: int, session: Session = Depends(get_session),
+             view: dict = Depends(trip_view)) -> Response:
     it = session.get(Itinerary, itinerary_id)
     if it is None or it.trip_id != trip_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
     it.booked = not it.booked
     session.commit()
-    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+    return _rows_or_redirect(request, trip_id, session, view)
 
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/note",
@@ -614,13 +634,14 @@ def price_history(trip_id: int, itinerary_id: int, request: Request,
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/hide",
              dependencies=[Depends(require_login), Depends(verify_csrf)])
-def toggle_hide(trip_id: int, itinerary_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+def toggle_hide(request: Request, trip_id: int, itinerary_id: int, session: Session = Depends(get_session),
+             view: dict = Depends(trip_view)) -> Response:
     it = session.get(Itinerary, itinerary_id)
     if it is None or it.trip_id != trip_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
     it.hidden = not it.hidden
     session.commit()
-    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+    return _rows_or_redirect(request, trip_id, session, view)
 
 
 @router.get("/tokens", response_class=HTMLResponse, dependencies=[Depends(require_login)])
