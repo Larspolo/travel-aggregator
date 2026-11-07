@@ -36,7 +36,7 @@
   <button type="submit">Use profile</button>
 </form>
 {% endif %}
-<form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-trigger="input changed delay:150ms, change"
+<form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-indicator="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
   {% if sort_query.profile %}<input type="hidden" name="profile" value="{{ sort_query.profile }}">{% endif %}
   <label class="slider"><span>Hour markup €</span><output name="hour_value">{{ weights.hour_markup }}</output>
