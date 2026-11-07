@@ -26,8 +26,8 @@
     <td>{{ "-" if c.offer_count is none else "ok" }}</td>
     {% endif %}
     <td>{{ "yes" if c.raw_gz is not none else "no" }}</td>
-    <td id="reparse-{{ c.id }}"><button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
-      hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse capture</button></td>
+    <td id="reparse-{{ c.id }}">{% if c.raw_gz is not none %}<button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
+      hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse capture</button>{% endif %}</td>
   </tr>
   {% endfor %}
 </table></div>
