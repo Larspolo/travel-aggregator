@@ -6,6 +6,8 @@ is the higher point, so the lower y). The prices stay `Decimal`; only the coordi
 from decimal import Decimal
 from typing import Any
 
+from app.money import money
+
 PAD = 6.0
 
 
@@ -31,7 +33,7 @@ def chart(fares: list[Any], width: float = 320, height: float = 100) -> dict:
             x = _scale(p.captured_at.timestamp(), t0, t1, width)
             y = height - _scale(float(p.price), float(low), float(high), height)
             dots.append({"x": round(x, 1), "y": round(y, 1),
-                         "title": f"{p.captured_at:%Y-%m-%d %H:%M}: {p.currency} {p.price:.2f}"})
+                         "title": f"{p.captured_at:%Y-%m-%d %H:%M}: {money(p.price, p.currency)}"})
         if dots:
             name = f"{f.source}: {f.fare_name or ''}"
             lines.append({"name": name, "points": " ".join(f"{d['x']},{d['y']}" for d in dots), "dots": dots})

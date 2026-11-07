@@ -32,7 +32,7 @@ def test_the_lowest_price_and_the_shortest_duration_are_marked(trip, sessions): 
     ids = _ids(sessions, trip_id)
     page = client.get(f"/trips/{trip_id}/compare", params={"it": [ids[(472, 1, "ICE 105")], ids[(240, 0, "ICE 9")]]}).text
     # the first column is the 89.90 offer (472 min), the second the direct 150.00 (240 min)
-    assert len(_best_cells(page, "Price")) == 1 and "EUR 89.90" in page.split("Price")[1][:200]
+    assert len(_best_cells(page, "Price")) == 1 and "€89.90" in page.split("Price")[1][:200]
     assert len(_best_cells(page, "Duration")) == 1
 
 

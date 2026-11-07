@@ -58,7 +58,7 @@ def test_two_captures_are_two_chart_points_and_two_rows_newest_first(trip, sessi
     assert chart_part.count('<polyline ') == 1
     # the table: two prices, the newest (85.00) first
     assert table.count("<tr><td>") == 2
-    assert table.index("EUR 85.00") < table.index("EUR 89.90")
+    assert table.index("€85.00") < table.index("€89.90")
 
 
 def test_the_trip_page_shows_the_latest_price(trip, sessions):

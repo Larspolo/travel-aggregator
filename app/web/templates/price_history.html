@@ -10,8 +10,8 @@
     {% endfor %}
   </g>
   {% endfor %}
-  <text x="0" y="{{ chart.height + 12 }}" font-size="10">low {{ chart.currency }} {{ "%.2f" | format(chart.low) }}</text>
-  <text x="{{ chart.width }}" y="{{ chart.height + 12 }}" font-size="10" text-anchor="end">high {{ chart.currency }} {{ "%.2f" | format(chart.high) }}</text>
+  <text x="0" y="{{ chart.height + 12 }}" font-size="10">low {{ chart.low | money(chart.currency) }}</text>
+  <text x="{{ chart.width }}" y="{{ chart.height + 12 }}" font-size="10" text-anchor="end">high {{ chart.high | money(chart.currency) }}</text>
 </svg>
 {% endif %}
 {% for fare in fares %}
@@ -20,7 +20,7 @@
   <caption>{{ fare.source }}: {{ fare.fare_name or "" }}</caption>
   <thead><tr><th>Captured</th><th class="price">Price</th></tr></thead>
   {% for p in fare.prices | sort(attribute="captured_at", reverse=true) %}
-  <tr><td>{{ p.captured_at.strftime("%Y-%m-%d %H:%M") }}</td><td class="price">{{ p.currency }} {{ "%.2f" | format(p.price) }}</td></tr>
+  <tr><td>{{ p.captured_at.strftime("%Y-%m-%d %H:%M") }}</td><td class="price">{{ p.price | money(p.currency) }}</td></tr>
   {% endfor %}
 </table>
 </div></section>
