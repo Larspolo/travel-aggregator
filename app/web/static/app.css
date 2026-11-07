@@ -200,6 +200,7 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 .chip.danger { color: var(--danger); border-color: var(--danger); }
 .empty { text-align: center; color: var(--muted); padding: var(--space-6) var(--space-4); }
 .empty p { margin: 0 0 var(--space-4); }
+.empty .toolbar { justify-content: center; }
 /* == Forms (components) == */
 .btn {
   display: inline-flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: 0 var(--space-4);
@@ -232,6 +233,15 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 /* == Settings == */
 .inline-form { display: inline; margin: 0; }
 .card .table-actions { text-align: right; }
+/* == Profiles and places == */
+.item-list { list-style: none; margin: 0; padding: 0; }
+.item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+.item:last-child { border-bottom: 0; }
+.item-main { min-width: 0; overflow-wrap: anywhere; }
+.item-facts { margin: var(--space-1) 0 0; color: var(--muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.item-actions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-2); }
+.item-actions .rename { display: flex; align-items: flex-end; gap: var(--space-2); }
 /* == Trips list == */
 .trip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: var(--space-4); margin-bottom: var(--space-5); }
 .trip-grid .card { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
