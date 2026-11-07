@@ -50,7 +50,7 @@ def all_captures_page(request: Request, failed: bool = False, source: str | None
     trip_titles = {t.id: t.title for t in session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()}
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed,
-                                       "source": source, "sources": source_health(session), "now": datetime.now(timezone.utc),
+                                       "source": source, "sources": [] if failed or source else source_health(session), "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session, source) if failed else []})
 
