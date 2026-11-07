@@ -12,5 +12,8 @@
   },
   "flixbus.user.js": {
     "1.0.0": "e60bd3cf8cc353a20b75a9ce785dc83640dbb33395ac9f57108041846b78350c"
+  },
+  "kiwi.user.js": {
+    "1.0.0": "b1637abf6eb43024f8c933a573c23729b2b8d2db511a23b1d2a76a22017d3b11"
   }
 }
