@@ -283,7 +283,8 @@ The sliders, the filter fields and the buttons of the trip page are large enough
 
 ### Compare offers in the trip table
 
-The table of `/trips/{id}` has one row per offer. Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
+The table of `/trips/{id}` has one row per journey. The same train from bahn.de and NS International shows once, with the fares of both sources in its "Legs and fares". Two offers are one journey when their modes and service numbers are the same, and their first departure and last arrival are at the same UTC time (the carrier and the times of the legs between do not count). The pin, hide, booked, note and price history are per journey.
+Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
 An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on).
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
 If the newest capture is older than the stale hours, the row also shows "stale, price may have changed". See "Stale offers".
