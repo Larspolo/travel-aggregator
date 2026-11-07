@@ -187,6 +187,14 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 .form-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
 /* == Trips list == */
 /* == Login == */
+.login { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-height: 70vh; padding: var(--space-4) 0; }
+.login-brand { margin: 0; }
+.login-brand .brand { font-size: var(--text-lg); font-weight: 700; color: var(--text); text-decoration: none; }
+.login-card { box-sizing: border-box; width: 100%; max-width: 24rem; margin: 0; }
+.login-card h1 { font-size: var(--text-xl); font-weight: 650; margin: 0 0 var(--space-4); }
+.login-form { display: flex; flex-direction: column; gap: var(--space-4); }
+.login-submit { width: 100%; justify-content: center; }
+.login-error { color: var(--danger); font-size: var(--text-sm); margin: 0 0 var(--space-3); }
 /* == Phone (components) == */
 @media (max-width: 40rem) {
   .card { padding: var(--space-4); }
