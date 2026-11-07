@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 6;
+const CORE_VERSION = 7;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -29,6 +29,7 @@ const CORE_VERSION = 6;
     .panel.ok { background: #e7f6e7; border-color: #2e7d32; color: #1b5e20; }
     .panel.error { background: #fdecea; border-color: #c62828; color: #b71c1c; font-weight: bold; }
     .panel.info { background: #e8f0fe; border-color: #1a73e8; color: #0d47a1; }
+    .panel.warn { background: #fff4e0; border-color: #ef6c00; color: #8a4b00; }
     .controls { position: fixed; right: 12px; bottom: 48px; z-index: 2147483647; display: flex; gap: 6px;
       align-items: center; font: 13px/1.4 system-ui, sans-serif; padding: 6px 10px; border-radius: 6px;
       background: #f4f4f4; color: #222; border: 1px solid #999; }
@@ -72,7 +73,7 @@ const CORE_VERSION = 6;
       serverButton: controls.querySelector(".set-server"),
       tokenButton: controls.querySelector(".set-token"),
       setStatus(text, kind) {
-        box.className = "panel " + (["ok", "error", "info"].includes(kind) ? kind : "info");
+        box.className = "panel " + (["ok", "error", "info", "warn"].includes(kind) ? kind : "info");
         box.textContent = String(text);
       },
       text: () => box.textContent,
@@ -113,6 +114,15 @@ const CORE_VERSION = 6;
     }
     return 0;
   };
+  // The warning of the ingest response (#557): the offers do not match the trip. Null when there is none.
+  const warningOf = (r) => {
+    try {
+      const w = JSON.parse(String(r.responseText || "{}")).warning;
+      return w ? String(w) : null;
+    } catch (e) {
+      return null;
+    }
+  };
   let busy = false;
 
   // POST one payload to the configured server only (P1). Resolves "ok", "retry" or "drop".
@@ -134,7 +144,7 @@ const CORE_VERSION = 6;
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         data: JSON.stringify(payload),
         onload: (r) => {
-          if (r.status >= 200 && r.status < 300) { core.sent(count(payload)); resolve("ok"); }
+          if (r.status >= 200 && r.status < 300) { core.sent(count(payload), warningOf(r)); resolve("ok"); }
           else if (r.status === 401) { panel.setStatus("Check the API token", "error"); resolve("retry"); }
           else if (r.status === 429) { panel.setStatus("Server busy: kept in the queue", "error"); resolve("retry"); }
           else if (r.status >= 500) fail();
@@ -304,7 +314,10 @@ const CORE_VERSION = 6;
     server: () => config().server,
     panel,
     report(n) { panel.setStatus(`Captured ${n} offers`, "info"); },
-    sent(n) { panel.setStatus(`Captured ${n} offers → sent ✓`, "ok"); },
+    sent(n, warning) {
+      if (warning) panel.setStatus(`Captured ${n} offers → sent ✓, but these offers do not match the trip`, "warn");
+      else panel.setStatus(`Captured ${n} offers → sent ✓`, "ok");
+    },
     queue: loadQueue,
     flush,
     loadTrips,
