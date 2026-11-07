@@ -10,7 +10,7 @@ NAMES = {"hour_markup", "transfer_markup", "show_hidden", "hide_stale", "sort", 
          "baggage_fee", "early_limit", "late_limit", "time_window_penalty", "night_start", "night_end", "night_min",
          "night_adjust", "night_hour_markup", "short_transfer_min", "short_transfer_penalty", "stale_hours",
          "stale_penalty", "train_markup", "bus_markup", "flight_markup", "ferry_markup", "flex_non_refundable",
-         "flex_partly_refundable", "flex_flexible", "self_transfer_penalty", "exclude_mode", "exclude_carrier"}
+         "flex_partly_refundable", "flex_flexible", "first_class_hour", "self_transfer_penalty", "exclude_mode", "exclude_carrier"}
 
 
 def _form(html):
@@ -28,7 +28,7 @@ def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  
     assert re.findall(r"<fieldset><legend>([^<]+)</legend>", advanced) == GROUPS
     fieldsets = re.findall(r"<fieldset>.*?</fieldset>", advanced, flags=re.S)
     outside = re.sub(r"<fieldset>.*?</fieldset>", "", advanced, flags=re.S)
-    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 24
+    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 25
 
 
 def test_each_input_name_of_the_form_is_still_sent(trip):  # noqa: F811
