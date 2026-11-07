@@ -11,13 +11,21 @@ want=${1:-$(git rev-parse origin/main)}
 json() { python3 -c "import json, sys; print(json.load(sys.stdin)$1)"; }
 
 got=
+fetched=
 for _ in $(seq 60); do        # CI with its job preview, then watchtower: about 10 minutes, at most 15
   got=$(curl -fsS "$url/api/health" 2>/dev/null | json '["commit"]' 2>/dev/null) || got=   # empty while it restarts
   [ "$got" = "$want" ] && break
+  if [ -n "$got" ] && [ -z "$fetched" ]; then fetched=1; git fetch -q origin main || true; fi   # once: main moved on
+  [ -n "$got" ] && git merge-base --is-ancestor "$want" "$got" 2>/dev/null && break   # a newer main contains $want
   sleep 15
 done
-[ "$got" = "$want" ] || { echo "FAIL health: the preview runs '${got:-nothing}', not $want"; exit 1; }
-echo "ok   health: commit $got"
+if [ "$got" = "$want" ]; then
+  echo "ok   health: commit $got"
+elif [ -n "$got" ] && git merge-base --is-ancestor "$want" "$got" 2>/dev/null; then
+  echo "ok   health: commit $got (contains $want)"
+else
+  echo "FAIL health: the preview runs '${got:-nothing}', not $want (and not a newer commit of main)"; exit 1
+fi
 
 code=$(curl -s -o /dev/null -w '%{http_code}' "$url/api/trips")
 if [ "$code" != 200 ]; then
