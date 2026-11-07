@@ -1,5 +1,7 @@
 """POST /api/ingest: the captured offers of a userscript (docs/SPEC.md section 5)."""
 
+from contextlib import contextmanager
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
@@ -21,5 +23,7 @@ def post_ingest(body: IngestIn, request: Request, tasks: BackgroundTasks, _: Api
     result = ingest.store(session, body, drops)
     msgs = notify.messages(session, drops, str(request.base_url))
     if msgs:  # after the response, so the userscript does not wait (#512)
-        tasks.add_task(notify.deliver, msgs)
+        # a new session: the session of the request is closed then (the tests override get_session)
+        new_session = contextmanager(request.app.dependency_overrides.get(get_session, get_session))
+        tasks.add_task(notify.deliver, msgs, new_session)
     return result
