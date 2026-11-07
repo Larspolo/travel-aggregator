@@ -54,3 +54,7 @@ tr.total td { font-weight: bold; }
   input[type=range]::-webkit-slider-thumb { width: 24px; height: 24px; }
   nav.topbar a { min-height: 40px; display: inline-flex; align-items: center; }
 }
+td.actions { white-space: nowrap; }
+td.actions form { display: inline; }
+button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
+@media (max-width: 40rem) { button.icon { min-width: 40px; min-height: 40px; } }
