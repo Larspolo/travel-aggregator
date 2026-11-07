@@ -437,11 +437,13 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
                "rates": rates}
+    context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
+                                  lambda it: depart_day(it) if it.legs else None)  # the days (#710)
+    # the links of the days strip (#711): all values of the query but the day
+    context["days_qs"] = urlencode({k: v for k, v in query.items() if k != "day"}, doseq=True)
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     context["drops"] = trip_drops(session, trip_id)  # the drops since the last full view (#355)
-    context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
-                                  lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     mark_seen(session, trip_id)
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
