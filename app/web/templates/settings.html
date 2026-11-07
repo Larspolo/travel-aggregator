@@ -11,6 +11,9 @@
     <select name="notify_channel">{% for c in channels %}<option value="{{ c }}"{% if c == channel %} selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
   <label>ntfy topic URL
     <input name="ntfy_url" type="url" pattern="https://.*" placeholder="https://ntfy.sh/your-secret-topic" value="{{ ntfy_url }}"></label>
+  <label>E-mail address
+    <input name="notify_email" type="email" value="{{ notify_email }}"></label>
+  {% if not smtp_ready %}<p class="muted">E-mail needs SMTP_HOST on the server.</p>{% endif %}
   <button type="submit">Save</button>
 </form>
 <p class="muted">0 keeps all captures. Each ingest deletes the older captures; the offers and their prices stay.</p>

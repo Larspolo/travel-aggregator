@@ -1,5 +1,6 @@
 """Push messages for price drops of pinned fares (#512). The first channel is ntfy: one POST of plain text to the
-topic URL that the owner sets on the settings page. The second channel is Web Push (#514): one encrypted message
+topic URL that the owner sets on the settings page. The second channel is e-mail (#513), by the SMTP server
+of the environment (P5: no password in the database). The third channel is Web Push (#514): one encrypted message
 to each browser that the owner subscribed on the settings page (RFC 8291 with `pywebpush`: the standard library has
 no ECDH or AES-GCM). `messages()` reads the settings in the request; `deliver()` runs after the response (a
 background task with a new database session, only to delete the subscriptions that the push service no longer
@@ -9,11 +10,13 @@ knows). A failure is logged and never raised, so the userscript gets the same re
 import base64
 import json
 import logging
+import smtplib
 import urllib.request
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from decimal import Decimal
+from email.message import EmailMessage
 
 from pywebpush import WebPushException, webpush
 from sqlalchemy import delete, select
@@ -26,7 +29,8 @@ log = logging.getLogger(__name__)
 
 CHANNEL_KEY = "notify_channel"
 NTFY_URL_KEY = "ntfy_url"
-CHANNELS = ("none", "ntfy", "webpush")
+EMAIL_KEY = "notify_email"
+CHANNELS = ("none", "ntfy", "email", "webpush")
 GONE = (404, 410)  # the push service no longer knows the subscription
 TIMEOUT_S = 5
 
@@ -43,11 +47,11 @@ class PriceDrop:
 
 @dataclass(frozen=True)
 class Message:
-    url: str
+    channel: str
+    url: str  # the ntfy topic URL, the e-mail address, or the endpoint of the push subscription
     title: str
     text: str
     click: str
-    channel: str = "ntfy"
     keys: dict[str, str] = field(default_factory=dict)  # webpush: p256dh and auth of the subscription
 
 
@@ -69,6 +73,9 @@ def _targets(session: Session, channel: str) -> list[tuple[str, dict[str, str]]]
     if channel == "ntfy":
         url = setting(session, NTFY_URL_KEY)
         return [(url, {})] if url.startswith("https://") else []
+    if channel == "email":
+        address = setting(session, EMAIL_KEY)
+        return [(address, {})] if "@" in address else []
     if channel == "webpush" and webpush_ready():
         return [(p.endpoint, {"p256dh": p.p256dh, "auth": p.auth})
                 for p in session.scalars(select(PushSubscription).order_by(PushSubscription.id))]
@@ -77,7 +84,7 @@ def _targets(session: Session, channel: str) -> list[tuple[str, dict[str, str]]]
 
 def messages(session: Session, drops: list[PriceDrop], base_url: str) -> list[Message]:
     """One message per trip (and per subscription of webpush) with all the drops of one ingest; none for the
-    channel none."""
+    channel `none`."""
     channel = setting(session, CHANNEL_KEY, "none")
     targets = _targets(session, channel) if drops else []
     out = []
@@ -85,8 +92,8 @@ def messages(session: Session, drops: list[PriceDrop], base_url: str) -> list[Me
         trip = session.get(Trip, trip_id)
         title = trip.title if trip is not None else f"trip {trip_id}"
         text = "\n".join(_line(d) for d in drops if d.trip_id == trip_id)
-        out += [Message(url=url, title=f"Price drop: {title}", text=text, click=f"{base_url.rstrip('/')}/trips/{trip_id}",
-                        channel=channel, keys=keys) for url, keys in targets]
+        out += [Message(channel=channel, url=url, title=f"Price drop: {title}", text=text,
+                        click=f"{base_url.rstrip('/')}/trips/{trip_id}", keys=keys) for url, keys in targets]
     return out
 
 
@@ -95,6 +102,24 @@ def post(url: str, text: str, headers: dict[str, str]) -> None:
     req = urllib.request.Request(url, data=text.encode(), method="POST", headers=headers)
     with urllib.request.urlopen(req, timeout=TIMEOUT_S):  # noqa: S310 (save_settings accepts only https://)
         pass
+
+
+def send_email(m: Message) -> None:
+    """The e-mail sender: SSL on port 465, else STARTTLS. The tests replace `smtplib.SMTP` with a double."""
+    cfg = get_settings()
+    mail = EmailMessage()
+    mail["Subject"], mail["From"], mail["To"] = m.title, cfg.smtp_from or cfg.smtp_user, m.url
+    mail.set_content(f"{m.text}\n\n{m.click}\n")
+    if cfg.smtp_port == 465:
+        server = smtplib.SMTP_SSL(cfg.smtp_host, cfg.smtp_port, timeout=TIMEOUT_S * 2)
+    else:
+        server = smtplib.SMTP(cfg.smtp_host, cfg.smtp_port, timeout=TIMEOUT_S * 2)
+    with server:
+        if cfg.smtp_port != 465:
+            server.starttls()
+        if cfg.smtp_user:
+            server.login(cfg.smtp_user, cfg.smtp_password)
+        server.send_message(mail)
 
 
 def push(m: Message) -> None:
@@ -108,7 +133,9 @@ def deliver(msgs: list[Message], new_session: Callable[[], AbstractContextManage
     gone = []
     for m in msgs:
         try:
-            if m.channel == "webpush":
+            if m.channel == "email":
+                send_email(m)
+            elif m.channel == "webpush":
                 push(m)
             else:  # an HTTP header is latin-1: ntfy reads a UTF-8 title from the raw bytes
                 post(m.url, m.text, {"Title": m.title.encode().decode("latin-1"), "Click": m.click})
