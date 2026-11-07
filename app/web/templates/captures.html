@@ -15,7 +15,7 @@
 {% endfor %}
 {% if captures %}
 <div class="scroll"><table>
-  <tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th></tr>
+  <tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th><th></th></tr>
   {% for c in captures %}
   <tr>
     {% if not trip %}<td><a href="/trips/{{ c.trip_id }}">{{ trip_titles[c.trip_id] }}</a></td>{% endif %}
@@ -34,6 +34,9 @@
     <td>{{ "yes" if c.raw_gz is not none else "no" }}</td>
     <td id="reparse-{{ c.id }}">{% if c.raw_gz is not none %}<button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
       hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse capture</button>{% endif %}</td>
+    <td id="move-{{ c.id }}">{% set targets = move_trips | rejectattr("id", "equalto", c.trip_id) | list %}{% if c.raw_gz is not none and targets %}<form class="move-capture" hx-post="/captures/{{ c.id }}/move" hx-target="#move-{{ c.id }}"
+      hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'><select name="trip_id" aria-label="Trip to move to">{% for t in targets %}<option value="{{ t.id }}">{{ t.title }}</option>{% endfor %}</select>
+      <button type="submit">Move to trip</button></form>{% endif %}</td>
   </tr>
   {% endfor %}
 </table></div>
