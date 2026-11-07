@@ -310,8 +310,22 @@ button.icon:hover { background: var(--surface); border-color: var(--line); color
   padding: var(--space-4) var(--space-5); margin-bottom: var(--space-5);
 }
 .journey h2 { margin: 0 0 var(--space-2); }
-.journey ul { margin: 0; padding-left: var(--space-5); }
-.journey li + li { margin-top: var(--space-2); }
+/* The journey box is a timeline (#663): one row per part, its effective cost at the right; the total is the largest number. */
+.journey-parts { list-style: none; margin: 0; padding: 0 0 0 var(--space-4); border-left: 2px solid var(--line); }
+.journey-part {
+  position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+  gap: 4px var(--space-4); padding: var(--space-2) 0;
+}
+.journey-part::before {
+  content: ""; position: absolute; left: calc(-1 * var(--space-4) - 7px); top: calc(var(--space-2) + 0.35em);
+  width: 8px; height: 8px; border-radius: 50%; background: var(--surface); border: 2px solid var(--info);
+}
+.journey-part + .journey-part { border-top: 1px solid var(--line); }
+.journey-what { min-width: 0; flex: 1 1 16rem; }
+.journey-what .chip { margin-left: var(--space-2); }
+.journey-when { font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.journey-cost { font-variant-numeric: tabular-nums; white-space: nowrap; margin-left: auto; }
+.journey-sum { margin: var(--space-3) 0 0; text-align: right; font-size: 1.35em; font-variant-numeric: tabular-nums; }
 /* The weights panel is a card (#628): each slider has the full width, its value at the right of its label. */
 .panel.card { padding: var(--space-4); }
 .panel form { margin: 0; }

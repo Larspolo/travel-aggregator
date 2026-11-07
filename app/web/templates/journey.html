@@ -1,18 +1,21 @@
 {% if journey %}
 <section class="journey" aria-label="Journey">
   <h2>Journey</h2>
-  <ul>
+  <ol class="journey-parts">
   {% for label, t, chosen, early in journey.directions %}
-    <li><strong>{{ label }}</strong>: <a href="/trips/{{ t.id }}">{{ t.title }}</a><br>
-    {% if chosen %}{% set it, fare, cost = chosen %}{% if it.legs %}{% set first, last = it.legs[0], it.legs[-1] %}
-      {{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }} →
-      {{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%a %d %b %H:%M") }} ·{% endif %}
-      {{ fare.latest_price | money(fare.currency) }} · {% if cost.no_rate %}no rate for {{ cost.no_rate }} <a href="/rates">Add a rate</a>{% else %}effective cost {{ cost.total | money }}{% endif %}
-    {% else %}<span class="muted">no offers yet</span>{% endif %}
-    {% if early and journey.directions | length > 2 %}<br><span class="mark">departs before the previous part arrives</span>{% endif %}</li>
+    <li class="journey-part">
+      <div class="journey-what">
+        <strong>{{ label }}</strong> <a href="/trips/{{ t.id }}">{{ t.title }}</a>
+        {% if early and journey.directions | length > 2 %}<span class="chip warn">departs before the previous part arrives</span>{% endif %}
+        {% if chosen %}{% set it, fare, cost = chosen %}<div class="journey-when muted">{% if it.legs %}{% set first, last = it.legs[0], it.legs[-1] %}
+          {{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }} →
+          {{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%a %d %b %H:%M") }} · {% endif %}{{ fare.latest_price | money(fare.currency) }}</div>{% endif %}
+      </div>
+      <div class="journey-cost">{% if chosen %}{% if cost.no_rate %}no rate for {{ cost.no_rate }} <a href="/rates">Add a rate</a>{% else %}effective cost {{ cost.total | money }}{% endif %}{% else %}<span class="muted">no offers yet</span>{% endif %}</div>
+    </li>
   {% endfor %}
-  </ul>
-  {% if journey.total is not none %}<p><strong>Total effective cost {{ journey.total | money }}</strong></p>{% endif %}
-  {% if journey.early %}<p class="mark">The return departs before the outbound arrives</p>{% endif %}
+  </ol>
+  {% if journey.total is not none %}<p class="journey-sum"><strong>Total effective cost {{ journey.total | money }}</strong></p>{% endif %}
+  {% if journey.early %}<p><span class="chip warn">The return departs before the outbound arrives</span></p>{% endif %}
 </section>
 {% endif %}
