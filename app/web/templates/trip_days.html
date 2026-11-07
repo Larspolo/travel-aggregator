@@ -1,5 +1,6 @@
 {# The departure days of the trip above the table (#711): each day with its best effective cost and its cheapest
    price; a click shows only the offers of that day (#709). An htmx request swaps it out of band (as compare_form). #}
+{% if oob %}<input type="hidden" id="view-day" name="day" value="{{ view.day }}" hx-swap-oob="true">{% endif %}{# the weights form keeps the day of the strip (#712) #}
 <nav id="trip-days" class="days-strip" aria-label="Departure days"{% if oob %} hx-swap-oob="true"{% endif %}{% if not days or days | length < 2 %} hidden{% endif %}>
 {% if days and days | length >= 2 %}
   <a class="chip day{% if not view.day %} selected{% endif %}" href="/trips/{{ trip.id }}?{{ days_qs }}" hx-get="/trips/{{ trip.id }}?{{ days_qs }}" hx-target="#table" hx-push-url="true"{% if not view.day %} aria-current="true"{% endif %}>All days</a>
