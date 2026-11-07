@@ -235,6 +235,12 @@ The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a sett
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
 | `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` and the field `warning`: the text of the trip warning, or `null` (see "Trip warning of a capture") |
 
+The body can have the field `auto_trip` (`true` or `false`, default `false`). With `true`, the app stores the offers in the
+planning trip that matches them when `trip_id` does not match, as described in "Auto-select trip" under "Userscript
+panel". The answer then also has `trip_id` and `trip_title`: the trip that got the offers. When no trip matches, the
+answer has the field `suggestion`: an object with `title`, `origin_text`, `destination_text` and `date_from` for a new
+trip, built from the offers. Else `suggestion` is `null`.
+
 `POST /api/ingest` stores each offer by its journey. The same journey sent twice gives one itinerary. A changed price
 adds a price row; the same price adds none and counts as `unchanged`. Each offer is stored in its own transaction.
 
@@ -463,6 +469,12 @@ when the offers reached your server, or an error message.
 
 - **Trip.** The dropdown chooses the trip that receives the offers. `+ new trip` makes a trip with the title that you
   type. The app remembers the chosen trip.
+- **Auto-select trip.** This check box is on by default. With it on, the app chooses the trip of each capture. It uses
+  the selected trip when the offers match it. Else it uses the one trip in planning that matches the offers (when more
+  match, the one with the shortest date range, then the newest). Else it keeps the selected trip, and the trip warning
+  shows (see "Trip warning of a capture"). The dropdown then shows the trip that got the offers. When no trip matches,
+  `+ new trip` is filled from the offers: the title is the route of the offers, and the places and the first departure
+  day are set.
 - **Auto-send.** This check box is on by default. With it on, the offers are sent at once. With it off, the offers wait
   in the queue until you press Send.
 - **Settings.** Set the server URL and the API token once, in the Tampermonkey menu (`Set server URL`, `Set API token`).
@@ -579,6 +591,8 @@ The response of `POST /api/ingest` has the field `warning`: `"These offers do no
 `"... (date)"`, or `null` when there is no warning.
 
 A reparse (see "Reparse a capture") computes the warning again, for example after you change the places of the trip.
+
+With "Auto-select trip" on in the userscript panel, the app first looks for a trip that matches the offers (see "Auto-select trip" under "Userscript panel").
 
 ### Move to trip
 
