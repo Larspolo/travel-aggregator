@@ -40,6 +40,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A capture of Amsterdam → Lisbon into the trip Amsterdam → Zürich shows "These offers do not match the trip" in the panel and on the captures page
 - [x] `capture:move` (#578) Move the offers of a capture to another trip, after a capture into the wrong trip
   - "Move to trip" on the captures page moves the offers and their price rows of one capture, and the old trip does not show them
+- [ ] `capture:auto-trip` The panel selects the matching trip by itself: the server compares the search of a capture (places and date) with the trips in planning, as `capture:match-trip` does, and "+ new trip" is filled from the search
+  - A search Amsterdam → Zürich on 20 December goes to the trip Amsterdam → Zürich with no change of the dropdown
+- [ ] `capture:health` A status per source: the last good capture, the parser version and the failed captures after it; a warning on the trips list when the last captures of a source failed
+  - When a site changes its format, the trips list shows "bahn.de: the last 3 captures failed" with a link to the failed captures
 
 ## 2. Rank offers by effective cost
 
@@ -60,6 +64,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A stale offer shows "stale, price may have changed"
 - [x] `rank:currency` (#382) Prices in other currencies: exchange rates to EUR in Settings, and the score uses the EUR value
   - A CHF offer ranks by its EUR value, and its breakdown shows the CHF price and the EUR price; an offer in a currency with no rate shows "no rate for CHF"
+- [ ] `rank:class` (#689) Travel class: a 1st class or business fare gets a comfort value per hour in the score
+  - With a 1st class bonus of €10 per hour, the breakdown of a 1st class fare of 3 hours shows "1st class −€30"
 
 ## 3. Plan a trip in one place
 
@@ -85,6 +91,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Delete trip" on the edit page asks for a confirmation; then the trip is not in the trips list, not on its pages and not in the dropdown of the userscript
 - [x] `trip:archive` (#486) Archive the past trips: a separate list of the archived trips
   - The trips list does not show an archived trip; "Archived trips (N)" opens them
+- [ ] `trip:days` For a trip with a date range: the best effective cost and the cheapest price per departure day, and a click on a day filters the table
+  - A trip from 18 to 22 December shows 5 days, each with its best offer, so the owner sees the best day at once
 - [ ] `trip:notify` Price-drop notifications outside the app for the pinned fares (`docs/SPEC.md`, milestone 6), by the channel of the decision #418
   - A new capture with a lower price of a pinned fare sends one notification to the owner's phone
 - [x] `trip:multicity` (#559) Multi-city journeys: three or more trips linked in sequence, as `trip:return` links two (`docs/SPEC.md`, section 13)
@@ -107,3 +115,5 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [x] `host:backup-daily` (#545) A backup of the database each day, the newest backups kept, and the status on the settings page
   - With no manual step, the backups volume has one daily backup per day and not more than `BACKUP_KEEP` of them
   - The settings page shows a warning when the newest backup is older than 48 hours
+- [ ] `host:export` Export the offers of a trip as CSV and JSON: the owner keeps the data (P5)
+  - "Export CSV" on the trip page gives one row per fare with the price, the times, the source and the effective cost
