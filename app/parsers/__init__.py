@@ -17,6 +17,9 @@ class ParseResult:
 def get_parser(source: str):
     from app.parsers.bahn import BahnParser
     from app.parsers.flixbus import FlixbusParser
+    from app.parsers.kiwi import KiwiParser
     from app.parsers.ns import NsParser
 
-    return {BahnParser.source: BahnParser, NsParser.source: NsParser, FlixbusParser.source: FlixbusParser}.get(source, lambda: None)()
+    parsers = {BahnParser.source: BahnParser, NsParser.source: NsParser, FlixbusParser.source: FlixbusParser,
+               KiwiParser.source: KiwiParser}
+    return parsers.get(source, lambda: None)()
