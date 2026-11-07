@@ -222,7 +222,7 @@ The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a sett
 | `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>"}`. No token. |
 | `GET /api/trips` | The trips, newest first; `?status=planning` (or `booked`, `archived`) shows only the trips of that status |
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
-| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` |
+| `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` and the field `warning`: the text of the trip warning, or `null` (see "Trip warning of a capture") |
 
 `POST /api/ingest` stores each offer by its journey. The same journey sent twice gives one itinerary. A changed price
 adds a price row; the same price adds none and counts as `unchanged`. Each offer is stored in its own transaction.
@@ -495,6 +495,29 @@ text says "More than 500 captures wait: click again." A source with no parser sh
 The button does not send a request to the travel site.
 
 A reparse replaces the stored parse result with the new one. Reload the page to see it.
+
+### Trip warning of a capture
+
+The app checks the offers of a capture against the trip. When no offer matches the trip, the app shows a warning with
+the reason:
+
+- `places`: no offer goes from the origin of the trip to its destination. A station code (for example `LIS`) matches
+  the place, and so does the local name of a place (for example `München` for `Munich`). Words of fewer than 3 letters
+  do not count.
+- `date`: the offers of those places depart on a date outside the dates of the trip.
+
+One matching offer is enough for no warning. A part of the trip that is empty is not compared.
+
+The warning is a hint only: the app stores the offers in any case. The warning shows in two places:
+
+- The userscript panel: "Captured N offers → sent ✓, but these offers do not match the trip", in the warning style.
+- The captures pages (`/captures` and `/trips/{id}/captures`): the column of the capture shows "These offers do not
+  match the trip".
+
+The response of `POST /api/ingest` has the field `warning`: `"These offers do not match the trip (places)"` or
+`"... (date)"`, or `null` when there is no warning.
+
+A reparse (see "Reparse a capture") computes the warning again, for example after you change the places of the trip.
 
 ### Capture retention
 
