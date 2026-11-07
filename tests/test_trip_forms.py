@@ -44,7 +44,7 @@ def test_create(engine, client):
     r = client.post("/trips/new", data=_form(csrf_token=_token(client, "/trips/new")), follow_redirects=False)
     assert r.status_code == 303 and r.headers["location"] == "/"
     html = client.get("/").text
-    assert "Utrecht → Berlin" in html and 'href="/trips/new"' in html
+    assert "Utrecht <svg" in html and "Berlin</p>" in html and 'href="/trips/new"' in html
     with Session(engine) as s:
         t = s.scalars(select(Trip)).one()
         assert (t.travelers, t.date_to, t.notes) == (2, date(2026, 12, 5), None)

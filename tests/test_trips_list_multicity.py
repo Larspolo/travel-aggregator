@@ -39,7 +39,7 @@ def _seed(engine, prices=("10.00", "20.00", "30.50", "40.00"), first_status="pla
 def test_a_chain_of_four_trips_shows_in_sequence_with_the_total(engine, monkeypatch):
     _seed(engine)
     html = _client(monkeypatch).get("/").text
-    order = [html.index(t + "</td>") for t in TITLES]
+    order = [html.index(t + "</a></h2>") for t in TITLES]
     assert order == sorted(order)
     assert html.count("Journey price total") == 1
     assert "Journey price total: EUR 100.50" in html

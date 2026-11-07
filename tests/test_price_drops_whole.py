@@ -29,8 +29,8 @@ def test_only_the_pinned_drop_shows_on_the_list_and_the_trip_page(trip, sessions
 
     # the trips list shows the drop of the pinned fare, not the larger drop of the unpinned offer
     listing = client.get("/").text
-    assert "price dropped EUR 20.00" in listing
-    assert "price dropped EUR 30.00" not in listing
+    assert "price dropped €20.00" in listing
+    assert "price dropped €30.00" not in listing
 
     # the trip page shows the box with the pinned fare only
     page = client.get(f"/trips/{trip_id}").text

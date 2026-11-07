@@ -233,6 +233,19 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 .inline-form { display: inline; margin: 0; }
 .card .table-actions { text-align: right; }
 /* == Trips list == */
+.trip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: var(--space-4); margin-bottom: var(--space-5); }
+.trip-grid .card { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.trip-grid .card.return { border-style: dashed; }
+.trip-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+.trip-card-head h2 { font-size: var(--text-lg); font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.trip-card-head h2 a { color: var(--text); text-decoration: none; }
+.trip-card-head h2 a:hover { color: var(--accent); }
+.trip-route { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); margin: 0; overflow-wrap: anywhere; }
+.trip-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin: 0; color: var(--muted); font-size: var(--text-sm); }
+.trip-best { margin: 0; font-variant-numeric: tabular-nums; }
+.trip-best strong { font-size: var(--text-lg); }
+.btn-icon { padding: 0; width: 36px; justify-content: center; flex: none; }
+.journey-total { grid-column: 1 / -1; margin: 0; font-weight: 600; }
 /* == Login == */
 .login { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-height: 70vh; padding: var(--space-4) 0; }
 .login-brand { margin: 0; }

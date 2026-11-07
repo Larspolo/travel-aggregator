@@ -43,7 +43,7 @@ def _seed(engine, return_price="30.00", return_currency="EUR", return_offer=True
 def test_the_return_trip_follows_its_outbound_trip(engine, monkeypatch):
     _seed(engine)
     html = _client(monkeypatch).get("/").text
-    order = [html.index(t) for t in ("Early", "Berlin</td>", "Return of Berlin", "Late")]
+    order = [html.index(t) for t in ("Early", "Berlin</a></h2>", "Return of Berlin", "Late")]
     assert order == sorted(order)
 
 
