@@ -440,6 +440,14 @@ Open `/trips/{id}/captures` and press "reparse capture" on a capture. The app ru
 data of that capture and shows how many offers it read. Use this after the parser of a source is fixed. The button
 does not send a request to the travel site. A capture with no raw data, or a source with no parser, cannot be reparsed.
 
+To reparse all failed captures of a source in one step, open `/captures` and press "Only failed captures" (`/captures?failed=1`).
+The page has one button "Reparse all failed captures of <source>" for each source with failed captures that have raw data.
+The failed captures page of one trip (`/trips/{id}/captures?failed=1`) has the same buttons. The button runs the current
+parser on each failed capture of that source with raw data, of all trips, and shows: "Reparsed N captures of <source> with
+<version>: X now parse, Y still fail; C created, U updated." One click reparses at most 500 captures. When more wait, the
+text says "More than 500 captures wait: click again." A source with no parser shows "The source <source> has no parser."
+The button does not send a request to the travel site.
+
 A reparse replaces the stored parse result with the new one. Reload the page to see it.
 
 ### Capture retention
