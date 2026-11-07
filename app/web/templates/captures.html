@@ -4,8 +4,10 @@
 {% block content %}
 {% set base = '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' %}
 {% call ui.page_header("Captures of " ~ trip.title if trip else "Captures of all trips", back=("/trips/" ~ trip.id, "Back to the trip") if trip else none) %}
-  {% if failed %}<a class="btn" href="{{ base }}">Show all captures</a>{% else %}<a class="btn" href="{{ base }}?failed=1">Only failed captures</a>{% endif %}
+  {% set src = "source=" ~ (source | urlencode) if source else "" %}
+  {% if failed %}<a class="btn" href="{{ base }}{% if src %}?{{ src }}{% endif %}">Show all captures</a>{% else %}<a class="btn" href="{{ base }}?{% if src %}{{ src }}&amp;{% endif %}failed=1">Only failed captures</a>{% endif %}
 {% endcall %}
+{% if source %}<p>Source: {{ source }} · <a href="{{ base }}{% if failed %}?failed=1{% endif %}">All sources</a></p>{% endif %}
 {% for source in failed_sources %}
 <p id="reparse-source-{{ loop.index }}"><button name="source" value="{{ source }}" hx-post="/captures/reparse-failed"
   hx-vals='{{ {"source": source} | tojson }}' hx-target="#reparse-source-{{ loop.index }}"
@@ -16,7 +18,7 @@
   <thead><tr><th>Source</th><th>Last good capture</th><th>Parser</th><th>Failed after it</th></tr></thead>
   <tbody>
   {% for s in sources %}
-  <tr class="source-row"><td>{{ s.source }}</td>
+  <tr class="source-row"><td class="source-name">{{ s.source }}</td>
     <td>{% if s.last_good_at %}<time datetime="{{ s.last_good_at.isoformat() }}" title="{{ s.last_good_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ s.last_good_at | ago(now) }}</time>{% else %}never{% endif %}</td>
     <td>{{ s.parser_version or "-" }}</td>
     <td>{% if s.failed_after %}<span class="chip danger">{{ s.failed_after }}</span>{% else %}0{% endif %}</td></tr>
@@ -55,6 +57,8 @@
 </table></div></section>
 {% elif failed %}
 {{ ui.empty_state("No failed captures.") }}
+{% elif source %}
+{{ ui.empty_state("No captures of this source.") }}
 {% else %}
 {% call ui.empty_state("No captures yet") %}<a class="btn btn-primary" href="/tokens">Install the userscripts</a>{% endcall %}
 {% endif %}

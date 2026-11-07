@@ -53,7 +53,7 @@ def test_captures_page_shows_the_sources_table(seeded, monkeypatch):
     html = c.get("/captures").text
     table = html[html.index('id="source-health"'):]
     table = table[:table.index("</section>")]
-    rows = re.findall(r"<tr class=\"source-row\"><td>(.*?)</tr>", table, re.S)
+    rows = re.findall(r"<tr class=\"source-row\"><td class=\"source-name\">(.*?)</tr>", table, re.S)
     assert rows[0].startswith("bahn.de") and "1.1.0" in rows[0] and ">2<" in rows[0]
     assert '2026-11-01T09:00:00+00:00' in rows[0]
     assert rows[1].startswith("flixbus.de") and "never" in rows[1]

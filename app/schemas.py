@@ -70,6 +70,8 @@ class OfferIn(BaseModel):
 
 class IngestIn(BaseModel):
     trip_id: int = Field(gt=0)
+    # True: the server stores the offers into the planning trip that matches them, if trip_id does not (#719).
+    auto_trip: bool = False
     source: str = Field(min_length=1, max_length=50)
     parser_version: str | None = Field(None, max_length=50)
     captured_at: AwareDatetime
