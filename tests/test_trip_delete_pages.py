@@ -25,6 +25,7 @@ TRIP_PAGES = [
     "/trips/{trip_id}/offers/new",
     "/trips/{trip_id}/captures",
     "/trips/{trip_id}/export.json",
+    "/trips/{trip_id}/export.csv",
 ]
 
 
