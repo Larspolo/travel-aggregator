@@ -9,7 +9,7 @@ from app.main import app
 from app.models import Trip
 
 PASSWORD = "pw"
-STYLE = "--line: #8884"
+STYLE = 'href="/static/app.css"'
 
 
 def _token(c, path):
