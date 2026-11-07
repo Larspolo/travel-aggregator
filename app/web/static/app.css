@@ -78,7 +78,6 @@ input[type=range], input[type=checkbox], input[type=radio] { accent-color: var(-
 details, fieldset { border: 1px solid var(--line); border-radius: var(--radius); }
 /* == Trip page == */
 .muted { color: var(--muted); font-size: .9em; }
-.stale { color: var(--warn); font-weight: 600; }
 .best { font-weight: bold; }
 tr.return td:first-child { padding-left: 2em; }
 tr.total td { font-weight: bold; }
@@ -89,7 +88,16 @@ tr.total td { font-weight: bold; }
 .badge.cheapest, .badge.fastest { background: var(--info); }
 .badge.booked { background: var(--accent); }
 .badge.stale { background: var(--warn); }
-td.cost { min-width: 10rem; }
+td.cost { min-width: 12rem; }
+/* A row is at most 4 lines high at 1280 px (#627): the times are in the route cell, carrier and fare are cut with the
+   full text in title. */
+td.route { min-width: 14rem; }
+td.route .facts { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-2); }
+td.route .times, td.cost .total { white-space: nowrap; }
+td.route .modes { display: inline-flex; gap: 2px; vertical-align: middle; }
+td.carrier .clip { max-width: 13rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+td.actions .pick { display: inline-flex; align-items: center; gap: var(--space-1); vertical-align: middle; }
+td.actions .pick-text { display: none; }
 td.cost .breakdown { color: var(--muted); font-size: .9em; }
 td.cost .total { font-size: 1.15em; font-weight: 600; }
 svg.bar { display: block; margin: var(--space-1) 0; background: var(--line); border-radius: 3px; }
@@ -141,10 +149,18 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
     background: var(--surface);
   }
   #table tbody tr:not(.detail) td { border: 0; padding: var(--space-1) 0; }
-  #table tbody tr:not(.detail) td:nth-child(1), #table tbody tr:not(.detail) td:nth-child(4),
-  #table tbody tr:not(.detail) td:nth-child(5), #table tbody tr:not(.detail) td.cost { grid-column: 1 / -1; }
-  #table tbody tr:not(.detail) td.price { text-align: left; }
-  #table tbody tr:not(.detail) td.actions { grid-column: 1 / -1; }
+  /* The important values first, the check box and the actions in one row at the end (DESIGN.md section 7, #627). */
+  #table tbody tr:not(.detail) td.route, #table tbody tr:not(.detail) td.cost { grid-column: 1 / -1; }
+  #table tbody tr:not(.detail) td.cost { order: 1; }
+  #table tbody tr:not(.detail) td.carrier, #table tbody tr:not(.detail) td.price { order: 2; }
+  #table tbody tr:not(.detail) td.carrier .clip { max-width: none; white-space: normal; }
+  #table tbody tr:not(.detail) td.price { text-align: right; }
+  #table tbody tr:not(.detail) td.actions {
+    order: 3; grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1);
+    border-top: 1px solid var(--line); padding-top: var(--space-2);
+  }
+  #table tbody tr:not(.detail) td.actions .pick { margin-right: auto; }
+  #table tbody tr:not(.detail) td.actions .pick-text { display: inline; }
   #table tr.detail { display: block; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 var(--radius) var(--radius); background: var(--surface); }
   #table tr.detail td { display: block; border: 0; }
   #table tr.detail summary { min-height: 40px; display: flex; align-items: center; }

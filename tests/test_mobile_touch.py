@@ -49,7 +49,7 @@ def _launch(p):
 
 
 def _first_service(page):
-    return page.locator("#table tbody tr:not(.detail)").first.locator("td").nth(3).inner_text()
+    return page.locator("#table tbody tr:not(.detail)").first.locator("td.carrier").inner_text()
 
 
 def test_the_trips_list_and_the_trip_page_work_with_touch_on_a_phone(live):
@@ -79,7 +79,7 @@ def test_the_trips_list_and_the_trip_page_work_with_touch_on_a_phone(live):
         with page.expect_response(lambda r: f"/trips/{tid}?" in r.url):
             page.touchscreen.tap(box["x"] + box["width"] - 2, box["y"] + box["height"] / 2)
         assert int(slider.input_value()) > 90
-        page.wait_for_function("document.querySelector('#table tbody td:nth-child(4)').innerText.includes('ICE 77')")
+        page.wait_for_function("document.querySelector('#table tbody td.carrier').innerText.includes('ICE 77')")
 
         # Each itinerary is a card (#593): the table box does not scroll sideways, and the page does not either.
         table = page.locator("#table")

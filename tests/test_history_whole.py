@@ -66,5 +66,5 @@ def test_the_trip_page_shows_the_latest_price(trip, sessions):
     capture(client, auth, trip_id, "89.90", "2026-11-03T19:41:00Z")
     capture(client, auth, trip_id, "85.00", "2026-11-04T19:41:00Z")
     page = client.get(f"/trips/{trip_id}").text
-    assert "EUR 85.00" in page
-    assert "EUR 89.90" not in page  # the older capture is in the history, not the price of the row
+    assert "€85.00" in page
+    assert "€89.90" not in page  # the older capture is in the history, not the price of the row
