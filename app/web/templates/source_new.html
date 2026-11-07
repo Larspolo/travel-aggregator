@@ -3,9 +3,11 @@
 {% block title %}Add a website – travel-aggregator{% endblock %}
 {% block content %}
 {{ ui.page_header("Add a website") }}
-<form method="get" action="/sources/new">
-  <p><label>Website <input name="site" value="{{ site }}" placeholder="www.example.com"></label>
-  <button>Update the link</button></p>
+<form class="card" method="get" action="/sources/new">
+  <div class="form-grid">
+    <div class="field wide"><label for="s-site">Website</label><input id="s-site" name="site" value="{{ site }}" placeholder="www.example.com"></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Update the link</button></div>
 </form>
 <ol>
   <li>Open the website and do a search for a trip.</li>

@@ -4,25 +4,30 @@
 {% block content %}
 {{ ui.page_header("Edit trip" if trip_id else "New trip", back=("/trips/" ~ trip_id, "Trip") if trip_id else ("/", "Trips")) }}
 {% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-<form method="post" action="{% if trip_id %}/trips/{{ trip_id }}/edit{% else %}/trips/new{% endif %}">
+<form class="card" method="post" action="{% if trip_id %}/trips/{{ trip_id }}/edit{% else %}/trips/new{% endif %}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-  <p><label>Title <input name="title" required maxlength="200" value="{{ values.title or '' }}"></label></p>
-  <p><label>Origin <input name="origin_text" maxlength="200" value="{{ values.origin_text or '' }}"></label></p>
-  <p><label>Destination <input name="destination_text" maxlength="200" value="{{ values.destination_text or '' }}"></label></p>
-  <p><label>From <input type="date" name="date_from" value="{{ values.date_from or '' }}"></label>
-     <label>To <input type="date" name="date_to" value="{{ values.date_to or '' }}"></label></p>
-  <p><label>Travelers <input type="number" name="travelers" min="1" max="9" value="{{ values.travelers or 1 }}"></label></p>
-  <p><label>Status <select name="status">
-    {% for s in ["planning", "booked", "archived"] %}
-    <option value="{{ s }}"{% if values.status == s %} selected{% endif %}>{{ s }}</option>
-    {% endfor %}
-  </select></label></p>
-  <p><label>Profile <select name="profile_id">
-    <option value="">Default</option>
-    {% for p in profiles %}<option value="{{ p.id }}"{% if values.profile_id|string == p.id|string %} selected{% endif %}>{{ p.name }}</option>{% endfor %}
-  </select></label></p>
-  <p><label>Notes <textarea name="notes" maxlength="5000">{{ values.notes or '' }}</textarea></label></p>
-  <p><button type="submit">Save</button> <a href="/">Cancel</a></p>
+  <div class="form-grid">
+    <div class="field wide"><label for="f-title">Title</label><input id="f-title" name="title" required maxlength="200" value="{{ values.title or '' }}"></div>
+    <div class="field"><label for="f-origin">Origin</label><input id="f-origin" name="origin_text" maxlength="200" value="{{ values.origin_text or '' }}"></div>
+    <div class="field"><label for="f-destination">Destination</label><input id="f-destination" name="destination_text" maxlength="200" value="{{ values.destination_text or '' }}"></div>
+    <div class="field"><label for="f-date-from">From</label><input id="f-date-from" type="date" name="date_from" value="{{ values.date_from or '' }}"></div>
+    <div class="field"><label for="f-date-to">To</label><input id="f-date-to" type="date" name="date_to" value="{{ values.date_to or '' }}"></div>
+    <div class="field"><label for="f-travelers">Travelers</label><input id="f-travelers" type="number" name="travelers" min="1" max="9" value="{{ values.travelers or 1 }}"></div>
+    <div class="field"><label for="f-status">Status</label><select id="f-status" name="status">
+      {% for s in ["planning", "booked", "archived"] %}
+      <option value="{{ s }}"{% if values.status == s %} selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select></div>
+    <div class="field wide"><label for="f-profile">Profile</label><select id="f-profile" name="profile_id">
+      <option value="">Default</option>
+      {% for p in profiles %}<option value="{{ p.id }}"{% if values.profile_id|string == p.id|string %} selected{% endif %}>{{ p.name }}</option>{% endfor %}
+    </select></div>
+    <div class="field wide"><label for="f-notes">Notes</label><textarea id="f-notes" name="notes" maxlength="5000">{{ values.notes or '' }}</textarea></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-ghost" href="{% if trip_id %}/trips/{{ trip_id }}{% else %}/{% endif %}">Cancel</a>
+    {% if trip_id %}<a class="btn btn-danger" href="/trips/{{ trip_id }}/delete">Delete trip</a>{% endif %}
+  </div>
 </form>
-{% if trip_id %}<p><a href="/trips/{{ trip_id }}/delete">Delete trip</a></p>{% endif %}
 {% endblock %}
