@@ -137,7 +137,7 @@ details.more > summary::after { display: none; }
   color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, var(--surface)); border-color: transparent;
 }
 .chip.danger { color: var(--danger); background: color-mix(in srgb, var(--danger) 11%, var(--surface)); border-color: transparent; }
-.badge.booked { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+.badge.first-class, .badge.booked { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
 .empty { text-align: center; color: var(--muted); padding: var(--space-6) var(--space-4); }
 .empty p { margin: 0 0 var(--space-4); }
 .empty .toolbar { justify-content: center; }
