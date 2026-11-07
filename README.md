@@ -350,6 +350,14 @@ device" removes that browser. The settings page shows how many devices have push
 works only in an app on the home screen: in Safari, tap Share, then "Add to Home Screen", and open the settings page
 from there.
 
+### Search links
+
+The trip page shows a link "Search on <site>" for each source that has a search template and a value for the places of the trip. The link opens the site in a new tab.
+- The link holds the from place, the to place and the date (`date_from`) of the trip.
+- The from and to place of the trip must match a key of the source's `places` table in `app/data/search_links.toml` exactly, for example `Amsterdam`. A source gives no link when a place has no value for it, or when the trip has no date.
+- The link only opens a page in your browser: the app sends no request to the travel site. After the search, the userscript captures the offers as usual.
+- To add a source or change a value, edit `app/data/search_links.toml` (one table per source with `name`, `template`, `date_format` and a `places` table) and restart the app.
+
 ### Round trips
 
 A round trip is two trips that are linked: an outbound trip and its return trip.
