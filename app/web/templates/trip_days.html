@@ -1,0 +1,15 @@
+{# The departure days of the trip above the table (#711): each day with its best effective cost and its cheapest
+   price; a click shows only the offers of that day (#709). An htmx request swaps it out of band (as compare_form). #}
+<nav id="trip-days" class="days-strip" aria-label="Departure days"{% if oob %} hx-swap-oob="true"{% endif %}{% if not days or days | length < 2 %} hidden{% endif %}>
+{% if days and days | length >= 2 %}
+  <a class="chip day{% if not view.day %} selected{% endif %}" href="/trips/{{ trip.id }}?{{ days_qs }}" hx-get="/trips/{{ trip.id }}?{{ days_qs }}" hx-target="#table" hx-push-url="true"{% if not view.day %} aria-current="true"{% endif %}>All days</a>
+  {% for d in days %}{% set label = d.day | string %}{% set when = label[8:10] ~ "-" ~ label[5:7] %}
+  {% if d.best %}
+  <a class="chip day{% if view.day == d.day %} selected{% endif %}" href="/trips/{{ trip.id }}?{{ days_qs }}&amp;day={{ d.day }}" hx-get="/trips/{{ trip.id }}?{{ days_qs }}&amp;day={{ d.day }}" hx-target="#table" hx-push-url="true"{% if view.day == d.day %} aria-current="true"{% endif %}>
+    <span class="day-date">{{ when }}</span> <span class="day-best" title="Best effective cost">{{ format_total(d.best[2]) }}</span> <span class="day-cheapest muted" title="Cheapest price">{{ d.cheapest[2].price | money("EUR") }}</span></a>
+  {% else %}
+  <span class="chip day empty"><span class="day-date">{{ when }}</span> <span class="muted">no offers</span></span>
+  {% endif %}
+  {% endfor %}
+{% endif %}
+</nav>
