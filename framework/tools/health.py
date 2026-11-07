@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from agent_config import CONFIG, first_account, owners  # noqa: E402
 from dashboard import api, closes, merges, owner_work, start_after  # noqa: E402
 from feedback import by_owner  # noqa: E402
-from usage import epic_key  # noqa: E402
+from usage import STRETCH, epic_key  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -90,7 +90,8 @@ def idle_queue(cycles, until):
     not idle (or `until`). The queue stood still for hours on 2026-10-31 while the pacer loop ran (#5199). A paused
     project is not idle. "No work": the hours of the idle cycles with `ready` 0 and `refill` 0, each until the next
     cycle: the queue had no ticket and the refill no source (each ticket waited for the owner, 19.7 h on 2026-11-03,
-    #854), so no fault of the pacer."""
+    #854), so no fault of the pacer. A cycle whose roadmap review waits only for the clock of the idle stretch
+    (`usage.STRETCH`, #491) is idle with work: the review can make new epics."""
     stretches, start, dry = [], None, 0.0
     rows = sorted(cycles, key=lambda c: c["at"])
     for i, c in enumerate(rows):
@@ -101,7 +102,7 @@ def idle_queue(cycles, until):
         elif not idle and start is not None:
             stretches.append((ts(c["at"]) - start).total_seconds() / 3600)
             start = None
-        if idle and not c.get("ready") and not c.get("refill"):
+        if idle and not c.get("ready") and not c.get("refill") and STRETCH not in c.get("line", ""):
             end = ts(rows[i + 1]["at"]) if i + 1 < len(rows) else until
             dry += max(0.0, (end - ts(c["at"])).total_seconds() / 3600)
     if start is not None:

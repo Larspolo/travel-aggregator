@@ -53,7 +53,8 @@ Parallel runs read the same `runs` counter of the status issue, so "every 5th ru
 the last review (`last_review` in the state comment of #1). A review with no change doubles the gap (50, 100, 200
 merged PRs), a change sets it back to 50 (`--reviewed`). `--roadmap` locks the roadmap review the same way, 100 merged
 PRs after `last_roadmap` or its newest lock ref (#3352: a write of the body can be lost), 30 while the refill has no
-source (#3741), or the merged count (at least 10, #5818) with no live run and no ready ticket (#851), or after 60 minutes with no merged PR. A gap counts
+source (#3741), or the merged count (at least 10, #5818) with no live run and no ready ticket (#851), or after 60 minutes with no merged PR.
+With fewer than 10 merged PRs, an idle stretch (no ready ticket, no live run, starved refill) gets one review after 60 minutes (#491). A gap counts
 merged PRs, not minutes: the speed of the project changes (#2039). The other times of this tool stay in seconds: a run that stopped
 merges nothing, so only the clock finds it.
 
@@ -373,13 +374,19 @@ def last_lock(kind, remote="origin"):
     """The ISO time of the newest lock `claim/<kind>-<gap>pr-<last>-<k>` (the commit time of its claim), or None. A ref
     push is atomic, but a write of the status issue body can overwrite another one: a lost `last_roadmap` delayed the
     roadmap review by 100 merged PRs (#3352). The newest lock has the largest (last, k); "none" is the oldest."""
-    out = git("ls-remote", remote, f"refs/heads/claim/{kind}-*").stdout
-    keys = [(m[1] != "none", m[1], int(m[2]), ref) for line in out.splitlines() for ref in [line.split("\t")[1]]
-            for m in [re.fullmatch(rf"refs/heads/claim/{kind}-\d+pr-([0-9TZ]+|none)-(\d+)", ref)] if m]
-    if not keys:
+    if not (newest := newest_lock(kind, remote)):
         return None
-    git("fetch", "-q", remote, max(keys)[3])
+    git("fetch", "-q", remote, newest[1])
     return utc(int(git("log", "-1", "--format=%ct", "FETCH_HEAD").stdout))
+
+
+def newest_lock(kind, remote="origin"):
+    """(gap, ref) of the newest lock `claim/<kind>-<gap>pr-<last>-<k>` (the largest (last, k)), or None."""
+    out = git("ls-remote", remote, f"refs/heads/claim/{kind}-*").stdout
+    keys = [(m[2] != "none", m[2], int(m[3]), int(m[1]), ref) for line in out.splitlines()
+            for ref in [line.split("\t")[1]]
+            for m in [re.fullmatch(rf"refs/heads/claim/{kind}-(\d+)pr-([0-9TZ]+|none)-(\d+)", ref)] if m]
+    return max(keys)[3:] if keys else None
 
 
 def review_slot(kind, remote="origin", starved=None):
@@ -398,12 +405,35 @@ def review_slot(kind, remote="origin", starved=None):
     if kind == "roadmap" and on_github(remote):
         last = max(filter(None, (last, last_lock(kind, remote))), default=None)
     merged = merged_since(last, gap, remote)
-    if kind == "roadmap" and merged < gap and (merged >= ROADMAP_EARLY or merged >= ROADMAP_IDLE_MIN and
-                                               nothing_merges(last, remote)) and (starved or refill_starved)():
-        gap = min(merged, ROADMAP_EARLY)
+    if kind == "roadmap" and merged < gap:
+        early = merged >= ROADMAP_EARLY or merged >= ROADMAP_IDLE_MIN and nothing_merges(last, remote)
+        stretch = None if early or merged >= ROADMAP_IDLE_MIN else idle_stretch(last, merged, remote)
+        if (early or stretch is not None) and (starved or refill_starved)():
+            if early or stretch:
+                gap = min(merged, ROADMAP_EARLY)
+            else:
+                HELD.add(kind)                          # it waits only for the clock of the stretch (health.idle_queue)
     if kind == "review" and OWNER_GAP <= merged < gap and owner_since(last, remote):
         gap = OWNER_GAP
-    return pr_slot(last, gap, merged, max(gap, REVIEW) if kind == "review" else None), gap
+    return pr_slot(last, gap, merged, max(gap, REVIEW) if kind == "review" else max(gap, 1)), gap
+
+
+HELD = set()   # the reviews that review_slot held for the clock of an idle stretch: the pacer line names them (#491)
+
+
+def idle_stretch(last, merged, remote="origin"):
+    """For fewer than ROADMAP_IDLE_MIN merged PRs (#5818): None when the queue is not in an idle stretch that the
+    roadmap review can end, True when the review of the stretch is due, False while it waits for the clock. A stretch:
+    no ready ticket (0, not a read error), no live run, and no lock of a stretch review with no merge after it. With no
+    ready ticket no PR merges, so the merged count never reached its minimum, and the queue stood idle 6.5 h on
+    2026-11-07; a review then made 3 epics (#491). One review per stretch keeps the brake of #5818: the key of the
+    stretch is `<merged>pr-<last>-1`, and its lock is the newest lock until a PR merges. The review waits ROADMAP_IDLE
+    minutes after the last lock or merge: the review that just ran had the same input."""
+    if live_runs(remote) != 0 or ready_tickets(remote) != 0:
+        return None
+    if merged == 0 and (newest := newest_lock("roadmap", remote)) and newest[0] < ROADMAP_IDLE_MIN:
+        return None                                     # the review of this stretch ran: no new merge since its lock
+    return idle_minutes(last, remote) >= ROADMAP_IDLE
 
 
 def live_runs(remote="origin"):
