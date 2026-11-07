@@ -599,12 +599,17 @@ def save_note(trip_id: int, itinerary_id: int, note: str = Form("", max_length=2
             dependencies=[Depends(require_login)])
 def price_history(trip_id: int, itinerary_id: int, request: Request,
                   session: Session = Depends(get_session)) -> HTMLResponse:
-    """The price history of each fare of an itinerary, the newest capture first (#240): a fragment, no page."""
+    """The price history of each fare of an itinerary, the newest capture first (#240).
+
+    The trip page loads it as a fragment (htmx sends HX-Request); a direct visit gets a page with its header."""
     it = session.get(Itinerary, itinerary_id)
     if it is None or it.trip_id != trip_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
-    return templates.TemplateResponse(request, "price_history.html",
-                                      {"fares": it.fares, "chart": chart(it.fares)})
+    context = {"fares": it.fares, "chart": chart(it.fares)}
+    if request.headers.get("HX-Request"):
+        return templates.TemplateResponse(request, "price_history.html", context)
+    return templates.TemplateResponse(request, "price_history_page.html",
+                                      {**context, "trip": session.get(Trip, trip_id)})
 
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/hide",

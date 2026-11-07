@@ -4,10 +4,14 @@ import re
 from html.parser import HTMLParser
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app import tokens
 from app.auth import make_password_hash
 from app.main import app
-from app.models import Trip
+from app.models import Itinerary, Trip
+from tests.test_trip_page import ingest, offer
+from tests.test_trip_ranking_page import direct
 
 PASSWORD = "pw"
 EMOJI = re.compile("[\U0001F300-\U0001FAFF☀-➿⭐⭕]")
@@ -67,20 +71,28 @@ def _client(sessions, monkeypatch):
     token = re.search(r'name="csrf_token" value="([^"]+)"', c.get("/login").text).group(1)
     c.post("/login", data={"password": PASSWORD, "csrf_token": token})
     with sessions() as s:
+        token = tokens.create(s, "test")
         trip = Trip(title="T", origin_text="A", destination_text="B")
         s.add(trip)
         s.commit()
-        return c, trip.id
+        tid = trip.id
+    ingest(c, {"Authorization": f"Bearer {token}"}, tid, [offer("89.90"), direct("150.00")])  # ranked rows
+    with sessions() as s:
+        its = s.scalars(select(Itinerary).where(Itinerary.trip_id == tid).order_by(Itinerary.id)).all()
+        return c, tid, [i.id for i in its]
 
 
 def test_each_page_follows_the_page_checklist(sessions, monkeypatch):
-    c, tid = _client(sessions, monkeypatch)
+    c, tid, its = _client(sessions, monkeypatch)
+    a, b = its[0], its[1]
     paths = ["/", "/?archived=1", f"/trips/{tid}", "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/delete",
              f"/trips/{tid}/offers/new", "/sources/new", "/captures", f"/trips/{tid}/captures", "/profiles",
-             "/places", "/settings", "/rates", "/tokens"]
+             "/places", "/settings", "/rates", "/tokens",
+             f"/trips/{tid}/compare?it={a}&it={b}", f"/trips/{tid}/itineraries/{a}/history"]
+    responses = [("/login", TestClient(app).get("/login"))]  # a new client: not logged in
+    responses += [(path, c.get(path)) for path in paths]
     found = {}
-    for path in paths:
-        r = c.get(path)
+    for path, r in responses:
         assert r.status_code == 200, path
         if problems(r.text):
             found[path] = problems(r.text)

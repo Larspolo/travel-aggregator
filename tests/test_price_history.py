@@ -49,7 +49,7 @@ def test_two_captures_show_two_rows_newest_first(trip, sessions):
     client, trip_id = trip
     it = _itinerary_id(sessions, trip_id)
     _add_later_price(sessions, it, "85.00")
-    r = client.get(f"/trips/{trip_id}/itineraries/{it}/history")
+    r = client.get(f"/trips/{trip_id}/itineraries/{it}/history", headers={"HX-Request": "true"})  # the fragment
     assert r.status_code == 200
     assert '<table class="history">' in r.text
     assert "Sparpreis" in r.text

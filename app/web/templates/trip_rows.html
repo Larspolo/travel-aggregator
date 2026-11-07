@@ -53,7 +53,7 @@
         </ul>
         <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/note">
           <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-          <textarea name="note" maxlength="2000">{{ it.note or "" }}</textarea>
+          <textarea name="note" maxlength="2000" aria-label="Note">{{ it.note or "" }}</textarea>
           <button type="submit">Save note</button>
         </form>
         <div hx-get="/trips/{{ trip.id }}/itineraries/{{ it.id }}/history" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"></div>
