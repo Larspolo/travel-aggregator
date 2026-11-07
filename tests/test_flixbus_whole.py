@@ -52,7 +52,7 @@ def test_each_offer_is_on_the_trip_page_with_bus_icon_and_price(trip, name):
     assert out["errors"] == parsed.errors
 
     page = client.get(f"/trips/{trip_id}").text
-    assert "🚌" in page
+    assert "icons.svg#bus" in page
     for offer in parsed.offers:
         price = Decimal(offer.price_amount).quantize(Decimal("0.01"))
         assert f"{offer.price_currency} {price:.2f}" in page, price
