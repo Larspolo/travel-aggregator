@@ -3,7 +3,7 @@ parser version again on the stored raw data of a capture."""
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
@@ -35,20 +35,23 @@ def captures_page(request: Request, trip_id: int, failed: bool = False,
 
 
 @router.get("/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def all_captures_page(request: Request, failed: bool = False,
+def all_captures_page(request: Request, failed: bool = False, source: str | None = Query(None, max_length=50),
                       session: Session = Depends(get_session)) -> HTMLResponse:
-    """The newest 200 captures of all trips (#347): a format change of a site shows in one place."""
+    """The newest 200 captures of all trips (#347): a format change of a site shows in one place.
+    With `source` (#725) only the captures of that source; `failed` and `source` combine."""
     query = select(Capture)
     if failed:
         query = query.where(_failed_clause())
+    if source:
+        query = query.where(Capture.source == source)
     captures = session.scalars(query.order_by(Capture.captured_at.desc(), Capture.id.desc()).limit(200)).all()
     trip_ids = {c.trip_id for c in captures}
     trip_titles = {t.id: t.title for t in session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()}
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed,
-                                       "now": datetime.now(timezone.utc),
+                                       "source": source, "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
-                                       "failed_sources": _failed_sources(session) if failed else []})
+                                       "failed_sources": _failed_sources(session, source) if failed else []})
 
 
 @router.post("/captures/reparse-failed", response_class=HTMLResponse,
@@ -79,8 +82,10 @@ def reparse_failed(source: str = Form(...), session: Session = Depends(get_sessi
     return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
 
 
-def _failed_sources(session: Session) -> list[str]:
+def _failed_sources(session: Session, source: str | None = None) -> list[str]:
     query = select(Capture.source).where(_failed_clause(), Capture.raw_gz.is_not(None)).distinct()
+    if source:
+        query = query.where(Capture.source == source)
     return sorted(session.scalars(query).all())
 
 
