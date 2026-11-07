@@ -2,20 +2,19 @@
 {% import "ui.html" as ui %}
 {% block title %}Captures{% if trip %} · {{ trip.title }}{% endif %} · travel-aggregator{% endblock %}
 {% block content %}
-{% if trip %}
-{{ ui.page_header("Captures of " ~ trip.title, back=("/trips/" ~ trip.id, "Back to the trip")) }}
-{% else %}
-{{ ui.page_header("Captures of all trips") }}
-{% endif %}
-<p>{% if failed %}<a href="{{ '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' }}">Show all captures</a>{% else %}<a href="{{ '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' }}?failed=1">Only failed captures</a>{% endif %}</p>
+{% set base = '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' %}
+{% call ui.page_header("Captures of " ~ trip.title if trip else "Captures of all trips", back=("/trips/" ~ trip.id, "Back to the trip") if trip else none) %}
+  {% if failed %}<a class="btn" href="{{ base }}">Show all captures</a>{% else %}<a class="btn" href="{{ base }}?failed=1">Only failed captures</a>{% endif %}
+{% endcall %}
 {% for source in failed_sources %}
 <p id="reparse-source-{{ loop.index }}"><button name="source" value="{{ source }}" hx-post="/captures/reparse-failed"
   hx-vals='{{ {"source": source} | tojson }}' hx-target="#reparse-source-{{ loop.index }}"
   hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button></p>
 {% endfor %}
 {% if captures %}
-<div class="scroll"><table>
-  <tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th><th></th></tr>
+<section class="card data-card"><div class="scroll"><table class="captures">
+  <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
+  <tbody>
   {% for c in captures %}
   <tr>
     {% if not trip %}<td><a href="/trips/{{ c.trip_id }}">{{ trip_titles[c.trip_id] }}</a></td>{% endif %}
@@ -24,11 +23,11 @@
     <td>{{ c.rejected_count if c.rejected_count is not none else "-" }}</td>
     {% set failed = c.unreadable or (c.rejected_count or 0) > 0 %}
     {% if failed %}
-    <td class="capture-failed"><details><summary>failed</summary>
+    <td class="capture-failed"><details><summary><span class="chip danger">failed</span></summary>
       <ul>{% if c.unreadable %}<li>{{ c.unreadable }}</li>{% endif %}{% for e in c.errors_json or [] %}<li>offer {{ e.index }}: {{ e.reason }}</li>{% endfor %}</ul>
     </details></td>
     {% else %}
-    <td>{{ "-" if c.offer_count is none else "ok" }}</td>
+    <td>{% if c.offer_count is none %}-{% else %}<span class="chip good">ok</span>{% endif %}</td>
     {% endif %}
     <td>{% if c.mismatch %}<span class="trip-mismatch">These offers do not match the trip</span>{% else %}-{% endif %}</td>
     <td>{{ "yes" if c.raw_gz is not none else "no" }}</td>
@@ -39,10 +38,11 @@
       <button type="submit">Move to trip</button></form>{% endif %}</td>
   </tr>
   {% endfor %}
-</table></div>
+</tbody>
+</table></div></section>
 {% elif failed %}
-<p>No failed captures.</p>
+{{ ui.empty_state("No failed captures.") }}
 {% else %}
-<p>No captures yet.</p>
+{% call ui.empty_state("No captures yet") %}<a class="btn btn-primary" href="/tokens">Install the userscripts</a>{% endcall %}
 {% endif %}
 {% endblock %}
