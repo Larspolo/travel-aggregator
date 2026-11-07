@@ -299,6 +299,7 @@ At a width of 640 px or less, the links of the app bar move into one "Menu" butt
 the list of the same pages; each entry is at least 44 px high.
 A wide table scrolls sideways in its own box: this is the trip table and the compare table.
 The sliders, the filter fields and the buttons of the trip page are large enough for a finger: each is at least 40 px high.
+The fields under "Advanced" on the trip page show in two columns, also at a phone width.
 
 ### Compare offers in the trip table
 
@@ -331,6 +332,9 @@ Each row of the trip table has buttons at its left side:
 - "Hide" removes the offer from the table and marks it "hidden". "Unhide" shows it again.
   The table does not show hidden offers, unless you tick "show hidden" above the table.
 - "Mark as booked" adds a "booked" badge to the row. "Not booked" removes it.
+
+The three buttons update the table in place: the page does not reload, and it keeps its scroll position.
+Without JavaScript, each button sends the form and reloads the page.
 
 To write a note on an offer, open "Legs and fares" in its row, change the text in the box and click "Save note".
 A note has at most 2000 characters. The row shows the note under its route.
@@ -382,14 +386,14 @@ The trip page shows a link "Search on <site>" for each source that has a search 
 A round trip is two trips that are linked: an outbound trip and its return trip.
 - The trip page of a one-way trip has the button "Make the return trip". It makes a linked trip with the origin and the destination swapped, and it opens the edit form of that trip. A return trip cannot have a return trip.
 - The trips list shows each return trip directly under its outbound trip, with the text "Return of" and the name of the outbound trip. The line "Journey total" shows the sum of the EUR values of the two best offers. It shows no total when one direction has no offer or has only fares with no rate.
-- The box "Journey" on the trip page of each direction has a link to the other direction. It shows the chosen offer of each direction (the booked offer, else the pinned offer, else the offer with the best effective cost) and the total effective cost.
+- The box "Journey" on the trip page of each direction has a link to the other direction. It shows the chosen offer of each direction (the booked offer, else the pinned offer, else the offer with the best effective cost) and the total effective cost. The box is a timeline with one row per part: the part's label and trip, its times and price, and its effective cost at the right. A warning shows as a chip. The total is at the bottom.
 - The mark "The return departs before the outbound arrives" shows when the return departs before the outbound trip arrives.
 - Deleting the outbound trip keeps the return trip. The link between the two trips goes away.
 
 A journey can have three or more linked trips (multi-city). Each trip after the second one is a "next" trip.
 - The trip page of a trip has the button "Add next trip". It makes a new trip at the end of the journey. The origin of the new trip is the destination of the last trip of the journey, and its destination is empty. Its title is the title of the first trip with "(part N)", where N is the number of the new trip. It opens the edit form of that trip. The button adds the trip to the end of the journey, also when you press it on a middle trip.
 - The trips list shows the trips of a journey together, in sequence, under the first trip. The line "Journey price total" shows the sum of the EUR values of the best offer of each trip. It shows no total when one trip has no offer or has only fares with no rate.
-- The box "Journey" on the trip page of each trip has a link to every other trip of the journey. It shows the chosen offer of each part (the booked offer, else the pinned offer, else the offer with the best effective cost), labelled "Part 1", "Part 2" and so on, and the total effective cost. The mark "departs before the previous part arrives" shows at each part that departs before the previous part arrives.
+- The box "Journey" on the trip page of each trip has a link to every other trip of the journey. It shows the chosen offer of each part (the booked offer, else the pinned offer, else the offer with the best effective cost), labelled "Part 1", "Part 2" and so on, and the total effective cost. The box is a timeline with one row per part: the part's label and trip, its times and price, and its effective cost at the right. A warning shows as a chip. The total is at the bottom. The mark "departs before the previous part arrives" shows at each part that departs before the previous part arrives.
 - Deleting a middle trip removes it from the journey. The next trip links to the trip before the deleted trip, so the other trips stay in sequence.
 - Archiving the journey (see "Archive a trip") moves all its trips to the archived list.
 
@@ -415,7 +419,11 @@ Each direction is a normal trip. The userscripts capture offers into it when you
 
 To compare 2 to 4 offers of a trip:
 1. On `/trips/{id}`, tick the box "Compare" of each row. Tick 2 to 4 rows.
-2. Click "Compare". The page `/trips/{id}/compare` opens.
+2. When one or more rows are ticked, a bar shows under the table with the text "Compare N selected", where N is the
+   count of ticked rows. Click "Compare" in the bar. The page `/trips/{id}/compare` opens.
+
+The amounts on the compare page and on the price history page show in the same money format as the trip page, for
+example `€78.00`.
 
 The page shows one column for each ticked offer. The lines are the route, the departure and arrival times, the duration,
 the transfers, the modes, the carriers, the fare, the price and the effective cost with its breakdown.
@@ -500,6 +508,8 @@ each connection. A connection that the parser cannot read goes to the errors of 
 offer.
 
 ### Parse result of a capture
+
+The column "Captured" shows the age of each capture, for example "2 h ago". Point at the age to see the full UTC time.
 
 Each capture on the captures pages has these columns:
 
@@ -589,7 +599,7 @@ The door-to-door parts are described below.
 
 Each row shows the breakdown of its cost, for example `€90 price + €62 time + €30 transfers = €182`. A part that is
 0 is not shown. Two sliders above the list set the hour markup (default €15) and the transfer markup (default €10),
-from €0 to €100. When you move a slider, the list ranks again at once.
+from €0 to €100. When you move a slider, the list ranks again at once. While the new list loads, the table is dimmed.
 The values are not stored: a link such as `/trips/1?hour_markup=20&transfer_markup=5` opens the page with them.
 
 ### Score profiles
