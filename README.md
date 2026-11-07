@@ -557,6 +557,29 @@ The button does not send a request to the travel site.
 
 A reparse replaces the stored parse result with the new one. Reload the page to see it.
 
+### Status of the sources
+
+The page `/captures` shows the status of each source above the list of captures, in a table with the columns "Source",
+"Last good capture", "Parser" and "Failed after it":
+
+- "Last good capture" is the time of the newest capture that the parser read with no rejected offer. "never" means that
+  no capture of the source is good yet.
+- "Parser" is the version of the parser that read the newest good capture.
+- "Failed after it" is the number of failed captures of the source after the last good capture. A failed capture is
+  a capture that the parser could not read, or that it read with at least one rejected offer.
+
+The table shows only on the page of all captures, with no filter. The filter by source (`/captures?source=<source>`)
+and the page "Only failed captures" (`/captures?failed=1`) do not show it.
+
+To see the captures of one source, add the source to the address (`/captures?source=<source>`). The page then shows
+"Source: <source>" and the link "All sources". The filter combines with "Only failed captures": `/captures?failed=1&source=<source>`
+shows only the failed captures of that source.
+
+The trips list shows a warning for each source with two or more failed captures after its last good capture. The warning
+reads "<source>: the last N captures failed", where N is the number of those failed captures. The warning is a link to
+the failed captures of that source (`/captures?failed=1&source=<source>`). The warning goes away when a good capture of
+that source arrives, or when a reparse (see "Reparse a capture") makes the newest captures good.
+
 ### Trip warning of a capture
 
 The app checks the offers of a capture against the trip. When no offer matches the trip, the app shows a warning with
