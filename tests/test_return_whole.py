@@ -70,7 +70,7 @@ def test_a_round_trip_from_the_ingest_to_the_journey_box(setup, sessions):  # no
     # the trips list: the return trip follows its outbound trip, and the journey total is the two best prices
     html = c.get("/").text
     assert html.index("Köln – München</td>") < html.index("Return of Köln – München")
-    assert "Journey total: EUR 129.90" in html
+    assert "Journey price total: EUR 129.90" in html
 
     # the journey box of both trip pages: the pinned outbound offer, the cheapest return offer, one total
     boxes = {page_id: _box(c, page_id) for page_id in (out, ret)}

@@ -50,17 +50,17 @@ def test_the_return_trip_follows_its_outbound_trip(engine, monkeypatch):
 def test_the_journey_total_is_the_sum_of_the_two_best_prices(engine, monkeypatch):
     _seed(engine)
     html = _client(monkeypatch).get("/").text
-    assert "Journey total: EUR 75.50" in html
+    assert "Journey price total: EUR 75.50" in html
 
 
 def test_no_total_without_a_return_offer(engine, monkeypatch):
     _seed(engine, return_offer=False)
     html = _client(monkeypatch).get("/").text
-    assert "Journey total: no total" in html
+    assert "Journey price total: no total" in html
 
 
 def test_no_total_when_the_currencies_differ(engine, monkeypatch):
     _seed(engine, return_currency="USD")
     html = _client(monkeypatch).get("/").text
-    assert "Journey total: no total" in html
+    assert "Journey price total: no total" in html
     assert "EUR 75.50" not in html
