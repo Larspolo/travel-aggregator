@@ -1,0 +1,531 @@
+{
+  "url": "https://global.api.flixbus.com/search/service/v4/search?from_city_id=40dde3b8-8646-11e6-9066-549f350fcb0c&to_city_id=40de8964-8646-11e6-9066-549f350fcb0c&departure_date=01.12.2026&products=%7B%22adult%22%3A1%7D&currency=GBP&locale=en_GB&search_by=cities&include_after_midnight_rides=1&disable_distribusion_trips=0&disable_global_trips=0&disable_trips=%5B%5D",
+  "request": {
+    "method": "GET"
+  },
+  "response": {
+    "response_uuid": "f745eb75-5c30-4d58-ada3-208b86e36f5b",
+    "no_bikes_period": {
+      "from": "01-11-2026",
+      "to": "28-02-2027"
+    },
+    "global_platform_fees": [
+      {
+        "fee_amount": "1.0",
+        "ab_test_flag": null,
+        "ab_test_flag_value": null
+      }
+    ],
+    "platform_fee_in_price_required": true,
+    "trips": [
+      {
+        "departure_city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+        "arrival_city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+        "date": "2026-12-01T00:00:00+01:00",
+        "results": {
+          "direct:f3cac7ea-c2e6-4e6f-9117-f2e592b77fb2:7ed9675b-72b2-441f-8c52-c3233f96578a:dcbd8ba2-9603-11e6-9066-549f350fcb0c": {
+            "uid": "direct:f3cac7ea-c2e6-4e6f-9117-f2e592b77fb2:7ed9675b-72b2-441f-8c52-c3233f96578a:dcbd8ba2-9603-11e6-9066-549f350fcb0c",
+            "status": "available",
+            "transfer_type": "Direct",
+            "transfer_type_key": "direct",
+            "provider": "flixbus",
+            "departure": {
+              "date": "2026-12-01T00:15:00+01:00",
+              "city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+              "station_id": "7ed9675b-72b2-441f-8c52-c3233f96578a"
+            },
+            "arrival": {
+              "date": "2026-12-01T07:10:00+01:00",
+              "city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+              "station_id": "dcbd8ba2-9603-11e6-9066-549f350fcb0c"
+            },
+            "duration": {
+              "hours": 6,
+              "minutes": 55
+            },
+            "price": {
+              "total": 14.99,
+              "original": 14.99,
+              "average": 14.99,
+              "total_with_platform_fee": 15.99,
+              "average_with_platform_fee": 15.99
+            },
+            "remaining": {
+              "seats_left_at_price": null,
+              "seats": null,
+              "bike_slots": 0,
+              "capacity": "high"
+            },
+            "available": {
+              "seats": 38,
+              "bike_slots": 0
+            },
+            "legs": [
+              {
+                "ride_id": "f3cac7ea-c2e6-4e6f-9117-f2e592b77fb2",
+                "departure": {
+                  "date": "2026-12-01T00:15:00+01:00",
+                  "city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+                  "station_id": "7ed9675b-72b2-441f-8c52-c3233f96578a"
+                },
+                "arrival": {
+                  "date": "2026-12-01T07:10:00+01:00",
+                  "city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+                  "station_id": "dcbd8ba2-9603-11e6-9066-549f350fcb0c"
+                },
+                "means_of_transport": "bus",
+                "amenities": [
+                  "WIFI",
+                  "POWER_SOCKETS"
+                ],
+                "is_marketplace": false,
+                "operator_id": "flixnl",
+                "brand_id": "a18f138c-68fa-4b45-a42f-adb0378e10d3",
+                "sub_brand_id": null,
+                "vehicle_details": [],
+                "layout_configuration": [
+                  {
+                    "column_layout": "TWO_TWO",
+                    "deck": 0
+                  }
+                ],
+                "cheapest_seat": "SEATER",
+                "seat_types": [
+                  {
+                    "seat_type_key": "SEATER",
+                    "seat_type": "SEATER"
+                  }
+                ]
+              }
+            ],
+            "messages": [],
+            "restrictions": {
+              "sale_restriction": false,
+              "info_title": "",
+              "info_title_hint": "",
+              "info_message": "",
+              "bikes_allowed": true,
+              "wheelchair_status": "unknown"
+            },
+            "intermediate_stations_count": 0
+          }
+        },
+        "means_of_transport": [
+          "bus"
+        ],
+        "departure": {
+          "earliest_date": "2026-12-01T00:15:00+01:00",
+          "latest_date": "2026-12-02T00:15:00+01:00",
+          "stations": [
+            "7ed9675b-72b2-441f-8c52-c3233f96578a",
+            "dcbdd1b1-9603-11e6-9066-549f350fcb0c",
+            "dcbc54e2-9603-11e6-9066-549f350fcb0c",
+            "dcc5b353-9603-11e6-9066-549f350fcb0c"
+          ]
+        },
+        "arrival": {
+          "earliest_date": "2026-12-01T07:10:00+01:00",
+          "latest_date": "2026-12-02T08:00:00+01:00",
+          "stations": [
+            "dcbd8ba2-9603-11e6-9066-549f350fcb0c",
+            "dcc5426b-9603-11e6-9066-549f350fcb0c"
+          ]
+        }
+      },
+      {
+        "departure_city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+        "arrival_city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+        "date": "2026-12-01T00:00:00+01:00",
+        "results": {
+          "direct:6ab0ba45-da0a-4dd5-b31b-2d52d37ccc48:dcbdd1b1-9603-11e6-9066-549f350fcb0c:dcc5426b-9603-11e6-9066-549f350fcb0c": {
+            "uid": "direct:6ab0ba45-da0a-4dd5-b31b-2d52d37ccc48:dcbdd1b1-9603-11e6-9066-549f350fcb0c:dcc5426b-9603-11e6-9066-549f350fcb0c",
+            "status": "available",
+            "transfer_type": "Direct express",
+            "transfer_type_key": "direct_express",
+            "provider": "flixbus",
+            "departure": {
+              "date": "2026-12-01T08:05:00+01:00",
+              "city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+              "station_id": "dcbdd1b1-9603-11e6-9066-549f350fcb0c"
+            },
+            "arrival": {
+              "date": "2026-12-01T14:40:00+01:00",
+              "city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+              "station_id": "dcc5426b-9603-11e6-9066-549f350fcb0c"
+            },
+            "duration": {
+              "hours": 6,
+              "minutes": 35
+            },
+            "price": {
+              "total": 17.99,
+              "original": 17.99,
+              "average": 17.99,
+              "total_with_platform_fee": 18.99,
+              "average_with_platform_fee": 18.99
+            },
+            "remaining": {
+              "seats_left_at_price": null,
+              "seats": null,
+              "bike_slots": 0,
+              "capacity": "high"
+            },
+            "available": {
+              "seats": 40,
+              "bike_slots": 0
+            },
+            "legs": [
+              {
+                "ride_id": "6ab0ba45-da0a-4dd5-b31b-2d52d37ccc48",
+                "departure": {
+                  "date": "2026-12-01T08:05:00+01:00",
+                  "city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+                  "station_id": "dcbdd1b1-9603-11e6-9066-549f350fcb0c"
+                },
+                "arrival": {
+                  "date": "2026-12-01T14:40:00+01:00",
+                  "city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+                  "station_id": "dcc5426b-9603-11e6-9066-549f350fcb0c"
+                },
+                "means_of_transport": "bus",
+                "amenities": [
+                  "WIFI",
+                  "POWER_SOCKETS"
+                ],
+                "is_marketplace": false,
+                "operator_id": "flixnl",
+                "brand_id": "a18f138c-68fa-4b45-a42f-adb0378e10d3",
+                "sub_brand_id": null,
+                "vehicle_details": [],
+                "layout_configuration": [
+                  {
+                    "column_layout": "TWO_TWO",
+                    "deck": 0
+                  }
+                ],
+                "cheapest_seat": "SEATER",
+                "seat_types": [
+                  {
+                    "seat_type_key": "SEATER",
+                    "seat_type": "SEATER"
+                  }
+                ]
+              }
+            ],
+            "messages": {
+              "from": "This ride is the fastest way to your destination, please bring some water / snacks because there won’t be any stops."
+            },
+            "restrictions": {
+              "sale_restriction": false,
+              "info_title": "",
+              "info_title_hint": "",
+              "info_message": "",
+              "bikes_allowed": true,
+              "wheelchair_status": "unknown"
+            },
+            "intermediate_stations_count": 0
+          }
+        },
+        "means_of_transport": [
+          "bus"
+        ],
+        "departure": {
+          "earliest_date": "2026-12-01T00:15:00+01:00",
+          "latest_date": "2026-12-02T00:15:00+01:00",
+          "stations": [
+            "7ed9675b-72b2-441f-8c52-c3233f96578a",
+            "dcbdd1b1-9603-11e6-9066-549f350fcb0c",
+            "dcbc54e2-9603-11e6-9066-549f350fcb0c",
+            "dcc5b353-9603-11e6-9066-549f350fcb0c"
+          ]
+        },
+        "arrival": {
+          "earliest_date": "2026-12-01T07:10:00+01:00",
+          "latest_date": "2026-12-02T08:00:00+01:00",
+          "stations": [
+            "dcbd8ba2-9603-11e6-9066-549f350fcb0c",
+            "dcc5426b-9603-11e6-9066-549f350fcb0c"
+          ]
+        }
+      },
+      {
+        "departure_city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+        "arrival_city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+        "date": "2026-12-01T00:00:00+01:00",
+        "results": {
+          "ic:7ed9675b-72b2-441f-8c52-c3233f96578a:dcc5426b-9603-11e6-9066-549f350fcb0c/57a5d69c-cf6f-4237-8cfb-999b4699b6ae:97ad0b6d-991a-46d5-bc57-276173e0cc39:97ad0b6d-991a-46d5-bc57-276173e0cc39:3bc8cc76-508e-49dc-a84c-fba73bb4efe6": {
+            "uid": "ic:7ed9675b-72b2-441f-8c52-c3233f96578a:dcc5426b-9603-11e6-9066-549f350fcb0c/57a5d69c-cf6f-4237-8cfb-999b4699b6ae:97ad0b6d-991a-46d5-bc57-276173e0cc39:97ad0b6d-991a-46d5-bc57-276173e0cc39:3bc8cc76-508e-49dc-a84c-fba73bb4efe6",
+            "status": "available",
+            "transfer_type": "Transfer",
+            "transfer_type_key": "direct#direct",
+            "provider": "flixbus",
+            "departure": {
+              "date": "2026-12-01T15:15:00+01:00",
+              "city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+              "station_id": "7ed9675b-72b2-441f-8c52-c3233f96578a"
+            },
+            "arrival": {
+              "date": "2026-12-02T00:20:00+01:00",
+              "city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+              "station_id": "dcc5426b-9603-11e6-9066-549f350fcb0c"
+            },
+            "duration": {
+              "hours": 9,
+              "minutes": 5
+            },
+            "price": {
+              "total": 25.48,
+              "original": 25.48,
+              "average": 25.48,
+              "total_with_platform_fee": 26.48,
+              "average_with_platform_fee": 26.48
+            },
+            "remaining": {
+              "seats_left_at_price": null,
+              "seats": null,
+              "bike_slots": 0,
+              "capacity": "high"
+            },
+            "available": {
+              "seats": 45,
+              "bike_slots": 0
+            },
+            "legs": [
+              {
+                "ride_id": "57a5d69c-cf6f-4237-8cfb-999b4699b6ae",
+                "departure": {
+                  "date": "2026-12-01T15:15:00+01:00",
+                  "city_id": "40dde3b8-8646-11e6-9066-549f350fcb0c",
+                  "station_id": "7ed9675b-72b2-441f-8c52-c3233f96578a"
+                },
+                "arrival": {
+                  "date": "2026-12-01T17:35:00+01:00",
+                  "city_id": "40dee1a4-8646-11e6-9066-549f350fcb0c",
+                  "station_id": "97ad0b6d-991a-46d5-bc57-276173e0cc39"
+                },
+                "means_of_transport": "bus",
+                "amenities": [
+                  "WIFI",
+                  "POWER_SOCKETS"
+                ],
+                "is_marketplace": false,
+                "operator_id": "flixnl",
+                "brand_id": "a18f138c-68fa-4b45-a42f-adb0378e10d3",
+                "sub_brand_id": null,
+                "vehicle_details": [],
+                "layout_configuration": [
+                  {
+                    "column_layout": "TWO_TWO",
+                    "deck": 0
+                  }
+                ],
+                "cheapest_seat": "SEATER",
+                "seat_types": [
+                  {
+                    "seat_type_key": "SEATER",
+                    "seat_type": "SEATER"
+                  }
+                ]
+              },
+              {
+                "ride_id": "3bc8cc76-508e-49dc-a84c-fba73bb4efe6",
+                "departure": {
+                  "date": "2026-12-01T19:00:00+01:00",
+                  "city_id": "40dee1a4-8646-11e6-9066-549f350fcb0c",
+                  "station_id": "97ad0b6d-991a-46d5-bc57-276173e0cc39"
+                },
+                "arrival": {
+                  "date": "2026-12-02T00:20:00+01:00",
+                  "city_id": "40de8964-8646-11e6-9066-549f350fcb0c",
+                  "station_id": "dcc5426b-9603-11e6-9066-549f350fcb0c"
+                },
+                "means_of_transport": "bus",
+                "amenities": [
+                  "WIFI",
+                  "POWER_SOCKETS"
+                ],
+                "is_marketplace": false,
+                "operator_id": "flixnl",
+                "brand_id": "a18f138c-68fa-4b45-a42f-adb0378e10d3",
+                "sub_brand_id": null,
+                "vehicle_details": [],
+                "layout_configuration": [
+                  {
+                    "column_layout": "TWO_TWO",
+                    "deck": 0
+                  }
+                ],
+                "cheapest_seat": "SEATER",
+                "seat_types": [
+                  {
+                    "seat_type_key": "SEATER",
+                    "seat_type": "SEATER"
+                  }
+                ]
+              }
+            ],
+            "messages": [],
+            "restrictions": {
+              "sale_restriction": false,
+              "info_title": "",
+              "info_title_hint": "",
+              "info_message": "",
+              "bikes_allowed": true,
+              "wheelchair_status": "unknown"
+            }
+          }
+        },
+        "means_of_transport": [
+          "bus"
+        ],
+        "departure": {
+          "earliest_date": "2026-12-01T00:15:00+01:00",
+          "latest_date": "2026-12-02T00:15:00+01:00",
+          "stations": [
+            "7ed9675b-72b2-441f-8c52-c3233f96578a",
+            "dcbdd1b1-9603-11e6-9066-549f350fcb0c",
+            "dcbc54e2-9603-11e6-9066-549f350fcb0c",
+            "dcc5b353-9603-11e6-9066-549f350fcb0c"
+          ]
+        },
+        "arrival": {
+          "earliest_date": "2026-12-01T07:10:00+01:00",
+          "latest_date": "2026-12-02T08:00:00+01:00",
+          "stations": [
+            "dcbd8ba2-9603-11e6-9066-549f350fcb0c",
+            "dcc5426b-9603-11e6-9066-549f350fcb0c"
+          ]
+        }
+      }
+    ],
+    "cities": {
+      "40dde3b8-8646-11e6-9066-549f350fcb0c": {
+        "name": "Amsterdam",
+        "slug": "amsterdam",
+        "legacy_id": 1334,
+        "id": "40dde3b8-8646-11e6-9066-549f350fcb0c"
+      },
+      "40de8964-8646-11e6-9066-549f350fcb0c": {
+        "name": "Paris",
+        "slug": "paris",
+        "legacy_id": 2015,
+        "id": "40de8964-8646-11e6-9066-549f350fcb0c"
+      },
+      "40dee1a4-8646-11e6-9066-549f350fcb0c": {
+        "name": "Antwerp",
+        "slug": "antwerpen",
+        "legacy_id": 2468,
+        "id": "40dee1a4-8646-11e6-9066-549f350fcb0c"
+      }
+    },
+    "stations": {
+      "dcbc54e2-9603-11e6-9066-549f350fcb0c": {
+        "id": "dcbc54e2-9603-11e6-9066-549f350fcb0c",
+        "legacy_id": 1404,
+        "name": "Amsterdam Central (Bus stop H)",
+        "slug": "amsterdam-central",
+        "is_train": false,
+        "importance": 8
+      },
+      "dcbd8ba2-9603-11e6-9066-549f350fcb0c": {
+        "id": "dcbd8ba2-9603-11e6-9066-549f350fcb0c",
+        "legacy_id": 2365,
+        "name": "Paris, Porte Maillot",
+        "slug": "paris",
+        "is_train": false,
+        "importance": 25
+      },
+      "dcbdd1b1-9603-11e6-9066-549f350fcb0c": {
+        "id": "dcbdd1b1-9603-11e6-9066-549f350fcb0c",
+        "legacy_id": 2715,
+        "name": "Amsterdam Sloterdijk",
+        "slug": "amsterdam",
+        "is_train": false,
+        "importance": 10
+      },
+      "dcc5426b-9603-11e6-9066-549f350fcb0c": {
+        "id": "dcc5426b-9603-11e6-9066-549f350fcb0c",
+        "legacy_id": 11558,
+        "name": "Paris (Bercy Seine)",
+        "slug": "paris-bercy",
+        "is_train": false,
+        "importance": 26
+      },
+      "dcc5b353-9603-11e6-9066-549f350fcb0c": {
+        "id": "dcc5b353-9603-11e6-9066-549f350fcb0c",
+        "legacy_id": 11928,
+        "name": "Schiphol Airport",
+        "slug": "amsterdam-schiphol",
+        "is_train": false,
+        "importance": 9
+      },
+      "97ad0b6d-991a-46d5-bc57-276173e0cc39": {
+        "id": "97ad0b6d-991a-46d5-bc57-276173e0cc39",
+        "legacy_id": 16518,
+        "name": "Antwerp Rooseveltplaats",
+        "slug": "antwerp-rooseveltplaats",
+        "is_train": false,
+        "importance": 100
+      },
+      "7ed9675b-72b2-441f-8c52-c3233f96578a": {
+        "id": "7ed9675b-72b2-441f-8c52-c3233f96578a",
+        "legacy_id": 24508,
+        "name": "Amsterdam Bijlmer",
+        "slug": "amsterdam-bijlmer-arena",
+        "is_train": false,
+        "importance": 7
+      }
+    },
+    "operators": {
+      "flixnl": {
+        "label": "FlixBus B.V.",
+        "key": "flixnl",
+        "url": "http://flixbus.nl",
+        "address": "REDACTED",
+        "id": "flixnl"
+      }
+    },
+    "brands": {
+      "a18f138c-68fa-4b45-a42f-adb0378e10d3": {
+        "name": "FlixBus",
+        "type": "core",
+        "active": true,
+        "logo": "https://cdn-cf.cms.flixbus.com/drupal-assets/2025-01/flixbus-green.png",
+        "images": [
+          {
+            "url": "https://cdn-cf.cms.flixbus.com/drupal-assets/styles/original/s3/2025-09/FB1.jpg",
+            "sources": [
+              {
+                "sizes": "100vw",
+                "srcset": "https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_300w/s3/2025-09/FB1.jpg 300w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_600w/s3/2025-09/FB1.jpg 600w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_960w/s3/2025-09/FB1.jpg 960w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/original/s3/2025-09/FB1.jpg 1200w"
+              }
+            ]
+          },
+          {
+            "url": "https://cdn-cf.cms.flixbus.com/drupal-assets/styles/original/s3/2025-09/FB2.jpeg",
+            "sources": [
+              {
+                "sizes": "100vw",
+                "srcset": "https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_300w/s3/2025-09/FB2.jpeg 300w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_600w/s3/2025-09/FB2.jpeg 600w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_960w/s3/2025-09/FB2.jpeg 960w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/original/s3/2025-09/FB2.jpeg 1200w"
+              }
+            ]
+          },
+          {
+            "url": "https://cdn-cf.cms.flixbus.com/drupal-assets/styles/original/s3/2025-09/FB3.jpeg",
+            "sources": [
+              {
+                "sizes": "100vw",
+                "srcset": "https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_300w/s3/2025-09/FB3.jpeg 300w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_600w/s3/2025-09/FB3.jpeg 600w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/product_image_960w/s3/2025-09/FB3.jpeg 960w, https://cdn-cf.cms.flixbus.com/drupal-assets/styles/original/s3/2025-09/FB3.jpeg 1200w"
+              }
+            ]
+          }
+        ],
+        "usps": [],
+        "description": "<p><span>Europe’s leading bus provider, providing wallet-friendly travel options to thousands of destinations worldwide.</span></p>",
+        "color": "#97D700",
+        "color_light": "#E5F9C0",
+        "color_dark": "#187D00"
+      }
+    }
+  }
+}
