@@ -76,8 +76,8 @@ def test_a_round_trip_from_the_ingest_to_the_journey_box(setup, sessions):  # no
     boxes = {page_id: _box(c, page_id) for page_id in (out, ret)}
     for page_id, box in boxes.items():
         assert f'href="/trips/{out}"' in box and f'href="/trips/{ret}"' in box
-        assert "EUR 119.90" in box and "EUR 89.90" not in box
-        assert "EUR 40.00" in box and "EUR 50.00" not in box and "EUR 60.00" not in box
+        assert "€119.90" in box and "€89.90" not in box
+        assert "€40.00" in box and "€50.00" not in box and "€60.00" not in box
         assert "departs before" not in box
         total, costs = _total(box)
         assert len(costs) == 2 and total == sum(costs)
