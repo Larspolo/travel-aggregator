@@ -9,6 +9,7 @@ import pytest
 import uvicorn
 
 from tests.test_mobile_controls import SMALL_CONTROLS
+from app.models import Itinerary
 from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a fixture)
 
 pytestmark = pytest.mark.slow
@@ -30,7 +31,9 @@ def live(trip, sessions):  # noqa: F811
     thread.start()
     while not server.started:
         time.sleep(0.05)
-    yield f"http://127.0.0.1:{port}", trip_id
+    with sessions() as s:
+        its = [i.id for i in s.query(Itinerary).filter_by(trip_id=trip_id).order_by(Itinerary.id).limit(2)]
+    yield f"http://127.0.0.1:{port}", trip_id, its
     server.should_exit = True
     thread.join(5)
 
@@ -43,9 +46,11 @@ def _launch(p):
 def test_every_page_fits_both_widths_and_the_phone_controls_are_big(live):
     from playwright.sync_api import sync_playwright
 
-    base, tid = live
+    base, tid, (first, second) = live
     paths = ["/", f"/trips/{tid}", f"/trips/{tid}/captures", "/profiles", "/places", "/tokens", "/settings",
-             "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/offers/new", "/sources/new", "/login"]
+             "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/offers/new", "/sources/new", "/login",
+             f"/trips/{tid}/delete", "/captures", "/rates", f"/trips/{tid}/compare?it={first}&it={second}",
+             f"/trips/{tid}/itineraries/{first}/history"]
     wide = {}
     small = None
     with sync_playwright() as p:
