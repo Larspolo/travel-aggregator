@@ -509,6 +509,7 @@ button.icon:hover { background: var(--surface); border-color: var(--line); color
   .toolbar .btn { flex: 1 1 auto; justify-content: center; }
   details.more { flex: 0 0 auto; }
   details.more > summary.btn { flex: none; }
+  .more-menu { left: 0; right: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
