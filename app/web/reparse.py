@@ -1,6 +1,8 @@
 """The captures of a trip and the "reparse capture" action (#154): after a parser fix, the owner runs the current
 parser version again on the stored raw data of a capture."""
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy import or_, select
@@ -27,7 +29,7 @@ def captures_page(request: Request, trip_id: int, failed: bool = False,
         query = query.where(_failed_clause())
     captures = session.scalars(query.order_by(Capture.captured_at.desc(), Capture.id.desc())).all()
     return templates.TemplateResponse(request, "captures.html",
-                                      {"trip": trip, "captures": captures, "failed": failed,
+                                      {"trip": trip, "captures": captures, "failed": failed, "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session) if failed else []})
 
@@ -44,6 +46,7 @@ def all_captures_page(request: Request, failed: bool = False,
     trip_titles = {t.id: t.title for t in session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()}
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed,
+                                       "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session) if failed else []})
 
