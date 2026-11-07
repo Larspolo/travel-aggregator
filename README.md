@@ -530,6 +530,22 @@ The response of `POST /api/ingest` has the field `warning`: `"These offers do no
 
 A reparse (see "Reparse a capture") computes the warning again, for example after you change the places of the trip.
 
+### Move to trip
+
+Use this when a capture went to the wrong trip. Open `/captures` or `/trips/{id}/captures`. The column of each capture
+with raw data has a list of the other trips (not archived) and the button "Move to trip". Select the correct trip and
+press the button. The page shows the result, for example "Moved to <trip>: N created, N updated, N unchanged, N rejected."
+
+- The offers of the capture go to the selected trip, and they leave the old trip.
+- An offer that another capture of the old trip also has stays in the old trip.
+- An itinerary that leaves the old trip gives its pin, booked mark, hidden mark and note to the same journey in the
+  selected trip.
+- A capture with no raw data cannot move. A source with no parser cannot move either.
+- A move does not send a price-drop message. The move is not a new capture.
+
+The move parses the stored raw data again. It does not send a request to the travel site. When the parser cannot read
+the raw data, nothing moves, and the page shows the reason.
+
 ### Capture retention
 
 A capture is the raw data that the userscript sent to the server. The app keeps each capture for a number of days.
