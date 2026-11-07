@@ -67,12 +67,12 @@ def test_a_post_toggles_booked_and_the_row_shows_the_mark(trip, sessions):
     assert r.status_code == 303 and r.headers["location"] == f"/trips/{trip_id}"
     assert _booked(sessions, it) is True
     page = client.get(f"/trips/{trip_id}").text
-    assert '<span class="badge">booked</span>' in page
+    assert '<span class="badge booked">booked</span>' in page
     assert "Not booked" in page
 
     client.post(booked_url(trip_id, it), data={"csrf_token": token}, follow_redirects=False)
     assert _booked(sessions, it) is False
-    assert '<span class="badge">booked</span>' not in client.get(f"/trips/{trip_id}").text
+    assert '<span class="badge booked">booked</span>' not in client.get(f"/trips/{trip_id}").text
 
 
 def test_a_post_without_the_csrf_token_gets_403_and_changes_nothing(trip, sessions):

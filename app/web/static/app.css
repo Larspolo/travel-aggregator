@@ -42,6 +42,18 @@ tr.total td { font-weight: bold; }
 .badge {
   display: inline-block; padding: 0 .4em; border-radius: .6em; background: var(--good); color: var(--bg); font-size: .8em;
 }
+.badge.best-value, .badge.price-dropped { background: var(--good); }
+.badge.cheapest, .badge.fastest { background: var(--info); }
+.badge.booked { background: var(--accent); }
+.badge.stale { background: var(--warn); }
+td.cost { min-width: 10rem; }
+td.cost .breakdown { color: var(--muted); font-size: .9em; }
+td.cost .total { font-size: 1.15em; font-weight: 600; }
+svg.bar { display: block; margin: var(--space-1) 0; background: var(--line); border-radius: 3px; }
+svg.bar .part-0 { fill: var(--accent); }
+svg.bar .part-1 { fill: var(--info); }
+svg.bar .part-2 { fill: var(--warn); }
+svg.bar .part-3 { fill: var(--muted); }
 .weights { display: flex; gap: var(--space-6); flex-wrap: wrap; margin: var(--space-2) 0 var(--space-4); }
 .scroll { overflow-x: auto; }
 @media (max-width: 40rem) {
