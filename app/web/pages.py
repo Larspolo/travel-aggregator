@@ -210,7 +210,17 @@ def delete_trip_confirm(request: Request, trip_id: int, session: Session = Depen
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 def delete_trip_page(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
     # The database deletes the offers, prices and captures (CASCADE); a return trip keeps, unlinked (SET NULL).
-    session.delete(_get_trip(session, trip_id))
+    # A middle trip of a journey: its next trip links to its previous trip (#563). The column is unique, so the
+    # link of this trip goes first.
+    trip = _get_trip(session, trip_id)
+    previous_id = trip.return_of_id
+    following = session.scalar(select(Trip).where(Trip.return_of_id == trip.id))
+    if previous_id is not None and following is not None:
+        trip.return_of_id = None
+        session.flush()
+        following.return_of_id = previous_id
+        session.flush()
+    session.delete(trip)
     session.commit()
     return RedirectResponse("/", status_code=303)
 
