@@ -393,6 +393,19 @@ The panel shows the number of captured offers.
 The parser reads the fare name with its flexibility level. It gives each station its own timezone. A connection that
 the parser cannot read goes to the errors of the capture and is not stored as an offer.
 
+### Flixbus userscript
+
+The Flixbus userscript captures the search results of flixbus.com: the connections, their times and their prices.
+It reads only the responses that the Flixbus page itself gets. It sends no request to flixbus.com.
+
+To install it, add the file `userscripts/flixbus.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On flixbus.com, search for a connection.
+The panel shows the number of captured offers.
+
+The parser reads the currency from the search address of the page. It takes the fare name from the transfer type of
+each connection. A connection that the parser cannot read goes to the errors of the capture and is not stored as an
+offer.
+
 ### Parse result of a capture
 
 Each capture on the captures pages has these columns:
