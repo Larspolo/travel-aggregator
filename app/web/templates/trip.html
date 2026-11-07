@@ -18,6 +18,8 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
       <button class="btn" type="submit">{{ ui.icon("calendar-plus") }}Add next trip</button>
     </form>
+    <a class="btn" href="/trips/{{ trip.id }}/export.csv" download>{{ ui.icon("download") }}Export CSV</a>
+    <a class="btn" href="/trips/{{ trip.id }}/export.json" download>{{ ui.icon("download") }}Export JSON</a>
     </div>
   </details>
 {% endcall %}
