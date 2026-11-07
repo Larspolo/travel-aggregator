@@ -53,12 +53,12 @@ def local(t: datetime, offset_min: int) -> datetime:
 
 templates.env.filters["local"] = local
 
-MODE_ICONS = {"train": "🚆", "bus": "🚌", "flight": "✈️"}
+MODE_ICONS = {"train": "train", "bus": "bus", "flight": "plane", "walk": "walk"}
 
 
 def mode_icon(mode: str) -> str:
-    """The icon of one leg mode (a mode with no icon gets a dot)."""
-    return MODE_ICONS.get(mode, "•")
+    """The name of the icon in static/icons.svg of one leg mode ("" for a mode with no icon)."""
+    return MODE_ICONS.get(mode, "")
 
 
 def day_gap(arrive_local: datetime, depart_local: datetime) -> int:

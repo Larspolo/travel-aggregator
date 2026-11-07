@@ -1,3 +1,4 @@
+{% import "ui.html" as ui %}
   {% for it, fare, cost in rows %}
     {% set first, last = it.legs[0], it.legs[-1] %}
     <tr>
@@ -8,7 +9,7 @@
       {{ first.from_name }} → {{ last.to_name }}
         {% if it.booked %}<span class="badge booked">booked</span>{% endif %}
         {% for b in view.badges.get(it.id, []) %}<span class="badge {{ b | replace(" ", "-") }}">{{ b }}</span> {% endfor %}
-        <div class="modes">{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{{ m | mode_icon }}</span> {% endfor %}</div>
+        <div class="modes">{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{% if m | mode_icon %}{{ ui.icon(m | mode_icon, m) }}{% else %}•{% endif %}</span> {% endfor %}</div>
         <div class="muted">{{ it.mode_summary }}, {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }},
           {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }}</div>
         {% if it.note %}<div class="muted">{{ it.note }}</div>{% endif %}</td>
@@ -22,12 +23,12 @@
         {% set parts = bar_parts(cost) %}{% if parts %}<svg class="bar" width="100%" height="6" aria-hidden="true">{% for label, x, w in parts %}<rect class="part-{{ loop.index0 % 4 }}" x="{{ x }}%" width="{{ w }}%" height="6"></rect>{% endfor %}</svg>{% endif %}
         <div class="breakdown">{{ format_breakdown(cost) }}{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</div></td>
       <td class="actions">
-        {% for action, label, symbol in [("pin", "Unpin" if it.pinned else "Pin", "📌"),
-                                         ("hide", "Unhide" if it.hidden else "Hide", "👁"),
-                                         ("booked", "Not booked" if it.booked else "Mark as booked", "✓")] %}
+        {% for action, label, symbol in [("pin", "Unpin" if it.pinned else "Pin", "pin"),
+                                         ("hide", "Unhide" if it.hidden else "Hide", "eye" if it.hidden else "eye-off"),
+                                         ("booked", "Not booked" if it.booked else "Mark as booked", "check")] %}
         <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/{{ action }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-          <button type="submit" class="icon" aria-label="{{ label }}" title="{{ label }}">{{ symbol }}</button>
+          <button type="submit" class="icon" aria-label="{{ label }}" title="{{ label }}">{{ ui.icon(symbol) }}</button>
         </form>{% endfor %}
       </td>
     </tr>
@@ -37,7 +38,7 @@
         {% for leg in it.legs %}
           {% if not loop.first %}{% set gap = ((leg.depart_at - loop.previtem.arrive_at).total_seconds() // 60) | int %}
           <li class="transfer muted">Transfer at {{ leg.from_name }}: {{ gap // 60 }}h {{ "%02d" | format(gap % 60) }}</li>{% endif %}
-          <li>{{ leg.mode | mode_icon }} {{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}:
+          <li>{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon) }}{% else %}•{% endif %} {{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}:
             {{ leg.from_name }} {{ (leg.depart_at | local(leg.depart_offset_min)).strftime("%H:%M") }} →
             {{ leg.to_name }} {{ (leg.arrive_at | local(leg.arrive_offset_min)).strftime("%H:%M") }}</li>
         {% endfor %}

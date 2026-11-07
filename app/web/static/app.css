@@ -204,3 +204,4 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+svg.icon { width: 1.1em; height: 1.1em; vertical-align: -0.15em; stroke: currentColor; fill: none; }
