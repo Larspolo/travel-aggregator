@@ -23,7 +23,7 @@
 {% include "journey.html" %}
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <div class="trip-layout">
-<aside class="panel"><details class="panel-toggle"><summary>Weights and filters</summary>
+<aside class="panel card"><details class="panel-toggle"><summary>Weights and filters</summary>
 {% if profiles %}
 <form class="profile" method="get" action="/trips/{{ trip.id }}">
   <label>Profile <select name="profile">
@@ -34,22 +34,22 @@
 <form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
   {% if sort_query.profile %}<input type="hidden" name="profile" value="{{ sort_query.profile }}">{% endif %}
-  <label>Hour markup €<output name="hour_value">{{ weights.hour_markup }}</output>
+  <label class="slider"><span>Hour markup €</span><output name="hour_value">{{ weights.hour_markup }}</output>
     <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
-  <label>Transfer markup €<output name="transfer_value">{{ weights.transfer_markup }}</output>
+  <label class="slider"><span>Transfer markup €</span><output name="transfer_value">{{ weights.transfer_markup }}</output>
     <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
   <details class="filters" open><summary>Filters</summary>
     <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
     <label><input type="checkbox" name="hide_stale" value="true"{% if view.hide_stale %} checked{% endif %}> hide stale</label>
     <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
-    <label>Mode <select name="mode"><option value="">All</option>
+    <label class="field">Mode <select name="mode"><option value="">All</option>
       {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
-    <label>Earliest departure <input type="time" name="earliest_depart" value="{{ view.earliest_depart }}"></label>
-    <label>Latest arrival <input type="time" name="latest_arrive" value="{{ view.latest_arrive }}"></label>
-    <label>Source <select name="source"><option value="">All</option>
+    <label class="field">Earliest departure <input type="time" name="earliest_depart" value="{{ view.earliest_depart }}"></label>
+    <label class="field">Latest arrival <input type="time" name="latest_arrive" value="{{ view.latest_arrive }}"></label>
+    <label class="field">Source <select name="source"><option value="">All</option>
       {% for s in view.sources %}<option value="{{ s }}"{% if s == view.source %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
-    <label>Max transfers <input type="number" name="max_transfers" min="0" max="10" step="1" value="{{ view.max_transfers if view.max_transfers is not none else '' }}"></label>
-    <label>Max duration (min) <input type="number" name="max_duration_min" min="0" max="10080" step="1" value="{{ view.max_duration_min if view.max_duration_min is not none else '' }}"></label>
+    <label class="field">Max transfers <input type="number" name="max_transfers" min="0" max="10" step="1" value="{{ view.max_transfers if view.max_transfers is not none else '' }}"></label>
+    <label class="field">Max duration (min) <input type="number" name="max_duration_min" min="0" max="10080" step="1" value="{{ view.max_duration_min if view.max_duration_min is not none else '' }}"></label>
     <details class="exclude"><summary>Exclude</summary>
       {% for m in view.modes %}<label><input type="checkbox" name="exclude_mode" value="{{ m }}"{% if m in view.exclude_mode %} checked{% endif %}> {{ m }}</label>{% endfor %}
       {% for c in view.carriers %}<label><input type="checkbox" name="exclude_carrier" value="{{ c }}"{% if c in view.exclude_carrier %} checked{% endif %}> {{ c }}</label>{% endfor %}

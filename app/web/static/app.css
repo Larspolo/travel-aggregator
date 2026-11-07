@@ -107,6 +107,14 @@ svg.bar .part-2 { fill: var(--warn); }
 svg.bar .part-3 { fill: var(--muted); }
 .weights { display: flex; gap: var(--space-6); flex-wrap: wrap; margin: var(--space-2) 0 var(--space-4); }
 .scroll { overflow-x: auto; }
+/* The weights panel is a card (#628): each slider has the full width, its value at the right of its label. */
+.panel.card { padding: var(--space-4); }
+.panel label.slider { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-1); }
+.panel label.slider output { font-variant-numeric: tabular-nums; font-weight: 600; }
+.panel label.slider input[type=range] { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--accent); }
+.panel details.filters > label.field { margin-top: var(--space-3); gap: var(--space-1); }
+.panel details.filters label.field { display: flex; }
+@media (max-width: 40rem) { .panel.card { padding: var(--space-2); } .panel .field input:not([type=checkbox]):not([type=radio]), .panel .field select { min-height: 40px; } }
 /* == Phone == */
 @media (max-width: 40rem) {
   body { padding: var(--space-2); font-size: 16px; }
@@ -208,6 +216,7 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 .btn-danger { color: var(--danger); border-color: var(--danger); }
 .btn-danger:hover { border-color: var(--danger); }
 .btn-danger.confirm { background: var(--danger); color: var(--accent-text); }
+.btn-icon { width: 32px; min-height: 32px; padding: 0; justify-content: center; }
 .field { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .field label { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
 .field input:not([type=checkbox]):not([type=radio]), .field select, .field textarea {
@@ -221,6 +230,9 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 .form-grid .wide { grid-column: 1 / -1; }
 .form-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
 .card fieldset { margin: var(--space-4) 0 0; padding: var(--space-3); }
+/* == Settings == */
+.inline-form { display: inline; margin: 0; }
+.card .table-actions { text-align: right; }
 /* == Trips list == */
 /* == Login == */
 .login { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-height: 70vh; padding: var(--space-4) 0; }
@@ -235,6 +247,7 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 @media (max-width: 40rem) {
   .card { padding: var(--space-4); }
   .btn { min-height: 44px; }
+  .btn-icon { width: 44px; }
   .page-header { flex-direction: column; align-items: stretch; }
 }
 @media (prefers-reduced-motion: reduce) {

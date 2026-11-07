@@ -3,14 +3,27 @@
 {% block title %}Exchange rates – travel-aggregator{% endblock %}
 {% block content %}
 {{ ui.page_header("Exchange rates", subtitle="The value in EUR of one unit of a currency. A save of an existing code changes its rate.", back=("/settings", "Settings")) }}
-{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% call ui.card("Add or change a rate") %}
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <form method="post" action="/rates">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-  <label>Code <input name="code" required maxlength="3" pattern="[A-Za-z]{3}" placeholder="CHF"></label>
-  <label>Rate (€) <input name="rate" required inputmode="decimal" placeholder="1.07"></label>
-  <button type="submit">Save rate</button>
+  <div class="form-grid">
+    <div class="field">
+      <label for="code">Code</label>
+      <input id="code" name="code" required maxlength="3" pattern="[A-Za-z]{3}" placeholder="CHF">
+      <p class="help">Three letters, for example CHF.</p>
+    </div>
+    <div class="field">
+      <label for="rate">Rate (€)</label>
+      <input id="rate" name="rate" required inputmode="decimal" placeholder="1.07">
+    </div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Save rate</button></div>
 </form>
+{% endcall %}
+{% call ui.card("Rates") %}
 {% if rates %}
+<div class="scroll">
 <table>
   <thead><tr><th>Rate</th><th>Updated</th><th></th></tr></thead>
   <tbody>
@@ -18,15 +31,17 @@
   <tr>
     <td>1 {{ r.code }} = €{{ "{:f}".format(r.eur_per_unit.normalize()) }}</td>
     <td>{{ r.updated_at.strftime("%Y-%m-%d %H:%M") }} UTC</td>
-    <td><form method="post" action="/rates/{{ r.code }}/delete">
+    <td class="table-actions"><form class="inline-form" method="post" action="/rates/{{ r.code }}/delete">
       <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-      <button type="submit">Delete</button>
+      <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete {{ r.code }}" title="Delete {{ r.code }}">{{ ui.icon("trash") }}</button>
     </form></td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}
-<p>You have no exchange rates.</p>
+{{ ui.empty_state("You have no exchange rates.") }}
 {% endif %}
+{% endcall %}
 {% endblock %}
