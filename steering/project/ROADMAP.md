@@ -21,7 +21,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - Payloads that were not sent go again later, with no lost offer
 - [ ] `capture:merge` One itinerary for the same journey from two sources (#481)
   - The same ICE from bahn.de and NS International shows as one row with the fares of both sites
-- [ ] `capture:reparse-all` Reparse all failed captures of a source in one step (#488)
+- [x] `capture:reparse-all` (#488) Reparse all failed captures of a source in one step
   - After a parser fix, one button on the failed captures page reparses them all and shows the counts
 - [x] `capture:bahn` (#151) bahn.de: JSON interception, server parser, trimmed fixtures, fail-soft parsing, "reparse capture"
   - A search on bahn.de shows all fare classes on the trip page within seconds, with no manual step
@@ -36,6 +36,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - When a site changes its format, the failed captures show with their errors, and "reparse" after a parser fix shows the new result
 - [ ] `capture:install` Install and update the userscripts from the app: the app serves its own userscripts and `core.js`, with the install links on the tokens page
   - A click on the install link of the tokens page installs the userscript; after a new image, Tampermonkey updates it to the version of the server
+- [ ] `capture:match-trip` A warning when the captured offers do not match the selected trip: the server compares the places and the date of the parsed offers with the trip
+  - A capture of Amsterdam → Lisbon into the trip Amsterdam → Zürich shows "These offers do not match the trip" in the panel and on the captures page
+- [ ] `capture:move` Move the offers of a capture to another trip, after a capture into the wrong trip
+  - "Move to trip" on the captures page moves the offers and their price rows of one capture, and the old trip does not show them
 
 ## 2. Rank offers by effective cost
 
@@ -79,10 +83,12 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The trips list and the trip page show "price dropped €X" for a pinned fare until the owner opens it
 - [x] `trip:delete` (#415) Delete a trip with all its offers, prices and captures (`docs/SPEC.md`, milestone 1: trips CRUD)
   - "Delete trip" on the edit page asks for a confirmation; then the trip is not in the trips list, not on its pages and not in the dropdown of the userscript
-- [ ] `trip:archive` Archive the past trips: a separate list of the archived trips (#486)
+- [x] `trip:archive` (#486) Archive the past trips: a separate list of the archived trips
   - The trips list does not show an archived trip; "Archived trips (N)" opens them
 - [ ] `trip:notify` Price-drop notifications outside the app for the pinned fares (`docs/SPEC.md`, milestone 6), by the channel of the decision #418
   - A new capture with a lower price of a pinned fare sends one notification to the owner's phone
+- [ ] `trip:multicity` Multi-city journeys: three or more trips linked in sequence, as `trip:return` links two (`docs/SPEC.md`, section 13)
+  - "Add next trip" makes a linked trip from the destination of the last one, and the trips list shows the journey with the sum of the best offers
 
 ## 4. Run it on my home server
 
@@ -98,3 +104,6 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [x] `host:ratelimit` (#410) A modest rate limit on the API (`docs/SPEC.md`, section 5): per API token, and per address for bad tokens
   - A token that sends more than 120 requests in one minute gets 429 with `Retry-After`; the userscript keeps the payload and sends it later
   - An address that sends 20 bad tokens in 15 minutes gets 429 for 15 minutes
+- [ ] `host:backup-daily` A backup of the database each day, the newest backups kept, and the status on the settings page (#545)
+  - With no manual step, the backups volume has one daily backup per day and not more than `BACKUP_KEEP` of them
+  - The settings page shows a warning when the newest backup is older than 48 hours
