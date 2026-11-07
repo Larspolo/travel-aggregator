@@ -3,6 +3,7 @@
 import os
 import shutil
 import socket
+import sys
 import subprocess
 import tempfile
 import uuid
@@ -96,15 +97,34 @@ def sessions(migrated_url):
     engine.dispose()
 
 
+def app_state():
+    """The module-level objects of `app` with a `reset()` method (the limiters of #145 and #412, a later cache): global
+    state of all tests. `tests/test_app_global_state.py` fails for global state with no `reset()`."""
+    import app.main  # noqa: F401 (loads all modules of the app)
+
+    found = {}
+    for name, module in list(sys.modules.items()):
+        if name == "app" or name.startswith("app."):
+            for obj in vars(module).values():
+                if (not isinstance(obj, type) and type(obj).__module__.startswith("app.")
+                        and callable(getattr(obj, "reset", None))):
+                    found[id(obj)] = obj
+    return list(found.values())
+
+
+@pytest.fixture
+def app_state_objects():
+    """The objects that `_reset_limiters` resets (app_state)."""
+    return app_state()
+
+
 @pytest.fixture(autouse=True)
 def _reset_limiters():
-    """Each test starts with empty limiters: the limiters of #145 and #412 are global state, and all TestClient
-    requests come from one address, so 20 bad tokens of earlier tests locked the API for a later test (#521)."""
-    from app.auth import api_limiter, login_limiter, token_limiter
-
-    limiters = (login_limiter, token_limiter, api_limiter)
-    for limiter in limiters:
-        limiter.reset()
+    """Each test starts with empty limiters and caches: all TestClient requests come from one address, so 20 bad
+    tokens of earlier tests locked the API for a later test (#521). The fixture finds each one (app_state)."""
+    state = app_state()
+    for obj in state:
+        obj.reset()
     yield
-    for limiter in limiters:
-        limiter.reset()
+    for obj in state:
+        obj.reset()
