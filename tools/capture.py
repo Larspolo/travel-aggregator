@@ -42,11 +42,14 @@ HOOK = r"""(() => {
   const w = window;
   if (w.__taCap) { w.__taCap.match = MATCH; return JSON.stringify({installed: true, again: true, entries: w.__taCap.entries.length}); }
   const cap = {match: MATCH, entries: [], size: 0};
+  // A relative request URL is relative to the base of the document: bahn.de has `<base href="/web/">` and opens
+  // `api/angebote/recon` (#238). `location.href` would give a wrong URL that does not match.
+  const base = () => document.baseURI || location.href;
   w.__taCap = cap;
   const seen = new WeakSet();
   const add = (method, url, reqType, reqText, status, statusText, resType, resText, t0) => {
     try {
-      const abs = new URL(String(url), location.href).href;
+      const abs = new URL(String(url), base()).href;
       if (!cap.match.test(abs) || typeof resText !== "string") return;
       if (cap.size + resText.length > MAX) return;
       cap.size += resText.length;
@@ -99,7 +102,7 @@ HOOK = r"""(() => {
         let copy = null;
         const t0 = Date.now();
         try {
-          const abs = new URL(String(this.url), location.href).href;
+          const abs = new URL(String(this.url), base()).href;
           if (cap.match.test(abs) && !seen.has(this) && !this.bodyUsed) copy = this.clone();
         } catch (e) { copy = null; }
         const promise = read.apply(this, arguments);
@@ -134,11 +137,11 @@ HOOK = r"""(() => {
     const record = (x) => {
       try {
         if (done.has(x) || x.readyState !== 4) return;
-        const m = x.__ta || {method: null, url: x.responseURL, type: "", body: null, t0: Date.now()};
-        const abs = new URL(String(m.url || x.responseURL), location.href).href;
-        if (!cap.match.test(abs) && !cap.match.test(x.responseURL)) return;
+        const m = x.__ta || {method: null, url: "", type: "", body: null, t0: Date.now()};
+        const url = x.responseURL || new URL(String(m.url), base()).href;   // the final URL of the request
+        if (!cap.match.test(url)) return;
         done.add(x);
-        asText(x).then((text) => add(m.method, m.url || x.responseURL, m.type, m.body, x.status, x.statusText,
+        asText(x).then((text) => add(m.method, url, m.type, m.body, x.status, x.statusText,
           x.getResponseHeader("content-type"), text, m.t0), () => {}).catch(() => {});
       } catch (e) { /* the page must not break */ }
     };
