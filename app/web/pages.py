@@ -28,6 +28,7 @@ from app.db import get_session
 from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
+from app.travelclass import class_extras
 from app.history import chart
 from app.money import money
 from app.search_links import links_for_trip
@@ -258,6 +259,7 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  flex_non_refundable: Decimal | None = Query(None, ge=-1000, le=1000),
                  flex_partly_refundable: Decimal | None = Query(None, ge=-1000, le=1000),
                  flex_flexible: Decimal | None = Query(None, ge=-1000, le=1000),
+                 first_class_hour: Decimal | None = Query(None, ge=-1000, le=1000),
                  self_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
                  stale_hours: int | None = Query(None, ge=1, le=720),
                  stale_penalty: Decimal | None = Query(None, ge=0, le=1000),
@@ -290,7 +292,8 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     def cost(f):
         eur = to_eur(f.latest_price, f.currency, rates)
         b = effective_cost(eur if eur is not None else Decimal(0), it.duration_min, it.transfers, weights,
-                           base + flexibility_extras(f, weights) + self_transfer_extras(f, weights))
+                           base + flexibility_extras(f, weights) + class_extras(f, it.duration_min, weights)
+                               + self_transfer_extras(f, weights))
         return in_eur(b, f.latest_price, f.currency, eur)
     return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, fc[1].price))
 
@@ -520,6 +523,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       flex_non_refundable: Decimal = Form(Weights.flex_non_refundable, ge=-1000, le=1000),
                       flex_partly_refundable: Decimal = Form(Weights.flex_partly_refundable, ge=-1000, le=1000),
                       flex_flexible: Decimal = Form(Weights.flex_flexible, ge=-1000, le=1000),
+                      first_class_hour: Decimal = Form(Weights.first_class_hour, ge=-1000, le=1000),
                       self_transfer_penalty: Decimal = Form(Weights.self_transfer_penalty, ge=0, le=1000),
                       stale_hours: int = Form(Weights.stale_hours, ge=1, le=720),
                       stale_penalty: Decimal = Form(Weights.stale_penalty, ge=0, le=1000),
@@ -536,6 +540,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
                       ferry_markup=ferry_markup, flex_non_refundable=flex_non_refundable,
                       flex_partly_refundable=flex_partly_refundable, flex_flexible=flex_flexible,
+                      first_class_hour=first_class_hour,
                       self_transfer_penalty=self_transfer_penalty, stale_hours=stale_hours,
                       stale_penalty=stale_penalty)
     save_profile(session, name.strip(), weights)

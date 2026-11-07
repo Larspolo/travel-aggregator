@@ -40,6 +40,8 @@ class Weights:
     flex_non_refundable: Decimal = Decimal("0")
     flex_partly_refundable: Decimal = Decimal("0")
     flex_flexible: Decimal = Decimal("0")
+    # The 1st class amount per hour (#691): signed (negative = bonus); 0 disables it.
+    first_class_hour: Decimal = Decimal("0")
     # The penalty per self-transfer of a fare (#176); 0 disables it.
     self_transfer_penalty: Decimal = Decimal("0")
     # The age in hours after which a row is stale (#275): a display flag only, not part of the cost.
