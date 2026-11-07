@@ -79,3 +79,28 @@ button.icon { min-width: 32px; min-height: 32px; padding: 0 var(--space-1); }
 @media (min-width: 64rem) {
   .trip-layout { display: grid; grid-template-columns: 18rem minmax(0, 1fr); gap: var(--space-5); align-items: start; }
 }
+/* The weights panel: one closed <details> on a phone, always open on a larger screen (#593). */
+@media (min-width: 40.01rem) {
+  .panel-toggle { border: 0; }
+  .panel-toggle > summary { display: none; }
+  .panel-toggle::details-content { content-visibility: visible; display: contents; }
+}
+/* Phone cards (DESIGN.md section 7, #593): the table cells become a grid; the HTML stays one template. */
+@media (max-width: 40rem) {
+  #table table, #table tbody { display: block; }
+  #table thead { display: none; }
+  #table tbody tr:not(.detail) {
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--space-2); margin-top: var(--space-3);
+    padding: var(--space-2); border: 1px solid var(--line); border-bottom: 0; border-radius: var(--radius) var(--radius) 0 0;
+    background: var(--surface);
+  }
+  #table tbody tr:not(.detail) td { border: 0; padding: var(--space-1) 0; }
+  #table tbody tr:not(.detail) td:nth-child(1), #table tbody tr:not(.detail) td:nth-child(4),
+  #table tbody tr:not(.detail) td:nth-child(5), #table tbody tr:not(.detail) td.cost { grid-column: 1 / -1; }
+  #table tbody tr:not(.detail) td.price { text-align: left; }
+  #table tbody tr:not(.detail) td.actions { grid-column: 1 / -1; }
+  #table tr.detail { display: block; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 var(--radius) var(--radius); background: var(--surface); }
+  #table tr.detail td { display: block; border: 0; }
+  #table tr.detail summary { min-height: 40px; display: flex; align-items: center; }
+  #table td.cost { min-width: 0; }
+}

@@ -22,7 +22,7 @@
 </form>
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <div class="trip-layout">
-<aside class="panel">
+<aside class="panel"><details class="panel-toggle"><summary>Weights and filters</summary>
 {% if profiles %}
 <form class="profile" method="get" action="/trips/{{ trip.id }}">
   <label>Profile <select name="profile">
@@ -124,7 +124,7 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <input type="hidden" name="trip_id" value="{{ trip.id }}">
 </form>
-</aside>
+</details></aside>
 <div class="results">
 {% with oob = false %}{% include "compare_form.html" %}{% endwith %}
 {% if drops %}

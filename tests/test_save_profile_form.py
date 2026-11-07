@@ -19,7 +19,7 @@ def test_save_as_profile_uses_the_moved_slider(live):  # noqa: F811
         page = browser.new_page()
         page.goto(live)
         page.locator("form.weights input[name=hour_markup]").fill("50")
-        page.locator("details").filter(has=page.locator("input[name=name]")).locator("summary").click()
+        page.locator("details.advanced > summary").click()
         page.locator("input[name=name]").fill("Fast")
         page.get_by_role("button", name="Save as profile").click()
         page.wait_for_load_state()
