@@ -44,9 +44,9 @@ whole goal is covered (owner rule, #820: never only "All sub-issues are closed")
 an L ticket"). Check that criterion against the full scope (for "all X": the full list, for example a wiki of the original) and
 name each missing item. When `steering/project/PRINCIPLES.md` has the section "Try a feature", do what it says first
 (for example a `needs-human` test ticket, or a build); the epic waits for it. Close the epic with a comment only when all criteria are met
-(name the evidence for each, then the label `close`: `owner.md`, "Close an issue", #1740). When the epic waits only for one open
-ticket #N (all other criteria met), end the check comment with the line `Close this epic when #N merges.`: when #N
-closes as completed by a merged PR, `close.yml` adds the evidence comment and the label `close`
+(name the evidence for each, then the label `close`: `owner.md`, "Close an issue", #1740). When the epic waits only for open agent
+tickets (all other criteria met), end the check comment with the line `Close this epic when #N merges.` (more tickets:
+`Close this epic when #N and #M merge.`, #617): when each closes as completed by a merged PR, `close.yml` adds the evidence comment and the label `close`
 (`framework/tools/epic_autoclose.py`), and the pacer starts no epic check for it. When an open criterion waits only for
 an open ticket of another epic, add a line "Part of #E" to the body of that ticket: else the pacer starts a deep run
 for the epic check of E in each cycle (`usage.refill_need`). The lock of the check (above) covers the close and the new sub-issues of the epic: do not lock it a second time
