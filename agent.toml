@@ -1,7 +1,7 @@
 # Project values of the agent system (#905). The tools in tools/ read this file (framework/tools/agent_config.py).
 
 repo = "Larspolo/travel-aggregator"
-owner = "Larspolo"
+owners = ["Larspolo", "Jeroenvb3"]
 branch = "main"
 
 [status]
