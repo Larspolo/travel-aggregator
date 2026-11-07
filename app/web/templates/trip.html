@@ -95,6 +95,8 @@
         <input type="number" name="flight_markup" min="-1000" max="1000" step="0.01" value="{{ weights.flight_markup }}"></label>
       <label>Ferry markup €
         <input type="number" name="ferry_markup" min="-1000" max="1000" step="0.01" value="{{ weights.ferry_markup }}"></label>
+      <label>1st class €/hour
+        <input type="number" name="first_class_hour" min="-1000" max="1000" step="0.01" value="{{ weights.first_class_hour }}"></label>
       <label>Short transfer minutes
         <input type="number" name="short_transfer_min" min="0" max="240" step="1" value="{{ weights.short_transfer_min }}"></label>
       <label>Short transfer penalty €
@@ -111,8 +113,6 @@
         <input type="number" name="flex_partly_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_partly_refundable }}"></label>
       <label>Flexible fare € (negative = bonus)
         <input type="number" name="flex_flexible" min="-1000" max="1000" step="0.01" value="{{ weights.flex_flexible }}"></label>
-      <label>1st class per hour € (negative = bonus)
-        <input type="number" name="first_class_hour" min="-1000" max="1000" step="0.01" value="{{ weights.first_class_hour }}"></label>
     </fieldset>
     <fieldset><legend>Staleness</legend>
       <label>Stale after hours
