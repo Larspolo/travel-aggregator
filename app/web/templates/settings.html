@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% import "ui.html" as ui %}
 {% block title %}Settings – travel-aggregator{% endblock %}
 {% block content %}
-<h1>Settings</h1>
-<p><a href="/">Trips</a> · <a href="/rates">Exchange rates</a> · <a href="/logout">Log out</a></p>
+{% call ui.page_header("Settings") %}
+  <a class="btn" href="/tokens">{{ ui.icon("key") }}API tokens</a>
+  <a class="btn" href="/rates">Exchange rates</a>
+{% endcall %}
 <form method="post" action="/settings">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <label>Keep raw captures for (days)

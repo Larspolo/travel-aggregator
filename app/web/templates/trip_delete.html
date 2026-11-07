@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% import "ui.html" as ui %}
 {% block title %}Delete trip – travel-aggregator{% endblock %}
 {% block content %}
-<h1>Delete trip</h1>
+{{ ui.page_header("Delete trip", subtitle=trip.title, back=("/trips/" ~ trip.id, "Trip")) }}
 <p>Delete the trip {{ trip.title }} with {{ counts.itineraries }} itineraries and {{ counts.captures }} captures? This cannot be undone.</p>
 <form method="post" action="/trips/{{ trip.id }}/delete">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">

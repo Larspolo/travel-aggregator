@@ -1,9 +1,8 @@
 {% extends "base.html" %}
+{% import "ui.html" as ui %}
 {% block title %}Profiles – travel-aggregator{% endblock %}
 {% block content %}
-<h1>Score profiles</h1>
-<p><a href="/">Trips</a> · <a href="/places">Places</a> · <a href="/tokens">API tokens</a> · <a href="/settings">Settings</a> · <a href="/logout">Log out</a></p>
-<p class="muted">One profile is the default. Save a profile on a trip page under "Advanced".</p>
+{{ ui.page_header("Score profiles", subtitle='One profile is the default. Save a profile on a trip page under "Advanced".') }}
 {% if error %}<p role="alert" class="badge">{{ error }}</p>{% endif %}
 {% if rows %}
 <table>
