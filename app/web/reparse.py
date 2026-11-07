@@ -5,10 +5,11 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import ingest
+from app.sourcehealth import failed_clause, source_health
 from app.auth import require_login, verify_csrf
 from app.db import get_session
 from app.models import Capture, Trip
@@ -26,7 +27,7 @@ def captures_page(request: Request, trip_id: int, failed: bool = False,
     trip = _get_trip(session, trip_id)
     query = select(Capture).where(Capture.trip_id == trip_id)
     if failed:
-        query = query.where(_failed_clause())
+        query = query.where(failed_clause())
     captures = session.scalars(query.order_by(Capture.captured_at.desc(), Capture.id.desc())).all()
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": trip, "captures": captures, "failed": failed, "now": datetime.now(timezone.utc),
@@ -40,12 +41,12 @@ def all_captures_page(request: Request, failed: bool = False,
     """The newest 200 captures of all trips (#347): a format change of a site shows in one place."""
     query = select(Capture)
     if failed:
-        query = query.where(_failed_clause())
+        query = query.where(failed_clause())
     captures = session.scalars(query.order_by(Capture.captured_at.desc(), Capture.id.desc()).limit(200)).all()
     trip_ids = {c.trip_id for c in captures}
     trip_titles = {t.id: t.title for t in session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()}
     return templates.TemplateResponse(request, "captures.html",
-                                      {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed,
+                                      {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed, "sources": source_health(session),
                                        "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session) if failed else []})
@@ -58,7 +59,7 @@ def reparse_failed(source: str = Form(...), session: Session = Depends(get_sessi
     parser = get_parser(source)
     if parser is None:
         return HTMLResponse(f'<span class="reparse-result">{_escape(f"The source {source} has no parser.")}</span>')
-    query = select(Capture).where(_failed_clause(), Capture.source == source, Capture.raw_gz.is_not(None))
+    query = select(Capture).where(failed_clause(), Capture.source == source, Capture.raw_gz.is_not(None))
     captures = session.scalars(query.order_by(Capture.id).limit(REPARSE_LIMIT + 1)).all()
     more = len(captures) > REPARSE_LIMIT
     ok = still = created = updated = 0
@@ -80,7 +81,7 @@ def reparse_failed(source: str = Form(...), session: Session = Depends(get_sessi
 
 
 def _failed_sources(session: Session) -> list[str]:
-    query = select(Capture.source).where(_failed_clause(), Capture.raw_gz.is_not(None)).distinct()
+    query = select(Capture.source).where(failed_clause(), Capture.raw_gz.is_not(None)).distinct()
     return sorted(session.scalars(query).all())
 
 
@@ -132,11 +133,6 @@ def _move_trips(session: Session) -> list[Trip]:
     """The trips that a capture can move to: not archived, newest first (#580)."""
     query = select(Trip).where(Trip.status != "archived").order_by(Trip.created_at.desc(), Trip.id.desc())
     return list(session.scalars(query).all())
-
-
-def _failed_clause():
-    """A capture failed when the parser could not read it or rejected an offer (#349)."""
-    return or_(Capture.unreadable.is_not(None), Capture.rejected_count > 0)
 
 
 def _escape(text: str) -> str:
