@@ -450,6 +450,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
     context["search_links"] = links_for_trip(trip)  # the search links per source (#318)
+    context["flash"] = request.session.pop("flash", None)  # a message of the last action, for example an import
     return templates.TemplateResponse(request, "trip.html", context)
 
 

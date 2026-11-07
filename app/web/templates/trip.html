@@ -23,6 +23,7 @@
     </div>
   </details>
 {% endcall %}
+{% if flash %}<p class="card" role="status">{{ flash }}</p>{% endif %}
 {% if search_links %}
 <p class="search-links">{% for name, url in search_links %}<a href="{{ url }}" target="_blank" rel="noopener">Search on {{ name }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
 {% endif %}
