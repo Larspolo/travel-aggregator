@@ -566,10 +566,20 @@ def fire(usage, now, burn=BURN, burn7=None, skip=(), status=None, started=None, 
         k, runs = min(k, cap), dict.fromkeys(runs, 0)
     line = (f"{describe(usage, now, burn, burn7)} · claims {claims} ({eq:.2f} Opus runs) · ready {ready} · "
             + (f"pending {json.dumps(wait)} · " if wait else "")
-            + f"refill {refill} ({need or f'ready {ready}, target {target}: no refill source'}) · "
+            + f"refill {refill} ({need or f'ready {ready}, target {target}: no refill source'}{stretch_note()}) · "
             f"paused {paused} · {flow} · max_fire {MAX_FIRE} · weights "
             + ", ".join(f"{n} {w:.2f} ({source[n]})" for n, w in weights.items()) + note)
     return k, runs, line
+
+
+def stretch_note():
+    """The note of the pacer line when the roadmap review waits for the clock of an idle stretch (`claim.HELD`, #491):
+    `health.idle_queue` counts that wait as idle with work, not as "no work"."""
+    import claim
+    return f"; {STRETCH}" if "roadmap" in claim.HELD else ""
+
+
+STRETCH = "roadmap review waits for the idle stretch"
 
 
 def main(argv=None):
