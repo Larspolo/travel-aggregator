@@ -80,3 +80,21 @@ def mismatch(trip: Trip, offers: list[OfferIn]) -> str | None:
     if any(_date_matches(trip, o.legs[0].depart_at.date()) for o in by_place):
         return None
     return "date"
+
+
+def best_trip(trips: list[Trip], offers: list[OfferIn], selected: Trip) -> Trip:
+    """The trip for the offers of an `auto_trip` capture (#719): the selected trip when it matches; else the one
+    trip with the status "planning" that matches (of 2 or more: the shortest date range, then the newest); else the
+    selected trip (the caller gives the warning of #555)."""
+    if mismatch(selected, offers) is None:
+        return selected
+    matches = [t for t in trips if t.status == "planning" and t.id != selected.id and mismatch(t, offers) is None]
+    if not matches:
+        return selected
+
+    def days(t: Trip) -> int:
+        if t.date_from is None:
+            return 1 << 30  # no dates: the widest range
+        return ((t.date_to or t.date_from) - t.date_from).days
+
+    return min(matches, key=lambda t: (days(t), -t.id))
