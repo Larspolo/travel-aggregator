@@ -88,7 +88,8 @@ jobs:
       - name: docker compose up --build
         run: |
           cp .env.example .env
-          for i in 1 2 3; do docker compose pull --ignore-buildable && break; sleep 10; done  # a reset of Docker Hub (#509)
+          scripts/retry.sh docker compose pull --ignore-buildable  # a reset of Docker Hub (#509, #615)
+          for image in $(awk '/^FROM/ {print $2}' Dockerfile | sort -u); do scripts/retry.sh docker pull "$image"; done
           docker compose up --build -d
           for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/api/health && break; sleep 2; done
           curl -fsS http://127.0.0.1:8000/api/health | grep -q "\"commit\":\"$GIT_SHA\""
@@ -121,6 +122,9 @@ jobs:
       IMAGE: ghcr.io/larspolo/travel-aggregator:latest
     steps:
       - uses: actions/checkout@v4
+      - name: Pull the images (a reset of Docker Hub, #615)
+        run: |
+          for image in $(awk '/^FROM/ {print $2}' Dockerfile | sort -u) caddy:2; do scripts/retry.sh docker pull "$image"; done
       - name: Build the image as :latest
         run: docker build --build-arg GIT_SHA=${{ github.sha }} -t "$IMAGE" .
       - name: Start the production compose
@@ -130,6 +134,7 @@ jobs:
           sed -i 's/change-me/ci-secret/g; /^OWNER_PASSWORD_HASH=/d' .env
           hash=$(docker run --rm --entrypoint python "$IMAGE" -m app.auth 'ci-password')
           printf "OWNER_PASSWORD_HASH='%s'\n" "$hash" >> .env
+          ../../scripts/retry.sh docker compose pull db
           docker compose up -d app db   # the pull policy "missing" keeps the local :latest
           for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/api/health >/dev/null && break; sleep 2; done
       - name: Start Caddy with the example Caddyfile
