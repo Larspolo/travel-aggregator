@@ -111,6 +111,24 @@ def newest_daily(backup_dir: Path) -> datetime | None:
     return datetime.strptime(names[-1].split("-", 1)[0], STAMP_FORMAT).replace(tzinfo=UTC)
 
 
+def newest_backup(backup_dir: Path) -> tuple[datetime, int] | None:
+    """The UTC time (from the name) and the size in bytes of the newest `<stamp>-<label>.dump`, or None.
+
+    Other file names do not count. A missing directory gives None.
+    """
+    best = None
+    if backup_dir.is_dir():
+        for p in backup_dir.glob("*-*.dump"):
+            stamp, label = p.name[:-len(".dump")].split("-", 1)
+            try:
+                when = datetime.strptime(stamp, STAMP_FORMAT).replace(tzinfo=UTC)
+            except ValueError:
+                continue
+            if label and p.is_file() and (best is None or when > best[0]):
+                best = (when, p.stat().st_size)
+    return best
+
+
 def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | None = None) -> float:
     """One step of the daily loop: dump when due. Return the seconds until the next step.
 

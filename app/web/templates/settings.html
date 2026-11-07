@@ -17,6 +17,10 @@
   <button type="submit">Save</button>
 </form>
 <p class="muted">0 keeps all captures. Each ingest deletes the older captures; the offers and their prices stay.</p>
+<h2>Backups</h2>
+{% if backup %}<p>Newest backup: {{ backup[0].strftime("%Y-%m-%d %H:%M") }} UTC, {{ "%.1f"|format(backup[1] / 1048576) }} MB ({{ backup[1] }} bytes).</p>
+{% if backup_old %}<p role="alert" class="badge">The newest backup is older than 48 hours.</p>{% endif %}
+{% else %}<p role="alert" class="badge">No backup yet.</p>{% endif %}
 <h2>Web Push</h2>
 <div id="push" data-key="{{ vapid_public_key }}" data-csrf="{{ csrf_token(request) }}">
   <p>The channel webpush sends the message to each device that has push on ({{ push_count }} now).</p>
