@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 3;
+const CORE_VERSION = 4;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -166,7 +166,7 @@ const CORE_VERSION = 3;
     return new Promise((resolve) => {
       gm.request({
         method,
-        url: server + "/api/trips" + (method === "GET" ? "?status=active" : ""),
+        url: server + "/api/trips" + (method === "GET" ? "?status=planning" : ""),
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         data: body === undefined ? undefined : JSON.stringify(body),
         onload: (r) => {
