@@ -13,6 +13,7 @@ from app.auth import require_login
 from app.main import app
 from app.models import Trip
 from app.parsers.flixbus import FlixbusParser
+from app.web.pages import money
 
 FIX = Path(__file__).parent / "fixtures" / "flixbus.com"
 FIXTURES = ["search-amsterdam-berlin.json", "search-amsterdam-paris.json", "search-utrecht-berlin.json"]
@@ -55,7 +56,7 @@ def test_each_offer_is_on_the_trip_page_with_bus_icon_and_price(trip, name):
     assert "icons.svg#bus" in page
     for offer in parsed.offers:
         price = Decimal(offer.price_amount).quantize(Decimal("0.01"))
-        assert f"{offer.price_currency} {price:.2f}" in page, price
+        assert money(price, offer.price_currency) in page, price
 
 
 @pytest.mark.parametrize("name", FIXTURES)

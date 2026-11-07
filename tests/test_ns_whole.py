@@ -65,7 +65,7 @@ def test_each_offer_is_on_the_trip_page_with_each_fare(trip, name):
 
     page = client.get(f"/trips/{trip_id}").text
     for price, fare_name in offers:
-        assert f"EUR {price:.2f}" in page, price
+        assert f"€{price:.2f}" in page, price
         if fare_name:
             assert html.escape(fare_name) in page, fare_name
 

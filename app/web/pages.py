@@ -94,6 +94,19 @@ def ago(t: datetime, now: datetime) -> str:
     return f"{seconds // 86400} days ago"
 
 
+CURRENCY_SYMBOLS = {"EUR": "€", "GBP": "£", "USD": "$"}
+
+
+def money(amount: Decimal, currency: str = "EUR") -> str:
+    """One money format for the trip rows (DESIGN.md section 3, #627): the symbol and two decimals, e.g. '€80.90'.
+
+    A currency with no symbol keeps its code: 'CHF 120.00'.
+    """
+    symbol = CURRENCY_SYMBOLS.get(currency)
+    return f"{symbol}{amount:.2f}" if symbol else f"{currency} {amount:.2f}"
+
+
+templates.env.filters["money"] = money
 templates.env.filters["mode_icon"] = mode_icon
 templates.env.filters["day_gap"] = day_gap
 templates.env.filters["ago"] = ago

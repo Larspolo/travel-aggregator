@@ -65,7 +65,7 @@ def test_each_priced_connection_is_on_the_trip_page(trip, name):
 
     page = client.get(f"/trips/{trip_id}").text
     for price in prices:
-        assert f"EUR {price:.2f}" in page, price
+        assert f"€{price:.2f}" in page, price
 
 
 @pytest.mark.parametrize("name", FIXTURES)

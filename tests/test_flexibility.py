@@ -43,7 +43,7 @@ def test_flexible_bonus_makes_the_flexible_fare_the_main_row(trip):  # noqa: F81
                                    _fare("105.00", "Flexpreis", "flexible")])
     page = client.get(f"/trips/{trip_id}?flex_flexible=-10").text
     assert "€105 price + €60 time + €-10 flexible = €155" in page
-    assert "<td>Flexpreis<div" in page and "<td>Sparpreis<div" not in page
+    assert '<div class="clip muted" title="Flexpreis · ' in page and '<div class="clip muted" title="Sparpreis · ' not in page
 
 
 def test_zero_amounts_and_unknown_text_keep_the_cheapest_fare(trip):  # noqa: F811
@@ -51,4 +51,4 @@ def test_zero_amounts_and_unknown_text_keep_the_cheapest_fare(trip):  # noqa: F8
     ingest(client, auth, trip_id, [_fare("100.00", "Sparpreis", "gold"), _fare("105.00", "Flexpreis", "flexible")])
     page = client.get(f"/trips/{trip_id}?flex_non_refundable=15").text
     assert "€100 price + €60 time = €160" in page
-    assert "<td>Sparpreis<div" in page and "<td>Flexpreis<div" not in page
+    assert '<div class="clip muted" title="Sparpreis · ' in page and '<div class="clip muted" title="Flexpreis · ' not in page

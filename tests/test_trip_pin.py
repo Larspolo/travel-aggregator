@@ -78,16 +78,16 @@ def test_a_pinned_offer_is_the_first_row_and_unpinning_restores_the_order(trip, 
     expensive = _expensive_id(sessions, trip_id)
     token = csrf(client, trip_id)
     page = client.get(f"/trips/{trip_id}").text
-    assert page.index("EUR 89.90") < page.index("EUR 119.90")
+    assert page.index("€89.90") < page.index("€119.90")
 
     client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
     page = client.get(f"/trips/{trip_id}").text
-    assert page.index("EUR 119.90") < page.index("EUR 89.90")
+    assert page.index("€119.90") < page.index("€89.90")
     assert "pinned" in page
 
     client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
     page = client.get(f"/trips/{trip_id}").text
-    assert page.index("EUR 89.90") < page.index("EUR 119.90")
+    assert page.index("€89.90") < page.index("€119.90")
     assert "pinned" not in page
 
 
@@ -117,4 +117,4 @@ def test_a_pinned_offer_stays_first_in_every_sort_order(trip, sessions, query):
     token = csrf(client, trip_id)
     client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
     page = client.get(f"/trips/{trip_id}?{query}").text
-    assert page.index("EUR 119.90") < page.index("EUR 89.90")
+    assert page.index("€119.90") < page.index("€89.90")

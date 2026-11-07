@@ -56,9 +56,9 @@ def test_a_hidden_offer_is_left_out_until_show_hidden_is_on(trip, sessions):
     r = hide(client, trip_id, cheap)
     assert r.status_code == 303 and r.headers["location"] == f"/trips/{trip_id}"
     page = client.get(f"/trips/{trip_id}").text
-    assert "EUR 89.90" not in page and "EUR 119.90" in page
+    assert "€89.90" not in page and "€119.90" in page
     shown = client.get(f"/trips/{trip_id}?show_hidden=true").text
-    assert "EUR 89.90" in shown and "EUR 119.90" in shown
+    assert "€89.90" in shown and "€119.90" in shown
     assert '<span class="muted">hidden</span>' in shown
 
 
@@ -69,7 +69,7 @@ def test_a_hidden_offer_gets_no_highlight_even_when_it_is_the_cheapest(trip, ses
     page = client.get(f"/trips/{trip_id}?show_hidden=true").text
     # the rows come cheapest first: the badge of the other row sits between the two prices
     assert "cheapest" in page
-    assert page.index("EUR 89.90") < page.index("cheapest") < page.index("EUR 119.90")
+    assert page.index("€89.90") < page.index("cheapest") < page.index("€119.90")
 
 
 def test_unhide_shows_the_offer_again(trip, sessions):
@@ -78,7 +78,7 @@ def test_unhide_shows_the_offer_again(trip, sessions):
     hide(client, trip_id, cheap)
     hide(client, trip_id, cheap)
     page = client.get(f"/trips/{trip_id}").text
-    assert "EUR 89.90" in page and "EUR 119.90" in page
+    assert "€89.90" in page and "€119.90" in page
     assert '<span class="muted">hidden</span>' not in page
 
 

@@ -15,7 +15,7 @@ def test_the_actions_are_the_last_cell_with_labels_and_post_forms(trip, sessions
     row = _row(client.get(f"/trips/{trip_id}").text)
     cells = re.findall(r"<td[ >]", row)
     last = row[row.rindex("<td"):]
-    assert 'class="actions"' in last and len(cells) == 8
+    assert 'class="actions"' in last and len(cells) == 5
     for label in ["Pin", "Hide", "Mark as booked"]:
         assert f'aria-label="{label}" title="{label}"' in last
     assert last.count('<form method="post"') == 3 and last.count('name="csrf_token"') == 3

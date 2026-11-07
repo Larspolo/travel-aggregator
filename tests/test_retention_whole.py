@@ -70,5 +70,5 @@ def test_settings_30_days_deletes_only_the_capture_of_40_days(setup, sessions):
         assert s.scalar(select(func.count()).select_from(FarePrice).where(FarePrice.capture_id.is_(None))) == 1
 
     page = client.get(f"/trips/{trip_id}").text
-    for price in ("EUR 89.90", "EUR 99.90", "EUR 79.90"):
+    for price in ("€89.90", "€99.90", "€79.90"):
         assert price in page

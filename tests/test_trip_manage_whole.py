@@ -37,16 +37,16 @@ def test_pin_hide_booked_and_note_work_together_on_the_trip_page(trip, sessions)
 
     page = client.get(f"/trips/{trip_id}").text
     # the pinned row is first, although it has the highest price
-    assert page.index("EUR 119.90") < page.index("EUR 99.90") < page.index("EUR 109.90")
+    assert page.index("€119.90") < page.index("€99.90") < page.index("€109.90")
     # the hidden row shows only with show_hidden=true
-    assert "EUR 89.90" not in page
+    assert "€89.90" not in page
     shown = client.get(f"/trips/{trip_id}?show_hidden=true").text
-    assert "EUR 89.90" in shown and "hidden</span>" in shown
+    assert "€89.90" in shown and "hidden</span>" in shown
     # the booked row shows the mark, and only that row
     assert page.count("booked</span>") == 1
-    assert "EUR 99.90" in _row_with(page, "booked</span>")
+    assert "€99.90" in _row_with(page, "booked</span>")
     # the note shows in its row
-    assert "EUR 109.90" in _row_with(page, "met Anna at the station")
+    assert "€109.90" in _row_with(page, "met Anna at the station")
 
 
 def _row_with(page, text):
