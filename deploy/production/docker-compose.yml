@@ -18,6 +18,20 @@ services:
       # Updated by the updater below, not by the global watchtower.
       - com.centurylinklabs.watchtower.scope=travel-production
 
+  # A daily dump of the database to the backups volume (`python -m app.backup --daily`; no cron needed).
+  backup:
+    image: ghcr.io/larspolo/travel-aggregator:latest
+    restart: unless-stopped
+    env_file: .env
+    command: python -m app.backup --daily
+    volumes:
+      - backups-production:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - com.centurylinklabs.watchtower.scope=travel-production
+
   # Only on the default network: nothing outside this compose project can reach it.
   db:
     image: postgres:16

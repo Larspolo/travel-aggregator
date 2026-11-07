@@ -16,6 +16,21 @@ services:
       db:
         condition: service_healthy
 
+  # A daily dump of the database to the backups volume (`python -m app.backup --daily`; no cron needed).
+  backup:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-dev}
+    restart: unless-stopped
+    env_file: .env
+    command: python -m app.backup --daily
+    volumes:
+      - backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:16
     restart: unless-stopped
