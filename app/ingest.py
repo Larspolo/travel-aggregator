@@ -17,7 +17,7 @@ from app.derived import derive
 from app.models import Capture, Fare, FarePrice, Itinerary, Leg, Trip
 from app.parsers import count, get_parser
 from app.parsers.ns import CHANGE_STATION
-from app.tripmatch import best_trip, mismatch, suggest_trip
+from app.tripmatch import best_trip, mismatch, suggest_trip, travelers_text
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 from app.notify import PriceDrop
@@ -209,8 +209,8 @@ def reparse(session: Session, capture: Capture) -> dict | None:
     counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
                            captured_at=capture.captured_at)
     set_result(capture, counts, result.errors, None)
-    capture.mismatch = _trip_mismatch(session, capture.trip_id, result.offers)
     capture.travelers = capture_travelers(capture, result.travelers)
+    capture.mismatch = _trip_mismatch(session, capture.trip_id, result.offers, capture.travelers)
     session.commit()
     return {**counts, "rejected": len(result.errors), "unreadable": None}
 
@@ -249,8 +249,8 @@ def move_capture(session: Session, capture: Capture, target_trip_id: int) -> dic
         _give_flags(session, target_trip_id, flags)
         capture.trip_id = target_trip_id
         set_result(capture, counts, result.errors, None)
-        capture.mismatch = _trip_mismatch(session, target_trip_id, result.offers)
         capture.travelers = capture_travelers(capture, result.travelers)
+        capture.mismatch = _trip_mismatch(session, target_trip_id, result.offers, capture.travelers)
         session.commit()
     except Exception:
         session.rollback()
@@ -317,15 +317,16 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     counts = upsert_offers(session, trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at, drops=drops)
     set_result(capture, counts, errors, unreadable)
-    reason = _trip_mismatch(session, trip_id, offers)
-    capture.mismatch = reason
     capture.travelers = capture_travelers(capture, travelers)
+    reason = _trip_mismatch(session, trip_id, offers, capture.travelers)
+    capture.mismatch = reason
     # #720: an auto_trip capture that no trip matches suggests a new trip from its offers
     suggestion = suggest_trip(offers) if getattr(body, "auto_trip", False) and reason is not None else None
     delete_old_captures(session, retention_days(session), datetime.now(UTC))
     session.commit()
     trip = session.get(Trip, trip_id)
-    return {**counts, "rejected": len(errors), "errors": errors, "warning": _warning_text(reason),
+    warning = _warning_text(reason, capture.travelers, None if trip is None else trip.travelers)
+    return {**counts, "rejected": len(errors), "errors": errors, "warning": warning,
             "trip_id": trip_id, "trip_title": None if trip is None else trip.title, "suggestion": suggestion}
 
 
@@ -338,12 +339,17 @@ def _choose_trip(session: Session, body: IngestIn, offers: list[OfferIn]) -> int
     return best_trip(planning, offers, selected).id
 
 
-def _trip_mismatch(session: Session, trip_id: int, offers: list[OfferIn]) -> str | None:
+def _trip_mismatch(session: Session, trip_id: int, offers: list[OfferIn], travelers: int | None = None) -> str | None:
     """The reason of #555 (tripmatch.mismatch), or None. Stored on the capture (#556)."""
     trip = session.get(Trip, trip_id)
-    return None if trip is None else mismatch(trip, offers)
+    return None if trip is None else mismatch(trip, offers, travelers)
 
 
-def _warning_text(reason: str | None) -> str | None:
-    """The warning of #555: the offers do not match the places or the date of the trip. The data is stored anyway."""
-    return None if reason is None else f"These offers do not match the trip ({reason})"
+def _warning_text(reason: str | None, travelers: int | None = None, trip_travelers: int | None = None) -> str | None:
+    """The warning of #555: the offers do not match the places or the date of the trip (#765: or its travelers).
+    The data is stored anyway."""
+    if reason is None:
+        return None
+    if reason == "travelers":
+        return travelers_text(travelers, trip_travelers)
+    return f"These offers do not match the trip ({reason})"

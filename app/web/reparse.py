@@ -31,6 +31,7 @@ def captures_page(request: Request, trip_id: int, failed: bool = False,
     captures = session.scalars(query.order_by(Capture.captured_at.desc(), Capture.id.desc())).all()
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": trip, "captures": captures, "failed": failed, "now": datetime.now(timezone.utc),
+                                       "trip_travelers": {trip.id: trip.travelers},
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session) if failed else []})
 
@@ -47,9 +48,11 @@ def all_captures_page(request: Request, failed: bool = False, source: str | None
         query = query.where(Capture.source == source)
     captures = session.scalars(query.order_by(Capture.captured_at.desc(), Capture.id.desc()).limit(200)).all()
     trip_ids = {c.trip_id for c in captures}
-    trip_titles = {t.id: t.title for t in session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()}
+    trips = session.scalars(select(Trip).where(Trip.id.in_(trip_ids))).all()
+    trip_titles = {t.id: t.title for t in trips}
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed,
+                                       "trip_travelers": {t.id: t.travelers for t in trips},
                                        "source": source, "sources": [] if failed or source else source_health(session), "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session, source) if failed else []})

@@ -68,18 +68,26 @@ def _date_matches(trip: Trip, day: date) -> bool:
     return trip.date_from <= day <= (trip.date_to or trip.date_from)
 
 
-def mismatch(trip: Trip, offers: list[OfferIn]) -> str | None:
+def mismatch(trip: Trip, offers: list[OfferIn], travelers: int | None = None) -> str | None:
     """None when at least one offer matches the trip; else "places" (no offer goes from the origin to the
-    destination) or "date" (the offers that match the places depart on another day)."""
+    destination), "date" (the offers that match the places depart on another day) or "travelers" (the capture is
+    for another number of travelers than the trip, #765; no count gives no warning)."""
     if not offers:
         return None
     by_place = [o for o in offers if _place_matches(trip.origin_text, o.legs[0].from_name, o.legs[0].from_code)
                 and _place_matches(trip.destination_text, o.legs[-1].to_name, o.legs[-1].to_code)]
     if not by_place:
         return "places"
-    if any(_date_matches(trip, o.legs[0].depart_at.date()) for o in by_place):
-        return None
-    return "date"
+    if not any(_date_matches(trip, o.legs[0].depart_at.date()) for o in by_place):
+        return "date"
+    if travelers is not None and travelers != trip.travelers:
+        return "travelers"
+    return None
+
+
+def travelers_text(travelers: int | None, trip_travelers: int | None) -> str:
+    """The warning of the "travelers" reason (#765), e.g. "These offers are for 1 traveler; the trip has 2"."""
+    return f"These offers are for {travelers} traveler{'' if travelers == 1 else 's'}; the trip has {trip_travelers}"
 
 
 def suggest_trip(offers: list[OfferIn]) -> dict | None:
