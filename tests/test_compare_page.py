@@ -21,7 +21,7 @@ def _ids(sessions, trip_id):
 
 
 def _costs(page):
-    return re.findall(r'<td class="cost[^"]*">([^<]*)</td>', page)  # a best cost has the class best too (#294)
+    return re.findall(r'<[a-z]+ class="breakdown">([^<]*)</', page)  # a best cost has the class best too (#294)
 
 
 def _setup(client, auth, trip_id, sessions):

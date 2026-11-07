@@ -36,7 +36,7 @@ from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, P
 from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting, webpush_ready
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
-from app.ranking import Weights, effective_cost, format_breakdown, in_eur
+from app.ranking import Weights, bar_parts, effective_cost, format_breakdown, format_total, in_eur
 from app.timeofday import night_extras, night_time_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trips import archived_journeys, chain, list_trips
@@ -416,6 +416,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if chosen is not None:
         query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
+               "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
                "rates": rates}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)

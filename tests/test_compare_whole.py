@@ -10,7 +10,7 @@ from tests.test_profiles_trip import _default_fast, _set_trip_profile
 from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a fixture)
 from tests.test_trip_ranking_page import direct
 
-COST = re.compile(r'<td class="cost[^"]*">([^<]*)</td>')
+COST = re.compile(r'<[a-z]+ class="breakdown">([^<]*)</')
 
 
 def _id_of(sessions, trip_id, service_no):
