@@ -37,7 +37,7 @@ def test_a_drop_of_a_pinned_fare_shows_once(trip, sessions):  # noqa: F811
     ingest(client, auth, trip_id, [offer("79.90", "ICE 105")])
     page = client.get(f"/trips/{trip_id}").text
     assert "Price drops" in page
-    assert "price dropped EUR 20.00" in page and "now EUR 79.90" in page
+    assert "price dropped €20.00" in page and "now €79.90" in page
     assert "Price drops" not in client.get(f"/trips/{trip_id}").text
 
 
@@ -49,7 +49,7 @@ def test_an_htmx_get_does_not_change_the_seen_price(trip, sessions):  # noqa: F8
     ingest(client, auth, trip_id, [offer("79.90", "ICE 105")])
     client.get(f"/trips/{trip_id}", headers={"HX-Request": "true"})
     assert _seen(sessions) == ["99.90"]
-    assert "price dropped EUR 20.00" in client.get(f"/trips/{trip_id}").text
+    assert "price dropped €20.00" in client.get(f"/trips/{trip_id}").text
 
 
 def test_no_line_for_a_rise_an_unpinned_or_hidden_fare_no_seen_price_or_a_new_currency(trip, sessions):  # noqa: F811

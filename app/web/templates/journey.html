@@ -7,12 +7,12 @@
     {% if chosen %}{% set it, fare, cost = chosen %}{% if it.legs %}{% set first, last = it.legs[0], it.legs[-1] %}
       {{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }} →
       {{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%a %d %b %H:%M") }} ·{% endif %}
-      {{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }} · {% if cost.no_rate %}no rate for {{ cost.no_rate }} <a href="/rates">Add a rate</a>{% else %}effective cost €{{ "%.2f" | format(cost.total) }}{% endif %}
+      {{ fare.latest_price | money(fare.currency) }} · {% if cost.no_rate %}no rate for {{ cost.no_rate }} <a href="/rates">Add a rate</a>{% else %}effective cost {{ cost.total | money }}{% endif %}
     {% else %}<span class="muted">no offers yet</span>{% endif %}
     {% if early and journey.directions | length > 2 %}<br><span class="mark">departs before the previous part arrives</span>{% endif %}</li>
   {% endfor %}
   </ul>
-  {% if journey.total is not none %}<p><strong>Total effective cost €{{ "%.2f" | format(journey.total) }}</strong></p>{% endif %}
+  {% if journey.total is not none %}<p><strong>Total effective cost {{ journey.total | money }}</strong></p>{% endif %}
   {% if journey.early %}<p class="mark">The return departs before the outbound arrives</p>{% endif %}
 </section>
 {% endif %}
