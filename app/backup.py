@@ -75,7 +75,32 @@ def backup_if_needed(url: str, backup_dir: Path, cfg: Config | None = None) -> P
 
 
 DAILY_RETRY_SECONDS = 3600
+DEFAULT_KEEP = 14
 STAMP_FORMAT = "%Y%m%dT%H%M%SZ"
+
+
+def keep_count() -> int:
+    """BACKUP_KEEP: how many daily dumps stay. A value that is not a number of at least 1 gives the default, with a log line."""
+    raw = os.environ.get("BACKUP_KEEP", "")
+    if not raw:
+        return DEFAULT_KEEP
+    try:
+        n = int(raw)
+    except ValueError:
+        n = 0
+    if n < 1:
+        print(f"BACKUP_KEEP={raw!r} is not a number of at least 1: keep {DEFAULT_KEEP} daily dumps", file=sys.stderr)
+        return DEFAULT_KEEP
+    return n
+
+
+def rotate_daily(backup_dir: Path, keep: int) -> list[Path]:
+    """Delete the `*-daily.dump` files of backup_dir except the newest `keep`. Return the deleted paths."""
+    dumps = sorted(backup_dir.glob("*-daily.dump"), key=lambda p: p.name.split("-", 1)[0]) if backup_dir.is_dir() else []
+    old = dumps[:-keep] if keep > 0 else dumps
+    for path in old:
+        path.unlink(missing_ok=True)
+    return old
 
 
 def newest_daily(backup_dir: Path) -> datetime | None:
@@ -90,7 +115,8 @@ def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | 
     """One step of the daily loop: dump when due. Return the seconds until the next step.
 
     The time of the newest daily dump decides, so a restart writes no extra dump. A failed dump prints an error and
-    returns the retry delay of one hour; it does not raise.
+    returns the retry delay of one hour; it does not raise. After a new dump, the older daily dumps beyond BACKUP_KEEP
+    are deleted.
     """
     now = now or datetime.now(UTC)
     last = newest_daily(backup_dir)
@@ -100,6 +126,7 @@ def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | 
         except BackupError as exc:
             print(f"ERROR: daily backup failed: {exc}; retry in {DAILY_RETRY_SECONDS} s", file=sys.stderr)
             return float(DAILY_RETRY_SECONDS)
+        rotate_daily(backup_dir, keep_count())
         return interval.total_seconds()
     return (last + interval - now).total_seconds()
 
