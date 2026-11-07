@@ -11,6 +11,8 @@ from app import tokens
 from app.auth import api_limiter, require_token, token_limiter
 from app.main import app
 
+GUARDS = ("app/api/*.py", "app/main.py")   # ship_pr runs this file for these changes: no import leads to it (#730)
+
 
 def _walks_to_require_token(dependant) -> bool:
     for sub in dependant.dependencies:
