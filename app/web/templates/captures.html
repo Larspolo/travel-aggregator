@@ -12,7 +12,7 @@
   hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button></p>
 {% endfor %}
 {% if captures %}
-<section class="card data-card"><div class="scroll"><table class="captures">
+<section class="card data-card"><div class="scroll"><table>
   <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
   <tbody>
   {% for c in captures %}
