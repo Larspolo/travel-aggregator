@@ -41,7 +41,7 @@ def test_direct_eurostar_times_offsets_price():
     assert (o.fare_name, o.price_amount) == ("Standard Premier, semi-flexible", Decimal("155.00"))
     assert len(o.legs) == 1
     leg = o.legs[0]
-    assert (leg.carrier, leg.from_code, leg.to_code) == ("Eurostar", "NLASC", "GBSPX")
+    assert (leg.carrier, leg.service_no, leg.from_code, leg.to_code) == (None, "Eurostar 9115", "NLASC", "GBSPX")
     assert leg.depart_at.utcoffset() == timedelta(hours=1)
     assert leg.arrive_at.utcoffset() == timedelta(0)
     assert leg.depart_at.hour == 6 and leg.arrive_at.hour == 9
@@ -50,7 +50,7 @@ def test_direct_eurostar_times_offsets_price():
 def test_changes_give_train_legs_without_transfer():
     r = NsParser().parse(load("search-amsterdam-london.json"))
     legs = [o for o in r.offers if o.external_id.startswith("0911974b")][0].legs
-    assert [leg.service_no for leg in legs] == ["8227", "9520", "9123"]
+    assert [leg.service_no for leg in legs] == ["SPR 8227", "Eurocity Direct 9520", "Eurostar 9123"]
     assert legs[-1].to_code == "GBSPX"
 
 

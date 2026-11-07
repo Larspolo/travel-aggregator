@@ -33,9 +33,18 @@ def local_time(station: dict, kind: str) -> datetime:
     return naive.replace(tzinfo=ZoneInfo(COUNTRY_TZ.get(station.get("country") or "", DEFAULT_TZ)))
 
 
+def _service_no(m: dict) -> str | None:
+    """The category and the number of a train: "ICE 121"; the number alone without a category; None without number."""
+    number = (m.get("number") or "").strip()
+    if not number:
+        return None
+    category = (m.get("name") or m.get("code") or "").strip()
+    return f"{category} {number}" if category else number
+
+
 class NsParser:
     source = "nsinternational.com"
-    version = "1.0.0"
+    version = "1.1.0"
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"request", "response"} or of the response body only: one per fare."""
@@ -68,8 +77,9 @@ class NsParser:
             first, last = k == 0, k == len(trains) - 1
             legs.append(LegIn(
                 mode="bus" if m.get("type") == "BUS" else "train",
-                carrier=m.get("name") or m.get("code"),
-                service_no=m.get("number"),
+                # the category is no carrier; the service number is "ICE 121" as on bahn.de (#483)
+                carrier=None,
+                service_no=_service_no(m),
                 from_name=orig["name"] if first else CHANGE_STATION,
                 from_code=orig.get("code") if first else None,
                 to_name=dest["name"] if last else CHANGE_STATION,
