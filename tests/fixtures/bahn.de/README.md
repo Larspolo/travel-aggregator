@@ -11,6 +11,7 @@ response body with 3 connections of the original response. The files have no hea
 | `fahrplan-amsterdam-bern-night.json` | Amsterdam Centraal → Bern, 20:48 | night connections that arrive on the next day |
 | `recon-169.json` | Köln Hbf → München, 2026-12-01 05:25 (`POST /web/api/angebote/recon`, HAR of #169; only the fields of the parser) | 12 `reiseAngebote`: each fare class in 1st and 2nd class, BahnCard trials (`Probe BahnCard 25/50`) and the prices with a trial card after them |
 | `fahrplan-koeln-muenchen-bahncard25.json` | Köln Hbf → München, BahnCard 25 2nd class | the discount in `reisende[].ermaessigungen`; one direct connection |
+| `fahrplan-amsterdam-berlin.json` | Amsterdam Centraal → Berlin Hbf, 2026-12-08 06:00, 2nd class, no discount (HAR of #482, branch `owner/merge-captures`; all 5 connections) | the same search as `search-amsterdam-berlin-pair.json` of nsinternational.com: the merge of two sources (#485) |
 
 Notes for the parser:
 - The times (`abfahrt.sollzeit`, `ankunft.sollzeit`, `echtzeit`) are local times with no offset. The

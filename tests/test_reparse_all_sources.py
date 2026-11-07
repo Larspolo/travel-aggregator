@@ -54,8 +54,16 @@ def _csrf(c, path):
 
 
 def _first_fixture(source: str) -> dict:
-    path = sorted((FIXTURES / source).glob("*.json"))[0]
-    return json.loads(path.read_text(encoding="utf-8"))
+    """The first fixture that the parser reads with no rejected connection: "now parse" counts only such a capture
+    (a real capture can have a connection with no price, #485)."""
+    for path in sorted((FIXTURES / source).glob("*.json")):
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            if not get_parser(source).parse(raw).errors:
+                return raw
+        except ValueError:
+            continue
+    raise AssertionError(f"no fixture of {source} parses with no error")
 
 
 @pytest.fixture
