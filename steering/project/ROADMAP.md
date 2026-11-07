@@ -42,7 +42,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Move to trip" on the captures page moves the offers and their price rows of one capture, and the old trip does not show them
 - [ ] `capture:auto-trip` The panel selects the matching trip by itself: the server compares the search of a capture (places and date) with the trips in planning, as `capture:match-trip` does, and "+ new trip" is filled from the search
   - A search Amsterdam → Zürich on 20 December goes to the trip Amsterdam → Zürich with no change of the dropdown
-- [ ] `capture:health` A status per source: the last good capture, the parser version and the failed captures after it; a warning on the trips list when the last captures of a source failed
+- [x] `capture:health` (#723) A status per source: the last good capture, the parser version and the failed captures after it; a warning on the trips list when the last captures of a source failed
   - When a site changes its format, the trips list shows "bahn.de: the last 3 captures failed" with a link to the failed captures
 
 ## 2. Rank offers by effective cost
@@ -66,6 +66,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A CHF offer ranks by its EUR value, and its breakdown shows the CHF price and the EUR price; an offer in a currency with no rate shows "no rate for CHF"
 - [ ] `rank:class` (#689) Travel class: a 1st class or business fare gets a comfort value per hour in the score
   - With a 1st class bonus of €10 per hour, the breakdown of a 1st class fare of 3 hours shows "1st class −€30"
+- [ ] `rank:travelers` (#761) Group trips: the score compares the fares by the price per traveler; the ingest stores the travelers of each capture, and a capture for another number of travelers than the trip shows a warning
+  - A bahn.de capture for 2 adults into a trip for 2 shows "€180 for 2 travelers" next to the price of €90 in the breakdown; a capture for 1 adult into that trip shows "These offers are for 1 traveler; the trip has 2"
 
 ## 3. Plan a trip in one place
 
@@ -91,12 +93,14 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Delete trip" on the edit page asks for a confirmation; then the trip is not in the trips list, not on its pages and not in the dropdown of the userscript
 - [x] `trip:archive` (#486) Archive the past trips: a separate list of the archived trips
   - The trips list does not show an archived trip; "Archived trips (N)" opens them
-- [ ] `trip:days` For a trip with a date range: the best effective cost and the cheapest price per departure day, and a click on a day filters the table
+- [x] `trip:days` (#708) For a trip with a date range: the best effective cost and the cheapest price per departure day, and a click on a day filters the table
   - A trip from 18 to 22 December shows 5 days, each with its best offer, so the owner sees the best day at once
 - [ ] `trip:notify` Price-drop notifications outside the app for the pinned fares (`docs/SPEC.md`, milestone 6), by the channel of the decision #418
   - A new capture with a lower price of a pinned fare sends one notification to the owner's phone
 - [x] `trip:multicity` (#559) Multi-city journeys: three or more trips linked in sequence, as `trip:return` links two (`docs/SPEC.md`, section 13)
   - "Add next trip" makes a linked trip from the destination of the last one, and the trips list shows the journey with the sum of the best offers
+- [ ] `trip:calendar` Add a booked itinerary to a calendar: an `.ics` file with one event per leg
+  - "Add to calendar" on a booked row downloads one file; a calendar app shows each leg with its local times, its train, bus or flight number and its places
 
 ## 4. Run it on my home server
 
@@ -115,5 +119,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [x] `host:backup-daily` (#545) A backup of the database each day, the newest backups kept, and the status on the settings page
   - With no manual step, the backups volume has one daily backup per day and not more than `BACKUP_KEEP` of them
   - The settings page shows a warning when the newest backup is older than 48 hours
-- [ ] `host:export` Export the offers of a trip as CSV and JSON: the owner keeps the data (P5)
+- [x] `host:export` (#699) Export the offers of a trip as CSV and JSON: the owner keeps the data (P5)
   - "Export CSV" on the trip page gives one row per fare with the price, the times, the source and the effective cost
+- [ ] `host:import` Import the JSON export of a trip (`host:export`) into an instance: the trip, its itineraries, fares and price history
+  - A trip exported from one instance and imported into another shows the same rows, prices and price history; a second import of the same file makes no duplicate
