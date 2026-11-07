@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         travel-aggregator: flixbus.com
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.0.0
+// @version      1.0.1
 // @description  Send the Flixbus search results (search service responses) to travel-aggregator.
-// @match        https://www.flixbus.nl/*
-// @match        https://www.flixbus.com/*
+// @match        https://*.flixbus.nl/*
+// @match        https://*.flixbus.com/*
+// @match        https://*.flixbus.de/*
 // @run-at       document-start
 // @grant        GM_getValue
 // @grant        GM_setValue
