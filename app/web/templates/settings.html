@@ -17,4 +17,13 @@
   <button type="submit">Save</button>
 </form>
 <p class="muted">0 keeps all captures. Each ingest deletes the older captures; the offers and their prices stay.</p>
+<h2>Web Push</h2>
+<div id="push" data-key="{{ vapid_public_key }}" data-csrf="{{ csrf_token(request) }}">
+  <p>The channel webpush sends the message to each device that has push on ({{ push_count }} now).</p>
+  <button type="button" id="push-on">Turn on push on this device</button>
+  <button type="button" id="push-off">Remove push from this device</button>
+  <p id="push-status" class="muted" role="status">{% if not vapid_public_key %}Push needs VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT on the server.{% endif %}</p>
+  <p class="muted">On an iPhone or iPad, Web Push works only in an app on the home screen: in Safari, tap Share, then "Add to Home Screen", and open this page from there.</p>
+</div>
+<script src="/static/push.js" defer></script>
 {% endblock %}

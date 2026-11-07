@@ -11,10 +11,10 @@ from typing import Annotated
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
-from pydantic import Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session, subqueryload
 
 from app.web.userscripts import userscript_list
@@ -29,8 +29,8 @@ from app.history import chart
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
-from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, ScoreProfile, Setting, Trip
-from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting
+from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, PushSubscription, ScoreProfile, Setting, Trip
+from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting, webpush_ready
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.ranking import Weights, effective_cost, format_breakdown, in_eur
@@ -681,7 +681,11 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  "channels": CHANNELS,
                                                                  "ntfy_url": setting(session, NTFY_URL_KEY),
                                                                  "notify_email": setting(session, EMAIL_KEY),
-                                                                 "smtp_ready": bool(get_settings().smtp_host)})
+                                                                 "smtp_ready": bool(get_settings().smtp_host),
+                                                                 "vapid_public_key": get_settings().vapid_public_key
+                                                                 if webpush_ready() else "",
+                                                                 "push_count": session.scalar(
+                                                                     select(func.count()).select_from(PushSubscription))})
 
 
 @router.post("/settings", dependencies=[Depends(require_login), Depends(verify_csrf)])
@@ -698,6 +702,9 @@ def save_settings(retention: str = Form(""), notify_channel: str = Form("none"),
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the ntfy topic URL must start with https://")
     if notify_channel == "ntfy" and not url:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the channel ntfy needs a topic URL")
+    if notify_channel == "webpush" and not webpush_ready():
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            "the channel webpush needs VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT")
     address = notify_email.strip()
     if address and ("@" not in address or len(address) > 254):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the e-mail address needs an @")
@@ -711,6 +718,46 @@ def save_settings(retention: str = Form(""), notify_channel: str = Form("none"),
     session.merge(Setting(key=NTFY_URL_KEY, value=url))
     session.commit()
     return RedirectResponse("/settings", status_code=303)
+
+
+class PushKeys(BaseModel):
+    p256dh: str = Field(min_length=1, max_length=200)
+    auth: str = Field(min_length=1, max_length=100)
+
+
+class PushIn(BaseModel):
+    """The JSON of PushSubscription.toJSON() in the browser (#514); the server posts to the endpoint (P5: https only)."""
+    endpoint: str = Field(pattern=r"^https://", max_length=1000)
+    keys: PushKeys | None = None
+
+
+@router.post("/settings/push", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def add_push(body: PushIn, session: Session = Depends(get_session)) -> dict:
+    if body.keys is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the subscription needs the keys p256dh and auth")
+    row = session.scalar(select(PushSubscription).where(PushSubscription.endpoint == body.endpoint))
+    if row is None:
+        session.add(PushSubscription(endpoint=body.endpoint, p256dh=body.keys.p256dh, auth=body.keys.auth))
+    else:
+        row.p256dh, row.auth = body.keys.p256dh, body.keys.auth
+    session.commit()
+    return {"subscriptions": session.scalar(select(func.count()).select_from(PushSubscription))}
+
+
+@router.post("/settings/push/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def delete_push(body: PushIn, session: Session = Depends(get_session)) -> dict:
+    row = session.scalar(select(PushSubscription).where(PushSubscription.endpoint == body.endpoint))
+    if row is not None:
+        session.delete(row)
+        session.commit()
+    return {"subscriptions": session.scalar(select(func.count()).select_from(PushSubscription))}
+
+
+@router.get("/sw.js", include_in_schema=False)
+def service_worker() -> Response:
+    """The service worker of Web Push, at the root so that its scope is the whole app. No secret: no login."""
+    return FileResponse(Path(__file__).parent / "static" / "sw.js", media_type="text/javascript",
+                        headers={"Cache-Control": "no-cache"})
 
 
 COMPARE_ERROR = "Select 2 to 4 offers of this trip."

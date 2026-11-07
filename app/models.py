@@ -200,3 +200,14 @@ class Setting(Base):
 
     key: Mapped[str] = mapped_column(String(50), primary_key=True)
     value: Mapped[str] = mapped_column(Text)
+
+
+class PushSubscription(Base):
+    """One browser that gets the price-drop messages by Web Push (#514). The keys encrypt the message (RFC 8291)."""
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(String(200))
+    auth: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
