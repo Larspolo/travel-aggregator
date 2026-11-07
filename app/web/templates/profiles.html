@@ -3,36 +3,39 @@
 {% block title %}Profiles – travel-aggregator{% endblock %}
 {% block content %}
 {{ ui.page_header("Score profiles", subtitle='One profile is the default. Save a profile on a trip page under "Advanced".') }}
-{% if error %}<p role="alert" class="badge">{{ error }}</p>{% endif %}
+{% if error %}<p role="alert" class="chip danger">{{ error }}</p>{% endif %}
+{% call ui.card("Profiles") %}
 {% if rows %}
-<table>
-  <thead><tr><th>Name</th><th>Hour markup</th><th>Transfer markup</th><th></th><th></th></tr></thead>
-  <tbody>
+<ul class="item-list">
   {% for p, w in rows %}
-  <tr>
-    <td>{{ p.name }}{% if p.is_default %} <span class="badge">default</span>{% endif %}</td>
-    <td class="price">€{{ w.hour_markup }}/h</td>
-    <td class="price">€{{ w.transfer_markup }}</td>
-    <td>{% if not p.is_default %}<form method="post" action="/profiles/{{ p.id }}/default">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-      <button type="submit">Set default</button>
-    </form>{% endif %}</td>
-    <td>
-      <form method="post" action="/profiles/{{ p.id }}/rename">
+  <li class="item">
+    <div class="item-main">
+      <strong>{{ p.name }}</strong>{% if p.is_default %} <span class="chip good">default</span>{% endif %}
+      <p class="item-facts">€{{ w.hour_markup }}/h · €{{ w.transfer_markup }} per transfer</p>
+    </div>
+    <div class="item-actions">
+      <form class="inline-form rename" method="post" action="/profiles/{{ p.id }}/rename">
         <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-        <label>Name <input name="name" required maxlength="100" value="{{ p.name }}"></label>
-        <button type="submit">Rename</button>
+        <div class="field">
+          <label for="name-{{ p.id }}">Name</label>
+          <input id="name-{{ p.id }}" name="name" required maxlength="100" value="{{ p.name }}">
+        </div>
+        <button class="btn" type="submit">Rename</button>
       </form>
-      <form method="post" action="/profiles/{{ p.id }}/delete">
+      {% if not p.is_default %}<form class="inline-form" method="post" action="/profiles/{{ p.id }}/default">
         <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-        <button type="submit">Delete</button>
+        <button class="btn" type="submit">Set default</button>
+      </form>{% endif %}
+      <form class="inline-form" method="post" action="/profiles/{{ p.id }}/delete">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete {{ p.name }}" title="Delete {{ p.name }}">{{ ui.icon("trash") }}</button>
       </form>
-    </td>
-  </tr>
+    </div>
+  </li>
   {% endfor %}
-  </tbody>
-</table>
+</ul>
 {% else %}
-<p>You have no profiles.</p>
+{% call ui.empty_state("You have no profiles.") %}<a class="btn btn-primary" href="/">Open a trip</a>{% endcall %}
 {% endif %}
+{% endcall %}
 {% endblock %}

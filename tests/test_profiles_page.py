@@ -54,7 +54,7 @@ def test_page_lists_profiles_with_their_values(client, two_profiles):
     page = client.get("/profiles").text
     assert "Cheap" in page and "Comfort" in page
     assert "€5/h" in page and "€30" in page
-    assert page.count('badge">default') == 1
+    assert page.count('chip good">default') == 1
 
 
 def test_set_default_moves_the_mark(sessions, client, two_profiles):
