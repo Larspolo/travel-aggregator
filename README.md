@@ -202,6 +202,15 @@ Check: `curl https://<host>/api/health` shows the commit of the new release.
 | `OWNER_PASSWORD_HASH` | The hash of the login password: `python -m app.auth 'PASSWORD'` |
 | `APP_PORT` | The port on your computer for `docker compose up` (default `8000`) |
 | `TRAVEL_AUTH_USERS` | Server only: the Traefik basic auth line for the pages |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | The key pair of Web Push (channel `webpush`). Make it with `python3 -m app.notify`, which prints both lines. Keep the private key secret |
+| `VAPID_SUBJECT` | The contact of the sender for the push services: a `mailto:` address, for example `mailto:you@example.com` |
+| `SMTP_HOST`, `SMTP_PORT` | The SMTP server of the e-mail channel. Port `587` uses STARTTLS, port `465` uses SSL (default port `587`) |
+| `SMTP_USER`, `SMTP_PASSWORD` | The login of the SMTP server. The password stays in the environment, never in the database |
+| `SMTP_FROM` | The sender address of the e-mail |
+
+To turn on Web Push, run `python3 -m app.notify` once. It prints `VAPID_PUBLIC_KEY=...` and `VAPID_PRIVATE_KEY=...`.
+Put both lines and a `VAPID_SUBJECT` in the `.env` file, then restart the app. The settings page then shows the
+Web Push buttons. Without these three variables the channel `webpush` is not available.
 
 The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a setting): the commit that
 `/api/health` shows.
@@ -258,7 +267,10 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
 | `/trips/{id}/captures` | The captures of a trip, with the parse result and the action "reparse capture" (see below). The link "Only failed captures" shows only the failed captures (`?failed=1`); "Show all captures" shows all again |
 | `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
-| `/settings` | The capture retention period: the number of days that the raw captures are kept (see below) |
+| `/settings` | The capture retention period (see below), the channel of the price-drop messages with its ntfy topic URL and e-mail address (see "Messages outside the app"), and "Turn on push on this device" and "Remove push from this device" for Web Push |
+| `/sw.js` | The service worker of Web Push. It needs no login |
+| `POST /settings/push` | Subscribes the browser that sends the form to Web Push. Used by the settings page (CSRF token needed) |
+| `POST /settings/push/delete` | Removes the push subscription of the browser that sends it (CSRF token needed) |
 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
@@ -311,6 +323,31 @@ A pinned offer whose price went down since the last view of its trip page shows 
 
 Opening the trip page ends the mark: the next view shows no mark, unless the price drops again.
 An unpinned offer or a hidden offer gives no mark.
+
+#### Messages outside the app
+
+The app can also send a message when a pinned fare drops. Choose the channel on the settings page (`/settings`, field
+"Message on a price drop of a pinned fare"):
+
+- `none`: no message (the default).
+- `ntfy`: a plain-text message to the ntfy topic URL that you enter in "ntfy topic URL" (https only, for example
+  `https://ntfy.sh/your-secret-topic`).
+- `email`: an e-mail to the address in "E-mail address". It needs `SMTP_HOST` on the server; without it the settings
+  page says so and does not save the channel.
+- `webpush`: a push message to each browser that you turned on with "Turn on push on this device" (see below). It needs
+  the VAPID variables on the server.
+
+The settings page saves the channel only with what the channel needs: a missing address, topic URL or server setting
+gives an error and changes nothing.
+
+Each message has the title "Price drop: " and the trip title, and one line for each dropped fare:
+`fare name (source): EUR old price → EUR new price`. The message links to the trip page. One message goes to each trip
+of an ingest. A failed send is logged and does not change the answer to the userscript.
+
+For Web Push, "Turn on push on this device" asks the browser for permission and subscribes it; "Remove push from this
+device" removes that browser. The settings page shows how many devices have push on. On an iPhone or iPad, Web Push
+works only in an app on the home screen: in Safari, tap Share, then "Add to Home Screen", and open the settings page
+from there.
 
 ### Round trips
 
