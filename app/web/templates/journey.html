@@ -2,13 +2,14 @@
 <section class="journey" aria-label="Journey">
   <h2>Journey</h2>
   <ul>
-  {% for label, t, chosen in journey.directions %}
+  {% for label, t, chosen, early in journey.directions %}
     <li><strong>{{ label }}</strong>: <a href="/trips/{{ t.id }}">{{ t.title }}</a><br>
     {% if chosen %}{% set it, fare, cost = chosen %}{% if it.legs %}{% set first, last = it.legs[0], it.legs[-1] %}
       {{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }} →
       {{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%a %d %b %H:%M") }} ·{% endif %}
       {{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }} · {% if cost.no_rate %}no rate for {{ cost.no_rate }} <a href="/rates">Add a rate</a>{% else %}effective cost €{{ "%.2f" | format(cost.total) }}{% endif %}
-    {% else %}<span class="muted">no offers yet</span>{% endif %}</li>
+    {% else %}<span class="muted">no offers yet</span>{% endif %}
+    {% if early and journey.directions | length > 2 %}<br><span class="mark">departs before the previous part arrives</span>{% endif %}</li>
   {% endfor %}
   </ul>
   {% if journey.total is not none %}<p><strong>Total effective cost €{{ "%.2f" | format(journey.total) }}</strong></p>{% endif %}
