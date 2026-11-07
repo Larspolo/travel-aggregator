@@ -107,6 +107,14 @@ svg.bar .part-2 { fill: var(--warn); }
 svg.bar .part-3 { fill: var(--muted); }
 .weights { display: flex; gap: var(--space-6); flex-wrap: wrap; margin: var(--space-2) 0 var(--space-4); }
 .scroll { overflow-x: auto; }
+/* The weights panel is a card (#628): each slider has the full width, its value at the right of its label. */
+.panel.card { padding: var(--space-4); }
+.panel label.slider { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-1); }
+.panel label.slider output { font-variant-numeric: tabular-nums; font-weight: 600; }
+.panel label.slider input[type=range] { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--accent); }
+.panel details.filters > label.field { margin-top: var(--space-3); gap: var(--space-1); }
+.panel details.filters label.field { display: flex; }
+@media (max-width: 40rem) { .panel.card { padding: var(--space-2); } .panel .field input:not([type=checkbox]):not([type=radio]), .panel .field select { min-height: 40px; } }
 /* == Phone == */
 @media (max-width: 40rem) {
   body { padding: var(--space-2); font-size: 16px; }
