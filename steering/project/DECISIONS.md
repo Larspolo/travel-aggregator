@@ -21,3 +21,4 @@ the owner chose another option, `-`: no recommendation) · principle (`P<n>`, or
 - 2026-11-06 · capture skill · Claude in Chrome on Jeroen's computer does the capture tickets in his own browser (only the searches of the ticket, the hook only records) and pushes the cleaned HAR · - · P1
 - 2026-11-07 · #418 · Price-drop notifications: all three channels (A ntfy, B e-mail, C Web Push), and the user chooses the channel in the settings · changed · new
 - 2026-11-07 · #535 · Visual theme of the web pages: A "Dense tool" (neutral grey surfaces, thin borders, one cool accent, many rows per screen; `DESIGN.md`) · taken · P2
+- 2026-11-07 · #535, #619 · Correction (Larspolo): option A of #535 means only "dense"; its colours, borders, fonts and the limits that `DESIGN.md` took from P4 (system fonts only, no CSS framework, no own JavaScript) were not chosen. Common libraries and frameworks are allowed (#619). `DESIGN.md` version 3 · changed · new

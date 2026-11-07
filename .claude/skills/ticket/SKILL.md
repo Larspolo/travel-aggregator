@@ -146,6 +146,9 @@ the order of features), the owner decides on GitHub. Do not choose, and do not a
   and close the decision ticket. When the answer follows no principle, or goes against one, say it in the comment that
   records the decision: "This does not follow P<n> (<rule>). I will add it as an exception; reply if P<n> must change."
   Do not add `needs-human` for this: the owner replies only when the principle must change.
+- Record only what the question asked. The words of an option and the reasons of the recommendation are not rules:
+  the answer "A" to "Which visual theme?" chose "dense", not "system fonts only" or "no framework" (#535,
+  owner 2026-11-07). A limit that the owner did not ask for goes in its own question, or not into the documents.
 - One clearly best option: no decision ticket. Choose it and say why in the PR. Exception: an area of the section
   "Owner involvement" of `steering/project/PRINCIPLES.md` (when the file has it) always gets a decision ticket.
 

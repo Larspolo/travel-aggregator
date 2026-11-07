@@ -6,16 +6,21 @@
   <a class="btn btn-primary" href="/trips/{{ trip.id }}/offers/new">{{ ui.icon("plus") }}Add an offer by hand</a>
   <a class="btn" href="/trips/{{ trip.id }}/captures">{{ ui.icon("upload") }}Captures</a>
   {% if rows %}<button class="btn" type="submit" form="compare">{{ ui.icon("git-compare") }}Compare</button>{% endif %}
-  {% if not trip.return_of_id and not trip.return_trip %}
-  <form method="post" action="/trips/{{ trip.id }}/return">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-    <button class="btn" type="submit">{{ ui.icon("arrow-right-left") }}Make the return trip</button>
-  </form>
-  {% endif %}
-  <form method="post" action="/trips/{{ trip.id }}/next">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-    <button class="btn" type="submit">{{ ui.icon("calendar-plus") }}Add next trip</button>
-  </form>
+  <details class="more">
+    <summary class="btn">{{ ui.icon("ellipsis") }}More</summary>
+    <div class="more-menu">
+    {% if not trip.return_of_id and not trip.return_trip %}
+    <form method="post" action="/trips/{{ trip.id }}/return">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("arrow-right-left") }}Make the return trip</button>
+    </form>
+    {% endif %}
+    <form method="post" action="/trips/{{ trip.id }}/next">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("calendar-plus") }}Add next trip</button>
+    </form>
+    </div>
+  </details>
 {% endcall %}
 {% if search_links %}
 <p class="search-links">{% for name, url in search_links %}<a href="{{ url }}" target="_blank" rel="noopener">Search on {{ name }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
@@ -129,7 +134,7 @@
 <div class="results">
 {% with oob = false %}{% include "compare_form.html" %}{% endwith %}
 {% if drops %}
-<section class="drops" id="drops">
+<section class="drops card" id="drops">
 <h2>Price drops</h2>
 <ul>
 {% for d in drops %}
@@ -138,12 +143,14 @@
 </ul>
 </section>
 {% endif %}
-<div class="scroll" id="table">
+<div class="card table-card" id="table">
 {% include "trip_table.html" %}
 </div>
 </div>
 </div>
 {% else %}
-<p>No offers yet. Search on a travel site with the userscript, or send offers to <code>POST /api/ingest</code>.</p>
+<div class="card empty">
+  <p>No offers yet. Search on a travel site with the userscript, or send offers to <code>POST /api/ingest</code>.</p>
+</div>
 {% endif %}
 {% endblock %}
