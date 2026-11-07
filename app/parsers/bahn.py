@@ -25,6 +25,7 @@ COUNTRY_TZ = {
 SKIP_TYPES = {"WALK", "TRANSFER"}
 MODES = {"BUS": "bus", "SCHIFF": "ferry"}
 CLASSES = {"KLASSE_1": "1st class", "KLASSE_2": "2nd class"}
+TRAVEL_CLASSES = {"KLASSE_1": "first", "KLASSE_2": "standard"}
 DISCOUNTS = {"BAHNCARD25": "BahnCard 25", "BAHNCARD50": "BahnCard 50", "BAHNCARD100": "BahnCard 100"}
 BOOKING_URL = "https://www.bahn.de/buchung/fahrplan/suche"
 
@@ -58,7 +59,7 @@ def discounts(request: dict | None) -> list[str]:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.0.0"
+    version = "1.1.0"
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"request", "response"} or of the response body only."""
@@ -91,12 +92,13 @@ class BahnParser:
             if name.startswith("Probe ") or (name, klasse) in seen or (a.get("preis") or {}).get("betrag") is None:
                 continue
             seen.add((name, klasse))
-            fares.append((a["preis"], [name, CLASSES.get(klasse, "")]))
+            fares.append((a["preis"], [name, CLASSES.get(klasse, "")], klasse))
         if not fares:
             price = conn.get("angebotsPreis")
             if not price or price.get("betrag") is None:
                 raise NoPrice("no price (angebotsPreis)")
-            fares = [(price, [CLASSES.get(conn.get("angebotsPreisKlasse"), "")])]
+            klasse = conn.get("angebotsPreisKlasse")
+            fares = [(price, [CLASSES.get(klasse, "")], klasse)]
         legs = []
         for a in conn["verbindungsAbschnitte"]:
             vm = a.get("verkehrsmittel") or {}
@@ -122,4 +124,5 @@ class BahnParser:
             fare_name=", ".join(x for x in fare + extra if x) or None,
             legs=legs,
             booking_url=BOOKING_URL,
-        ) for price, fare in fares]
+            travel_class=TRAVEL_CLASSES.get(klasse),
+        ) for price, fare, klasse in fares]
