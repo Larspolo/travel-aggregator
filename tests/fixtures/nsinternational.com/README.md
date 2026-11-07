@@ -11,6 +11,7 @@ and no tokens. The searches are for 2026-11-26.
 | `search-amsterdam-london.json` | Amsterdam Centraal (NLASC) → London St. Pancras (GBSPX), 07:00 | a direct Eurostar (1 train leg, 0 changes); a connection with 2 changes and a `TRANSFER` leg; offers with 2 or 3 fare names |
 | `search-amsterdam-berlin.json` | Amsterdam Centraal (NLASC) → Berlin Hbf (DEBHG) | 1 change with 2 train legs; 6 offers per connection; `nsiNumberOfChanges` is 0 while `numberOfChanges` is 1 |
 | `search-rotterdam-paris.json` | Rotterdam Centraal (NLRTC) → Paris (FRPAR), 07:00 | direct connections (0 changes), 3 offers each; a fare name with a leading space |
+| `search-amsterdam-berlin-pair.json` | Amsterdam Centraal (NLASC) → Berlin Hbf (DEBHF), 2026-12-08 06:00 (HAR of #482, branch `owner/merge-captures`; all 5 connections) | the same search as `fahrplan-amsterdam-berlin.json` of bahn.de (#485); the 07:05 connection has no offers |
 
 Notes for the parser:
 
