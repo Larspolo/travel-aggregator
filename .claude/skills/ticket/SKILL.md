@@ -106,6 +106,10 @@ can prepare and guide it:
     Reply: <what the owner must write on the ticket>
 
 Leave out `World` and `Start` when the ticket needs no world.
+Before you write a step, ask: can an agent check this (a test, Playwright at 1280 px or with a phone device, `curl`,
+`scripts/preview_check.sh`)? Then the agent checks it and the ticket links the evidence; the step is not in the list
+(owner, 2026-11-07: "the page side scroll on the phone should never have been asked"). Each step names why only a
+person can do it: P1 (a real travel site), a password of the owner, the owner's own device, or a feel.
 A check of a live replay gives one line per moment that the owner watches, and one per task without a time;
 the `human` skill gives them to `game/watch.py` (#1123). The place is `chopper`, `unit:NAME`, `building:NAME` or
 `tile:X,Y`; `end` is the end of the replay:

@@ -66,7 +66,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - Two captures with different prices show as two points of the chart
 - [x] `trip:compare` (#291) Compare 2 to 4 offers side by side
 - [ ] `trip:mobile` A responsive layout of all pages
-  - All pages work at a phone width of 390 px with no horizontal scroll (agents check with screenshots; the owner then tests on a phone)
+  - All pages work at a phone width of 390 px with no horizontal scroll (agents check this with Playwright and screenshots; the owner tests on a phone only the feel)
 - [ ] `trip:links` Search links per source, filled with the values of the trip (they only open a page; they fetch nothing)
 - [x] `trip:return` (#339) Round trips: an outbound and a return trip linked as one journey (`docs/SPEC.md`, section 13)
   - "Add return trip" makes the linked trip with the swapped places, and each trip page links to the other

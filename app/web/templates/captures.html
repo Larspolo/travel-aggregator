@@ -9,7 +9,7 @@
 {% endif %}
 <p>{% if failed %}<a href="{{ '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' }}">Show all captures</a>{% else %}<a href="{{ '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' }}?failed=1">Only failed captures</a>{% endif %}</p>
 {% if captures %}
-<table>
+<div class="scroll"><table>
   <tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Raw</th><th></th></tr>
   {% for c in captures %}
   <tr>
@@ -30,7 +30,7 @@
       hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse capture</button></td>
   </tr>
   {% endfor %}
-</table>
+</table></div>
 {% elif failed %}
 <p>No failed captures.</p>
 {% else %}

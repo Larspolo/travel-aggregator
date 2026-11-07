@@ -60,7 +60,9 @@ How the owner tries a new feature. The agents make what this needs for each feat
   (390 px), as an artifact of the CI job, with a description in the PR body (the REST API cannot upload images).
 - A release image per epic: each closed epic makes a tagged Docker image on GHCR and moves `:latest`; the owner's
   real instance with the real data follows `:latest` (`host:deploy`). The preview never uses the real data.
-- The owner tests on a phone or a tablet only after a feature works on a computer.
+- The agents check each page at phone width themselves (Playwright with a phone device, sideways scroll, control
+  sizes, screenshots). The owner tests on a phone or a tablet only what only a person can tell (the feel under a
+  finger), and only after a feature works on a computer (owner, 2026-11-07).
 - The README at the end of each epic (owner): before the epic closes, one PR updates `README.md` for all that the
   epic added (setup, commands, settings, API, what a user can do), and `python3 -m pytest -m readme` passes. The epic
   waits for it. Ticket PRs do not change `README.md`.
