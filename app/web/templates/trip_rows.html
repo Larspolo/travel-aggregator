@@ -28,7 +28,8 @@
         {% for action, label, symbol in [("pin", "Unpin" if it.pinned else "Pin", "pin"),
                                          ("hide", "Unhide" if it.hidden else "Hide", "eye" if it.hidden else "eye-off"),
                                          ("booked", "Not booked" if it.booked else "Mark as booked", "check")] %}
-        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/{{ action }}">
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/{{ action }}"
+              hx-post="/trips/{{ trip.id }}/itineraries/{{ it.id }}/{{ action }}?{{ sort_qs }}&amp;sort={{ view.sort }}&amp;dir={{ view.dir }}" hx-target="#table">
           <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
           <button type="submit" class="icon" aria-label="{{ label }}" title="{{ label }}">{{ ui.icon(symbol) }}</button>
         </form>{% endfor %}
