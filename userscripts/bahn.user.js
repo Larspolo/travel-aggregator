@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: bahn.de
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.0.0
+// @version      1.0.1
 // @description  Send the bahn.de search results (fahrplan and recon responses) to travel-aggregator.
 // @match        https://www.bahn.de/*
 // @match        https://int.bahn.de/*
