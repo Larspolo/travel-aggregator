@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 5;
+const CORE_VERSION = 6;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -225,9 +225,82 @@ const CORE_VERSION = 5;
   });
   panel.sendButton.addEventListener("click", () => flush());
 
+  const parseJson = (text) => {
+    if (typeof text !== "string" || !text) return null;
+    try { return JSON.parse(text); } catch (e) { return null; }
+  };
+
+  // One hook of fetch and XMLHttpRequest for all site userscripts. It only reads the responses that the page itself
+  // gets (P1). Each watcher gets {url, method, body, text} of a response whose URL it accepts.
+  const watchers = [];
+  let hooked = false;
+  const notify = (url, method, body, text) => {
+    const r = { url: String(url), method: String(method || "GET").toUpperCase(),
+      body: typeof body === "string" ? body : null, text };
+    watchers.forEach((w) => {
+      try { if (w.accepts(url)) w.onResponse(r); } catch (e) { /* a site error does not stop the others */ }
+    });
+  };
+  const accepted = (url) => watchers.some((w) => { try { return w.accepts(url); } catch (e) { return false; } });
+  function hook() {
+    if (hooked) return;
+    hooked = true;
+    const origFetch = root.fetch;
+    if (typeof origFetch === "function") {
+      root.fetch = function (input, init) {
+        const promise = origFetch.apply(this, arguments);
+        const url = input && typeof input === "object" && "url" in input ? input.url : input;
+        if (!accepted(url)) return promise;
+        const method = (init && init.method) || (input && input.method) || "GET";
+        const body = init && typeof init.body === "string" ? init.body : null;
+        return promise.then((res) => {
+          try { res.clone().text().then((t) => notify(url, method, body, t), () => {}); } catch (e) { /* ignore */ }
+          return res;
+        });
+      };
+    }
+    const XHR = root.XMLHttpRequest && root.XMLHttpRequest.prototype;
+    if (XHR) {
+      const open = XHR.open;
+      const send = XHR.send;
+      XHR.open = function (method, url) {
+        this.__taMethod = method;
+        this.__taUrl = url;
+        return open.apply(this, arguments);
+      };
+      XHR.send = function (body) {
+        if (accepted(this.__taUrl)) {
+          this.addEventListener("load", () => {
+            const t = this.responseType;
+            const text = !t || t === "text" ? this.responseText : t === "json" ? JSON.stringify(this.response) : null;
+            notify(this.__taUrl, this.__taMethod, body, text);
+          });
+        }
+        return send.apply(this, arguments);
+      };
+    }
+  }
+
   const core = {
     gm,
     countRaw: null,
+    parseJson,
+    // A URL test of a site: true when the URL (relative to the page) passes test(u) for its URL object u.
+    urlTest: (test) => (url) => {
+      try { return Boolean(test(new URL(String(url), root.location.href))); } catch (e) { return false; }
+    },
+    // Watch the responses whose URL passes accepts(url); onResponse gets {url, method, body, text}.
+    watch(accepts, onResponse) {
+      watchers.push({ accepts, onResponse });
+      hook();
+    },
+    // Report and send one raw capture of a site (the server parser of the source reads raw).
+    capture(source, parserVersion, raw, countRaw) {
+      core.countRaw = countRaw;
+      core.report(countRaw(raw));
+      return core.send({ source, parser_version: parserVersion, captured_at: new Date().toISOString(),
+        page_url: root.location.href, raw });
+    },
     server: () => config().server,
     panel,
     report(n) { panel.setStatus(`Captured ${n} offers`, "info"); },
