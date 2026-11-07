@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 6;
+const CORE_VERSION = 7;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -285,9 +285,11 @@ const CORE_VERSION = 6;
     gm,
     countRaw: null,
     parseJson,
-    // A URL test of a site: true when the URL (relative to the page) passes test(u) for its URL object u.
+    // A URL test of a site: true when the URL passes test(u) for its URL object u. A relative URL is relative to the
+    // base of the document: bahn.de has `<base href="/web/">` and requests `api/angebote/fahrplan` (#528).
     urlTest: (test) => (url) => {
-      try { return Boolean(test(new URL(String(url), root.location.href))); } catch (e) { return false; }
+      const base = (root.document && root.document.baseURI) || root.location.href;
+      try { return Boolean(test(new URL(String(url), base))); } catch (e) { return false; }
     },
     // Watch the responses whose URL passes accepts(url); onResponse gets {url, method, body, text}.
     watch(accepts, onResponse) {
