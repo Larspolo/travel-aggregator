@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 4;
+const CORE_VERSION = 5;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -50,7 +50,9 @@ const CORE_VERSION = 4;
     controls.innerHTML = `<label>Attach to trip: <select class="trip"></select></label>
       <button type="button" class="new-trip">+ new trip</button>
       <label><input type="checkbox" class="autosend"> auto-send</label>
-      <button type="button" class="send">Send</button>`;
+      <button type="button" class="send">Send</button>
+      <button type="button" class="set-server">Server URL</button>
+      <button type="button" class="set-token">API token</button>`;
     shadow.append(style, controls, box);
     // At document-start the page can have no root element yet (#155): mount when it comes.
     const mount = () => (document.body || document.documentElement).appendChild(host);
@@ -67,6 +69,8 @@ const CORE_VERSION = 4;
       newTrip: controls.querySelector(".new-trip"),
       autosend: controls.querySelector(".autosend"),
       sendButton: controls.querySelector(".send"),
+      serverButton: controls.querySelector(".set-server"),
+      tokenButton: controls.querySelector(".set-token"),
       setStatus(text, kind) {
         box.className = "panel " + (["ok", "error", "info"].includes(kind) ? kind : "info");
         box.textContent = String(text);
@@ -115,7 +119,7 @@ const CORE_VERSION = 4;
   function post(payload) {
     const { server, token } = config();
     if (!/^https?:\/\//.test(server)) {
-      panel.setStatus("Set the server URL in the menu", "error");
+      panel.setStatus('Set the server URL: press "Server URL"', "error");
       return Promise.resolve("retry");
     }
     if (!payload || !payload.trip_id) {
@@ -246,14 +250,19 @@ const CORE_VERSION = 4;
     },
   };
   root.TACore = core;
-  gm.menu("Set server URL", () => {
+  // The panel has the settings too (#536): the Tampermonkey menu is hidden in the extension popup.
+  const setServer = () => {
     const v = root.prompt("travel-aggregator server URL", config().server);
-    if (v !== null) gm.setValue("server", v.trim());
-  });
-  gm.menu("Set API token", () => {
+    if (v !== null) { gm.setValue("server", v.trim()); loadTrips(); }
+  };
+  const setToken = () => {
     const v = root.prompt("travel-aggregator API token", "");
-    if (v !== null) gm.setValue("token", v.trim());
-  });
+    if (v !== null) { gm.setValue("token", v.trim()); loadTrips(); }
+  };
+  panel.serverButton.addEventListener("click", setServer);
+  panel.tokenButton.addEventListener("click", setToken);
+  gm.menu("Set server URL", setServer);
+  gm.menu("Set API token", setToken);
   gm.menu("Add this website", () => {
     root.open(config().server.replace(/\/+$/, "") + "/sources/new?site=" + encodeURIComponent(root.location.host), "_blank");
   });
