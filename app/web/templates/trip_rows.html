@@ -33,6 +33,8 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
           <button type="submit" class="icon" aria-label="{{ label }}" title="{{ label }}">{{ ui.icon(symbol) }}</button>
         </form>{% endfor %}
+        {% if it.booked %}<a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
+           aria-label="Add to calendar" title="Add to calendar">{{ ui.icon("calendar-plus") }}</a>{% endif %}
       </td>
     </tr>
     <tr class="detail">
