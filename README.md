@@ -325,6 +325,14 @@ Open "Legs and fares" in a row to see its legs, the transfer times and all fares
 The expanded row also shows the price history chart of each fare: one point for each capture of the fare.
 The route `/trips/{id}/itineraries/{id}/history` shows the same chart and the table of the prices.
 
+### Departure days
+
+Above the table, the trip page shows a strip of the departure days. A trip with a date range shows each day of the range, up to the first 31 days. A day with no offer shows "no offers". Without a range, the strip shows each day that has an offer. The strip is hidden when it has fewer than two days.
+Each day shows two costs: the best effective cost of the day (in the title "Best effective cost") and the cheapest price of the day (in the title "Cheapest price"). The costs use the active profile and the hidden offers do not count.
+The strip shows all offers, also while one day is selected. Its costs do not change when you pick a day.
+Click a day to show only the offers that depart on that local day. The filter is the query parameter `day`, in the form `YYYY-MM-DD`. The selected day is marked as current. Click "All days" to remove the filter.
+A change of a slider keeps the selected day. The strip updates its costs with the new weights.
+
 ### Pin, hide, book and note an offer
 
 Each row of the trip table has buttons at its left side:
