@@ -19,6 +19,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [x] `capture:userscript` (#26) Shared userscript core: floating panel, trip dropdown, "+ new trip", auto-send on by default, queue and retry, config menu, `GM_xmlhttpRequest`; the API tokens page (create, revoke, config snippet)
   - The panel shows "Captured N offers → sent ✓" or a clear error
   - Payloads that were not sent go again later, with no lost offer
+- [ ] `capture:merge` One itinerary for the same journey from two sources (#481)
+  - The same ICE from bahn.de and NS International shows as one row with the fares of both sites
+- [ ] `capture:reparse-all` Reparse all failed captures of a source in one step (#488)
+  - After a parser fix, one button on the failed captures page reparses them all and shows the counts
 - [x] `capture:bahn` (#151) bahn.de: JSON interception, server parser, trimmed fixtures, fail-soft parsing, "reparse capture"
   - A search on bahn.de shows all fare classes on the trip page within seconds, with no manual step
   - After a parser fix, "reparse" of a stored capture gives the correct offers
@@ -73,8 +77,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The trips list shows the two trips together, with the sum of their best offers
 - [x] `trip:drops` (#354) Price-drop marks for pinned offers: a new capture with a lower price of a pinned fare shows a mark (in the app; e-mail or push later)
   - The trips list and the trip page show "price dropped €X" for a pinned fare until the owner opens it
-- [ ] `trip:delete` Delete a trip with all its offers, prices and captures (`docs/SPEC.md`, milestone 1: trips CRUD)
+- [x] `trip:delete` (#415) Delete a trip with all its offers, prices and captures (`docs/SPEC.md`, milestone 1: trips CRUD)
   - "Delete trip" on the edit page asks for a confirmation; then the trip is not in the trips list, not on its pages and not in the dropdown of the userscript
+- [ ] `trip:archive` Archive the past trips: a separate list of the archived trips (#486)
+  - The trips list does not show an archived trip; "Archived trips (N)" opens them
 - [ ] `trip:notify` Price-drop notifications outside the app for the pinned fares (`docs/SPEC.md`, milestone 6), by the channel of the decision #418
   - A new capture with a lower price of a pinned fare sends one notification to the owner's phone
 
