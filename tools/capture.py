@@ -2,7 +2,7 @@
 and push the HAR to a capture branch (`.claude/skills/capture/SKILL.md`).
 
     python3 tools/capture.py hook --match REGEX           # the JavaScript for the page: it records the responses
-    python3 tools/capture.py userscript [--check]       # write tools/capture-hook.user.js (Tampermonkey, document start)
+    python3 tools/capture.py userscript [--check]       # write scripts/capture-hook.user.js (Tampermonkey, document start)
     python3 tools/capture.py scrub RAW.har ... --out OUT.har [--match REGEX] [--private TEXT ...]
     python3 tools/capture.py publish OUT.har --issue N --source bahn.de [--branch owner/bahn-captures]
 
@@ -239,14 +239,14 @@ def hook(match):
 # The capture script of Tampermonkey (#463): the owner installs it once, and Tampermonkey updates it from `main`.
 # It installs the hook at document start, but only in a tab where `capture.py hook` set the flag: a search that is a
 # full page load with fast results (Skyscanner) is recorded from the first request. With no flag it does nothing.
-USERSCRIPT_FILE = ROOT / "tools" / "capture-hook.user.js"
-USERSCRIPT_URL = "https://raw.githubusercontent.com/Larspolo/travel-aggregator/main/tools/capture-hook.user.js"
+# Not in tools/: the file names the repository, and only agent.toml may name it in a tool (test_agent_config.py).
+USERSCRIPT_FILE = ROOT / "scripts" / "capture-hook.user.js"
 # The sites with no userscript in `userscripts/` that a capture ticket can need.
 EXTRA_SITES = ("https://www.skyscanner.nl/*", "https://www.google.com/travel/*")
 # Change the script (HOOK, AUTO, the sites) → add 1 to the version and set the new hash, else Tampermonkey does not
 # update it. `tests/test_capture_userscript.py` fails when the hash does not agree.
 USERSCRIPT_VERSION = 1
-USERSCRIPT_HASH = "8a927bcd0c1aa030"
+USERSCRIPT_HASH = "4d305ecb1619c302"
 AUTO = r"""(() => {
   window.__taCapAuto = __VERSION__;
   let cfg = null;
@@ -267,9 +267,15 @@ def capture_sites():
     return sorted(sites)
 
 
+def userscript_url():
+    """The raw GitHub address of the script on the main branch (`repo` and `branch` of agent.toml)."""
+    rel = USERSCRIPT_FILE.relative_to(ROOT).as_posix()
+    return f"https://raw.githubusercontent.com/{config().get('repo', '')}/{main_branch()}/{rel}"
+
+
 def userscript_hash():
     import hashlib
-    text = "\n".join([HOOK, AUTO, *capture_sites()])
+    text = "\n".join([HOOK, AUTO, userscript_url(), *capture_sites()])
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
 
@@ -283,8 +289,8 @@ def userscript():
             *[f"// @match        {s}" for s in capture_sites()],
             "// @run-at       document-start",
             "// @grant        none",
-            f"// @updateURL    {USERSCRIPT_URL}",
-            f"// @downloadURL  {USERSCRIPT_URL}",
+            f"// @updateURL    {userscript_url()}",
+            f"// @downloadURL  {userscript_url()}",
             "// ==/UserScript=="]
     body = AUTO.replace("__VERSION__", str(USERSCRIPT_VERSION)).replace("__HOOK__", HOOK.replace("__MATCH__", "cfg.match"))
     return "\n".join(head) + "\n" + body
@@ -489,7 +495,7 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     h = sub.add_parser("hook", help="print the JavaScript that records the responses of the page")
     h.add_argument("--match", default=".", help="a regular expression of the URLs to keep")
-    u = sub.add_parser("userscript", help="write tools/capture-hook.user.js, the capture script of Tampermonkey")
+    u = sub.add_parser("userscript", help="write scripts/capture-hook.user.js, the capture script of Tampermonkey")
     u.add_argument("--check", action="store_true", help="exit 1 when the file is not up to date; write nothing")
     s = sub.add_parser("scrub", help="clean one or more HAR files into one HAR")
     s.add_argument("files", nargs="+")
@@ -512,7 +518,7 @@ def main(argv=None):
         if not a.check and not same:
             USERSCRIPT_FILE.write_text(text, "utf-8")
         print(json.dumps({"file": str(USERSCRIPT_FILE.relative_to(ROOT)), "version": USERSCRIPT_VERSION,
-                          "up_to_date": same, "install": USERSCRIPT_URL}))
+                          "up_to_date": same, "install": userscript_url()}))
         return 1 if a.check and not same else 0
     if a.cmd == "scrub":
         har, replaced = scrub(a.files, a.match, a.private)

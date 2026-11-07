@@ -67,13 +67,12 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
    form of the results page), and count it in the 3 searches. The hook records fetch and XHR, also when the page
    keeps its own `fetch`, `open` or `send` (it records when the page reads the response).
    **The capture script of Tampermonkey** (#463): the hook also turns on "TA capture hook"
-   (`tools/capture-hook.user.js`) for this tab, when it is installed: its answer has `"auto":<version>`. Then each
+   (`scripts/capture-hook.user.js`) for this tab, when it is installed: its answer has `"auto":<version>`. Then each
    next page load of the site in this tab gets the hook at document start, before the scripts of the page, so a
    search that is a full page load with fast results (Skyscanner) is recorded from the first request. A new page load
    starts with no entries: save (step 5) before it. With `"auto":null` the script is not installed. For a site that
-   needs it (the list "Sites"), ask the person who started `/capture` to install it once from
-   `https://raw.githubusercontent.com/Larspolo/travel-aggregator/main/tools/capture-hook.user.js` (Tampermonkey
-   opens its install dialog); when no person answers, stop the ticket (the comment of step 9). Tampermonkey updates
+   needs it (the list "Sites"), ask the person who started `/capture` to install it once from the
+   `install` address that `python3 tools/capture.py userscript --check` prints (Tampermonkey opens its install dialog); when no person answers, stop the ticket (the comment of step 9). Tampermonkey updates
    it from `main`, and it does nothing in a tab with no flag, so the person never removes it. A site with no
    `@match` in it: add the site to `EXTRA_SITES` of `tools/capture.py` (section 5); a new userscript in `userscripts/`
    adds its own sites.

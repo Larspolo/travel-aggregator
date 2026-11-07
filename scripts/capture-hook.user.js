@@ -14,8 +14,8 @@
 // @match        https://www.skyscanner.nl/*
 // @run-at       document-start
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/Larspolo/travel-aggregator/main/tools/capture-hook.user.js
-// @downloadURL  https://raw.githubusercontent.com/Larspolo/travel-aggregator/main/tools/capture-hook.user.js
+// @updateURL    https://raw.githubusercontent.com/Larspolo/travel-aggregator/main/scripts/capture-hook.user.js
+// @downloadURL  https://raw.githubusercontent.com/Larspolo/travel-aggregator/main/scripts/capture-hook.user.js
 // ==/UserScript==
 (() => {
   window.__taCapAuto = 1;

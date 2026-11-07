@@ -1,4 +1,4 @@
-"""`tools/capture-hook.user.js` is the capture script of Tampermonkey (#463): installed once, updated from `main`, and
+"""`scripts/capture-hook.user.js` is the capture script of Tampermonkey (#463): installed once, updated from `main`, and
 off until `capture.py hook` turns it on in a tab. Then it records a search that is a full page load with fast results
 (Skyscanner) from the first request. Playwright serves all URLs from the test, so no request goes to a travel site
 (P1)."""
@@ -31,9 +31,11 @@ def test_a_changed_script_has_a_new_version_else_tampermonkey_does_not_update_it
 def test_the_script_updates_from_main_and_runs_at_document_start_with_no_grants():
     head = header(capture.userscript())
     assert f"// @version      {capture.USERSCRIPT_VERSION}\n" in head
-    assert f"// @updateURL    {capture.USERSCRIPT_URL}\n" in head
-    assert f"// @downloadURL  {capture.USERSCRIPT_URL}\n" in head
-    assert capture.USERSCRIPT_URL.endswith("/main/tools/capture-hook.user.js")
+    url = capture.userscript_url()
+    assert f"// @updateURL    {url}\n" in head
+    assert f"// @downloadURL  {url}\n" in head
+    cfg = capture.config()
+    assert url == f"https://raw.githubusercontent.com/{cfg['repo']}/{cfg.get('branch', 'main')}/scripts/capture-hook.user.js"
     assert "// @run-at       document-start\n" in head
     assert "// @grant        none\n" in head
     assert head.count("@grant") == 1
