@@ -194,11 +194,13 @@ def reparse(session: Session, capture: Capture) -> dict | None:
         log.warning("capture %s: reparse of %s raw payload failed: %s", capture.id, capture.source, e)
         counts = {"created": 0, "updated": 0, "unchanged": 0}
         set_result(capture, counts, [], str(e)[:200])
+        capture.mismatch = None
         session.commit()
         return {**counts, "rejected": 0, "unreadable": str(e)[:200]}
     counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
                            captured_at=capture.captured_at)
     set_result(capture, counts, result.errors, None)
+    capture.mismatch = _trip_mismatch(session, capture.trip_id, result.offers)
     session.commit()
     return {**counts, "rejected": len(result.errors), "unreadable": None}
 
@@ -222,13 +224,19 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     counts = upsert_offers(session, body.trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at, drops=drops)
     set_result(capture, counts, errors, unreadable)
+    reason = _trip_mismatch(session, body.trip_id, offers)
+    capture.mismatch = reason
     delete_old_captures(session, retention_days(session), datetime.now(UTC))
     session.commit()
-    return {**counts, "rejected": len(errors), "errors": errors, "warning": _trip_warning(session, body.trip_id, offers)}
+    return {**counts, "rejected": len(errors), "errors": errors, "warning": _warning_text(reason)}
 
 
-def _trip_warning(session: Session, trip_id: int, offers: list[OfferIn]) -> str | None:
-    """The warning of #555: the offers do not match the places or the date of the trip. The data is stored anyway."""
+def _trip_mismatch(session: Session, trip_id: int, offers: list[OfferIn]) -> str | None:
+    """The reason of #555 (tripmatch.mismatch), or None. Stored on the capture (#556)."""
     trip = session.get(Trip, trip_id)
-    reason = None if trip is None else mismatch(trip, offers)
+    return None if trip is None else mismatch(trip, offers)
+
+
+def _warning_text(reason: str | None) -> str | None:
+    """The warning of #555: the offers do not match the places or the date of the trip. The data is stored anyway."""
     return None if reason is None else f"These offers do not match the trip ({reason})"

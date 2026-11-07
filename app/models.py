@@ -140,6 +140,8 @@ class Capture(Base):
     rejected_count: Mapped[int | None] = mapped_column(Integer)
     errors_json: Mapped[list | None] = mapped_column(JSON)
     unreadable: Mapped[str | None] = mapped_column(String(200))
+    # The trip warning of the last parse (#556): "places" or "date" (tripmatch.mismatch); NULL when the offers match.
+    mismatch: Mapped[str | None] = mapped_column(String(200))
 
 
 class ApiToken(Base):
