@@ -1,0 +1,52 @@
+# The real instance of travel-aggregator with the owner's data. It follows the image :latest, which moves only when an
+# epic closes (host:deploy). Settings and secrets live in .env (copy .env.example; never commit .env).
+# The app is published on 127.0.0.1 only: put a reverse proxy in front of it (examples: deploy/caddy, deploy/nginx).
+# The names of the variables are a contract: the app reads DATABASE_URL, SECRET_KEY and GIT_SHA (capture:skeleton).
+services:
+  app:
+    image: ghcr.io/larspolo/travel-aggregator:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - backups-production:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    labels:
+      # Updated by the updater below, not by the global watchtower.
+      - com.centurylinklabs.watchtower.scope=travel-production
+
+  # Only on the default network: nothing outside this compose project can reach it.
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - pgdata-production:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 10
+    labels:
+      # The updater installs the patch releases of PostgreSQL 16 (never a new major version).
+      - com.centurylinklabs.watchtower.scope=travel-production
+
+  # Polls the registry every 5 minutes and restarts `app` on a new image. Scoped, so it and the other
+  # instances on the same server (travel-preview) leave each other's containers alone.
+  updater:
+    image: nickfedor/watchtower:latest
+    restart: unless-stopped
+    environment:
+      WATCHTOWER_SCOPE: travel-production
+      WATCHTOWER_POLL_INTERVAL: "300"
+      WATCHTOWER_CLEANUP: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - com.centurylinklabs.watchtower.scope=travel-production
+
+volumes:
+  pgdata-production:
+  backups-production:

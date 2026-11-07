@@ -86,7 +86,7 @@ def solve(files):
             shown.append(f"{f}: no conflict markers (deleted on one side, or a binary file): solve it with git")
             continue
         new, left = unconflict.solve_some(text)
-        why = "" if left else unconflict.check(f, new) or unconflict.hides(f, new)
+        why = "" if left else unconflict.check(f, new) or unconflict.hides(f, new) or unconflict.stray(f, new)
         if why:
             shown.append(f"{f}: {why}")
             continue

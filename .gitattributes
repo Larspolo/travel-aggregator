@@ -1,2 +1,4 @@
 # Ticket runs only add lines here, so a merge keeps the new lines of both sides.
 docs/LEARNINGS.md merge=union
+# Unix line endings in the shell scripts, also in a Windows checkout: else the container stops with "/bin/sh^M" (#63).
+*.sh text eol=lf

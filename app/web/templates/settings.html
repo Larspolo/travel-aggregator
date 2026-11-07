@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Settings – travel-aggregator{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+<p><a href="/">Trips</a> · <a href="/rates">Exchange rates</a> · <a href="/logout">Log out</a></p>
+<form method="post" action="/settings">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <label>Keep raw captures for (days)
+    <input name="retention" type="number" min="0" max="{{ max_days }}" step="1" required value="{{ retention_days }}"></label>
+  <button type="submit">Save</button>
+</form>
+<p class="muted">0 keeps all captures. Each ingest deletes the older captures; the offers and their prices stay.</p>
+{% endblock %}

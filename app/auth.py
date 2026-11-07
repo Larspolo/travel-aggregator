@@ -6,9 +6,14 @@ Make it with: python3 -m app.auth 'PASSWORD'
 
 import hashlib
 import hmac
+import logging
+import math
 import os
 import secrets
 import sys
+import time
+from collections import defaultdict, deque
+from collections.abc import Callable
 from datetime import UTC, datetime
 
 from fastapi import Depends, HTTPException, Request, status
@@ -24,6 +29,8 @@ ITERATIONS = 600_000
 SESSION_KEY = "owner"
 CSRF_KEY = "csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
+
+log = logging.getLogger(__name__)
 
 
 class LoginRequired(HTTPException):
@@ -49,6 +56,77 @@ def check_password(password: str, stored_hash: str) -> bool:
         return hmac.compare_digest(digest, bytes.fromhex(digest_hex))
     except ValueError:
         return False
+
+
+class LoginLimiter:
+    """Limits the failed logins in memory (one uvicorn process; a restart resets the counts).
+
+    Per address: ADDRESS_MAX failures in WINDOW lock that address for LOCK seconds.
+    All addresses together: GLOBAL_MAX failures in GLOBAL_WINDOW lock the login for LOCK seconds.
+    """
+
+    ADDRESS_MAX = 5
+    WINDOW = 15 * 60
+    GLOBAL_MAX = 20
+    GLOBAL_WINDOW = 60 * 60
+    LOCK = 15 * 60
+    LABEL = "failed login"
+
+    def __init__(self, clock: Callable[[], float] = time.monotonic) -> None:
+        self.clock = clock
+        self.reset()
+
+    def reset(self) -> None:
+        self.failures: dict[str, deque[float]] = defaultdict(deque)
+        self.all_failures: deque[float] = deque()
+        self.locked_until: dict[str, float] = {}
+        self.global_locked_until = 0.0
+
+    def retry_after(self, address: str) -> int:
+        """The seconds until the login is open for the address, 0 when it is open now."""
+        now = self.clock()
+        until = max(self.locked_until.get(address, 0.0), self.global_locked_until)
+        return math.ceil(until - now) if until > now else 0
+
+    def failure(self, address: str) -> None:
+        now = self.clock()
+        log.warning("%s from %s", self.LABEL, address)
+        own = self.failures[address]
+        own.append(now)
+        while own and own[0] <= now - self.WINDOW:
+            own.popleft()
+        self.all_failures.append(now)
+        while self.all_failures and self.all_failures[0] <= now - self.GLOBAL_WINDOW:
+            self.all_failures.popleft()
+        if len(own) >= self.ADDRESS_MAX:
+            self.locked_until[address] = now + self.LOCK
+            own.clear()
+            log.warning("login locked for %s for %d minutes", address, self.LOCK // 60)
+        if len(self.all_failures) >= self.GLOBAL_MAX:
+            self.global_locked_until = now + self.LOCK
+            self.all_failures.clear()
+            log.warning("login locked for all addresses for %d minutes (last address %s)", self.LOCK // 60, address)
+
+    def success(self, address: str) -> None:
+        self.failures.pop(address, None)
+        self.locked_until.pop(address, None)
+
+
+login_limiter = LoginLimiter()
+
+
+class TokenLimiter(LoginLimiter):
+    """Limits the bad API tokens per address (#412): 20 in 15 minutes lock that address for 15 minutes.
+
+    Per address only: the global limit is off, so that one address cannot lock the API for all others.
+    """
+
+    ADDRESS_MAX = 20
+    GLOBAL_MAX = sys.maxsize
+    LABEL = "bad API token"
+
+
+token_limiter = TokenLimiter()
 
 
 def require_login(request: Request) -> None:
@@ -88,17 +166,63 @@ def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def require_token(credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
+class ApiLimiter:
+    """Limits the API requests per token in memory (one uvicorn process; a restart resets the counts).
+
+    MAX requests in WINDOW seconds per token. A request over the limit gets the seconds to wait.
+    """
+
+    MAX = 120
+    WINDOW = 60
+
+    def __init__(self, clock: Callable[[], float] = time.monotonic) -> None:
+        self.clock = clock
+        self.reset()
+
+    def reset(self) -> None:
+        self.hits: dict[str, deque[float]] = defaultdict(deque)
+
+    def hit(self, key: str) -> int:
+        """Counts a request of the key. Returns the seconds to wait, 0 when the request may go."""
+        now = self.clock()
+        own = self.hits[key]
+        while own and own[0] <= now - self.WINDOW:
+            own.popleft()
+        if len(own) >= self.MAX:
+            return math.ceil(own[0] + self.WINDOW - now)
+        own.append(now)
+        return 0
+
+
+api_limiter = ApiLimiter()
+
+
+def require_token(request: Request,
+                  credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
                   session: Session = Depends(get_session)) -> ApiToken:
-    """The valid, not revoked token of the request, else 401. Never log the token."""
+    """The valid, not revoked token of the request, else 401. Never log the token.
+
+    An address with too many bad tokens (#412) gets 429 first, also with a valid token."""
+    address = request.client.host if request.client else "unknown"
+    wait = token_limiter.retry_after(address)
+    if wait > 0:
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "too many bad API tokens",
+                            headers={"Retry-After": str(wait)})
     unauthorized = HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid or missing API token",
                                  headers={"WWW-Authenticate": "Bearer"})
     if credentials is None or not credentials.credentials:
+        token_limiter.failure(address)
         raise unauthorized
     digest = hash_token(credentials.credentials)
     token = session.scalar(select(ApiToken).where(ApiToken.token_hash == digest, ApiToken.revoked_at.is_(None)))
     if token is None or not hmac.compare_digest(token.token_hash, digest):
+        token_limiter.failure(address)
         raise unauthorized
+    wait = api_limiter.hit(token.id)
+    if wait > 0:
+        log.warning("API request limit reached for token %s", token.id)
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "too many requests",
+                            headers={"Retry-After": str(wait)})
     token.last_used_at = datetime.now(UTC)
     session.commit()
     return token

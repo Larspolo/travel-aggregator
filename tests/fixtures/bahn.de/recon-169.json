@@ -1,0 +1,153 @@
+{
+ "url": "https://www.bahn.de/web/api/angebote/recon",
+ "method": "POST",
+ "request": {},
+ "response": {
+  "verbindungen": [
+   {
+    "tripId": "396df222_3",
+    "verbindungsAbschnitte": [
+     {
+      "abfahrtsOrt": "Köln Hbf",
+      "abfahrtsOrtExtId": "8000207",
+      "ankunftsOrt": "München Hbf",
+      "ankunftsOrtExtId": "8000261",
+      "abfahrt": {
+       "sollzeit": "2026-12-01T05:25:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-12-01T09:40:00"
+      },
+      "verkehrsmittel": {
+       "typ": "PUBLICTRANSPORT",
+       "produktGattung": "ICE",
+       "name": "ICE 911",
+       "zugattribute": [
+        {
+         "kategorie": "BEFÖRDERER",
+         "key": "BEF",
+         "value": "DB Fernverkehr AG"
+        }
+       ]
+      }
+     }
+    ],
+    "angebotsPreis": {
+     "betrag": 56.99,
+     "waehrung": "EUR"
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "reiseAngebote": [
+     {
+      "name": "Super Sparpreis",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 56.99,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Super Sparpreis",
+      "klasse": "KLASSE_1",
+      "kontextTyp": "UPSELL_VERKNUEPFT",
+      "preis": {
+       "betrag": 70.99,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Sparpreis",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 65.99,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Sparpreis",
+      "klasse": "KLASSE_1",
+      "kontextTyp": "UPSELL_VERKNUEPFT",
+      "preis": {
+       "betrag": 81.99,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Super Sparpreis",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 42.74,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Probe BahnCard 25",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 19.9,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Flexpreis",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 167.3,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Flexpreis",
+      "klasse": "KLASSE_1",
+      "kontextTyp": "UPSELL_VERKNUEPFT",
+      "preis": {
+       "betrag": 309.5,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Sparpreis",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 49.49,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Probe BahnCard 25",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 19.9,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Flexpreis",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 83.65,
+       "waehrung": "EUR"
+      }
+     },
+     {
+      "name": "Probe BahnCard 50",
+      "klasse": "KLASSE_2",
+      "kontextTyp": "STANDARD",
+      "preis": {
+       "betrag": 76.9,
+       "waehrung": "EUR"
+      }
+     }
+    ]
+   }
+  ]
+ }
+}
