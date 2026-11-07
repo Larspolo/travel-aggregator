@@ -80,6 +80,7 @@ jobs:
       - name: docker compose up --build
         run: |
           cp .env.example .env
+          for i in 1 2 3; do docker compose pull --ignore-buildable && break; sleep 10; done  # a reset of Docker Hub (#509)
           docker compose up --build -d
           for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/api/health && break; sleep 2; done
           curl -fsS http://127.0.0.1:8000/api/health | grep -q "\"commit\":\"$GIT_SHA\""
