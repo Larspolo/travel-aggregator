@@ -14,9 +14,10 @@ from sqlalchemy.orm import Session
 
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
-from app.models import Capture, Fare, FarePrice, Itinerary, Leg
+from app.models import Capture, Fare, FarePrice, Itinerary, Leg, Trip
 from app.parsers import get_parser
 from app.parsers.ns import CHANGE_STATION
+from app.tripmatch import mismatch
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 from app.notify import PriceDrop
@@ -223,4 +224,11 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     set_result(capture, counts, errors, unreadable)
     delete_old_captures(session, retention_days(session), datetime.now(UTC))
     session.commit()
-    return {**counts, "rejected": len(errors), "errors": errors}
+    return {**counts, "rejected": len(errors), "errors": errors, "warning": _trip_warning(session, body.trip_id, offers)}
+
+
+def _trip_warning(session: Session, trip_id: int, offers: list[OfferIn]) -> str | None:
+    """The warning of #555: the offers do not match the places or the date of the trip. The data is stored anyway."""
+    trip = session.get(Trip, trip_id)
+    reason = None if trip is None else mismatch(trip, offers)
+    return None if reason is None else f"These offers do not match the trip ({reason})"
