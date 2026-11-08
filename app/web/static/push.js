@@ -12,7 +12,10 @@
   if (!key) { on.disabled = off.disabled = true; return; }
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
     on.disabled = off.disabled = true;
-    say("This browser has no Web Push.");
+    // iOS Safari in a browser tab sets navigator.standalone to false: Web Push works only from the Home Screen app (#798)
+    say(navigator.standalone === false
+      ? "On an iPhone or iPad, Web Push works only in the app on the Home Screen: tap Share, then \"Add to Home Screen\", and open the app from there."
+      : "This browser has no Web Push.");
     return;
   }
 
