@@ -245,8 +245,8 @@ USERSCRIPT_FILE = ROOT / "scripts" / "capture-hook.user.js"
 EXTRA_SITES = ("https://www.skyscanner.nl/*", "https://www.google.com/travel/*", "https://www.eurostar.com/*")
 # Change the script (HOOK, AUTO, the sites) → add 1 to the version and set the new hash, else Tampermonkey does not
 # update it. `tests/test_capture_userscript.py` fails when the hash does not agree.
-USERSCRIPT_VERSION = 5
-USERSCRIPT_HASH = "c25f683725b24097"
+USERSCRIPT_VERSION = 6
+USERSCRIPT_HASH = "c95c5feb83fd6b40"
 AUTO = r"""(() => {
   window.__taCapAuto = __VERSION__;
   let cfg = null;
