@@ -34,7 +34,7 @@
       <span class="trip-count">{{ t.offer_count }} offer{{ "" if t.offer_count == 1 else "s" }}</span>
       <span class="chip{% if t.status == "booked" %} good{% elif t.status == "planning" %} info{% endif %}">{{ t.status }}</span>
     </p>
-    <p class="trip-best">{% if t.best_price is not none %}Best <strong>{{ t.best_price | money(t.best_currency) }}</strong>{% if t.no_rate %} no rate{% endif %}{% if t.id in drops %} <span class="drop">price dropped {{ drops[t.id][1] | money(drops[t.id][0]) }}</span>{% endif %}{% else %}<span class="muted">no offers yet</span>{% endif %}</p>
+    <p class="trip-best">{% if t.best_price is not none %}Best <strong>{{ t.best_price | money(t.best_currency) }}</strong>{% if t.no_rate %} no rate{% endif %}{% if t.at_target %} <span class="drop">at target</span>{% endif %}{% if t.id in drops %} <span class="drop">price dropped {{ drops[t.id][1] | money(drops[t.id][0]) }}</span>{% endif %}{% else %}<span class="muted">no offers yet</span>{% endif %}</p>
     {% endcall %}
     {% endif %}
   {% endfor %}

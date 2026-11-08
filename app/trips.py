@@ -25,6 +25,7 @@ class TripRow:
     best_currency: str | None
     return_of_id: int | None = None
     no_rate: bool = False
+    at_target: bool = False  # the best EUR price is at or below the target price (#847)
 
 
 def list_trips(session: Session) -> list[TripRow]:
@@ -35,7 +36,7 @@ def list_trips(session: Session) -> list[TripRow]:
     stmt = (
         select(
             Trip.id, Trip.title, Trip.origin_text, Trip.destination_text, Trip.date_from, Trip.date_to,
-            Trip.status, Trip.return_of_id, Itinerary.id.label("itinerary_id"),
+            Trip.status, Trip.return_of_id, Trip.target_price, Itinerary.id.label("itinerary_id"),
             Fare.latest_price, Fare.currency, CurrencyRate.eur_per_unit,
         )
         .outerjoin(Itinerary, (Itinerary.trip_id == Trip.id) & Itinerary.hidden.is_(False))
@@ -72,6 +73,7 @@ def _trip_row(info: dict, rates: dict[str, Decimal]) -> TripRow:
         id=r.id, title=r.title, origin_text=r.origin_text, destination_text=r.destination_text,
         date_from=r.date_from, date_to=r.date_to, status=r.status, offer_count=len(info["itineraries"]),
         best_price=best_price, best_currency=best_currency, return_of_id=r.return_of_id, no_rate=no_rate,
+        at_target=bool(in_eur) and r.target_price is not None and best_price <= r.target_price,
     )
 
 
