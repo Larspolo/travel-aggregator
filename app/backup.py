@@ -29,6 +29,34 @@ from app.db import make_engine, make_sessionmaker, sqlalchemy_url
 log = logging.getLogger(__name__)
 ALERT_KEY = "backup_alert_at"
 ALERT_REPEAT = timedelta(hours=24)
+BACKUP_MAX_AGE = timedelta(hours=48)  # older: the settings page warns and an ingest sends a message (#1088)
+
+
+def stale_backup_messages(session, backup_dir: Path, now: datetime) -> list:
+    """The "No backup" messages of an ingest (#1088), at most once in ALERT_REPEAT (the key of #1087).
+
+    Messages when the newest backup is older than BACKUP_MAX_AGE, or when BACKUP_DIR has none and the database has
+    trips. A missing BACKUP_DIR gives none: then the app runs with no backup service (a run with no Docker).
+    """
+    from app import notify
+    from app.models import Setting, Trip
+
+    newest = newest_backup(backup_dir)
+    if newest is None:
+        if not backup_dir.is_dir() or session.query(Trip.id).first() is None:
+            return []
+        text = "No backup yet."
+    elif now - newest[0] > BACKUP_MAX_AGE:
+        text = f"No backup for {(now - newest[0]).days} days."
+    else:
+        return []
+    row = session.get(Setting, ALERT_KEY)
+    if row is not None and now - datetime.fromisoformat(row.value) < ALERT_REPEAT:
+        return []
+    msgs = notify.alert_messages(session, text.rstrip("."), text, "")
+    session.merge(Setting(key=ALERT_KEY, value=now.isoformat()))
+    session.commit()
+    return msgs
 
 
 class BackupError(RuntimeError):

@@ -1,11 +1,15 @@
 """POST /api/ingest: the captured offers of a userscript (docs/SPEC.md section 5)."""
 
+import os
 from contextlib import contextmanager
+from datetime import UTC, datetime
+from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app import ingest, notify
+from app.backup import stale_backup_messages
 from app.auth import require_token
 from app.db import get_session
 from app.models import ApiToken, Trip
@@ -22,6 +26,10 @@ def post_ingest(body: IngestIn, request: Request, tasks: BackgroundTasks, _: Api
     drops: list[notify.PriceDrop] = []
     result = ingest.store(session, body, drops)
     msgs = notify.messages(session, drops, str(request.base_url))
+    try:  # the backup service can stop with no message of its own (#1088)
+        msgs += stale_backup_messages(session, Path(os.environ.get("BACKUP_DIR", "/backups")), datetime.now(UTC))
+    except Exception:  # noqa: BLE001 (a backup check must not break the ingest)
+        session.rollback()
     if msgs:  # after the response, so the userscript does not wait (#512)
         # a new session: the session of the request is closed then (the tests override get_session)
         new_session = contextmanager(request.app.dependency_overrides.get(get_session, get_session))
