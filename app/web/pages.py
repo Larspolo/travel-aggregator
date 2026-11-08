@@ -434,6 +434,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[2].price),
                           ("fastest", lambda r: r[0].duration_min)):
             badges.setdefault(min(shown, key=key)[0].id, []).append(name)
+    tradeoff = tradeoff_lines(rows, shown, source, places, weights, stale_before, rates)  # #895
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
@@ -459,7 +460,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
-               "rates": rates}
+               "rates": rates, "tradeoff": tradeoff}
     context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
@@ -935,6 +936,35 @@ def web_app_manifest() -> Response:
 
 
 COMPARE_ERROR = "Select 2 to 4 offers of this trip."
+
+
+def _span(minutes: int) -> str:
+    return f"{minutes // 60} h" if minutes % 60 == 0 else f"{minutes // 60} h {minutes % 60:02d} min"
+
+
+def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, rates) -> dict:
+    """The break-even line of each rendered row against the shown row with the lowest effective cost (#895).
+    The best row and a row with no break-even get no line."""
+    if not shown:
+        return {}
+    best = min(shown, key=lambda r: r[2].total)
+    higher = dataclasses.replace(weights, hour_markup=weights.hour_markup + 1)
+    def nxt(it):
+        fares = [f for f in it.fares if not source or f.source == source]
+        return row_cost(it, fares, places, higher, stale_before, rates)[1].total
+    best_next, lines, yours = nxt(best[0]), {}, _amount(weights.hour_markup)
+    for it, _, cost in rows:
+        if it.id == best[0].id:
+            continue
+        be = break_even(best[2].total, best_next, cost.total, nxt(it), weights.hour_markup)
+        if be is None:
+            continue
+        dmin, dprice = best[0].duration_min - it.duration_min, cost.price - best[2].price
+        time_part = (f"{_span(abs(dmin))} {'faster' if dmin > 0 else 'slower'}" if dmin else "same duration")
+        price_part = (f"{_amount(abs(dprice))} {'more' if dprice > 0 else 'less'}" if dprice else "same price")
+        lines[it.id] = (f"{time_part}, {price_part} than the best: better {be.better} "
+                        f"{_amount(be.hour_value)}/h (yours: {yours}/h)")
+    return lines
 
 
 @router.get("/trips/{trip_id}/compare", response_class=HTMLResponse, dependencies=[Depends(require_login)])
