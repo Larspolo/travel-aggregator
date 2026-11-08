@@ -2,6 +2,8 @@
 A parser whose price is for all travelers of the capture has `group_price = True` (#767; its fixture README)."""
 
 from dataclasses import dataclass, field
+from datetime import date
+from decimal import Decimal
 from typing import Any
 
 from app.schemas import OfferIn
@@ -15,6 +17,17 @@ class ParseResult:
     errors: list[dict[str, Any]] = field(default_factory=list)
     # The number of travelers of the prices (#764); None when the payload does not tell it.
     travelers: int | None = None
+    # The cheapest price of each day of a day price response (#1196); a day price is not an offer.
+    day_prices: list["DayPrice"] = field(default_factory=list)
+
+
+@dataclass
+class DayPrice:
+    """The cheapest price of one local day."""
+
+    day: date
+    price_amount: Decimal
+    price_currency: str
 
 
 def count(value: Any) -> int | None:

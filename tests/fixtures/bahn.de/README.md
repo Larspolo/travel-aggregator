@@ -13,6 +13,7 @@ response body with 3 connections of the original response. The files have no hea
 | `fahrplan-koeln-muenchen-bahncard25.json` | Köln Hbf → München, BahnCard 25 2nd class | the discount in `reisende[].ermaessigungen`; one direct connection |
 | `fahrplan-amsterdam-berlin.json` | Amsterdam Centraal → Berlin Hbf, 2026-12-08 06:00, 2nd class, no discount (HAR of #482, branch `owner/merge-captures`; all 5 connections) | the same search as `search-amsterdam-berlin-pair.json` of nsinternational.com: the merge of two sources (#485) |
 | `fahrplan-amsterdam-berlin-2-adults.json` | Amsterdam Centraal → Berlin Hbf, 2026-12-01 08:00, 2nd class, 2 adults (`reisende[].anzahl` 2; HAR of #762, branch `owner/travelers-captures`; 3 of 5 connections, only the fields of the parser) | the price of the group (#767): 113.98, 131.98 and 149.98 for 2 adults |
+| `tagesbestpreis-amsterdam-zuerich-2026-12-01.json`, `tagesbestpreis-amsterdam-zuerich-2026-12-02.json` | Amsterdam Centraal → Zürich HB, 2026-12-01 and 2026-12-02, 2nd class, 1 adult (`POST /web/api/angebote/tagesbestpreis`, "Bestpreise anzeigen"; HAR of #1183, branch `owner/bahn-day-prices-captures`; only `ab`, `bis`, `preis`, `bestpreis`, `teilpreis` of each interval, no `verbindungen`) | the day prices (#1196): 6 time intervals of one day, each with its cheapest price; the parser keeps the cheapest price of each day (49.99 on both days) |
 
 Notes for the parser:
 - The times (`abfahrt.sollzeit`, `ankunft.sollzeit`, `echtzeit`) are local times with no offset. The
