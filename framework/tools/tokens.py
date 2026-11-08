@@ -111,7 +111,10 @@ def label(name, inp):
     return name
 
 
-CHECKS = (("pytest -m mc", r"pytest\b.*-m\s+['\"]?mc\b"), ("pytest -m slow", r"pytest\b.*-m\s+['\"]?slow\b"),
+SLOW = r"pytest\b.*-m\s+['\"]?slow\b"
+CHECKS = (("pytest -m mc", r"pytest\b.*-m\s+['\"]?mc\b"),
+          ("pytest -m slow files", SLOW + r".*\b(framework/)?tests/\S+\.py|pytest\b.*\btests/\S+\.py\b.*-m\s+['\"]?slow\b"),  # #822
+          ("pytest -m slow", SLOW),
           ("playwright", r"\bplaywright\s+test\b"), ("lighthouse", r"\blighthouse\.mjs\b"),   # the Node checks (#810)
           ("build", r"\bnpm run build\b|\bnext build\b"),
           ("pytest files", r"pytest\b.*\btests/\S+\.py"), ("vitest files", r"\bvitest\b.*\btests/\S+\.ts\b"),

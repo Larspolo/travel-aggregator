@@ -26,7 +26,12 @@ A parser change: run its fixture tests (`tests/fixtures/<source>/`). A model cha
 
 ## Level 2: slow tests (pages and userscripts)
 
-    python3 -m pytest -m slow
+    python3 -m pytest -m slow tests/test_<topic>_browser.py ...
+
+Run only the slow test files of the change: the browser tests of the changed pages or userscripts and the new test
+files, and also `tests/test_pages_width_browser.py` for a change of `app.css` or `base.html` (they act on each page).
+The CI job `browser` runs all slow tests on each PR, and Automerge waits for it (#822: the full suite before each push
+took 108 minutes per 100 PRs).
 
 Playwright tests: the pages in a real browser, and each userscript on a local test page that replays a fixture
 (never the real travel site, P1). A test launches Chromium with
