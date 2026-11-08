@@ -22,8 +22,9 @@ LINE = "2 h faster, €25 more than the best: better above €12.50/h (yours: �
 
 
 def _lines(page):
-    return {int(i): text for i, text in re.findall(r'<tr id="it-(\d+)">.*?(?:<p class="tradeoff muted">([^<]*)</p>|'
-                                                   r'(?=<tr id="it-)|$)', page, re.S) if text}
+    rows = re.findall(r'<tr id="it-(\d+)">.*?(?:<p class="tradeoff muted">(.*?)</p>|'
+                      r'(?=<tr id="it-)|$)', page, re.S)
+    return {int(i): re.sub(r"<[^>]+>", "", text) for i, text in rows if text}  # the link tag is no text (#920)
 
 
 def test_the_other_row_shows_the_break_even_and_the_best_row_shows_none(trip, sessions):  # noqa: F811

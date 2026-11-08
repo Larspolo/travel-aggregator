@@ -39,7 +39,7 @@
     </tr>
     <tr class="detail">
       <td colspan="5"><details><summary>Legs and fares</summary>
-        {% if tradeoff and it.id in tradeoff %}<p class="tradeoff muted">{{ tradeoff[it.id] }}</p>{% endif %}
+        {% if tradeoff and it.id in tradeoff %}{% set head, value, tail, link = tradeoff[it.id] %}<p class="tradeoff muted">{{ head }}{% if link %}<a href="{{ link }}">{{ value }}</a>{% else %}{{ value }}{% endif %}{{ tail }}</p>{% endif %}
         <div class="timeline legs">
         {% for leg in it.legs %}
           {% if not loop.first %}{% set gap = ((leg.depart_at - loop.previtem.arrive_at).total_seconds() // 60) | int %}
