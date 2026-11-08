@@ -176,9 +176,13 @@ def index(request: Request, archived: bool = False, q: str = Query("", max_lengt
           session: Session = Depends(get_session)) -> HTMLResponse:
     rows = list_trips(session)
     archived_count = sum(1 for kind, _, _ in archived_journeys(rows, True) if kind == "trip")
+    # a search on the trips list also finds the archived trips, below the other results (#1222)
+    archived_lines = find_journeys(rows, q, True) if q.strip() and not archived else []
+    archived_found = sum(1 for kind, _, _ in archived_lines if kind == "trip")
     return templates.TemplateResponse(request, "trips.html",
                                       {"lines": find_journeys(rows, q, archived), "q": q.strip(), "drops": drops_by_trip(session),
                                        "new": new_by_trip(session), "archived": archived, "archived_count": archived_count,
+                                       "archived_lines": archived_lines, "archived_found": archived_found,
                                        "failing": failing_sources(session)})
 
 

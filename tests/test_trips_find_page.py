@@ -26,7 +26,8 @@ def _seed(engine):
 def test_a_text_shows_only_the_matching_trips(engine, monkeypatch):
     _seed(engine)
     html = _client(monkeypatch).get("/", params={"q": "zur"}).text
-    assert "Work trip" in html and "Paris weekend" not in html and "Old Zürich" not in html
+    assert "Work trip" in html and "Paris weekend" not in html
+    assert "In the archive (1)" in html and "Old Zürich" in html and "Old Rome" not in html
     assert 'name="q" value="zur"' in html and "Archived trips (2)" in html
 
 
