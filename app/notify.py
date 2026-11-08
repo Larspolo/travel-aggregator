@@ -94,18 +94,25 @@ def _targets(session: Session, channel: str) -> list[tuple[str, dict[str, str]]]
 def messages(session: Session, drops: list[PriceDrop], base_url: str) -> list[Message]:
     """One message per trip (and per subscription of webpush) with all the drops of one ingest; none for the
     channel `none`."""
-    channel = setting(session, CHANNEL_KEY, "none")
-    targets = _targets(session, channel) if drops else []
     out = []
-    for trip_id in dict.fromkeys(d.trip_id for d in drops) if targets else ():
+    for trip_id in dict.fromkeys(d.trip_id for d in drops):
         trip = session.get(Trip, trip_id)
         title = trip.title if trip is not None else f"trip {trip_id}"
         mine = [d for d in drops if d.trip_id == trip_id]
         text = "\n".join(_line(d) for d in mine)
         kind = "Target price" if any(d.target for d in mine) else "Price drop"
-        out += [Message(channel=channel, url=url, title=f"{kind}: {title}", text=text,
-                        click=f"{base_url.rstrip('/')}/trips/{trip_id}", keys=keys) for url, keys in targets]
+        msgs = alert_messages(session, f"{kind}: {title}", text, f"{base_url.rstrip('/')}/trips/{trip_id}")
+        if not msgs:
+            break
+        out += msgs
     return out
+
+
+def alert_messages(session: Session, title: str, text: str, click: str) -> list[Message]:
+    """One message per target of the active channel; none for the channel `none` (#1086)."""
+    channel = setting(session, CHANNEL_KEY, "none")
+    return [Message(channel=channel, url=url, title=title, text=text, click=click, keys=keys)
+            for url, keys in _targets(session, channel)]
 
 
 def post(url: str, text: str, headers: dict[str, str]) -> None:
