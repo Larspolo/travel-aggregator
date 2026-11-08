@@ -60,6 +60,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
             "date_from": trip.date_from.isoformat() if trip.date_from else None,
             "date_to": trip.date_to.isoformat() if trip.date_to else None,
             "travelers": trip.travelers, "status": trip.status, "notes": trip.notes,
+            "target_price": str(trip.target_price) if trip.target_price is not None else None,
         },
         "itineraries": [
             {

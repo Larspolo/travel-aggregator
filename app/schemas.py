@@ -139,6 +139,7 @@ class TripForm(BaseModel):
     travelers: int = Field(1, ge=1, le=9)
     status: TripStatus = "planning"
     notes: str | None = Field(None, max_length=5000)
+    target_price: Decimal | None = Field(None, gt=0, le=100000)  # EUR; the fares at or below it (#846)
     profile_id: int | None = None  # the score profile of this trip; None = the default profile (#232)
 
     @model_validator(mode="before")
