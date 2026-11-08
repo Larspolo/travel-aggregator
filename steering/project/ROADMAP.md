@@ -19,7 +19,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [x] `capture:userscript` (#26) Shared userscript core: floating panel, trip dropdown, "+ new trip", auto-send on by default, queue and retry, config menu, `GM_xmlhttpRequest`; the API tokens page (create, revoke, config snippet)
   - The panel shows "Captured N offers → sent ✓" or a clear error
   - Payloads that were not sent go again later, with no lost offer
-- [ ] `capture:merge` One itinerary for the same journey from two sources (#481)
+- [x] `capture:merge` One itinerary for the same journey from two sources (#481)
   - The same ICE from bahn.de and NS International shows as one row with the fares of both sites
 - [x] `capture:reparse-all` (#488) Reparse all failed captures of a source in one step
   - After a parser fix, one button on the failed captures page reparses them all and shows the counts
@@ -40,7 +40,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A capture of Amsterdam → Lisbon into the trip Amsterdam → Zürich shows "These offers do not match the trip" in the panel and on the captures page
 - [x] `capture:move` (#578) Move the offers of a capture to another trip, after a capture into the wrong trip
   - "Move to trip" on the captures page moves the offers and their price rows of one capture, and the old trip does not show them
-- [ ] `capture:auto-trip` (#718) The panel selects the matching trip by itself: the server compares the search of a capture (places and date) with the trips in planning, as `capture:match-trip` does, and "+ new trip" is filled from the search
+- [x] `capture:auto-trip` (#718) The panel selects the matching trip by itself: the server compares the search of a capture (places and date) with the trips in planning, as `capture:match-trip` does, and "+ new trip" is filled from the search
   - A search Amsterdam → Zürich on 20 December goes to the trip Amsterdam → Zürich with no change of the dropdown
 - [x] `capture:health` (#723) A status per source: the last good capture, the parser version and the failed captures after it; a warning on the trips list when the last captures of a source failed
   - When a site changes its format, the trips list shows "bahn.de: the last 3 captures failed" with a link to the failed captures
@@ -68,11 +68,11 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A stale offer shows "stale, price may have changed"
 - [x] `rank:currency` (#382) Prices in other currencies: exchange rates to EUR in Settings, and the score uses the EUR value
   - A CHF offer ranks by its EUR value, and its breakdown shows the CHF price and the EUR price; an offer in a currency with no rate shows "no rate for CHF"
-- [ ] `rank:class` (#689) Travel class: a 1st class or business fare gets a comfort value per hour in the score
+- [x] `rank:class` (#689) Travel class: a 1st class or business fare gets a comfort value per hour in the score
   - With a 1st class bonus of €10 per hour, the breakdown of a 1st class fare of 3 hours shows "1st class −€30"
 - [ ] `rank:travelers` (#761) Group trips: the score compares the fares by the price per traveler; the ingest stores the travelers of each capture, and a capture for another number of travelers than the trip shows a warning
   - A bahn.de capture for 2 adults into a trip for 2 shows "€180 for 2 travelers" next to the price of €90 in the breakdown; a capture for 1 adult into that trip shows "These offers are for 1 traveler; the trip has 2"
-- [ ] `rank:tradeoff` (#892) For an offer that is not the best, the trip page and the compare view show the hour value at which it becomes better than the best offer
+- [x] `rank:tradeoff` (#892) For an offer that is not the best, the trip page and the compare view show the hour value at which it becomes better than the best offer
   - "1 h 40 min faster, €25 more: better above €15 per hour (yours: €20)" shows on the compare view and in the expanded row of the trip table
 
 ## 3. Plan a trip in one place
@@ -105,7 +105,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A new capture with a lower price of a pinned fare sends one notification to the owner's phone
 - [x] `trip:multicity` (#559) Multi-city journeys: three or more trips linked in sequence, as `trip:return` links two (`docs/SPEC.md`, section 13)
   - "Add next trip" makes a linked trip from the destination of the last one, and the trips list shows the journey with the sum of the best offers
-- [ ] `trip:calendar` (#779) Add a booked itinerary to a calendar: an `.ics` file with one event per leg
+- [x] `trip:calendar` (#779) Add a booked itinerary to a calendar: an `.ics` file with one event per leg
   - "Add to calendar" on a booked row downloads one file; a calendar app shows each leg with its local times, its train, bus or flight number and its places
 - [x] `trip:copy` (#800) Copy a trip or a journey for a new date: the places, the travelers, the profile and the note, with no dates and no offers
   - "Copy trip" on the edit page of Amsterdam → Zürich opens a new trip Amsterdam → Zürich with the same profile and no offers; "Copy journey" copies all linked trips of a round trip or a multi-city journey
@@ -119,7 +119,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The owner sees if the cheapest price of a trip goes up or down from day to day, and the lowest and highest value
 - [x] `trip:upcoming` (#861) An "Upcoming" page: the booked itineraries of all trips in date order, with their legs, local times and "Add to calendar"
   - After two bookings, one page lists both journeys in date order, each with its legs and its calendar link
-- [ ] `trip:share` A read-only link of a trip for a travel partner, with no login, that the owner can revoke
+- [x] `trip:share` (#902) A read-only link of a trip for a travel partner, with no login, that the owner can revoke
   - The link shows the ranked rows and no notes, tokens or captures (P5); "Revoke" on the trip page makes the link show "not found"
 
 ## 4. Run it on my home server
