@@ -625,3 +625,7 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 .price-change { white-space: nowrap; }
 .price-change.down { color: var(--good); }
 .price-change.up { color: var(--danger); }
+
+/* the calendar link of the Upcoming page (#1113): the field fits a 390 px screen */
+.calendar-feed input.share-link { width: 100%; max-width: 100%; box-sizing: border-box; }
+.calendar-feed form { display: inline-block; }
