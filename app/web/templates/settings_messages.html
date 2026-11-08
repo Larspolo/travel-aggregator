@@ -27,6 +27,11 @@
       <input id="reminder_days" name="reminder_days" type="number" inputmode="numeric" min="0" max="{{ max_reminder_days }}" step="1" required value="{{ reminder_days }}">
       <p class="help">A reminder to search again when the newest offers of a trip are this old. 0 is off.</p>
     </div>
+    <div class="field wide">
+      <input type="hidden" name="source_alert" value="0">
+      <input id="source_alert_on" type="checkbox" name="source_alert" value="1"{% if source_alert != "0" %} checked{% endif %}>
+      <label for="source_alert_on">Send a message when the captures of a source fail</label>
+    </div>
     <div class="field">
       <label for="reminder_before_days">Reminder: days before the departure</label>
       <input id="reminder_before_days" name="reminder_before_days" type="number" inputmode="numeric" min="0" max="{{ max_reminder_days }}" step="1" required value="{{ reminder_before_days }}">

@@ -46,7 +46,8 @@ from app.profiles import update_weights as update_profile
 from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting,
                         SourceFee, Trip)
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
-                        REMINDER_DAYS_KEY, REMINDER_NOT_SENT, alert_messages, deliver, setting, webpush_ready)
+                        REMINDER_DAYS_KEY, REMINDER_NOT_SENT, SOURCE_ALERT_KEY, alert_messages, deliver, setting,
+                        webpush_ready)
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.parsers import group_price
@@ -1150,6 +1151,7 @@ def messages_page(request: Request, session: Session = Depends(get_session)) -> 
         "ntfy_url": setting(session, NTFY_URL_KEY), "notify_email": setting(session, EMAIL_KEY),
         "reminder_days": setting(session, REMINDER_DAYS_KEY, "0"),
         "reminder_before_days": setting(session, REMINDER_BEFORE_KEY, "14"), "max_reminder_days": MAX_REMINDER_DAYS,
+        "source_alert": setting(session, SOURCE_ALERT_KEY, "1"),
         "smtp_ready": bool(get_settings().smtp_host),
         "vapid_public_key": get_settings().vapid_public_key if webpush_ready() else "",
         "push_count": session.scalar(select(func.count()).select_from(PushSubscription)),
@@ -1173,7 +1175,7 @@ def test_message(request: Request, session: Session = Depends(get_session)) -> R
 @router.post("/settings/messages", dependencies=[Depends(require_login), Depends(verify_csrf)])
 def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), notify_email: str = Form(""),
                   reminder_days: str = Form(REMINDER_NOT_SENT), reminder_before_days: str = Form(REMINDER_NOT_SENT),
-                  session: Session = Depends(get_session)) -> RedirectResponse:
+                  source_alert: str = Form(REMINDER_NOT_SENT), session: Session = Depends(get_session)) -> RedirectResponse:
     url = ntfy_url.strip()
     # #1117: a field that the form did not send is kept; a value that is not a whole number gives 422 and stores nothing.
     for label, value in (("the reminder age", reminder_days), ("the reminder before departure", reminder_before_days)):
@@ -1204,6 +1206,8 @@ def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), 
         session.merge(Setting(key=REMINDER_DAYS_KEY, value=str(int(reminder_days.strip()))))
     if reminder_before_days != REMINDER_NOT_SENT:
         session.merge(Setting(key=REMINDER_BEFORE_KEY, value=str(int(reminder_before_days.strip()))))
+    if source_alert != REMINDER_NOT_SENT:  # #1174: the hidden field 0 comes before the checkbox 1
+        session.merge(Setting(key=SOURCE_ALERT_KEY, value="1" if source_alert == "1" else "0"))
     session.commit()
     return RedirectResponse("/settings/messages", status_code=303)
 
