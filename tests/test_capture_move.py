@@ -86,7 +86,7 @@ def test_an_offer_of_another_capture_stays_with_only_its_price(sessions, stub):
         ingest.move_capture(s, first, b)
     with sessions() as s:
         assert _offers(s, a) == {9: [(Decimal("25.00"), second.id)]}
-        fare = s.scalars(select(Fare).join(Itinerary).where(Itinerary.trip_id == a)).one()
+        fare = s.scalars(select(Fare).join(Fare.itinerary).where(Itinerary.trip_id == a)).one()
         assert fare.latest_price == Decimal("25.00") and fare.latest_captured_at == datetime(2026, 11, 2, 10, tzinfo=UTC)
         assert _offers(s, b) == {8: [(Decimal("10.50"), first.id)], 9: [(Decimal("20.00"), first.id)]}
 
@@ -98,7 +98,7 @@ def test_an_older_price_of_another_capture_becomes_the_latest_price(sessions, st
         later = _capture(s, a, [_offer(8, "12.00")], day=2)
         ingest.move_capture(s, later, b)
     with sessions() as s:
-        fare = s.scalars(select(Fare).join(Itinerary).where(Itinerary.trip_id == a)).one()
+        fare = s.scalars(select(Fare).join(Fare.itinerary).where(Itinerary.trip_id == a)).one()
         assert (fare.latest_price, fare.latest_captured_at) == (Decimal("30.00"), datetime(2026, 11, 1, 10, tzinfo=UTC))
 
 

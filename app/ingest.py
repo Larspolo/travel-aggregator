@@ -282,8 +282,8 @@ def move_capture(session: Session, capture: Capture, target_trip_id: int) -> dic
 def _remove_from_old_trip(session: Session, capture_id: int, trip_id: int) -> dict[str, tuple]:
     """Delete the price rows of the capture in the trip, then the fares with no price row and the itineraries with
     no fare. A fare that keeps rows gets its latest price from its newest row. Returns the flags (pinned, booked,
-    hidden, note) of each deleted itinerary by its fingerprint. The caller commits."""
-    rows = session.scalars(select(FarePrice).join(Fare).join(Itinerary)
+    hidden, note, paid values) of each deleted itinerary by its fingerprint. The caller commits."""
+    rows = session.scalars(select(FarePrice).join(Fare).join(Itinerary, Fare.itinerary_id == Itinerary.id)
                            .where(FarePrice.capture_id == capture_id, Itinerary.trip_id == trip_id)).all()
     fares = list({id(r.fare): r.fare for r in rows}.values())
     for r in rows:
@@ -298,7 +298,8 @@ def _remove_from_old_trip(session: Session, capture_id: int, trip_id: int) -> di
     flags = {}
     for it in itineraries:
         if not it.fares:
-            flags[it.fingerprint] = (it.pinned, it.booked, it.hidden, it.note)
+            flags[it.fingerprint] = (it.pinned, it.booked, it.hidden, it.note,
+                                     (it.booked_price, it.booked_currency, it.booked_at))
             session.delete(it)
     session.flush()
     return flags
@@ -311,9 +312,11 @@ def _give_flags(session: Session, trip_id: int, flags: dict[str, tuple]) -> None
         return
     for it in session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id,
                                                       Itinerary.fingerprint.in_(flags))):
-        pinned, booked, hidden, note = flags[it.fingerprint]
+        pinned, booked, hidden, note, paid = flags[it.fingerprint]
         it.pinned, it.booked, it.hidden = it.pinned or pinned, it.booked or booked, it.hidden or hidden
         it.note = it.note or note
+        if it.booked_price is None and paid[0] is not None:  # the paid price goes with the mark (#1146)
+            it.booked_price, it.booked_currency, it.booked_at = paid
     session.flush()
 
 

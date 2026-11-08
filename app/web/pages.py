@@ -848,6 +848,14 @@ def toggle_booked(request: Request, trip_id: int, itinerary_id: int, session: Se
     if it is None or it.trip_id != trip_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
     it.booked = not it.booked
+    it.booked_fare_id = it.booked_price = it.booked_currency = it.booked_at = None
+    if it.booked and it.fares:  # keep the paid fare: the main fare with the weights of the trip (#1146)
+        now = datetime.now(timezone.utc)
+        weights, _ = resolve_weights(session, it.trip, {}, None)
+        places = session.scalars(select(AccessTime)).all()
+        fare, _ = row_cost(it, it.fares, places, weights, now - timedelta(hours=weights.stale_hours),
+                           load_rates(session), fare_travelers(session, [it]))
+        it.booked_fare_id, it.booked_price, it.booked_currency, it.booked_at = fare.id, fare.latest_price, fare.currency, now
     session.commit()
     return _rows_or_redirect(request, trip_id, session, view)
 
