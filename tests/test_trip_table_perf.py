@@ -1,5 +1,8 @@
 """The trip page stays fast with 1,000 offers: it answers in under 2 seconds and its count of SQL statements does
-not grow with the count of offers (#115)."""
+not grow with the count of offers (#115).
+
+The test compares the fastest of 3 loads with the limit: in the quick CI, the other test workers use the same CPUs,
+and one load took 2.05 s on a main commit that changed only the README (#1063)."""
 
 import time
 
@@ -38,7 +41,9 @@ def test_the_page_with_1000_offers_is_fast_and_has_a_fixed_count_of_statements(t
     few, _, _ = statements_of_page(client, trip_id)
     add_offers(client, auth, trip_id, 10, 990)
     client.get(f"/trips/{trip_id}")  # warm up the templates
-    many, seconds, page = statements_of_page(client, trip_id)
-    assert page.count("ICE ") >= 1000
-    assert many == few, f"{few} statements with 10 offers, {many} with 1,000"
-    assert seconds < 2, f"{seconds:.2f} s with 1,000 offers"
+    loads = [statements_of_page(client, trip_id) for _ in range(3)]
+    for many, _, page in loads:
+        assert page.count("ICE ") >= 1000
+        assert many == few, f"{few} statements with 10 offers, {many} with 1,000"
+    seconds = sorted(load[1] for load in loads)
+    assert seconds[0] < 2, f"{', '.join(f'{s:.2f}' for s in seconds)} s with 1,000 offers"
