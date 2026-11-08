@@ -5,4 +5,5 @@ pytest
 pytest-xdist  # -n auto
 ruff
 playwright    # slow tests (pytest -m slow); the cloud has the browser at /opt/pw-browsers/chromium
+axe-playwright-python  # tests/test_a11y_browser.py (bundles axe-core: no network at run time)
 pyyaml  # tests/test_production_compose.py (the compose files)
