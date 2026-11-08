@@ -43,8 +43,8 @@ from app.profiles import active_weights, default_weights, delete as delete_profi
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
 from app.models import AccessTime, ApiToken, Capture, CurrencyRate, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting, Trip
-from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, alert_messages, deliver, setting,
-                        webpush_ready)
+from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
+                        REMINDER_DAYS_KEY, REMINDER_NOT_SENT, alert_messages, deliver, setting, webpush_ready)
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.parsers import group_price
@@ -1003,6 +1003,8 @@ def messages_page(request: Request, session: Session = Depends(get_session)) -> 
     return templates.TemplateResponse(request, "settings_messages.html", {
         "channel": setting(session, CHANNEL_KEY, "none"), "channels": CHANNELS,
         "ntfy_url": setting(session, NTFY_URL_KEY), "notify_email": setting(session, EMAIL_KEY),
+        "reminder_days": setting(session, REMINDER_DAYS_KEY, "0"),
+        "reminder_before_days": setting(session, REMINDER_BEFORE_KEY, "14"), "max_reminder_days": MAX_REMINDER_DAYS,
         "smtp_ready": bool(get_settings().smtp_host),
         "vapid_public_key": get_settings().vapid_public_key if webpush_ready() else "",
         "push_count": session.scalar(select(func.count()).select_from(PushSubscription)),
@@ -1025,8 +1027,15 @@ def test_message(request: Request, session: Session = Depends(get_session)) -> R
 
 @router.post("/settings/messages", dependencies=[Depends(require_login), Depends(verify_csrf)])
 def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), notify_email: str = Form(""),
+                  reminder_days: str = Form(REMINDER_NOT_SENT), reminder_before_days: str = Form(REMINDER_NOT_SENT),
                   session: Session = Depends(get_session)) -> RedirectResponse:
     url = ntfy_url.strip()
+    # #1117: a field that the form did not send is kept; a value that is not a whole number gives 422 and stores nothing.
+    for label, value in (("the reminder age", reminder_days), ("the reminder before departure", reminder_before_days)):
+        if value != REMINDER_NOT_SENT and not (value.strip().isascii() and value.strip().isdigit()
+                                               and int(value.strip()) <= MAX_REMINDER_DAYS):
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                f"{label} must be a whole number from 0 to {MAX_REMINDER_DAYS} days")
     if notify_channel not in CHANNELS:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"the channel must be one of {', '.join(CHANNELS)}")
     if url and (not url.startswith("https://") or len(url) > 500):
@@ -1046,6 +1055,10 @@ def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), 
     session.merge(Setting(key=EMAIL_KEY, value=address))
     session.merge(Setting(key=CHANNEL_KEY, value=notify_channel))
     session.merge(Setting(key=NTFY_URL_KEY, value=url))
+    if reminder_days != REMINDER_NOT_SENT:
+        session.merge(Setting(key=REMINDER_DAYS_KEY, value=str(int(reminder_days.strip()))))
+    if reminder_before_days != REMINDER_NOT_SENT:
+        session.merge(Setting(key=REMINDER_BEFORE_KEY, value=str(int(reminder_before_days.strip()))))
     session.commit()
     return RedirectResponse("/settings/messages", status_code=303)
 

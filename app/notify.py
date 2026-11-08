@@ -30,6 +30,10 @@ log = logging.getLogger(__name__)
 CHANNEL_KEY = "notify_channel"
 NTFY_URL_KEY = "ntfy_url"
 EMAIL_KEY = "notify_email"
+REMINDER_DAYS_KEY = "reminder_days"  # #1117: the age N of the newest offers for a reminder; 0 = off
+REMINDER_BEFORE_KEY = "reminder_before_days"  # #1117: the reminder comes D days before the departure
+MAX_REMINDER_DAYS = 365
+REMINDER_NOT_SENT = "not sent"  # the form default: a field that the form did not send is kept
 CHANNELS = ("none", "ntfy", "email", "webpush")
 GONE = (404, 410)  # the push service no longer knows the subscription
 TIMEOUT_S = 5

@@ -22,6 +22,15 @@
       <input id="notify_email" name="notify_email" type="email" value="{{ notify_email }}">
       {% if not smtp_ready %}<p class="help">E-mail needs SMTP_HOST on the server.</p>{% endif %}
     </div>
+    <div class="field">
+      <label for="reminder_days">Reminder: age of the newest offers (days)</label>
+      <input id="reminder_days" name="reminder_days" type="number" inputmode="numeric" min="0" max="{{ max_reminder_days }}" step="1" required value="{{ reminder_days }}">
+      <p class="help">A reminder to search again when the newest offers of a trip are this old. 0 is off.</p>
+    </div>
+    <div class="field">
+      <label for="reminder_before_days">Reminder: days before the departure</label>
+      <input id="reminder_before_days" name="reminder_before_days" type="number" inputmode="numeric" min="0" max="{{ max_reminder_days }}" step="1" required value="{{ reminder_before_days }}">
+    </div>
   </div>
   <div class="form-actions"><button class="btn btn-primary" type="submit">Save</button>
     <button class="btn" type="submit" formaction="/settings/messages/test">Send a test message</button></div>
