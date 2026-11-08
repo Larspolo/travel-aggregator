@@ -5,7 +5,7 @@
 {% block settings %}
 {% if error %}<p role="alert" class="chip danger">{{ error }}</p>{% endif %}
 {% call ui.card("Profiles") %}
-<p><a class="btn btn-primary" href="/profiles/new">New profile</a></p>
+<p><a class="btn" href="/profiles/new">New profile</a></p>
 {% if rows %}
 <ul class="item-list">
   {% for p, w in rows %}
