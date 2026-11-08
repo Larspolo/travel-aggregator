@@ -377,6 +377,7 @@ and a row with no break-even value shows no line. A value from €0/h to €100/
 Above the table, the trip page shows a strip of the departure days. A trip with a date range shows each day of the range, up to the first 31 days. A day with no offer shows "no offers". Without a range, the strip shows each day that has an offer. The strip is hidden when it has fewer than two days.
 Each day shows two costs: the best effective cost of the day (in the title "Best effective cost") and the cheapest price of the day (in the title "Cheapest price"). The costs use the active profile and the hidden offers do not count.
 The strip shows all offers, also while one day is selected. Its costs do not change when you pick a day.
+A day with no captured connection shows "from €49.99 (bahn.de day price)" when a bahn.de search with "Bestpreise anzeigen" gave a price for that day. The newest capture of a day wins. A day with connections shows its costs as before.
 Click a day to show only the offers that depart on that local day. The filter is the query parameter `day`, in the form `YYYY-MM-DD`. The selected day is marked as current. Click "All days" to remove the filter.
 A change of a slider keeps the selected day. The strip updates its costs with the new weights.
 
@@ -745,6 +746,7 @@ when the offers reached your server, or an error message.
 
 The bahn.de userscript captures the search results of bahn.de: the connections, their times and their fares.
 It reads only the responses that the bahn.de page itself gets. It sends no request to bahn.de.
+With "Bestpreise anzeigen" on, the userscript also sends the day prices (`/web/api/angebote/tagesbestpreis`). They are no offers and do not show in the table.
 
 To install it, add the file `userscripts/bahn.user.js` of this repository to Tampermonkey as a new script.
 Then set the server URL and the API token in the Tampermonkey menu. On bahn.de, search for a connection. The panel
