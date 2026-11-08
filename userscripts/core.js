@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 14;
+const CORE_VERSION = 15;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -329,6 +329,17 @@ const CORE_VERSION = 14;
   // One hook of fetch and XMLHttpRequest for all site userscripts. It only reads the responses that the page itself
   // gets (P1). Each watcher gets {url, method, body, text} of a response whose URL it accepts.
   const watchers = [];
+  // The text of a response or a request body: a string, JSON, a Blob, an ArrayBuffer (or a view) or URLSearchParams.
+  const asText = (v) => {
+    try {
+      if (v === null || v === undefined || typeof v === "string") return Promise.resolve(v === undefined ? null : v);
+      if (typeof Blob !== "undefined" && v instanceof Blob) return v.text();
+      if (v instanceof ArrayBuffer || ArrayBuffer.isView(v)) return Promise.resolve(new TextDecoder().decode(v));
+      if (typeof URLSearchParams !== "undefined" && v instanceof URLSearchParams) return Promise.resolve(String(v));
+      if (typeof FormData !== "undefined" && v instanceof FormData) return Promise.resolve(null);
+      return Promise.resolve(JSON.stringify(v));
+    } catch (e) { return Promise.resolve(null); }
+  };
   let hooked = false;
   // For the diagnosis of a missed capture (#1072): the time of the hook, the responses it saw, and if the page had
   // wrapped XMLHttpRequest before it.
@@ -373,9 +384,10 @@ const CORE_VERSION = 14;
       XHR.send = function (body) {
         if (accepted(this.__taUrl)) {
           this.addEventListener("load", () => {
-            const t = this.responseType;
-            const text = !t || t === "text" ? this.responseText : t === "json" ? JSON.stringify(this.response) : null;
-            notify(this.__taUrl, this.__taMethod, body, text);
+            // A page can ask for a blob or an arraybuffer, and send a Blob or URLSearchParams (#1072): decode them.
+            Promise.all([asText(this.responseType === "" || this.responseType === "text"
+              ? this.responseText : this.response), asText(body)])
+              .then(([text, b]) => notify(this.__taUrl, this.__taMethod, b, text), () => {});
           });
         }
         return send.apply(this, arguments);
