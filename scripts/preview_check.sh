@@ -11,14 +11,22 @@ url=${PREVIEW_URL:-https://travel-preview.larspolo.nl}
 want=${1:-$(git rev-parse origin/main)}
 json() { python3 -c "import json, sys; print(json.load(sys.stdin)$1)"; }
 
+fetch_main() {   # a shallow clone needs the parents of the new commit (else it is a graft and the ancestor test fails)
+  if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
+    git fetch -q --deepen=100 origin main || true
+  else
+    git fetch -q origin main || true
+  fi
+}
+
 got=
 fetched=
-for _ in $(seq 60); do        # CI with its job preview, then watchtower: about 10 minutes, at most 15
+for _ in $(seq "${PREVIEW_WAIT_TRIES:-60}"); do   # CI with its job preview, then watchtower: about 10 minutes, at most 15
   got=$(curl -fsS "$url/api/health" 2>/dev/null | json '["commit"]' 2>/dev/null) || got=   # empty while it restarts
   [ "$got" = "$want" ] && break
-  if [ -n "$got" ] && [ -z "$fetched" ]; then fetched=1; git fetch -q origin main || true; fi   # once: main moved on
+  if [ -n "$got" ] && [ "$got" != "$fetched" ]; then fetched=$got; fetch_main; fi   # again for each new commit of the preview
   [ -n "$got" ] && git merge-base --is-ancestor "$want" "$got" 2>/dev/null && break   # a newer main contains $want
-  sleep 15
+  sleep "${PREVIEW_WAIT_SECS:-15}"
 done
 if [ "$got" = "$want" ]; then
   echo "ok   health: commit $got"
