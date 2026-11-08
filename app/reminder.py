@@ -45,3 +45,29 @@ def due_reminders(session: Session, now: datetime) -> list[Trip]:
 def mark_reminded(trip: Trip, now: datetime) -> None:
     """Store the time of the reminder of `trip`; the caller commits."""
     trip.reminded_at = now.astimezone(timezone.utc)
+
+
+BASE_URL_KEY = "base_url"  # the address of the app at the last ingest: the link of a reminder (#1119)
+
+
+def send_reminders(session: Session, now: datetime, base_url: str) -> int:
+    """Send "Search again: <title>" for each due trip by the active channel, and mark it. Return the count.
+
+    The channel `none` sends nothing and marks nothing. No request goes to a travel site (P1): the message holds only
+    the search links for the owner.
+    """
+    from app.notify import alert_messages, deliver
+    from app.search_links import links_for_trip
+
+    sent = 0
+    for trip in due_reminders(session, now):
+        click = f"{base_url.rstrip('/')}/trips/{trip.id}" if base_url else ""
+        lines = [f"{name}: {url}" for name, url in links_for_trip(trip)]
+        msgs = alert_messages(session, f"Search again: {trip.title}", "\n".join(lines + ([click] if click else [])), click)
+        if not msgs:
+            break
+        deliver(msgs)
+        mark_reminded(trip, now)
+        session.commit()
+        sent += 1
+    return sent

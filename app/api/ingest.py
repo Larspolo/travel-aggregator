@@ -12,7 +12,8 @@ from app import ingest, notify
 from app.backup import stale_backup_messages
 from app.auth import require_token
 from app.db import get_session
-from app.models import ApiToken, Trip
+from app.models import ApiToken, Setting, Trip
+from app.reminder import BASE_URL_KEY
 from app.schemas import IngestIn
 
 router = APIRouter()
@@ -25,7 +26,11 @@ def post_ingest(body: IngestIn, request: Request, tasks: BackgroundTasks, _: Api
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no trip {body.trip_id}")
     drops: list[notify.PriceDrop] = []
     result = ingest.store(session, body, drops)
-    msgs = notify.messages(session, drops, str(request.base_url))
+    base_url = str(request.base_url)
+    msgs = notify.messages(session, drops, base_url)
+    if notify.setting(session, BASE_URL_KEY) != base_url:  # the link of the reminders of the backup loop (#1119)
+        session.merge(Setting(key=BASE_URL_KEY, value=base_url))
+        session.commit()
     try:  # the backup service can stop with no message of its own (#1088)
         msgs += stale_backup_messages(session, Path(os.environ.get("BACKUP_DIR", "/backups")), datetime.now(UTC))
     except Exception:  # noqa: BLE001 (a backup check must not break the ingest)
