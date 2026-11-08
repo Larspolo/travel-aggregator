@@ -135,6 +135,17 @@
 {% endif %}
 {% with oob = false %}{% include "trip_days.html" %}{% include "trip_timeline.html" %}{% include "trip_split.html" %}{% endwith %}
 {% include "trip_return_grid.html" %}
+{% if profile_best %}
+<section class="profile-best card" id="profile-best">
+<h2>Best by profile</h2>
+<ul>
+{% for b in profile_best %}
+<li><a href="?profile={{ b.profile.id }}">{{ b.profile.name }}</a>{% if b.profile.id == active_profile_id %} <strong>(active)</strong>{% endif %}:
+{% if b.itinerary %}{{ b.itinerary.mode_summary or "" }} {{ (b.itinerary.depart_at | local(b.itinerary.legs[0].depart_offset_min if b.itinerary.legs else 0)).strftime("%a %d %b %H:%M") }} · {{ format_total(b.breakdown) }}{% else %}no offer{% endif %}</li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
 <div class="card table-card" id="table">
 {% include "trip_table.html" %}
 </div>

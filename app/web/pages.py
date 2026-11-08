@@ -593,6 +593,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
                "rates": rates, "tradeoff": tradeoff,
                "new_since": trip.viewed_at}  # the rows after the last full view are "new" (#1090)
+    if len(profiles) > 1:  # the best offer of each profile (#1211); one profile only: no section
+        from app.profile_compare import best_by_profile
+        context["profile_best"] = best_by_profile(session, trip)
     context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
