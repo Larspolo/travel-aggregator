@@ -34,13 +34,16 @@ def _links(page: str) -> dict[str, str]:
     return {name: html.unescape(href) for href, name in LINK.findall(page)}
 
 
-def test_the_trip_page_shows_three_filled_search_links(trip):
+def test_the_trip_page_shows_four_filled_search_links(trip):
     client, trip_id = trip
     page = client.get(f"/trips/{trip_id}").text
 
-    assert len(LINK.findall(page)) == 3
+    assert len(LINK.findall(page)) == 4
     links = _links(page)
-    assert set(links) == {"bahn.de", "NS International", "Flixbus"}
+    assert set(links) == {"bahn.de", "NS International", "Flixbus", "Trainline"}
+    assert "origin=urn%3Atrainline%3Ageneric%3Aloc%3A5894" in links["Trainline"]
+    assert "destination=urn%3Atrainline%3Ageneric%3Aloc%3A7630" in links["Trainline"]
+    assert "outwardDate=2026-12-01T00%3A00%3A00" in links["Trainline"]
     assert "so=Amsterdam%20Centraal" in links["bahn.de"]
     assert "zo=Berlin%20Hbf" in links["bahn.de"]
     assert "hd=2026-12-01T00%3A00%3A00" in links["bahn.de"]
