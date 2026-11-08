@@ -296,14 +296,16 @@ def due_reviews(remote="origin", starved=None):
 def held(numbers):
     """True when an open issue of `numbers` (of a roadmap line) is `after-release` or `muted`: the owner holds the
     feature, and the refill leaves it out (#5301: `convert:export` named the held owner ticket #4198, no epic). Also
-    an open decision ticket (`needs-human` and "Kind: decision", the `ticket` skill): the epic waits for the answer
-    (#432: `trip:notify` named the decision #418, and the pacer started deep refill runs that found no source)."""
+    an open `needs-human` ticket that is no owner input: the epic waits for the answer (#432: `trip:notify` named the
+    decision #418, and the pacer started deep refill runs that found no source). An input ("Kind: outside" or "Kind:
+    setting", the `ticket` skill) does not hold: the epic starts with it as a sub-issue (the `roadmap` skill, step 5).
+    A ticket with no "Kind:" line holds (#1059: the owner issue #1036 got its question in a comment)."""
     import dashboard
 
     def holds(i):
         names = dashboard.labels(i)
         return bool({dashboard.AFTER, dashboard.MUTED} & names
-                    or "needs-human" in names and re.search(r"^Kind: decision\b", i.get("body") or "", re.M))
+                    or "needs-human" in names and not re.search(r"^Kind: (outside|setting)\b", i.get("body") or "", re.M))
     return any((i := dashboard.api(f"issues/{n}"))["state"] == "open" and holds(i) for n in sorted(numbers))
 
 
