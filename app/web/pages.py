@@ -434,7 +434,6 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[2].price),
                           ("fastest", lambda r: r[0].duration_min)):
             badges.setdefault(min(shown, key=key)[0].id, []).append(name)
-    tradeoff = tradeoff_lines(rows, shown, source, places, weights, stale_before, rates)  # #895
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
@@ -457,6 +456,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         query["hide_stale"] = True  # the sort links keep it (#277)
     if chosen is not None:
         query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
+    # the break-even links re-rank this page with another hour value: the sort and the filters stay (#920)
+    tradeoff = tradeoff_lines(rows, shown, source, places, weights, stale_before, rates,
+                              trip_id, {**query, "sort": sort, "dir": dir})  # #895
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
@@ -943,9 +945,11 @@ def _span(minutes: int) -> str:
     return f"{minutes // 60} h" if minutes % 60 == 0 else f"{minutes // 60} h {minutes % 60:02d} min"
 
 
-def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, rates) -> dict:
+def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, rates,
+                   trip_id: int, base_qs: dict) -> dict:
     """The break-even line of each rendered row against the shown row with the lowest effective cost (#895).
-    The best row and a row with no break-even get no line."""
+    The best row and a row with no break-even get no line. Each line is (head, value, tail, link or None):
+    the value is the link to this page with that hour value (#920)."""
     if not shown:
         return {}
     best = min(shown, key=lambda r: r[2].total)
@@ -963,8 +967,14 @@ def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, 
         dmin, dprice = best[0].duration_min - it.duration_min, cost.price - best[2].price
         time_part = (f"{_span(abs(dmin))} {'faster' if dmin > 0 else 'slower'}" if dmin else "same duration")
         price_part = (f"{_amount(abs(dprice))} {'more' if dprice > 0 else 'less'}" if dprice else "same price")
-        lines[it.id] = (f"{time_part}, {price_part} than the best: better {be.better} "
-                        f"{_amount(be.hour_value)}/h (yours: {yours}/h)")
+        # rounded up for "above", down for "below": the other row is the better one after the click (#896)
+        rounding = ROUND_CEILING if be.better == "above" else ROUND_FLOOR
+        rounded = be.hour_value.to_integral_value(rounding=rounding)
+        link = None
+        if Decimal(0) <= rounded <= 100:  # weight_query limits hour_markup to 0..100
+            link = f"/trips/{trip_id}?" + urlencode({**base_qs, "hour_markup": str(int(rounded))}, doseq=True)
+        lines[it.id] = (f"{time_part}, {price_part} than the best: better {be.better} ",
+                        f"{_amount(be.hour_value)}/h", f" (yours: {yours}/h)", link)
     return lines
 
 
