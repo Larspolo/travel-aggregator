@@ -42,7 +42,7 @@ def test_migration_0021_up_and_down(empty_database_url):
         def has_column():
             return "viewed_at" in {c["name"] for c in inspect(engine).get_columns("trips")}
         assert has_column()
-        command.downgrade(cfg, "-1")
+        command.downgrade(cfg, "0020")
         assert not has_column()
         command.upgrade(cfg, "head")
         assert has_column()

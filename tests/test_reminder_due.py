@@ -89,7 +89,7 @@ def test_n_zero_turns_the_reminders_off(engine):
 def test_the_migration_downgrades_and_upgrades(empty_database_url):
     cfg = _alembic(empty_database_url)
     command.upgrade(cfg, "head")
-    command.downgrade(cfg, "-1")
+    command.downgrade(cfg, "0021")
     eng = create_engine(empty_database_url)
     assert "reminded_at" not in {c["name"] for c in inspect(eng).get_columns("trips")}
     command.upgrade(cfg, "head")
