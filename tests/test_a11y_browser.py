@@ -21,7 +21,6 @@ KNOWN: dict[tuple[str, int], set[str]] = {
     # The table box that scrolls sideways at 390 px cannot get the keyboard focus.
     ("/captures", 390): {"scrollable-region-focusable"},
     ("/trips/{id}/captures", 390): {"scrollable-region-focusable"},
-    ("/trips/{id}/compare?it={it0}&it={it1}&it={it2}", 390): {"scrollable-region-focusable"},
 }
 
 
