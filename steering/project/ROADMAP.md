@@ -50,9 +50,9 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A search on ÖBB shows its offers on the trip page
 - [ ] `capture:eurostar` (#953) Eurostar (eurostar.com)
   - A search on Eurostar shows its offers on the trip page
-- [ ] `capture:sncf` (#955) SNCF Connect (sncf-connect.com)
+- [x] `capture:sncf` (#955) SNCF Connect (sncf-connect.com)
   - A search on SNCF Connect shows its offers on the trip page
-- [ ] `capture:trainline` (#959) Trainline (thetrainline.com)
+- [x] `capture:trainline` (#959) Trainline (thetrainline.com)
   - A search on Trainline shows its offers on the trip page; the offers can repeat those of bahn.de (`capture:merge`)
 
 ## 2. Rank offers by effective cost
@@ -76,11 +76,11 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A CHF offer ranks by its EUR value, and its breakdown shows the CHF price and the EUR price; an offer in a currency with no rate shows "no rate for CHF"
 - [x] `rank:class` (#689) Travel class: a 1st class or business fare gets a comfort value per hour in the score
   - With a 1st class bonus of €10 per hour, the breakdown of a 1st class fare of 3 hours shows "1st class −€30"
-- [ ] `rank:travelers` (#761) Group trips: the score compares the fares by the price per traveler; the ingest stores the travelers of each capture, and a capture for another number of travelers than the trip shows a warning
+- [x] `rank:travelers` (#761) Group trips: the score compares the fares by the price per traveler; the ingest stores the travelers of each capture, and a capture for another number of travelers than the trip shows a warning
   - A bahn.de capture for 2 adults into a trip for 2 shows "€180 for 2 travelers" next to the price of €90 in the breakdown; a capture for 1 adult into that trip shows "These offers are for 1 traveler; the trip has 2"
 - [x] `rank:tradeoff` (#892) For an offer that is not the best, the trip page and the compare view show the hour value at which it becomes better than the best offer
   - "1 h 40 min faster, €25 more: better above €15 per hour (yours: €20)" shows on the compare view and in the expanded row of the trip table
-- [ ] `rank:profile-page` (#1006) Profiles on their own page, and hour tiers of the time cost (owner request)
+- [x] `rank:profile-page` (#1006) Profiles on their own page, and hour tiers of the time cost (owner request)
   - A profile is made and edited on `/profiles/new` and `/profiles/{id}` with no trip; with the rates €4/h, €8/h after 4 h and €15/h after 8 h, a trip of 9 h has a time cost of €63 (4 × €4 + 4 × €8 + 1 × €15)
 - [ ] `rank:return-fare` A return fare (one price for both ways, as most flights have) compares with the single-way offers of a round trip, by the rule of the decision #1036 (owner request)
   - The owner sees on one page if a return flight or the best two single-way offers (train, bus or flight) cost less in effective cost
@@ -133,6 +133,14 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The link shows the ranked rows and no notes, tokens or captures (P5); "Revoke" on the trip page makes the link show "not found"
 - [x] `trip:coverage` (#966) The search status of each source on the trip page: the last search of the trip, its offer count, or "not searched yet" with the search link
   - A trip with only bahn.de captures shows "bahn.de: searched 2 h ago, 14 offers" and "NS International: not searched yet" with its search link
+- [ ] `trip:new-since` (#1089) What changed since the last visit of a trip: the new itineraries and the price changes of all fares, not only of the pinned fares (`trip:drops`)
+  - After a bahn.de search, the trips list shows "4 new" next to Amsterdam → Zürich, and its trip page marks the 4 rows "new" and shows "€95 → €90" on a fare that changed
+- [ ] `trip:return-grid` For a round trip with date ranges (`trip:return`, `trip:days`): a grid of the best sum of each outbound day and each return day
+  - A round trip with outbound 18 to 20 December and return 27 to 29 December shows 9 cells, each with the best sum in effective cost, and the best cell is marked
+- [ ] `trip:calendar-feed` A calendar subscription link (an `.ics` feed at a secret URL) of all booked journeys, that the owner can revoke (`trip:calendar`, P5 as `trip:share`)
+  - A calendar app that subscribes to the link shows a new booking after its next update, with no download; "Revoke" makes the link show "not found"
+- [ ] `trip:reminder` A reminder to search again by the channel of `trip:notify`: when the newest offers of a pinned or target trip are older than N days and the departure is near (the reminder only tells the owner; it fetches nothing, P1)
+  - With the reminder at 3 days, a trip that departs in 10 days and was last searched 4 days ago sends one message "Search again: Amsterdam → Zürich" with its search links
 
 ## 4. Run it on my home server
 
@@ -159,3 +167,5 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Add to Home Screen" on a phone adds the app with its own icon and name, it opens with no browser bar, and the settings page of the installed app turns on Web Push
 - [ ] `host:offline` (#962) The installed app opens the Upcoming page with no network: the booked journeys of the last online visit, with their legs, local times and numbers
   - In flight mode, the app on the phone opens Upcoming with the journeys and "Offline: saved at 14:05"; after "Log out", it shows no journey
+- [ ] `host:backup-alert` (#1085) A message to the owner by the channel of `trip:notify` when the daily backup fails or the newest backup is older than 48 hours
+  - When the daily dump fails, the owner gets one message "Backup failed" on the phone; after the next good dump, "Backup works again"
