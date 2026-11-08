@@ -3,6 +3,7 @@
 {% block title %}Upcoming – travel-aggregator{% endblock %}
 {% block content %}
 {% call ui.page_header("Upcoming") %}{% endcall %}
+  <p class="muted offline-note" hidden data-saved-at="{{ now.isoformat() }}"></p>
   {% if not itineraries %}
   <p class="muted">No booked journeys. Mark an offer as booked on its trip page.</p>
   {% else %}

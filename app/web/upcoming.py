@@ -22,4 +22,4 @@ def upcoming(request: Request, session: Session = Depends(get_session)):
         .options(selectinload(Itinerary.legs), selectinload(Itinerary.trip))
         .order_by(Itinerary.depart_at, Itinerary.id)
     ).all()
-    return templates.TemplateResponse(request, "upcoming.html", {"itineraries": itineraries})
+    return templates.TemplateResponse(request, "upcoming.html", {"itineraries": itineraries, "now": datetime.now(timezone.utc)})

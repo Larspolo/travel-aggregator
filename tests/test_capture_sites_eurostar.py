@@ -16,4 +16,4 @@ def test_the_capture_script_runs_on_eurostar():
 
 
 def test_the_version_is_higher_than_the_last_one_without_eurostar():
-    assert capture.USERSCRIPT_VERSION >= 3
+    assert capture.USERSCRIPT_VERSION >= 4
