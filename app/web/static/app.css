@@ -544,7 +544,7 @@ input[name=it]:checked { counter-increment: picked; }
 /* The timeline of the trip page (#815): the axis keeps its width, the block scrolls in its own box */
 .timeline-view { margin: 0 0 var(--space-3); }
 .timeline-view[hidden] { display: none; }
-.timeline-view summary { cursor: pointer; font-weight: 600; }
+.timeline-view > summary { font-weight: 600; min-height: 44px; }
 .timeline-date { font-size: 0.9rem; margin: var(--space-2) 0 var(--space-1); }
 .timeline-scroll { overflow-x: auto; max-width: 100%; }
 .timeline-axis { position: relative; min-width: 640px; padding-bottom: 1.4rem; }
