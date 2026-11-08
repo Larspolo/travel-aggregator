@@ -19,6 +19,9 @@ The setup steps are in issue "Try the capture skill" (`for-jeroen`); `/chrome` s
   connection (for example "Weiter" to the fare classes) does not count.
 - A site that blocks the page (status 403 on its own requests, "are you a robot", a CAPTCHA): stop that site and say
   "blocked" in the comment. Never try to get around a block or a bot check.
+- Open only a search URL that the site itself made (in the address bar after a search with its form, or in the list
+  "Sites"). Never guess a parameter: a wrong value can look like a bot (NS International, `pax=AA` for 2 adults,
+  gave an Akamai "Access Denied", #763). For an unknown parameter, use the search form.
 - Never send a request from JavaScript (no `fetch`, no XHR, no replayed or changed request) and never loop over
   dates or stations. The hook of `tools/capture.py` only records the responses that the page requested itself.
 - Never log in, never book, never pay, never type a name, an e-mail or a card number. A cookie banner: select only
@@ -89,7 +92,12 @@ the branch that the ticket names; else `owner/<site name>-captures`). With no tr
    again and do the search one more time. The page sent none: the step or the URL part is wrong. Try once more with
    the other connection or the other button that matches the ticket, then stop: the comment of step 9.
 5. Run `window.__taCap.save('<site>-<N>')`. Chrome saves `<site>-<N>.har` in the download folder; find the newest:
-   `ls -t <download folder>/<site>-<N>*.har`.
+   `ls -t <download folder>/<site>-<N>*.har`. No file after 5 s: Chrome blocks the automatic downloads of this site
+   (`shop.flixbus.nl`, 2026-11-08, #768). Do not move the data out in another way (the browser tool blocks base64
+   output, and that is correct). Stop the ticket with the comment of step 9: the person allows "Automatic downloads"
+   for the site in the Chrome settings, then runs `/capture N` again.
+   An entry with the method "" next to the same request with its method is a copy (the page read a clone of the
+   response): `window.__taCap.entries = window.__taCap.entries.filter(e => e.request.method !== '')` before the save.
 6. `python3 tools/capture.py scrub <the downloads> --out ~/.cache/ta-capture/<site>-<N>.har --match '<URL part>'`.
    It prints the requests and `problems`; exit 1 means a problem: do not publish.
 7. Check the acceptance criteria with a short `python3 -c` that reads the cleaned HAR (for #169: a connection with
@@ -145,3 +153,20 @@ request body), fix the cause before the end of the run:
   `--match 'skyscanner\.nl/g/(radar|michelin)'` there, then open the results URL below (one search) and save. The page sends `Request`
   objects. The results URL `/transport/vluchten/<from>/<to>/<yymmdd>/?adultsv2=1&cabinclass=economy&rtn=0` opens
   the search directly (one search).
+- bahn.de: no block (2026-11-08). The page has `<base href="/web/">` and sends `api/angebote/fahrplan` (status 201).
+  The results URL `/buchung/fahrplan/suche#...&kl=2&r=13:16:KLASSENLOS:<travelers>&soid=...&zoid=...&hd=<yyyy-mm-ddThh:mm:ss>`
+  (take it from the address bar after one search with the form) opens the search directly; `r=13:16:KLASSENLOS:2`
+  gives 2 adults (27–64), no discount, and `kl=1` 1st class. The address bar has the hash only, so a change of it
+  in the same tab is no new page load: open the start page first, then the results URL.
+- NS International: the search page `/en/traintickets-v3/#/search/<from code>/<to code>/<yyyymmdd>?pax=A` is 1
+  adult. Do not guess `pax` for more travelers (blocked, #763): use the form.
+- Flixbus (`shop.flixbus.nl`): the results URL `/search?departureCity=<uuid>&arrivalCity=<uuid>&rideDate=<dd.mm.yyyy>&adult=<n>`
+  opens the search. The search is `GET global.api.flixbus.com/search/service/v4/search` with `products={"adult":n}`.
+  When the destination is chosen in the start-page form, the site searches at once for today: that counts. Chrome
+  blocked the download from this site (step 5).
+- Kiwi.com: the start page sends `SearchOneWayItinerariesQuery` (`/umbrella/v2/graphql`) for the form of the start
+  page at each load and at each change of a place: each one counts as a search. Set the flag, load the start page
+  again (one search), set all fields, then "Search". The results stay on the start page (10 itineraries).
+
+The travel-aggregator userscript of the person also runs during a capture and sends the offers to the server (with
+"auto-select trip" to the trip that matches). That does not change the HAR.
