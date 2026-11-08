@@ -41,8 +41,8 @@ A new source is one userscript and one server parser, with its fixtures, and not
 
 - **Passive capture only** (P1): no code sends a request to a travel site, also not from CI or a cloud session.
 - **Simple first** (P2): price, hour and transfer weights are visible; each extra has a default in "Advanced".
-- **Robust sources first** (P3), **platform features first** (P4), **untrusted and private data** (P5):
-  `steering/project/PRINCIPLES.md`.
+- **Robust sources first** (P3), **platform features first** (P4), **untrusted and private data** (P5),
+  **testable with no person** (P6: no browser dialogs): `steering/project/PRINCIPLES.md`.
 - All times are timezone-aware: store UTC and the original offset. Money is `Decimal`, never `float`.
 - The score is computed at query time from the active profile; derived values (duration, transfers) at ingest.
 - `README.md` is the guide for users. Change it only at the end of an epic, never in a ticket PR (owner): the epic
