@@ -13,6 +13,10 @@ terms: only the build, test and release of this project). A userscript only obse
 requested itself. Example: the search links of `trip:links` only open a page; they fetch nothing. The `capture`
 skill in a local session on Jeroen's computer is his own browsing (owner, 2026-11-06): it clicks and types in his own
 visible Chrome as a person does, only the searches of one capture ticket, and its hook only records the responses.
+The same holds for a local session in the owner's (Larspolo's) own Chrome, for capture tickets and for owner checks
+on the travel sites, for example #752 and #945 (owner, 2026-11-08): the evidence of such a check counts. The rules of
+the `capture` skill stay: at most 3 searches per ticket (the owner can allow more in that session), no request from
+code, stop at a block, a login or a CAPTCHA.
 
 ## P2. Simple first in the ranking
 
