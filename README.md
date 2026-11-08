@@ -428,11 +428,29 @@ gives an error and changes nothing.
 Each message has the title "Price drop: " and the trip title, and one line for each dropped fare:
 `fare name (source): EUR old price → EUR new price`. The message links to the trip page. One message goes to each trip
 of an ingest. A failed send is logged and does not change the answer to the userscript.
+A fare that comes to or below the target price of its trip (see "Target price of a trip") gives the title
+"Target price: " and the trip title instead.
 
 For Web Push, "Turn on push on this device" asks the browser for permission and subscribes it; "Remove push from this
 device" removes that browser. The settings page shows how many devices have push on. On an iPhone or iPad, Web Push
 works only in an app on the home screen: in Safari, tap Share, then "Add to Home Screen", and open the settings page
 from there.
+
+### Target price of a trip
+
+A trip can have a target price in EUR. Set it in the trip form, in the field "Target price (EUR)". The field is optional,
+and it must be between 0.01 and 100000. "Copy trip", the export and the import keep the target price.
+
+When a trip has a target price, a fare is "at target" when its latest price in EUR is at or below the target:
+- The trips list shows "at target" after the best price of the trip.
+- The trip page shows a box "At your target price" with the fares that are at or below the target, the cheapest first.
+
+A fare with no exchange rate is never "at target", and a hidden offer gives no mark.
+
+The app can send a message when a fare comes to or below the target price. It uses the channel that you chose on the
+settings page (see "Messages outside the app"; with `none`, no message is sent). The title is "Target price: " and the
+trip title. A new message comes only when a capture brings a fare to or below the target. While the fare stays at or
+below the target, no second message comes. After the price goes above the target and down again, a new message comes.
 
 ### Search links
 
