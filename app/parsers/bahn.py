@@ -70,6 +70,7 @@ def travelers(request: dict | None) -> int | None:
 class BahnParser:
     source = "bahn.de"
     version = "1.1.0"
+    group_price = True  # the price is for all travelers of the request (#767; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"request", "response"} or of the response body only."""

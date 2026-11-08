@@ -23,6 +23,13 @@ Notes for the parser:
   `Decimal`, never a `float`) and `offers[].totalPrice.currency` (`EUR`). `totalPriceWithOptionalAccommodations` is
   the price with the optional extras; the basic price is the one to rank. `offers[].admissions[].priceDetails.total`
   is the same amount for the traveler.
+- **Travelers** (#767): `totalPrice.amount` is the price for all travelers of `request.travelers`, not per person.
+  Evidence: in the capture of #763 (branch `owner/travelers-captures`, 2 adults, Amsterdam → Berlin, 2026-12-01),
+  each offer has one admission with `travelerReferences` `["A", "A"]`, `pricingMode` `COLLECTIVE` and
+  `priceDetails.total` equal to `totalPrice.amount` (for example 113.98 for Second Class of ICE 143 + ICE 847: the
+  same as bahn.de for that search). The 1-adult fixtures have `travelerReferences` `["A"]` and prices that end in
+  .99; the 2-adult capture has only prices that end in .98. The parser has `group_price = True`: the ranking
+  divides the price by `Capture.travelers` (`app/ranking.py`, `for_group()`).
 - **Fare name and class**: `offers[].name` (for example `Comfort Class`, `Second Class`, `Standard Premier`,
   `Business Premier`). `offers[].classLevel` is `"1"` or `"2"`. Trim the name: one capture has a leading space
   (`" Comfort"`).

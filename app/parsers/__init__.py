@@ -1,4 +1,5 @@
-"""One parser class per source (CLAUDE.md, "Code map"). Each parser has `source`, `version` and `parse(raw)`."""
+"""One parser class per source (CLAUDE.md, "Code map"). Each parser has `source`, `version` and `parse(raw)`.
+A parser whose price is for all travelers of the capture has `group_price = True` (#767; its fixture README)."""
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -30,3 +31,8 @@ def get_parser(source: str):
     parsers = {BahnParser.source: BahnParser, NsParser.source: NsParser, FlixbusParser.source: FlixbusParser,
                KiwiParser.source: KiwiParser}
     return parsers.get(source, lambda: None)()
+
+
+def group_price(source: str) -> bool:
+    """True when the price of the source is for all travelers of the capture (#767), not per traveler."""
+    return bool(getattr(get_parser(source), "group_price", False))
