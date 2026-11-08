@@ -31,7 +31,8 @@
     <p class="trip-route">{{ t.origin_text or "?" }} {{ ui.icon("arrow-right", "to") }} {{ t.destination_text or "?" }}</p>
     <p class="trip-meta">
       {% if t.date_from or t.date_to %}<span class="trip-dates">{{ t.date_from or "" }}{% if t.date_to %} – {{ t.date_to }}{% endif %}</span>{% endif %}
-      <span class="trip-count">{{ t.offer_count }} offer{{ "" if t.offer_count == 1 else "s" }}</span>
+      <span class="trip-count">{{ t.offer_count }} offer{{ "" if t.offer_count == 1 else "s" }}</span>{% if new.get(t.id) %}
+      <span class="drop trip-new">{{ new[t.id] }} new</span>{% endif %}
       <span class="chip{% if t.status == "booked" %} good{% elif t.status == "planning" %} info{% endif %}">{{ t.status }}</span>
     </p>
     <p class="trip-best">{% if t.best_price is not none %}Best <strong>{{ t.best_price | money(t.best_currency) }}</strong>{% if t.no_rate %} no rate{% endif %}{% if t.at_target %} <span class="drop">at target</span>{% endif %}{% if t.id in drops %} <span class="drop">price dropped {{ drops[t.id][1] | money(drops[t.id][0]) }}</span>{% endif %}{% else %}<span class="muted">no offers yet</span>{% endif %}{% if t.shared %} <span class="drop">shared</span>{% endif %}</p>
