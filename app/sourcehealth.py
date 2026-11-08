@@ -52,8 +52,10 @@ def source_alert_messages(session: Session, base_url: str) -> list:
 
     The caller commits and delivers. The channel `none` gives no message and stores no row (#1172).
     """
-    from app.notify import alert_messages
+    from app.notify import SOURCE_ALERT_KEY, alert_messages, setting
 
+    if setting(session, SOURCE_ALERT_KEY, "1") == "0":  # #1174: the owner turned the messages off
+        return []
     now = datetime.now(UTC).isoformat()
     base = base_url.rstrip("/")
     health = {h["source"]: h for h in source_health(session)}
