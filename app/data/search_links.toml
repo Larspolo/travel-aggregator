@@ -54,3 +54,13 @@ Paris = "8727100"
 [oebb]
 source = "oebbtickets.at"
 name = "ÖBB"
+
+[trainline]
+source = "thetrainline.com"
+name = "Trainline"
+template = "https://www.thetrainline.com/book/results?journeySearchType=single&origin=urn%3Atrainline%3Ageneric%3Aloc%3A{from}&destination=urn%3Atrainline%3Ageneric%3Aloc%3A{to}&outwardDate={date}&outwardDateType=departAfter&selectedTab=train&lang=en&transportModes%5B%5D=mixed"
+date_format = "%Y-%m-%dT00:00:00"
+
+[trainline.places]
+Amsterdam = "5894"
+Berlin = "7630"
