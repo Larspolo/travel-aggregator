@@ -10,13 +10,11 @@
     {% for b in d.bars %}{% set it, fare, cost = timeline_rows[b.itinerary_id] %}{% set legs = it.legs | list %}
     <a class="timeline-bar{% if 'best value' in view.badges.get(it.id, []) %} best-value{% endif %}" href="#it-{{ it.id }}"
        aria-label="{{ legs[0].from_name }} → {{ legs[-1].to_name }}, {{ b.depart_text }} to {{ b.arrive_text }}, {{ it.transfers }} transfer{% if it.transfers != 1 %}s{% endif %}, {{ cost.price | money('EUR') }}">
-      {% for part in b.parts %}{% if part.kind == "leg" %}<span class="tl-leg mode-{{ part.mode }}" style="left: {{ part.left }}%; width: {{ part.width }}%"></span>{% else %}<span class="tl-gap" style="left: {{ part.left }}%; width: {{ part.width }}%" title="{{ part.minutes }} min at {{ part.from_name }}"></span>{% endif %}{% endfor %}
+      <svg class="tl-parts" aria-hidden="true">{% for part in b.parts %}{% if part.kind == "leg" %}<rect class="tl-leg mode-{{ part.mode }}" x="{{ part.left }}%" width="{{ part.width }}%" y="4" height="20" rx="3"></rect>{% else %}<line class="tl-gap" x1="{{ part.left }}%" x2="{{ part.left + part.width }}%" y1="14" y2="14"><title>{{ part.minutes }} min at {{ part.from_name }}</title></line>{% endif %}{% endfor %}</svg>
       <span class="tl-text">{{ b.depart_text }}–{{ b.arrive_text }}{% if 'best value' in view.badges.get(it.id, []) %} <span class="badge best-value">best value</span>{% endif %}</span>
     </a>
     {% endfor %}
-    <div class="timeline-hours" aria-hidden="true">
-      {% for m in range(d.start_min, d.end_min + 1, 60 if size <= 720 else 120) %}<span style="left: {{ ((m - d.start_min) * 100 / size) | round(3) }}%">{{ "%02d" | format((m // 60) % 24) }}</span>{% endfor %}
-    </div>
+    <svg class="timeline-hours" aria-hidden="true">{% for m in range(d.start_min, d.end_min + 1, 60 if size <= 720 else 120) %}<text x="{{ ((m - d.start_min) * 100 / size) | round(3) }}%" y="12" text-anchor="{{ 'start' if loop.first else ('end' if loop.last else 'middle') }}">{{ "%02d" | format((m // 60) % 24) }}</text>{% endfor %}</svg>
   </div>
   </div>
 </div>
