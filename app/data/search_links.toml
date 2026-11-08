@@ -50,3 +50,7 @@ Amsterdam = "8400058"
 London = "7015400"
 Brussels = "8814001"
 Paris = "8727100"
+
+[oebb]
+source = "oebbtickets.at"
+name = "ÖBB"
