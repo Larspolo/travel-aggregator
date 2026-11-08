@@ -16,6 +16,19 @@
       <span class="muted">· {{ (it.mode_summary or "").replace("+", ", ") }} · {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }} · {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }}</span></div>
     <div><strong>{{ fare.latest_price | money(fare.currency) }}</strong> · effective cost <strong>{{ "no rate" if cost.no_rate else cost.total | money }}</strong></div>
     <div class="breakdown muted">{{ format_breakdown(cost) }}</div>
+    <details><summary>Legs</summary>
+      <div class="timeline legs">
+      {% for leg in it.legs %}
+        {% if not loop.first %}{% set gap = ((leg.depart_at - loop.previtem.arrive_at).total_seconds() // 60) | int %}
+        <div class="transfer muted">Transfer at {{ leg.from_name }}: {{ gap // 60 }}h {{ "%02d" | format(gap % 60) }}</div>{% endif %}
+        <div class="leg">
+          <div class="service">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon) }}{% endif %} {{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}</div>
+          <div class="stop"><time>{{ (leg.depart_at | local(leg.depart_offset_min)).strftime("%H:%M") }}</time> {{ leg.from_name }}</div>
+          <div class="stop"><time>{{ (leg.arrive_at | local(leg.arrive_offset_min)).strftime("%H:%M") }}</time> {{ leg.to_name }}</div>
+        </div>
+      {% endfor %}
+      </div>
+    </details>
   </li>
 {% endfor %}
 </ol>
