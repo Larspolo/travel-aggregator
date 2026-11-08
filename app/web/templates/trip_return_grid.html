@@ -1,0 +1,21 @@
+{# The grid of a round trip (#1108): the best sum per outbound day (rows) and return day (columns); a click on a cell
+   shows the offers of the present trip on its day. #}
+{% if round_grid and round_grid.grid.outbound and round_grid.grid.back %}{% set g = round_grid.grid %}
+<details class="card return-grid" id="return-grid" open>
+<summary>Round trip: best sum per day</summary>
+<div class="return-grid-scroll" tabindex="0" role="region" aria-label="Round trip grid">
+<table>
+<caption class="sr-only">The best effective cost of the outbound and the return, per outbound day (rows) and return day (columns)</caption>
+<thead><tr><th scope="col"><span class="sr-only">Outbound day / return day</span><span aria-hidden="true">Out \ Back</span></th>
+{% for b in g.back %}<th scope="col">{{ b[8:10] }}-{{ b[5:7] }}</th>{% endfor %}</tr></thead>
+<tbody>
+{% for o in g.outbound %}<tr><th scope="row">{{ o[8:10] }}-{{ o[5:7] }}</th>
+{% for c in g.cells if c.outbound == o %}{% set best = g.best and c.outbound == g.best.outbound and c.back == g.best.back %}
+<td{% if best %} class="best"{% endif %}>{% if c.total is not none and c.total.is_finite() %}{% set link_day = c.outbound if round_grid.present == 0 else c.back %}<a href="/trips/{{ trip.id }}?{{ days_qs }}&amp;day={{ link_day }}">€{{ "%.0f" | format(c.total) }}{% if best %}<span class="sr-only"> (best)</span>{% endif %}</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+{% endfor %}</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</details>
+{% endif %}

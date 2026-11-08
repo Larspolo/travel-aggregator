@@ -24,7 +24,7 @@ from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, req
 from app.backup import BACKUP_MAX_AGE, newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
-from app.days import day_summary
+from app.days import day_summary, return_grid
 from app.timeline import timeline
 from app.db import get_session
 from app.target import at_target
@@ -409,6 +409,26 @@ def journey(session: Session, trip: Trip, weights: Weights, places, now: datetim
     return {"directions": directions, "total": total, "early": early_any and len(parts) == 2}
 
 
+def round_trip_grid(session: Session, trip: Trip, days, places, now: datetime):
+    """The grid of a round trip (#1108): rows are the outbound days, columns the return days. None when the chain of
+    the trip does not have exactly 2 trips. The present trip uses its days of the page; the other trip its own profile.
+    Returns (grid, the index of the present trip: 0 outbound, 1 return)."""
+    parts = chain(trip)
+    if len(parts) != 2:
+        return None
+    other = parts[1] if parts[0].id == trip.id else parts[0]
+    w = resolve_weights(session, other, {}, None)[0]
+    stale_before = now - timedelta(hours=w.stale_hours)
+    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == other.id, Itinerary.hidden.is_(False))
+                          .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
+    rates, counts = load_rates(session), fare_travelers(session, its)
+    rows = [(it, *row_cost(it, it.fares, places, w, stale_before, rates, counts)) for it in its if it.fares]
+    other_days = day_summary(rows, other.date_from, other.date_to, lambda it: depart_day(it) if it.legs else None)
+    present = 0 if parts[0].id == trip.id else 1
+    outbound, back = (days, other_days) if present == 0 else (other_days, days)
+    return {"grid": return_grid(outbound, back), "present": present}
+
+
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
               overrides: dict = Depends(weight_query),
@@ -528,6 +548,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     trip.viewed_at = now  # only the full view; an HX-Request keeps it (#1090)
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
+    context["round_grid"] = round_trip_grid(session, trip, context["days"], places, now)
     context["coverage"] = trip_coverage(session, trip)  # the search status and link per source (#318, #967)
     context["flash"] = request.session.pop("flash", None)
     context["share_link"] = request.session.pop("share_link", None)  # once after "Share" (#903)  # a message of the last action, for example an import
