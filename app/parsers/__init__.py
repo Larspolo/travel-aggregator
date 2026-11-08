@@ -29,10 +29,12 @@ def parser_classes() -> dict[str, type]:
     from app.parsers.flixbus import FlixbusParser
     from app.parsers.kiwi import KiwiParser
     from app.parsers.ns import NsParser
+    from app.parsers.oebb import OebbParser
     from app.parsers.sncf import SncfParser
     from app.parsers.trainline import TrainlineParser
 
-    return {c.source: c for c in (BahnParser, NsParser, FlixbusParser, KiwiParser, TrainlineParser, SncfParser, EurostarParser)}
+    return {c.source: c for c in (BahnParser, NsParser, FlixbusParser, KiwiParser, TrainlineParser, SncfParser, EurostarParser,
+                                    OebbParser)}
 
 
 def all_sources() -> list[str]:
