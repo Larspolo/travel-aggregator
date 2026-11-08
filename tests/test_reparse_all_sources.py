@@ -43,7 +43,7 @@ SOURCES = _parser_sources()
 
 
 def test_every_parser_source_has_a_parser():
-    assert len(SOURCES) == 4, SOURCES
+    assert len(SOURCES) == 5, SOURCES
     for source in SOURCES:
         assert get_parser(source) is not None, source
 
