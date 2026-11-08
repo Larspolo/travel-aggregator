@@ -61,10 +61,16 @@ def setting(session: Session, key: str, default: str = "") -> str:
     return row.value if row is not None else default
 
 
+def _money(amount: Decimal) -> str:
+    """An amount with 2 decimals: the ingest body gives Decimal("78.0") for JSON 78.00 (#868)."""
+    return f"{amount:.2f}"
+
+
 def _line(d: PriceDrop) -> str:
     if d.old_price is None:
-        return f"{d.fare_name or '-'} ({d.source}): {d.currency} {d.new_price}"
-    return f"{d.fare_name or '-'} ({d.source}): {d.currency} {d.old_price} → {d.currency} {d.new_price}"
+        return f"{d.fare_name or '-'} ({d.source}): {d.currency} {_money(d.new_price)}"
+    return (f"{d.fare_name or '-'} ({d.source}): {d.currency} {_money(d.old_price)} → "
+            f"{d.currency} {_money(d.new_price)}")
 
 
 def webpush_ready() -> bool:
