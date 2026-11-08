@@ -11,6 +11,7 @@ import uvicorn
 
 from app.auth import make_password_hash
 from app.models import Itinerary, Leg, Trip
+from tests.browser_wait import wait_js
 
 pytestmark = pytest.mark.slow
 PASSWORD = "pw"
@@ -64,8 +65,8 @@ def login(page, live):
 def test_the_saved_upcoming_page_opens_offline(live, page):
     login(page, live)
     page.goto(live + "/upcoming")
-    page.wait_for_function("navigator.serviceWorker.ready.then(r => !!r.active)")
-    page.wait_for_function(f"{CACHED}.then(p => p.includes('/upcoming'))")
+    wait_js(page, "navigator.serviceWorker.ready.then(r => !!r.active)")
+    wait_js(page, f"{CACHED}.then(p => p.includes('/upcoming'))")
     cached = page.evaluate(CACHED)
     assert all(p == "/upcoming" or p.startswith("/static/") for p in cached) and "/static/app.css" in cached
     page.context.set_offline(True)
@@ -77,10 +78,10 @@ def test_the_saved_upcoming_page_opens_offline(live, page):
 def test_log_out_deletes_the_saved_upcoming_page(live, page):
     login(page, live)
     page.goto(live + "/upcoming")
-    page.wait_for_function("navigator.serviceWorker.ready.then(r => !!r.active)")
-    page.wait_for_function(f"{CACHED}.then(p => p.includes('/upcoming'))")
+    wait_js(page, "navigator.serviceWorker.ready.then(r => !!r.active)")
+    wait_js(page, f"{CACHED}.then(p => p.includes('/upcoming'))")
     page.goto(live + "/logout")
-    page.wait_for_function("caches.keys().then(k => !k.includes('upcoming-v1'))")
+    wait_js(page, "caches.keys().then(k => !k.includes('upcoming-v1'))")
     page.context.set_offline(True)
     page.goto(live + "/upcoming")
     body = page.inner_text("body")
@@ -91,7 +92,7 @@ def test_no_earlier_visit_shows_the_offline_answer(live, page):
     login(page, live)
     # a service worker from another page (as push.js on the settings page), but no visit of /upcoming
     page.evaluate("navigator.serviceWorker.register('/sw.js')")
-    page.wait_for_function("navigator.serviceWorker.ready.then(r => !!r.active)")
+    wait_js(page, "navigator.serviceWorker.ready.then(r => !!r.active)")
     page.context.set_offline(True)
     page.goto(live + "/upcoming")
     body = page.inner_text("body")
