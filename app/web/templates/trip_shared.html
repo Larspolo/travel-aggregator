@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}{{ trip.title }} · shared trip{% endblock %}
+{% block nav %}{% endblock %}
+{% block content %}
+{{ ui.page_header(trip.title, subtitle=((trip.origin_text or "?") ~ " → " ~ (trip.destination_text or "?")) if (trip.origin_text or trip.destination_text) else none) }}
+<p class="muted">A read-only list of the offers, best effective cost first.</p>
+{% if not rows %}<p class="card">No offers yet.</p>{% endif %}
+<ol class="shared-rows">
+{% for it, fare, cost in rows %}
+  {% set first, last = it.legs[0], it.legs[-1] %}
+  {% set dep, arr = first.depart_at | local(first.depart_offset_min), last.arrive_at | local(last.arrive_offset_min) %}
+  <li class="card shared-row">
+    <div class="route-name">{{ first.from_name }} → {{ last.to_name }}</div>
+    <div class="facts">{{ dep.strftime("%a %d %b %H:%M") }} → {{ arr.strftime("%H:%M") }}{% set days = arr | day_gap(dep) %}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}
+      <span class="muted">· {{ (it.mode_summary or "").replace("+", ", ") }} · {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }} · {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }}</span></div>
+    <div><strong>{{ fare.latest_price | money(fare.currency) }}</strong> · effective cost <strong>{{ "no rate" if cost.no_rate else cost.total | money }}</strong></div>
+    <div class="breakdown muted">{{ format_breakdown(cost) }}</div>
+  </li>
+{% endfor %}
+</ol>
+{% endblock %}
