@@ -963,6 +963,9 @@ A score profile stores the weights of the sliders under a name.
   Set the default on `/profiles`.
 - A trip can have its own profile. Choose it in the trip edit form `/trips/{id}/edit`.
 - The switcher "Profile" on the trip page (`/trips/{id}?profile=<id>`) selects a profile for that page.
+- The trip page shows "Best by profile" when you have two or more profiles. It lists the best offer of each profile
+  with its time and its total cost. The name of each profile is a link that selects that profile, and the active
+  profile is marked "(active)". With one profile, the section does not show.
 
 When the page ranks the offers, a value comes from the first source that has it, in this order:
 
