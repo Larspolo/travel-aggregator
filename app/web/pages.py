@@ -27,6 +27,7 @@ from app.currency import by_eur, load_rates, to_eur
 from app.days import day_summary
 from app.timeline import timeline
 from app.db import get_session
+from app.target import at_target
 from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
@@ -454,6 +455,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["drops"] = trip_drops(session, trip_id)  # the drops since the last full view (#355)
     trend = trip_trend(session, trip_id)  # the cheapest price per day (#851): a chart for 2 or more days
     context["trend"] = trend_chart(trend) if len(trend) >= 2 else None
+    context["at_target"] = at_target(session, trip)  # the fares at or below the target price (#847)
     mark_seen(session, trip_id)
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)

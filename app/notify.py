@@ -41,8 +41,9 @@ class PriceDrop:
     fare_name: str | None
     source: str
     currency: str
-    old_price: Decimal
+    old_price: Decimal | None  # None: a new fare, or the old price was in another currency
     new_price: Decimal
+    target: bool = False  # the new price crosses the target price of the trip (#848)
 
 
 @dataclass(frozen=True)
@@ -61,6 +62,8 @@ def setting(session: Session, key: str, default: str = "") -> str:
 
 
 def _line(d: PriceDrop) -> str:
+    if d.old_price is None:
+        return f"{d.fare_name or '-'} ({d.source}): {d.currency} {d.new_price}"
     return f"{d.fare_name or '-'} ({d.source}): {d.currency} {d.old_price} → {d.currency} {d.new_price}"
 
 
@@ -91,8 +94,10 @@ def messages(session: Session, drops: list[PriceDrop], base_url: str) -> list[Me
     for trip_id in dict.fromkeys(d.trip_id for d in drops) if targets else ():
         trip = session.get(Trip, trip_id)
         title = trip.title if trip is not None else f"trip {trip_id}"
-        text = "\n".join(_line(d) for d in drops if d.trip_id == trip_id)
-        out += [Message(channel=channel, url=url, title=f"Price drop: {title}", text=text,
+        mine = [d for d in drops if d.trip_id == trip_id]
+        text = "\n".join(_line(d) for d in mine)
+        kind = "Target price" if any(d.target for d in mine) else "Price drop"
+        out += [Message(channel=channel, url=url, title=f"{kind}: {title}", text=text,
                         click=f"{base_url.rstrip('/')}/trips/{trip_id}", keys=keys) for url, keys in targets]
     return out
 
