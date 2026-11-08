@@ -29,7 +29,7 @@ self.addEventListener("notificationclick", (event) => {
 // static files of its layout stay in one cache. All other requests go to the network unchanged.
 const CACHE = "upcoming-v1";
 const PAGE = "/upcoming";
-const STATIC = ["/static/app.css", "/static/icons.svg", "/static/fonts/inter-regular.woff2",
+const STATIC = ["/static/app.css", "/static/icons.svg", "/static/offline.js", "/static/fonts/inter-regular.woff2",
   "/static/fonts/inter-medium.woff2", "/static/fonts/inter-semibold.woff2", "/static/fonts/inter-bold.woff2"];
 const OFFLINE = "<!doctype html><meta charset=utf-8><meta name=viewport content=\"width=device-width\">" +
   "<link rel=stylesheet href=/static/app.css><title>Offline – travel-aggregator</title>" +
