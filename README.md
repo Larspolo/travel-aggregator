@@ -677,6 +677,18 @@ The parser reads the currency from the search address of the page. It takes the 
 each connection. A connection that the parser cannot read goes to the errors of the capture and is not stored as an
 offer.
 
+### Trainline userscript
+
+The Trainline userscript captures the search results of thetrainline.com: the journeys, their times and their prices.
+It reads only the responses that the Trainline page itself gets. It sends no request to thetrainline.com.
+
+To install it, add the file `userscripts/trainline.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On thetrainline.com, search for a journey.
+The panel shows the number of captured offers.
+
+The date of birth of each passenger is not sent to your server. A train that bahn.de also sells is one row on the
+trip page: its offers from bahn.de and from Trainline count as the same itinerary.
+
 ### Parse result of a capture
 
 The column "Captured" shows the age of each capture, for example "2 h ago". Point at the age to see the full UTC time.
