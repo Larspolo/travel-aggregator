@@ -16,7 +16,6 @@ from tests.test_trip_page import BODY, offer, trip  # noqa: F401  (trip is a fix
 NTFY = "https://ntfy.example/topic"
 NOW = datetime(2026, 11, 8, 12, 0, tzinfo=UTC)
 DAY = timedelta(hours=24)
-PASSWORD = "Pw-7f3a9c-known"
 SECRET_KEY = "secret-key-known-41"
 SMTP_PASSWORD = "smtp-known-41"
 
@@ -115,15 +114,17 @@ def test_channel_none_sends_no_message(trip, sent, tmp_path, sessions, monkeypat
 def test_no_message_holds_a_password_a_secret_or_a_token(trip, sent, tmp_path, sessions, monkeypatch,  # noqa: F811
                                                          migrated_url):
     client, auth, tid = trip
-    # The test database uses trust authentication: the password in the URL is known to the app, not checked.
-    db_url = make_url(migrated_url).set(password=PASSWORD).render_as_string(hide_password=False)
-    assert PASSWORD in db_url
-    known = [PASSWORD, SECRET_KEY, SMTP_PASSWORD, auth["Authorization"].split(" ", 1)[1], db_url]
+    # The URL of the test database as the app has it. In CI it has a password (the server checks it); a local cluster
+    # uses trust authentication and gives none. The messages must not hold that password or the URL.
+    password = make_url(migrated_url).password or ""
+    known = [migrated_url, password, SECRET_KEY, SMTP_PASSWORD, auth["Authorization"].split(" ", 1)[1]]
+    known = [value for value in known if value]
+    assert migrated_url in known
 
-    _pg_dump(monkeypatch, 1, f"pg_dump: error: connection to {db_url} failed: password {PASSWORD} rejected")
-    backup.daily_step(db_url, tmp_path, DAY, now=NOW)
+    _pg_dump(monkeypatch, 1, f"pg_dump: error: connection to {migrated_url} failed: password {password} rejected")
+    backup.daily_step(migrated_url, tmp_path, DAY, now=NOW)
     _pg_dump(monkeypatch, 0)
-    backup.daily_step(db_url, tmp_path, DAY, now=NOW + timedelta(hours=26))
+    backup.daily_step(migrated_url, tmp_path, DAY, now=NOW + timedelta(hours=26))
     old = datetime.now(UTC) - timedelta(days=4)
     directory = tmp_path / "bk"
     directory.mkdir(exist_ok=True)
