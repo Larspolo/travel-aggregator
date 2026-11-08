@@ -1,28 +1,8 @@
 {% extends "base.html" %}
 {% import "ui.html" as ui %}
-{% block title %}Trips – travel-aggregator{% endblock %}
-{% block content %}
-{% call ui.page_header("Archived trips" if archived else "Trips", back=("/", "Trips") if archived else none) %}
-  {% if not archived and archived_count %}<a class="btn" href="/?archived=1">Archived trips ({{ archived_count }})</a>{% endif %}
-  <a class="btn" href="/trips/import">{{ ui.icon("upload") }}Import trip</a>
-  <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
-{% endcall %}
-<form class="trip-find" method="get" action="/" role="search">
-  <label for="trip-q">Find trips</label>
-  <input type="search" id="trip-q" name="q" value="{{ q }}" maxlength="200">
-  {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
-  <button class="btn" type="submit">Find</button>
-</form>
-{% if failing %}
-<div class="source-warning" role="alert">
-  {% for h in failing %}
-  <p class="chip warn"><a href="/captures?{{ {"failed": 1, "source": h.source} | urlencode }}">{{ h.source }}: the last {{ h.failed_after }} capture{{ "" if h.failed_after == 1 else "s" }} failed</a></p>
-  {% endfor %}
-</div>
-{% endif %}
-{% if lines %}
+{% macro trip_grid(rows) %}
 <div class="trip-grid">
-  {% for kind, t, note in lines %}
+  {% for kind, t, note in rows %}
     {% if kind == "total" %}
     <p class="journey-total">Journey price total: {{ note }}</p>
     {% else %}
@@ -46,6 +26,36 @@
     {% endif %}
   {% endfor %}
 </div>
+{% endmacro %}
+{% block title %}Trips – travel-aggregator{% endblock %}
+{% block content %}
+{% call ui.page_header("Archived trips" if archived else "Trips", back=("/", "Trips") if archived else none) %}
+  {% if not archived and archived_count %}<a class="btn" href="/?archived=1">Archived trips ({{ archived_count }})</a>{% endif %}
+  <a class="btn" href="/trips/import">{{ ui.icon("upload") }}Import trip</a>
+  <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
+{% endcall %}
+<form class="trip-find" method="get" action="/" role="search">
+  <label for="trip-q">Find trips</label>
+  <input type="search" id="trip-q" name="q" value="{{ q }}" maxlength="200">
+  {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
+  <button class="btn" type="submit">Find</button>
+</form>
+{% if failing %}
+<div class="source-warning" role="alert">
+  {% for h in failing %}
+  <p class="chip warn"><a href="/captures?{{ {"failed": 1, "source": h.source} | urlencode }}">{{ h.source }}: the last {{ h.failed_after }} capture{{ "" if h.failed_after == 1 else "s" }} failed</a></p>
+  {% endfor %}
+</div>
+{% endif %}
+{% if lines %}
+{{ trip_grid(lines) }}
+{% if archived_lines %}
+<h2>In the archive ({{ archived_found }})</h2>
+{{ trip_grid(archived_lines) }}
+{% endif %}
+{% elif archived_lines %}
+<h2>In the archive ({{ archived_found }})</h2>
+{{ trip_grid(archived_lines) }}
 {% elif q %}
 {% call ui.empty_state('No trip matches "' ~ q ~ '".') %}
   <a class="btn" href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a>
