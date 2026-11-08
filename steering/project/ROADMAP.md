@@ -52,7 +52,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A search on Eurostar shows its offers on the trip page
 - [ ] `capture:sncf` (#955) SNCF Connect (sncf-connect.com)
   - A search on SNCF Connect shows its offers on the trip page
-- [ ] `capture:trainline` (#884) Trainline (thetrainline.com)
+- [ ] `capture:trainline` (#959) Trainline (thetrainline.com)
   - A search on Trainline shows its offers on the trip page; the offers can repeat those of bahn.de (`capture:merge`)
 
 ## 2. Rank offers by effective cost
@@ -115,11 +115,11 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Add to calendar" on a booked row downloads one file; a calendar app shows each leg with its local times, its train, bus or flight number and its places
 - [x] `trip:copy` (#800) Copy a trip or a journey for a new date: the places, the travelers, the profile and the note, with no dates and no offers
   - "Copy trip" on the edit page of Amsterdam → Zürich opens a new trip Amsterdam → Zürich with the same profile and no offers; "Copy journey" copies all linked trips of a round trip or a multi-city journey
-- [ ] `trip:timeline` (#812) A timeline of the itineraries of a trip: each itinerary is a bar from its departure to its arrival on one time axis per day, with its legs and transfers
+- [x] `trip:timeline` (#812) A timeline of the itineraries of a trip: each itinerary is a bar from its departure to its arrival on one time axis per day, with its legs and transfers
   - The owner sees at a glance which options leave after 08:00 and arrive before 18:00, and a click on a bar opens its row in the table
-- [ ] `trip:a11y` (#816) All pages work with a keyboard and a screen reader: a visible focus, a label for each control, and an automatic check of each page
+- [x] `trip:a11y` (#816) All pages work with a keyboard and a screen reader: a visible focus, a label for each control, and an automatic check of each page
   - Each page has no "serious" or "critical" axe-core finding at 1280 px and 390 px, and the weights, the row expand, the menus and the dropdowns work with Tab, Enter and Escape
-- [ ] `trip:target` (#845) A target price per trip: a mark on the trips list and the trip page for the fares at or below it, and a notification by the channel of `trip:notify` when a capture brings a fare to it
+- [x] `trip:target` (#845) A target price per trip: a mark on the trips list and the trip page for the fares at or below it, and a notification by the channel of `trip:notify` when a capture brings a fare to it
   - A target of €80 marks a fare of €78 as "at target", and the capture that brings it to €78 sends one message to the owner's phone
 - [x] `trip:trend` (#849) The price trend of a trip: a chart of the cheapest price of the trip per day, from the price history
   - The owner sees if the cheapest price of a trip goes up or down from day to day, and the lowest and highest value
@@ -127,6 +127,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - After two bookings, one page lists both journeys in date order, each with its legs and its calendar link
 - [x] `trip:share` (#902) A read-only link of a trip for a travel partner, with no login, that the owner can revoke
   - The link shows the ranked rows and no notes, tokens or captures (P5); "Revoke" on the trip page makes the link show "not found"
+- [ ] `trip:coverage` (#966) The search status of each source on the trip page: the last search of the trip, its offer count, or "not searched yet" with the search link
+  - A trip with only bahn.de captures shows "bahn.de: searched 2 h ago, 14 offers" and "NS International: not searched yet" with its search link
 
 ## 4. Run it on my home server
 
@@ -149,5 +151,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Export CSV" on the trip page gives one row per fare with the price, the times, the source and the effective cost
 - [x] `host:import` (#775) Import the JSON export of a trip (`host:export`) into an instance: the trip, its itineraries, fares and price history
   - A trip exported from one instance and imported into another shows the same rows, prices and price history; a second import of the same file makes no duplicate
-- [ ] `host:webapp` (#795) Install the app on the home screen of a phone: a web app manifest and icons, so that it opens as an app and Web Push (`trip:notify`) works on an iPhone (Safari sends Web Push only to an app on the Home Screen)
+- [x] `host:webapp` (#795) Install the app on the home screen of a phone: a web app manifest and icons, so that it opens as an app and Web Push (`trip:notify`) works on an iPhone (Safari sends Web Push only to an app on the Home Screen)
   - "Add to Home Screen" on a phone adds the app with its own icon and name, it opens with no browser bar, and the settings page of the installed app turns on Web Push
+- [ ] `host:offline` (#962) The installed app opens the Upcoming page with no network: the booked journeys of the last online visit, with their legs, local times and numbers
+  - In flight mode, the app on the phone opens Upcoming with the journeys and "Offline: saved at 14:05"; after "Log out", it shows no journey
