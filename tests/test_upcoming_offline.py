@@ -74,6 +74,19 @@ def test_the_saved_upcoming_page_opens_offline(live, page):
     assert "Amsterdam → Berlin" in text and "08:12" in text and "IC 77" in text
 
 
+def test_log_out_deletes_the_saved_upcoming_page(live, page):
+    login(page, live)
+    page.goto(live + "/upcoming")
+    page.wait_for_function("navigator.serviceWorker.ready.then(r => !!r.active)")
+    page.wait_for_function(f"{CACHED}.then(p => p.includes('/upcoming'))")
+    page.goto(live + "/logout")
+    page.wait_for_function("caches.keys().then(k => !k.includes('upcoming-v1'))")
+    page.context.set_offline(True)
+    page.goto(live + "/upcoming")
+    body = page.inner_text("body")
+    assert "No saved journeys" in body and "Amsterdam" not in body and "Offline trip" not in body
+
+
 def test_no_earlier_visit_shows_the_offline_answer(live, page):
     login(page, live)
     # a service worker from another page (as push.js on the settings page), but no visit of /upcoming

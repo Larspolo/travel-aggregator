@@ -18,4 +18,9 @@
     </form>
   </section>
 </div>
+<script>
+  // Log out: the device keeps no copy of the Upcoming page (#964, P5). Not Clear-Site-Data: it also removes the
+  // service worker and the Web Push subscription (#514).
+  if ("caches" in window) caches.delete("upcoming-v1");
+</script>
 {% endblock %}
