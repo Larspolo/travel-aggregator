@@ -26,7 +26,7 @@ from app.backup import BACKUP_MAX_AGE, newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
-from app.days import day_summary, return_grid
+from app.days import day_summary, return_grid, with_day_prices
 from app.timeline import timeline
 from app.db import get_session
 from app.target import at_target
@@ -44,7 +44,7 @@ from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_e
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
-from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting,
+from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting,
                         SourceFee, Trip)
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
                         REMINDER_DAYS_KEY, REMINDER_NOT_SENT, SOURCE_ALERT_KEY, alert_messages, deliver, setting,
@@ -605,6 +605,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         context["profile_best"] = best_by_profile(session, trip)
     context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
+    context["days"] = with_day_prices(context["days"], session.scalars(  # the day prices of bahn.de (#1198)
+        select(DayPrice).where(DayPrice.trip_id == trip.id)).all())
     # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
     context["timeline"] = timeline(rows, lambda it: depart_day(it) if it.legs else None)
     context["timeline_rows"] = {r[0].id: r for r in rows}

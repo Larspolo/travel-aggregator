@@ -8,6 +8,8 @@
   {% if d.best %}
   <a class="chip day{% if view.day == d.day %} selected{% endif %}" href="/trips/{{ trip.id }}?{{ days_qs }}&amp;day={{ d.day }}" hx-get="/trips/{{ trip.id }}?{{ days_qs }}&amp;day={{ d.day }}" hx-target="#table" hx-push-url="true"{% if view.day == d.day %} aria-current="true"{% endif %}>
     <span class="day-date">{{ when }}</span> <span class="day-best" title="Best effective cost">{{ format_total(d.best[2]) }}</span> <span class="day-cheapest muted" title="Cheapest price">{{ d.cheapest[2].price | money("EUR") }}</span></a>
+  {% elif d.day_price %}
+  <span class="chip day empty day-price" title="An estimate: no captured connection"><span class="day-date">{{ when }}</span> <span class="muted">from {{ d.day_price.price | money(d.day_price.currency) }} ({{ d.day_price.source }} day price)</span></span>
   {% else %}
   <span class="chip day empty"><span class="day-date">{{ when }}</span> <span class="muted">no offers</span></span>
   {% endif %}

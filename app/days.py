@@ -2,7 +2,7 @@
 the cheapest price and the count of the offers of that day."""
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any
@@ -16,6 +16,18 @@ class Day:
     best: Any | None  # the (itinerary, fare, cost) row with the lowest cost.total; None for a day with no row
     cheapest: Any | None  # the row with the lowest cost.price; None for a day with no row
     count: int  # the offers of the day, hidden offers excluded
+    day_price: Any | None = None  # a stored day price (#1198) of a day with no row: an estimate, not a row
+
+
+def with_day_prices(days: list[Day], prices: Sequence[Any]) -> list[Day]:
+    """Add the cheapest stored day price (`models.DayPrice`, #1197) to each day with no row (#1198). A day with rows
+    does not change."""
+    cheapest: dict[str, Any] = {}
+    for p in prices:
+        key = p.day.isoformat()
+        if key not in cheapest or p.price < cheapest[key].price:
+            cheapest[key] = p
+    return [replace(d, day_price=cheapest.get(d.day)) if d.best is None and d.day in cheapest else d for d in days]
 
 
 def day_summary(rows: Sequence[tuple], date_from: date | None, date_to: date | None,
