@@ -309,6 +309,11 @@ A wide table scrolls sideways in its own box: this is the trip table and the com
 The sliders, the filter fields and the buttons of the trip page are large enough for a finger: each is at least 40 px high.
 The fields under "Advanced" on the trip page show in two columns, also at a phone width.
 
+To add the app to the home screen of a phone, open it in the browser and use "Add to Home Screen" (in Safari on an
+iPhone: tap Share, then "Add to Home Screen"). The app then has its name, its icon and its colours from a web app
+manifest (`/manifest.webmanifest`). Each page links this manifest. On an iPhone or iPad, Web Push works only from the
+app on the home screen, not in a browser tab (see "Messages outside the app").
+
 ### Compare offers in the trip table
 
 The table of `/trips/{id}` has one row per journey. The same train from bahn.de and NS International shows once, with the fares of both sources in its "Legs and fares". Two offers are one journey when their modes and service numbers are the same, and their first departure and last arrival are at the same UTC time (the carrier and the times of the legs between do not count). The pin, hide, booked, note and price history are per journey.
