@@ -23,7 +23,7 @@
 {% else %}<p role="alert" class="chip warn backup-state">No backup yet.</p>{% endif %}
 {% endcall %}
 {% call ui.card("Export") %}
-<p><a class="btn" href="/settings/export.json" download>Export the settings</a></p>
+<p><a class="btn" href="/settings/export.json" download>Export the settings</a> <a class="btn" href="/settings/import">Import settings</a></p>
 <p class="help">One JSON file with the profiles, places, exchange rates, source fees and settings. It has no tokens, passwords or message addresses.</p>
 {% endcall %}
 {% endblock %}
