@@ -656,6 +656,16 @@ To travel via a place, split the trip there. Use the form "Split via" on the edi
 - If one itinerary in the file is not valid, the whole import stops and no row is added.
 - Example: to move a trip from the preview server or from an old install to your own instance, open the trip on the old install and choose "Export JSON". On your instance, open "Import trip", select the file, keep "A new trip" and choose "Import". Open the trip to check the counts. A later import of the same file into the same trip adds nothing.
 
+### Export and import the settings
+
+- The settings page `/settings` has the button "Export the settings". It downloads one JSON file, `travel-aggregator-settings-<date>.json`. The import page `/settings/import` opens with the button "Import settings".
+- The file has the score profiles with their weights, the places with their access and egress times and costs, the exchange rates, the booking fees of the sources, and the settings of the retention period, the reminders and the source-failure messages.
+- The file has no secret, no address and no state. The channel of the price-drop messages (its ntfy topic URL and e-mail address), the push subscriptions and the API tokens are not in the file. Set them again on your instance (`/settings/messages`, `/settings`, `/tokens`).
+- The file must be version 1. A file with an unknown setting, a wrong value or a missing field gives an error, and no row changes.
+- The import rule: the file wins. Each profile, place, rate, fee and setting of the file replaces the value of the same name on your instance. The rows that are not in the file stay.
+- At most one profile of the file can be the default.
+- To move your instance to an empty database: export the settings and the trips, install the new instance, import the settings first, then import each trip under "Import a trip".
+
 ### Share a trip read-only
 
 A trip has one read-only link for a travel partner. On `/trips/{id}`, click "Share". The page shows the new link once:
