@@ -102,13 +102,19 @@ def suggest_trip(offers: list[OfferIn]) -> dict | None:
     return {"title": title, "origin_text": origin, "destination_text": destination, "date_from": day.isoformat()}
 
 
+def _has_place(trip: Trip) -> bool:
+    return any(text and text.strip() for text in (trip.origin_text, trip.destination_text))
+
+
 def best_trip(trips: list[Trip], offers: list[OfferIn], selected: Trip) -> Trip:
     """The trip for the offers of an `auto_trip` capture (#719): the selected trip when it matches; else the one
     trip with the status "planning" that matches (of 2 or more: the shortest date range, then the newest); else the
-    selected trip (the caller gives the warning of #555)."""
+    selected trip (the caller gives the warning of #555). A trip with no origin and no destination matches each offer,
+    so it is never chosen in place of the selected trip (#752)."""
     if mismatch(selected, offers) is None:
         return selected
-    matches = [t for t in trips if t.status == "planning" and t.id != selected.id and mismatch(t, offers) is None]
+    matches = [t for t in trips if t.status == "planning" and t.id != selected.id and _has_place(t)
+               and mismatch(t, offers) is None]
     if not matches:
         return selected
 
