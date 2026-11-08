@@ -11,7 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.api import health, ingest, trips
 from app.config import get_settings
 from app.schemas import MAX_BODY_BYTES
-from app.web import calendar, export, manual, pages, reparse, sources, trip_import, userscripts
+from app.web import calendar, export, manual, pages, reparse, sources, trip_import, upcoming, userscripts
 
 app = FastAPI(title="travel-aggregator")
 # With no SECRET_KEY, a random key: the sessions then end at each restart.
@@ -45,5 +45,6 @@ app.include_router(sources.router)
 app.include_router(reparse.router)
 app.include_router(export.router)
 app.include_router(calendar.router)
+app.include_router(upcoming.router)
 app.include_router(userscripts.router)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "web" / "static"), name="static")
