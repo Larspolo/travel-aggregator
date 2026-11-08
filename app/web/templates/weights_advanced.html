@@ -1,10 +1,10 @@
 {# The "Advanced" weights (P2) of the trip page and the profile page (#1013); needs `weights`. #}
     <fieldset><legend>Hour tiers</legend>
-      <label>Tier 1 after (min, 0 = off)
+      <label>Tier 1 from min (0 = off)
         <input type="number" name="hour_tier1_after_min" min="0" max="2880" step="1" value="{{ weights.hour_tier1_after_min }}"></label>
       <label>Tier 1 €/h
         <input type="number" name="hour_tier1_markup" min="0" max="100" step="0.01" value="{{ weights.hour_tier1_markup }}"></label>
-      <label>Tier 2 after (min, 0 = off)
+      <label>Tier 2 from min (0 = off)
         <input type="number" name="hour_tier2_after_min" min="0" max="2880" step="1" value="{{ weights.hour_tier2_after_min }}"></label>
       <label>Tier 2 €/h
         <input type="number" name="hour_tier2_markup" min="0" max="100" step="0.01" value="{{ weights.hour_tier2_markup }}"></label>
