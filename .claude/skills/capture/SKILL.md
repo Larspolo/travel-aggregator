@@ -159,7 +159,9 @@ request body), fix the cause before the end of the run:
   gives 2 adults (27–64), no discount, and `kl=1` 1st class. The address bar has the hash only, so a change of it
   in the same tab is no new page load: open the start page first, then the results URL.
 - NS International: the search page `/en/traintickets-v3/#/search/<from code>/<to code>/<yyyymmdd>?pax=A` is 1
-  adult. Do not guess `pax` for more travelers (blocked, #763): use the form.
+  adult; `?pax=A,A` is 2 adults (the site made it, 2026-11-08). `pax=AA` is invalid and gave an Akamai block (#763).
+  The start-page form has no travelers: search, then "1 passenger" → "Add passenger" → "Continue" (one more search).
+  The "Continue" button of that drawer is under the panel of the userscript: click the visible strip below it.
 - Flixbus (`shop.flixbus.nl`): the results URL `/search?departureCity=<uuid>&arrivalCity=<uuid>&rideDate=<dd.mm.yyyy>&adult=<n>`
   opens the search. The search is `GET global.api.flixbus.com/search/service/v4/search` with `products={"adult":n}`.
   When the destination is chosen in the start-page form, the site searches at once for today: that counts. Chrome
