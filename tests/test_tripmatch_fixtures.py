@@ -28,6 +28,7 @@ CASES = [
     ("flixbus.com", "search-amsterdam-berlin.json", "Amsterdam", "Berlin"),
     ("flixbus.com", "search-amsterdam-paris.json", "Amsterdam", "Paris"),
     ("flixbus.com", "search-utrecht-berlin.json", "Utrecht", "Berlin"),
+    ("kiwi.com", "return-amsterdam-lisbon.json", "Amsterdam", "Lisbon"),
     ("kiwi.com", "search-amsterdam-lisbon.json", "Amsterdam", "Lisbon"),
     ("kiwi.com", "search-amsterdam-zurich.json", "Amsterdam", "Zurich"),
 ]
