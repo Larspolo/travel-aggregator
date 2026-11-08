@@ -1,4 +1,9 @@
-"""The parser of a Kiwi.com one-way search response (SearchOneWayItinerariesQuery, tests/fixtures/kiwi.com/README.md).
+"""The parser of a Kiwi.com search response: one way (SearchOneWayItinerariesQuery) or return
+(SearchReturnItinerariesQuery, #1004), tests/fixtures/kiwi.com/README.md.
+
+A return itinerary gives an offer of its outbound flights only, with the price of the return ticket and a fare name
+with " return": an offer of a trip has one direction (a return trip is a second trip, #340), and Kiwi.com sells the
+two directions as one ticket.
 
 Each itinerary is one journey. Each fare (`bookingOptions.edges[].node`) is one offer. The times have no airport time
 zone table: the offset of an end of a segment is `localTime` minus `utcTimeIso`. The parser sends no request (P1).
@@ -43,7 +48,7 @@ def _time(station: dict) -> datetime:
 
 class KiwiParser:
     source = "kiwi.com"
-    version = "1.1.0"
+    version = "1.2.0"
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"currency", "response"} or of the response body only: one per fare."""
@@ -51,10 +56,13 @@ class KiwiParser:
             raise ValueError("the kiwi.com payload is not an object")
         response = raw.get("response", raw)
         search = response.get("data") if isinstance(response, dict) else None
-        search = search.get("onewayItineraries") if isinstance(search, dict) else None
+        if isinstance(search, dict) and "returnItineraries" in search:
+            search = search.get("returnItineraries")
+        else:
+            search = search.get("onewayItineraries") if isinstance(search, dict) else None
         itins = search.get("itineraries") if isinstance(search, dict) else None
         if not isinstance(itins, list):
-            raise ValueError("the kiwi.com payload has no data.onewayItineraries.itineraries list")
+            raise ValueError("the kiwi.com payload has no data.onewayItineraries or data.returnItineraries itineraries list")
         currency = str(raw.get("currency") or "EUR").upper()
         result = ParseResult(travelers=_travelers(raw.get("passengers")))
         for i, it in enumerate(itins):
@@ -73,7 +81,8 @@ class KiwiParser:
     def _legs(self, it: dict) -> list[LegIn]:
         """One leg per segment. A segment with a guarantee starts a new ticket (a self-transfer, #176)."""
         legs, ticket = [], 1
-        for k, sector_segment in enumerate(it["sector"]["sectorSegments"]):
+        sector = it["outbound"] if "outbound" in it else it["sector"]
+        for k, sector_segment in enumerate(sector["sectorSegments"]):
             seg = sector_segment["segment"]
             if k and (sector_segment.get("guarantee") is not None or seg.get("guarantee") is not None):
                 ticket += 1
@@ -95,13 +104,13 @@ class KiwiParser:
 
     def _offers(self, it: dict, currency: str) -> list[OfferIn]:
         legs = self._legs(it)
-        offers = []
+        offers, suffix = [], " return" if "outbound" in it else ""
         for edge in it["bookingOptions"]["edges"]:
             node = edge["node"]
             offers.append(OfferIn(
                 price_amount=Decimal(str(node["price"]["amount"])).quantize(Decimal("0.01")),
                 price_currency=currency,
-                fare_name=node["itineraryProvider"]["code"] or None,
+                fare_name=(node["itineraryProvider"]["code"] or "") + suffix or None,
                 legs=legs,
                 booking_url=BOOKING_BASE + node["bookingUrl"],
             ))
