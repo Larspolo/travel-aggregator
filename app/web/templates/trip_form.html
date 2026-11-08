@@ -40,7 +40,7 @@
 <form class="card" method="post" action="/trips/{{ trip_id }}/split">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   {% if split_error %}<p class="error" role="alert">{{ split_error }}</p>{% endif %}
-  <label>Split via <input type="text" name="via" maxlength="200" placeholder="Köln"></label>
+  <div class="field"><label for="f-via">Split via</label><input id="f-via" type="text" name="via" maxlength="200" placeholder="Köln"></div>
   <button class="btn" type="submit">Split trip</button>
 </form>
 {% endif %}
