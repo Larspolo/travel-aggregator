@@ -44,6 +44,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A search Amsterdam → Zürich on 20 December goes to the trip Amsterdam → Zürich with no change of the dropdown
 - [x] `capture:health` (#723) A status per source: the last good capture, the parser version and the failed captures after it; a warning on the trips list when the last captures of a source failed
   - When a site changes its format, the trips list shows "bahn.de: the last 3 captures failed" with a link to the failed captures
+- [ ] `capture:panel-best` (#879) The panel shows the best offer of the trip after each capture: its effective cost, and "(new)" when the search made it better
+  - After a bahn.de search with a cheaper offer, the panel shows "Best of trip: €90 (new)"; after a search with no better offer, "Best of trip: €90"
+- [ ] `capture:next-source` (#884) The next travel site as a source, by the decision #884: userscript, server parser, trimmed fixtures
+  - A search on that site shows its offers on the trip page
 
 ## 2. Rank offers by effective cost
 
@@ -109,9 +113,9 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - Each page has no "serious" or "critical" axe-core finding at 1280 px and 390 px, and the weights, the row expand, the menus and the dropdowns work with Tab, Enter and Escape
 - [ ] `trip:target` (#845) A target price per trip: a mark on the trips list and the trip page for the fares at or below it, and a notification by the channel of `trip:notify` when a capture brings a fare to it
   - A target of €80 marks a fare of €78 as "at target", and the capture that brings it to €78 sends one message to the owner's phone
-- [ ] `trip:trend` (#849) The price trend of a trip: a chart of the cheapest price of the trip per day, from the price history
+- [x] `trip:trend` (#849) The price trend of a trip: a chart of the cheapest price of the trip per day, from the price history
   - The owner sees if the cheapest price of a trip goes up or down from day to day, and the lowest and highest value
-- [ ] `trip:upcoming` An "Upcoming" page: the booked itineraries of all trips in date order, with their legs, local times and "Add to calendar"
+- [x] `trip:upcoming` (#861) An "Upcoming" page: the booked itineraries of all trips in date order, with their legs, local times and "Add to calendar"
   - After two bookings, one page lists both journeys in date order, each with its legs and its calendar link
 
 ## 4. Run it on my home server
