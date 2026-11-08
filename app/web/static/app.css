@@ -267,7 +267,7 @@ th.price { text-align: right; }
 td.capture-failed summary { display: inline-flex; }
 .scroll { overflow-x: auto; }
 /* == Trip page == */
-.search-links { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0 0 var(--space-4); font-size: var(--text-sm); }
+.search-links { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0 0 var(--space-4); font-size: var(--text-sm); }
 .best { font-weight: 600; }
 tr.return td:first-child { padding-left: 2em; }
 tr.total td { font-weight: 600; }

@@ -36,7 +36,7 @@ from app.tradeoff import break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
 from app.money import money
-from app.search_links import links_for_trip
+from app.coverage import trip_coverage
 from app.sourcehealth import failing_sources
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
@@ -511,7 +511,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     mark_seen(session, trip_id)
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
-    context["search_links"] = links_for_trip(trip)  # the search links per source (#318)
+    context["coverage"] = trip_coverage(session, trip)  # the search status and link per source (#318, #967)
     context["flash"] = request.session.pop("flash", None)
     context["share_link"] = request.session.pop("share_link", None)  # once after "Share" (#903)  # a message of the last action, for example an import
     return templates.TemplateResponse(request, "trip.html", context)

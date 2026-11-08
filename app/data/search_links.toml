@@ -6,6 +6,7 @@
 #         A place with no value gives no link for that source.
 
 [bahn]
+source = "bahn.de"
 name = "bahn.de"
 template = "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so={from}&zo={to}&hd={date}&kl=2&hza=D&s=true"
 date_format = "%Y-%m-%dT00:00:00"
@@ -15,6 +16,7 @@ Amsterdam = "Amsterdam Centraal"
 Berlin = "Berlin Hbf"
 
 [ns]
+source = "nsinternational.com"
 name = "NS International"
 template = "https://www.nsinternational.com/en/traintickets-v3/#/search/{from}/{to}/{date}?pax=A"
 date_format = "%Y%m%d"
@@ -24,6 +26,7 @@ Amsterdam = "NLASC"
 Berlin = "DEBHF"
 
 [flixbus]
+source = "flixbus.com"
 name = "Flixbus"
 template = "https://shop.flixbus.co.uk/search?departureCity={from}&arrivalCity={to}&rideDate={date}&adult=1&_locale=en_GB"
 date_format = "%d.%m.%Y"
