@@ -1,0 +1,2002 @@
+{
+"url": "https://www.thetrainline.com/api/journey-search/",
+"request": {
+"method": "POST",
+"body": {
+"passengers": [
+{
+"dateOfBirth": "REDACTED",
+"cardIds": []
+}
+],
+"isEurope": true,
+"cards": [],
+"transitDefinitions": [
+{
+"direction": "outward",
+"origin": "urn:trainline:generic:loc:5894",
+"destination": "urn:trainline:generic:loc:7630",
+"journeyDate": {
+"type": "departAfter",
+"time": "2026-12-01T09:45:00"
+}
+}
+],
+"type": "single",
+"maximumJourneys": 5,
+"includeRealtime": true,
+"transportModes": [
+"mixed"
+],
+"directSearch": false,
+"composition": [
+"through",
+"interchangeSplit"
+],
+"autoApplyCorporateCodes": false,
+"origin": "urn:trainline:generic:loc:5894",
+"destination": "urn:trainline:generic:loc:7630",
+"searchSpecificRequests": {
+"includeCheaperSlowerJourneys": true,
+"maxSplitPoints": 1
+}
+}
+},
+"response": {
+"data": {
+"journeySearch": {
+"journeys": {
+"journey-e288edb1-633f-41c4-9625-c011d28cceb9": {
+"sections": [
+"section-8e564565-e296-4a82-a2df-3026a34c8049"
+],
+"id": "journey-e288edb1-633f-41c4-9625-c011d28cceb9",
+"direction": "outward",
+"legs": [
+"leg-db173d65-52f2-43b1-afee-7cbe83e17247",
+"leg-533d6012-f248-46e7-920c-63018092d2a0"
+],
+"departAt": "2026-12-01T08:31:00+01:00",
+"arriveAt": "2026-12-01T16:26:00+01:00",
+"duration": "PT7H55M",
+"hash": "lqTMftvpSVA=",
+"hasFirstClassRecommendedStationPair": false,
+"distanceInKm": 0
+},
+"journey-c974d4d8-f3f1-4f37-bef6-3f1fa6c8f9ca": {
+"sections": [
+"section-0a7b83df-4c48-4090-b9a3-8b919992632a"
+],
+"id": "journey-c974d4d8-f3f1-4f37-bef6-3f1fa6c8f9ca",
+"direction": "outward",
+"legs": [
+"leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1"
+],
+"departAt": "2026-12-01T10:00:00+01:00",
+"arriveAt": "2026-12-01T16:50:00+01:00",
+"duration": "PT6H50M",
+"hash": "54FaQQEO5SM=",
+"hasFirstClassRecommendedStationPair": false,
+"distanceInKm": 0
+},
+"journey-bc447fe3-18db-4f76-8cb4-fbff57593298": {
+"sections": [
+"section-8edb9191-a91c-4fec-a295-233bd7bfb162"
+],
+"id": "journey-bc447fe3-18db-4f76-8cb4-fbff57593298",
+"direction": "outward",
+"legs": [
+"leg-611d39b6-4765-403d-a60b-dad26fe75b63",
+"leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef"
+],
+"departAt": "2026-12-01T10:31:00+01:00",
+"arriveAt": "2026-12-01T18:26:00+01:00",
+"duration": "PT7H55M",
+"hash": "OqMTRybzg+g=",
+"hasFirstClassRecommendedStationPair": false,
+"distanceInKm": 0
+}
+},
+"sections": {
+"section-8edb9191-a91c-4fec-a295-233bd7bfb162": {
+"alternatives": [
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-57c028ce-2409-4f59-a459-398856356304",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3fafe595-eaf8-496f-a3fc-4d82b0cb4583",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-c8768c0c-0505-44d9-84b0-d538ec93ecad",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3fac10d0-3af4-4e23-aa6e-3ebdc7129284",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-b642826a-f755-4a2a-b5c6-9faadb7fba35",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4a3890b4-9469-419c-8d93-bd80579b2cbc"
+],
+"mixedLegComforts": false,
+"id": "section-8edb9191-a91c-4fec-a295-233bd7bfb162"
+},
+"section-0a7b83df-4c48-4090-b9a3-8b919992632a": {
+"alternatives": [
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-e0dc3a35-df3e-4876-af75-8dc2cfa02155",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-df01b223-834b-4c7d-9f50-035f45465a6d",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-806a969f-055f-444d-90dc-5c6bb7710e31",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-44a68384-d7a1-4ce0-b972-16f7223c0e18",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-46585904-efbf-40ff-9d9c-3ec2a02ca141",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3672ac3d-7431-4b06-ae6f-1c099fa8034f"
+],
+"mixedLegComforts": false,
+"id": "section-0a7b83df-4c48-4090-b9a3-8b919992632a"
+},
+"section-8e564565-e296-4a82-a2df-3026a34c8049": {
+"alternatives": [
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4857c936-eb1b-48f8-b9ec-114d854b6930",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-7f84485c-8bd4-41c4-9cb1-a2efc227866b",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-15d670a5-042a-4c48-b990-6bf6ce5e2b70",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-ac34ac39-4bf1-4bf4-aab3-174678641715",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4e67e5e1-5414-42aa-bea3-6ff9c10c692a",
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-abac2b7c-9507-466f-9da3-3facfc325db6"
+],
+"mixedLegComforts": false,
+"id": "section-8e564565-e296-4a82-a2df-3026a34c8049"
+}
+},
+"alternatives": {
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-57c028ce-2409-4f59-a459-398856356304": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-57c028ce-2409-4f59-a459-398856356304",
+"price": {
+"amount": 57.85,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 57.85,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-8ddfcaec-f2fa-4635-a86f-116f4ac6b54c"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-8ddfcaec-f2fa-4635-a86f-116f4ac6b54c"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:nonflexi",
+"name": "nonflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "mK6m6cntDv8=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3fafe595-eaf8-496f-a3fc-4d82b0cb4583": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3fafe595-eaf8-496f-a3fc-4d82b0cb4583",
+"price": {
+"amount": 65.74,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 65.74,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-726fcdf8-3821-4426-a26d-8ca62a78bcae"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-726fcdf8-3821-4426-a26d-8ca62a78bcae"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:semiflexi",
+"name": "semiflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "3cfY8udW1BE=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-c8768c0c-0505-44d9-84b0-d538ec93ecad": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-c8768c0c-0505-44d9-84b0-d538ec93ecad",
+"price": {
+"amount": 157.8,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 157.8,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-5d6d0567-fa19-4a78-9880-59d1fd4f3b26"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-5d6d0567-fa19-4a78-9880-59d1fd4f3b26"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:flexi",
+"name": "flexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "DNosW56cw9U=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3fac10d0-3af4-4e23-aa6e-3ebdc7129284": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3fac10d0-3af4-4e23-aa6e-3ebdc7129284",
+"price": {
+"amount": 73.63,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 73.63,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-9b7d17cd-cd39-439d-a103-044e397b84d3"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-9b7d17cd-cd39-439d-a103-044e397b84d3"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:nonflexi",
+"name": "nonflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "Bm5GqZz7Qt0=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-b642826a-f755-4a2a-b5c6-9faadb7fba35": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-b642826a-f755-4a2a-b5c6-9faadb7fba35",
+"price": {
+"amount": 83.27,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 83.27,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-75000c8c-64c7-4d89-980d-29b22b92fbed"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-75000c8c-64c7-4d89-980d-29b22b92fbed"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:semiflexi",
+"name": "semiflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "ZKpez6D/Hbg=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4a3890b4-9469-419c-8d93-bd80579b2cbc": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4a3890b4-9469-419c-8d93-bd80579b2cbc",
+"price": {
+"amount": 283.42,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 283.42,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-146d9141-16bd-456f-9882-894e1ac8f4f9"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-146d9141-16bd-456f-9882-894e1ac8f4f9"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:flexi",
+"name": "flexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "B/hxLxlmBj8=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-e0dc3a35-df3e-4876-af75-8dc2cfa02155": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-e0dc3a35-df3e-4876-af75-8dc2cfa02155",
+"price": {
+"amount": 65.74,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 65.74,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-45487f57-1720-400e-a377-9d6598ad98d8"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-45487f57-1720-400e-a377-9d6598ad98d8"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:nonflexi",
+"name": "nonflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "8TpI2kYz5bw=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-df01b223-834b-4c7d-9f50-035f45465a6d": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-df01b223-834b-4c7d-9f50-035f45465a6d",
+"price": {
+"amount": 73.63,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 73.63,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-1a081dd9-4c10-43fe-acf4-80cb8f0e1cd6"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-1a081dd9-4c10-43fe-acf4-80cb8f0e1cd6"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:semiflexi",
+"name": "semiflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "JcTpnM1Xr9c=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-806a969f-055f-444d-90dc-5c6bb7710e31": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-806a969f-055f-444d-90dc-5c6bb7710e31",
+"price": {
+"amount": 145.79,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 145.79,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-18baa6d3-a969-45e5-8e96-7f20b9ffd709"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-18baa6d3-a969-45e5-8e96-7f20b9ffd709"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:flexi",
+"name": "flexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "UPiGxp1tuRA=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-44a68384-d7a1-4ce0-b972-16f7223c0e18": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-44a68384-d7a1-4ce0-b972-16f7223c0e18",
+"price": {
+"amount": 96.42,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 96.42,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-7bcb8677-b9ae-4a64-8661-380855402911"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-7bcb8677-b9ae-4a64-8661-380855402911"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:nonflexi",
+"name": "nonflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "2AVQoC9t8R4=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-46585904-efbf-40ff-9d9c-3ec2a02ca141": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-46585904-efbf-40ff-9d9c-3ec2a02ca141",
+"price": {
+"amount": 107.82,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 107.82,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-f57e102c-2057-4ee6-a628-02ccbca2a954"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-f57e102c-2057-4ee6-a628-02ccbca2a954"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:semiflexi",
+"name": "semiflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "awhIioLfkBI=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3672ac3d-7431-4b06-ae6f-1c099fa8034f": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-3672ac3d-7431-4b06-ae6f-1c099fa8034f",
+"price": {
+"amount": 259.4,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 259.4,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-7dcc4d90-dbec-4655-a831-1a31787e67fb"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-7dcc4d90-dbec-4655-a831-1a31787e67fb"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:flexi",
+"name": "flexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "kgPxtTornsU=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4857c936-eb1b-48f8-b9ec-114d854b6930": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4857c936-eb1b-48f8-b9ec-114d854b6930",
+"price": {
+"amount": 57.85,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 57.85,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-0c53ae48-cf0b-4346-bcb5-3e13820cf888"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-0c53ae48-cf0b-4346-bcb5-3e13820cf888"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:nonflexi",
+"name": "nonflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "mK6m6cntDv8=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-7f84485c-8bd4-41c4-9cb1-a2efc227866b": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-7f84485c-8bd4-41c4-9cb1-a2efc227866b",
+"price": {
+"amount": 65.74,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 65.74,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-34674dc3-6251-4bb0-a746-3f529895a6e7"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-34674dc3-6251-4bb0-a746-3f529895a6e7"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:semiflexi",
+"name": "semiflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "3cfY8udW1BE=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-15d670a5-042a-4c48-b990-6bf6ce5e2b70": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-15d670a5-042a-4c48-b990-6bf6ce5e2b70",
+"price": {
+"amount": 157.8,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 157.8,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-84a13fc8-9575-4c50-af37-b0b18e1f37db"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-84a13fc8-9575-4c50-af37-b0b18e1f37db"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:flexi",
+"name": "flexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "DNosW56cw9U=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-ac34ac39-4bf1-4bf4-aab3-174678641715": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-ac34ac39-4bf1-4bf4-aab3-174678641715",
+"price": {
+"amount": 73.63,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 73.63,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-e4fe8a9d-c63f-41f4-8f31-a35462f74189"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-e4fe8a9d-c63f-41f4-8f31-a35462f74189"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:nonflexi",
+"name": "nonflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "Bm5GqZz7Qt0=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4e67e5e1-5414-42aa-bea3-6ff9c10c692a": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-4e67e5e1-5414-42aa-bea3-6ff9c10c692a",
+"price": {
+"amount": 83.27,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 83.27,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-991323ed-05b9-4139-955b-6b8b75cc2645"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-991323ed-05b9-4139-955b-6b8b75cc2645"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:semiflexi",
+"name": "semiflexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "ZKpez6D/Hbg=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+},
+"e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-abac2b7c-9507-466f-9da3-3facfc325db6": {
+"id": "e4d07fbd-00d4-4f1a-9803-6cb5d59dd458%alternative-abac2b7c-9507-466f-9da3-3facfc325db6",
+"price": {
+"amount": 283.42,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fullPrice": {
+"amount": 283.42,
+"currencyCode": "GBP",
+"currencyConversionApplied": true
+},
+"fares": [
+"fare-c846df46-e5e0-483f-a8b3-ead580129b2e"
+],
+"farePassengers": [
+{
+"passengers": [
+{
+"id": "p1",
+"passengerType": "7f9212e98506ecf63cd6735033fb000cf30a47a6"
+}
+],
+"fareId": "fare-c846df46-e5e0-483f-a8b3-ead580129b2e"
+}
+],
+"isPartial": false,
+"flexibility": {
+"code": "urn:trainline:flex:flexi",
+"name": "flexi",
+"language": "en"
+},
+"vendorInformation": {
+"id": "58fdbad08428c787b9b6f7c6c515dd56c7c5ad1c",
+"code": "urn:trainline:db_pst:vendor:db_pst",
+"name": "DB PST",
+"description": null
+},
+"hash": "B/hxLxlmBj8=",
+"composition": [],
+"savings": [],
+"expiresAt": "2026-11-08T10:40:35Z"
+}
+},
+"fares": {
+"fare-146d9141-16bd-456f-9882-894e1ac8f4f9": {
+"id": "fare-146d9141-16bd-456f-9882-894e1ac8f4f9",
+"fareLegs": [
+{
+"id": "fare-leg-0ad1cbde-6a73-4761-9838-795fce108f34",
+"legId": "leg-611d39b6-4765-403d-a60b-dad26fe75b63",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "reserved",
+"localTransport": []
+},
+{
+"id": "fare-leg-a459732f-4196-4524-a50b-00eb3d33e5e6",
+"legId": "leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "reserved",
+"localTransport": []
+}
+],
+"fareType": "f2dd1d2ff47ba18b4b24ec3ae0164a5c24b05c46",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "ywXhTdGMzic="
+},
+"fare-75000c8c-64c7-4d89-980d-29b22b92fbed": {
+"id": "fare-75000c8c-64c7-4d89-980d-29b22b92fbed",
+"fareLegs": [
+{
+"id": "fare-leg-36188230-af53-4f0a-81ff-8ec921cb1fd5",
+"legId": "leg-611d39b6-4765-403d-a60b-dad26fe75b63",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-caf7324c-3253-4165-825a-f0ef61794e00",
+"legId": "leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "fa2fe8b4c1458bb5d56be1c561adbf6866ed075f",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "u3QAi3w1Pr8="
+},
+"fare-9b7d17cd-cd39-439d-a103-044e397b84d3": {
+"id": "fare-9b7d17cd-cd39-439d-a103-044e397b84d3",
+"fareLegs": [
+{
+"id": "fare-leg-32f2f762-bb5d-4d55-a72f-6afd19b0c843",
+"legId": "leg-611d39b6-4765-403d-a60b-dad26fe75b63",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-7ac1492a-5fca-4d75-b349-126605e9f60b",
+"legId": "leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "5892fb3ec38ef2eb09e4dd89de135a3a04163bfc",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "K1DZrmqaP2k="
+},
+"fare-5d6d0567-fa19-4a78-9880-59d1fd4f3b26": {
+"id": "fare-5d6d0567-fa19-4a78-9880-59d1fd4f3b26",
+"fareLegs": [
+{
+"id": "fare-leg-ce04f685-e5c8-4034-9cdc-e3846e32a9d9",
+"legId": "leg-611d39b6-4765-403d-a60b-dad26fe75b63",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-7573b563-303d-4612-b8ef-a793bcfdfb51",
+"legId": "leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "f2dd1d2ff47ba18b4b24ec3ae0164a5c24b05c46",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "+nM1ApqUJRI="
+},
+"fare-726fcdf8-3821-4426-a26d-8ca62a78bcae": {
+"id": "fare-726fcdf8-3821-4426-a26d-8ca62a78bcae",
+"fareLegs": [
+{
+"id": "fare-leg-e6c16e42-26b7-4a55-93f4-bce48599d961",
+"legId": "leg-611d39b6-4765-403d-a60b-dad26fe75b63",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-f1d99572-b5cf-4e96-a32b-64c19572cb69",
+"legId": "leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "fa2fe8b4c1458bb5d56be1c561adbf6866ed075f",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "6A7NkORJ7zI="
+},
+"fare-8ddfcaec-f2fa-4635-a86f-116f4ac6b54c": {
+"id": "fare-8ddfcaec-f2fa-4635-a86f-116f4ac6b54c",
+"fareLegs": [
+{
+"id": "fare-leg-ede5d96c-779b-49f0-8b40-150361217f7c",
+"legId": "leg-611d39b6-4765-403d-a60b-dad26fe75b63",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-e21c716f-3b06-4954-811d-8bbae352b5b1",
+"legId": "leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "5892fb3ec38ef2eb09e4dd89de135a3a04163bfc",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "QPe0tvy/sSQ="
+},
+"fare-7dcc4d90-dbec-4655-a831-1a31787e67fb": {
+"id": "fare-7dcc4d90-dbec-4655-a831-1a31787e67fb",
+"fareLegs": [
+{
+"id": "fare-leg-f17d946a-5d32-4152-8045-981ffd0447f9",
+"legId": "leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "f2dd1d2ff47ba18b4b24ec3ae0164a5c24b05c46",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "t5dB7Vq+hzU="
+},
+"fare-f57e102c-2057-4ee6-a628-02ccbca2a954": {
+"id": "fare-f57e102c-2057-4ee6-a628-02ccbca2a954",
+"fareLegs": [
+{
+"id": "fare-leg-f1f7b382-e7c3-428d-b53d-8d572381a29d",
+"legId": "leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "fa2fe8b4c1458bb5d56be1c561adbf6866ed075f",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "pBYQ5tjX7/I="
+},
+"fare-7bcb8677-b9ae-4a64-8661-380855402911": {
+"id": "fare-7bcb8677-b9ae-4a64-8661-380855402911",
+"fareLegs": [
+{
+"id": "fare-leg-9bd09a12-51a8-42da-917c-4a6098b372c8",
+"legId": "leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "5892fb3ec38ef2eb09e4dd89de135a3a04163bfc",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "3umcnkS0Yrw="
+},
+"fare-18baa6d3-a969-45e5-8e96-7f20b9ffd709": {
+"id": "fare-18baa6d3-a969-45e5-8e96-7f20b9ffd709",
+"fareLegs": [
+{
+"id": "fare-leg-808463db-cc9c-4101-9aa5-04bf7e765f47",
+"legId": "leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "f2dd1d2ff47ba18b4b24ec3ae0164a5c24b05c46",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "jdSKPVDmRls="
+},
+"fare-1a081dd9-4c10-43fe-acf4-80cb8f0e1cd6": {
+"id": "fare-1a081dd9-4c10-43fe-acf4-80cb8f0e1cd6",
+"fareLegs": [
+{
+"id": "fare-leg-9233f872-cb53-46e2-9e27-eb6a9fa09ecc",
+"legId": "leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "fa2fe8b4c1458bb5d56be1c561adbf6866ed075f",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "FsYrfdh9SIk="
+},
+"fare-45487f57-1720-400e-a377-9d6598ad98d8": {
+"id": "fare-45487f57-1720-400e-a377-9d6598ad98d8",
+"fareLegs": [
+{
+"id": "fare-leg-600b45b6-ba18-4174-9ace-8ad83b411bd5",
+"legId": "leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "5892fb3ec38ef2eb09e4dd89de135a3a04163bfc",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "Buv+xNC0to8="
+},
+"fare-c846df46-e5e0-483f-a8b3-ead580129b2e": {
+"id": "fare-c846df46-e5e0-483f-a8b3-ead580129b2e",
+"fareLegs": [
+{
+"id": "fare-leg-780053b1-6a35-48c3-aa9b-33ce4b4b587c",
+"legId": "leg-db173d65-52f2-43b1-afee-7cbe83e17247",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "reserved",
+"localTransport": []
+},
+{
+"id": "fare-leg-763740f2-d3fe-4177-835e-597bf3218b90",
+"legId": "leg-533d6012-f248-46e7-920c-63018092d2a0",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "reserved",
+"localTransport": []
+}
+],
+"fareType": "f2dd1d2ff47ba18b4b24ec3ae0164a5c24b05c46",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "ywXhTdGMzic="
+},
+"fare-991323ed-05b9-4139-955b-6b8b75cc2645": {
+"id": "fare-991323ed-05b9-4139-955b-6b8b75cc2645",
+"fareLegs": [
+{
+"id": "fare-leg-a14bf7df-896b-47c5-bcd6-9ac07613009c",
+"legId": "leg-db173d65-52f2-43b1-afee-7cbe83e17247",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-19415a46-ba33-4464-8af1-dc7f4fdf52e4",
+"legId": "leg-533d6012-f248-46e7-920c-63018092d2a0",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "fa2fe8b4c1458bb5d56be1c561adbf6866ed075f",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "u3QAi3w1Pr8="
+},
+"fare-e4fe8a9d-c63f-41f4-8f31-a35462f74189": {
+"id": "fare-e4fe8a9d-c63f-41f4-8f31-a35462f74189",
+"fareLegs": [
+{
+"id": "fare-leg-a7624b17-c037-4362-a4b2-b6b37fdc6a57",
+"legId": "leg-db173d65-52f2-43b1-afee-7cbe83e17247",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-05aaaed2-8ceb-4bd2-bab9-445fc720b62f",
+"legId": "leg-533d6012-f248-46e7-920c-63018092d2a0",
+"travelClass": {
+"id": "c65e042eee0820ddbb90cf54686d84ac2c85b18a",
+"code": "urn:trainline:db_pst:class:first",
+"name": "First"
+},
+"comfort": {
+"id": "e8fd2a621597a0e6dae25b132de8e21980f6e89b",
+"code": "urn:trainline:db_pst:comfort:first",
+"name": "1st class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-first.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "5892fb3ec38ef2eb09e4dd89de135a3a04163bfc",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "K1DZrmqaP2k="
+},
+"fare-84a13fc8-9575-4c50-af37-b0b18e1f37db": {
+"id": "fare-84a13fc8-9575-4c50-af37-b0b18e1f37db",
+"fareLegs": [
+{
+"id": "fare-leg-0b8d23a7-e6cb-4551-9701-9f4fd073ad8c",
+"legId": "leg-db173d65-52f2-43b1-afee-7cbe83e17247",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-b0fa1b3b-ec22-4548-9061-2bf272c8fd69",
+"legId": "leg-533d6012-f248-46e7-920c-63018092d2a0",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "f2dd1d2ff47ba18b4b24ec3ae0164a5c24b05c46",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "+nM1ApqUJRI="
+},
+"fare-34674dc3-6251-4bb0-a746-3f529895a6e7": {
+"id": "fare-34674dc3-6251-4bb0-a746-3f529895a6e7",
+"fareLegs": [
+{
+"id": "fare-leg-8dd94af0-2291-4ad8-a2f1-a85ed0c00809",
+"legId": "leg-db173d65-52f2-43b1-afee-7cbe83e17247",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-f790f49a-594e-48d5-aae1-1a4f7111275f",
+"legId": "leg-533d6012-f248-46e7-920c-63018092d2a0",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "fa2fe8b4c1458bb5d56be1c561adbf6866ed075f",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "6A7NkORJ7zI="
+},
+"fare-0c53ae48-cf0b-4346-bcb5-3e13820cf888": {
+"id": "fare-0c53ae48-cf0b-4346-bcb5-3e13820cf888",
+"fareLegs": [
+{
+"id": "fare-leg-bc19d3ce-8b14-49a0-b6b8-422f98922659",
+"legId": "leg-db173d65-52f2-43b1-afee-7cbe83e17247",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+},
+{
+"id": "fare-leg-ec2fcf21-3e6c-423a-8b6d-7b8b2a676839",
+"legId": "leg-533d6012-f248-46e7-920c-63018092d2a0",
+"travelClass": {
+"id": "ff15331718071d3e99e39b6265c94c69866a85be",
+"code": "urn:trainline:db_pst:class:economy",
+"name": "Standard"
+},
+"comfort": {
+"id": "49c6c11321fe2d2fad065ccb51477772920c75c4",
+"code": "urn:trainline:db_pst:comfort:economy",
+"name": "2nd class",
+"description": null,
+"allowsComfortChoice": false,
+"imageUrl": "https://static.trainlinecontent.com/content/WEB/images/carriers-classes/db-ice-second.png"
+},
+"reservationType": "none",
+"localTransport": []
+}
+],
+"fareType": "5892fb3ec38ef2eb09e4dd89de135a3a04163bfc",
+"cardIds": [],
+"origin": "91166e1f5b0764f44007483419983c2953c39c20",
+"destination": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"availability": {
+"status": "available"
+},
+"vouchers": [],
+"fareTags": [],
+"hash": "QPe0tvy/sSQ="
+}
+},
+"legs": {
+"leg-611d39b6-4765-403d-a60b-dad26fe75b63": {
+"id": "leg-611d39b6-4765-403d-a60b-dad26fe75b63",
+"duration": "PT2H1M",
+"departAt": "2026-12-01T10:31:00+01:00",
+"arriveAt": "2026-12-01T12:32:00+01:00",
+"timetableId": "123",
+"transportDesignation": "ICE",
+"arrivalLocation": "5cc0c6b843e9bab5fc827406254577de38cba3cd",
+"departureLocation": "91166e1f5b0764f44007483419983c2953c39c20",
+"carrier": "0d31320684144cad1e687ca7b8a066fac3e52543",
+"vendorQuotaIdentifier": "ICE 123",
+"transportMode": "8aa9ed677ae8353527f54ebafc1371cab2ac31da",
+"brand": "840967a151abf34ae9c4c3dce08eae81386b3cba",
+"co2EmissionInGramsPerPassenger": 3163,
+"vehicleAttributes": [],
+"shouldShowDetails": [],
+"hash": "pn06qp0hIf8="
+},
+"leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef": {
+"id": "leg-ec0a6e6d-67c3-4b4c-8e27-e0e73b2ad1ef",
+"duration": "PT5H20M",
+"departAt": "2026-12-01T13:06:00+01:00",
+"arriveAt": "2026-12-01T18:26:00+01:00",
+"timetableId": "549",
+"transportDesignation": "ICE",
+"arrivalLocation": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"departureLocation": "5cc0c6b843e9bab5fc827406254577de38cba3cd",
+"carrier": "519a2eb764bab72bb11bab4e612b42c6d9287b13",
+"vendorQuotaIdentifier": "ICE 549",
+"transportMode": "8aa9ed677ae8353527f54ebafc1371cab2ac31da",
+"brand": "840967a151abf34ae9c4c3dce08eae81386b3cba",
+"co2EmissionInGramsPerPassenger": 8884,
+"vehicleAttributes": [],
+"shouldShowDetails": [],
+"hash": "MYxIYiwVTQs="
+},
+"leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1": {
+"id": "leg-541448b9-74b9-43c5-866b-fdd2b0ee06c1",
+"duration": "PT6H50M",
+"departAt": "2026-12-01T10:00:00+01:00",
+"arriveAt": "2026-12-01T16:50:00+01:00",
+"timetableId": "145",
+"transportDesignation": "ICE",
+"arrivalLocation": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"departureLocation": "91166e1f5b0764f44007483419983c2953c39c20",
+"carrier": "0d31320684144cad1e687ca7b8a066fac3e52543",
+"vendorQuotaIdentifier": "ICE 145",
+"transportMode": "8aa9ed677ae8353527f54ebafc1371cab2ac31da",
+"brand": "840967a151abf34ae9c4c3dce08eae81386b3cba",
+"co2EmissionInGramsPerPassenger": 10904,
+"vehicleAttributes": [],
+"shouldShowDetails": [],
+"hash": "plqkaNqKR+c="
+},
+"leg-db173d65-52f2-43b1-afee-7cbe83e17247": {
+"id": "leg-db173d65-52f2-43b1-afee-7cbe83e17247",
+"duration": "PT2H1M",
+"departAt": "2026-12-01T08:31:00+01:00",
+"arriveAt": "2026-12-01T10:32:00+01:00",
+"timetableId": "225",
+"transportDesignation": "ICE",
+"arrivalLocation": "5cc0c6b843e9bab5fc827406254577de38cba3cd",
+"departureLocation": "91166e1f5b0764f44007483419983c2953c39c20",
+"carrier": "0d31320684144cad1e687ca7b8a066fac3e52543",
+"vendorQuotaIdentifier": "ICE 225",
+"transportMode": "8aa9ed677ae8353527f54ebafc1371cab2ac31da",
+"brand": "840967a151abf34ae9c4c3dce08eae81386b3cba",
+"co2EmissionInGramsPerPassenger": 3163,
+"vehicleAttributes": [],
+"shouldShowDetails": [],
+"hash": "NZZPbVlKH1g="
+},
+"leg-533d6012-f248-46e7-920c-63018092d2a0": {
+"id": "leg-533d6012-f248-46e7-920c-63018092d2a0",
+"duration": "PT5H20M",
+"departAt": "2026-12-01T11:06:00+01:00",
+"arriveAt": "2026-12-01T16:26:00+01:00",
+"timetableId": "547",
+"transportDesignation": "ICE",
+"arrivalLocation": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"departureLocation": "5cc0c6b843e9bab5fc827406254577de38cba3cd",
+"carrier": "519a2eb764bab72bb11bab4e612b42c6d9287b13",
+"vendorQuotaIdentifier": "ICE 547",
+"transportMode": "8aa9ed677ae8353527f54ebafc1371cab2ac31da",
+"brand": "840967a151abf34ae9c4c3dce08eae81386b3cba",
+"co2EmissionInGramsPerPassenger": 8884,
+"vehicleAttributes": [],
+"shouldShowDetails": [],
+"hash": "TYkj60lj658="
+}
+},
+"passengers": {
+"p1": {
+"id": "p1",
+"dateOfBirth": "REDACTED",
+"cardIds": []
+}
+}
+},
+"brands": {
+"840967a151abf34ae9c4c3dce08eae81386b3cba": {
+"id": "840967a151abf34ae9c4c3dce08eae81386b3cba",
+"code": "urn:trainline:db_pst:brand:ice",
+"name": "ice"
+}
+},
+"carriers": {
+"519a2eb764bab72bb11bab4e612b42c6d9287b13": {
+"id": "519a2eb764bab72bb11bab4e612b42c6d9287b13",
+"code": "urn:trainline:db_pst:carrier:db",
+"name": "Deutsche Bahn",
+"ricsCode": null
+},
+"0d31320684144cad1e687ca7b8a066fac3e52543": {
+"id": "0d31320684144cad1e687ca7b8a066fac3e52543",
+"code": "urn:trainline:db_pst:carrier:other",
+"name": "Other",
+"ricsCode": null
+}
+},
+"locations": {
+"ac28ad1ba26d0556377d95cdc5cd1a031e10a736": {
+"id": "ac28ad1ba26d0556377d95cdc5cd1a031e10a736",
+"code": "urn:trainline:db_pst:loc:8098160",
+"locationType": "station",
+"name": "Berlin Hbf (tief)",
+"shortName": null,
+"latitude": 52.5256,
+"longitude": 13.3695,
+"timezone": "Europe/Berlin",
+"countryCode": "DE",
+"language": null,
+"address": null,
+"aliases": null,
+"parents": [
+{
+"code": "urn:trainline:db_pst:loc:8011160",
+"locationType": "station",
+"name": "Berlin Hbf",
+"shortName": null,
+"latitude": 52.5256,
+"longitude": 13.3695,
+"timezone": "Europe/Berlin",
+"countryCode": "DE",
+"language": null,
+"address": null,
+"aliases": null,
+"id": "e4cb2963c0ff36f1ab2cfe72b6f191cea72085cf",
+"parents": [
+{
+"code": "urn:trainline:db_pst:loc:8096003",
+"locationType": "city",
+"name": "Berlin",
+"shortName": null,
+"latitude": 52.5205,
+"longitude": 13.387,
+"timezone": "Europe/Berlin",
+"countryCode": "DE",
+"language": null,
+"address": null,
+"aliases": null,
+"id": "35beda341b7888a1067f4a0e25206425fac2995a",
+"parents": []
+}
+]
+}
+]
+},
+"5cc0c6b843e9bab5fc827406254577de38cba3cd": {
+"id": "5cc0c6b843e9bab5fc827406254577de38cba3cd",
+"code": "urn:trainline:db_pst:loc:8000086",
+"locationType": "station",
+"name": "Duisburg Hbf",
+"shortName": null,
+"latitude": 51.4298,
+"longitude": 6.7759,
+"timezone": "Europe/Berlin",
+"countryCode": "DE",
+"language": null,
+"address": null,
+"aliases": null,
+"parents": []
+},
+"91166e1f5b0764f44007483419983c2953c39c20": {
+"id": "91166e1f5b0764f44007483419983c2953c39c20",
+"code": "urn:trainline:db_pst:loc:8400058",
+"locationType": "station",
+"name": "Amsterdam-Centraal",
+"shortName": null,
+"latitude": 52.3792,
+"longitude": 4.8994,
+"timezone": "Europe/Amsterdam",
+"countryCode": "NL",
+"language": null,
+"address": null,
+"aliases": null,
+"parents": []
+}
+},
+"fareTypes": {
+"f2dd1d2ff47ba18b4b24ec3ae0164a5c24b05c46": {
+"id": "f2dd1d2ff47ba18b4b24ec3ae0164a5c24b05c46",
+"code": "urn:trainline:db_pst:fare:ff14712fb312222a4f06ace68dddd3a1",
+"name": "Flexpreis Europa",
+"farePricingCategory": "default",
+"secondaryFare": null,
+"validityPeriods": null
+},
+"fa2fe8b4c1458bb5d56be1c561adbf6866ed075f": {
+"id": "fa2fe8b4c1458bb5d56be1c561adbf6866ed075f",
+"code": "urn:trainline:db_pst:fare:03fd7992eebeb628d5d8d64328a62f9b",
+"name": "Sparpreis Europa",
+"farePricingCategory": "default",
+"secondaryFare": null,
+"validityPeriods": null
+},
+"5892fb3ec38ef2eb09e4dd89de135a3a04163bfc": {
+"id": "5892fb3ec38ef2eb09e4dd89de135a3a04163bfc",
+"code": "urn:trainline:db_pst:fare:367544309a61083ed92768bd0b3b312b",
+"name": "Super Sparpreis Europa",
+"farePricingCategory": "default",
+"secondaryFare": null,
+"validityPeriods": null
+}
+},
+"transportModes": {
+"8aa9ed677ae8353527f54ebafc1371cab2ac31da": {
+"id": "8aa9ed677ae8353527f54ebafc1371cab2ac31da",
+"code": "urn:trainline:db_pst:tramod:train",
+"name": "Train",
+"mode": "train"
+}
+},
+"passengerTypes": {
+"7f9212e98506ecf63cd6735033fb000cf30a47a6": {
+"id": "7f9212e98506ecf63cd6735033fb000cf30a47a6",
+"name": "adult",
+"code": "urn:trainline:db_pst:psgr:adult",
+"ageRestriction": {
+"lowerBound": 27
+}
+}
+}
+}
+}
+}
