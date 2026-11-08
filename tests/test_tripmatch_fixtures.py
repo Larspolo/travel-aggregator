@@ -25,6 +25,7 @@ CASES = [
     ("nsinternational.com", "search-amsterdam-berlin.json", "Amsterdam", "Berlin"),
     ("nsinternational.com", "search-amsterdam-london.json", "Amsterdam", "London"),
     ("nsinternational.com", "search-rotterdam-paris.json", "Rotterdam", "Paris"),
+    ("flixbus.com", "search-2-adults.json", "Amsterdam", "Berlin"),
     ("flixbus.com", "search-amsterdam-berlin.json", "Amsterdam", "Berlin"),
     ("flixbus.com", "search-amsterdam-paris.json", "Amsterdam", "Paris"),
     ("flixbus.com", "search-utrecht-berlin.json", "Utrecht", "Berlin"),
