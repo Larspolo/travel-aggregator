@@ -34,5 +34,8 @@
   },
   "trainline.user.js": {
     "1.0.0": "8d44fbe91c5e47ec3dd46701cf765c93513bf427cb39ab6e8d60fba9184bdf6d"
+  },
+  "sncf.user.js": {
+    "1.0.0": "3d2b906a8aea142eda057fada861893d0614278af01c574f55e32a4bb8b96938"
   }
 }
