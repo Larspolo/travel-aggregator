@@ -20,10 +20,10 @@ def client(sessions, monkeypatch):
     return c
 
 
-@pytest.mark.parametrize("path", ["/", "/captures", "/profiles", "/places", "/settings"])
+@pytest.mark.parametrize("path", ["/", "/upcoming", "/captures", "/profiles", "/places", "/settings"])
 def test_current_page_is_marked(client, path):
     html = client.get(path).text
-    for href in ["/", "/captures", "/profiles", "/places", "/settings", "/logout"]:
+    for href in ["/", "/upcoming", "/captures", "/profiles", "/places", "/settings", "/logout"]:
         assert f'href="{href}"' in html
     active = re.findall(r'<a href="([^"]+)" class="active" aria-current="page">', html)
     assert active == [path]
