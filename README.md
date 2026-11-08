@@ -545,6 +545,22 @@ Each direction is a normal trip. The userscripts capture offers into it when you
 - If one itinerary in the file is not valid, the whole import stops and no row is added.
 - Example: to move a trip from the preview server or from an old install to your own instance, open the trip on the old install and choose "Export JSON". On your instance, open "Import trip", select the file, keep "A new trip" and choose "Import". Open the trip to check the counts. A later import of the same file into the same trip adds nothing.
 
+### Share a trip read-only
+
+A trip has one read-only link for a travel partner. On `/trips/{id}`, click "Share". The page shows the new link once:
+copy it then. Each person with the link sees the offers of the trip, with no login.
+The trips list shows the mark "shared" after the trips that have a link.
+
+The shared page `/s/<token>` lists the offers that are not hidden, best effective cost first. Each offer shows the route,
+the times, the duration, the transfers, the fare and price, the effective cost with its breakdown, and its legs.
+The page uses the profile of the trip. The sliders and filters of the trip page do not apply.
+The shared page does not show the notes, the booking links, the price captures or history, the hidden offers, or any
+control such as pin, book or delete.
+
+To stop the link, click "Revoke link" on the trip page. The link then returns "not found" (404). "Share" shows again
+after "Revoke link", and it makes a new link: the old link stays stopped. Each address that sends too many wrong
+links gets HTTP 429 with a `Retry-After` header for a while.
+
 ### Compare offers side by side
 
 To compare 2 to 4 offers of a trip:
