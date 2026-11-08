@@ -294,7 +294,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
 
-Each page has the same app bar at the top: the name "travel-aggregator" links to the trips list. The links Trips, Captures,
+Each page has the same app bar at the top: the name "travel-aggregator" links to the trips list. The links Trips, Upcoming, Captures,
 Profiles, Places and Settings follow it, and "Log out" ends the login session. The current page is marked in the bar.
 Most pages start with a page header: the title, a subtitle, and a link such as "Back to the trip" where one applies. Its buttons
 sit at the right side. The content is in cards, each with an optional title. A list with no item shows an empty state:
@@ -374,6 +374,21 @@ The trip page shows a "Price trend" chart above the table. It shows the lowest p
 Each point is one day. Its title shows the date and the value, for example "2026-11-03: €90.00". The chart also shows the lowest and the highest value.
 The value of a day follows this rule: for each fare, the app takes its newest price at the end of the day (UTC). It then takes the lowest EUR value of these prices. A day with no capture keeps the value of the day before. A price with no exchange rate does not count, and a hidden offer does not count.
 The chart shows only when the trip has captures on 2 or more days.
+
+### Upcoming journeys
+
+The "Upcoming" link in the app bar opens `/upcoming`. The page lists the booked journeys that have not arrived yet:
+an offer that you marked as booked (see "Pin, hide, book and note an offer") shows here when the arrival of its
+journey is now or later. A journey that has arrived no longer shows.
+
+The journeys are in the order of their departure. Each journey shows:
+- the title of its trip, with a link to the trip page,
+- the date of its first leg, in the local time of the place of departure,
+- each leg in the local time of its place: the carrier and the service number, the place of departure and of arrival,
+  the departure and arrival times, and "+1 day" (or more) where the arrival is on a later day,
+- the link "Add to calendar" at the right side, which downloads the `.ics` file of the journey (see "Add to calendar" below).
+
+With no booked journey, the page shows the text "No booked journeys. Mark an offer as booked on its trip page."
 
 ### Pin, hide, book and note an offer
 
