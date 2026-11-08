@@ -26,7 +26,6 @@ window.GM_xmlhttpRequest = (d) => {
   if (d.url.includes("/api/trips") && d.method === "POST") { body = "{}"; status = 201; }
   setTimeout(() => d.onload({status, responseText: body}), 0);
 };
-window.prompt = () => "Rome";
 """
 
 

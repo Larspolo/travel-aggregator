@@ -24,7 +24,6 @@ window.GM_xmlhttpRequest = (d) => {
   }
   setTimeout(() => d.onload({status, responseText: body}), 0);
 };
-window.prompt = () => "Rome";
 """
 PAYLOAD = {"source": "test", "offers": [{"a": 1}]}
 
@@ -71,6 +70,7 @@ def test_dropdown_filled_and_choice_kept_after_reload(browser_page):
 def test_new_trip_posts_and_selects(browser_page):
     pg, _ = browser_page
     pg.evaluate(f"{ctl(pg, '.new-trip')}.click()")
+    pg.evaluate(f"(() => {{ {ctl(pg, '.ask-input')}.value = 'Rome'; {ctl(pg, '.ask-save')}.click(); }})()")
     pg.wait_for_function(f"{ctl(pg, '.trip')}.value === '11'")
     post = [r for r in pg.evaluate("window.__requests") if r["method"] == "POST" and "/api/trips" in r["url"]]
     assert json.loads(post[0]["data"]) == {"title": "Rome"}

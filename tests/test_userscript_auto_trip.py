@@ -87,9 +87,10 @@ def test_new_trip_after_a_suggestion_posts_the_suggested_places_and_date(page):
                   "date_from": "2026-12-20"}
     _send(page, {"accepted": 1, "trip_id": 1, "warning": "x", "suggestion": suggestion})
     assert "No trip matches: + new trip" in _status(page)
-    prompts = []
-    page.on("dialog", lambda d: (prompts.append(d.default_value), d.accept("Lyon trip")))
     page.evaluate(f"{SHADOW}.querySelector('.new-trip').click()")
+    prompts = [page.evaluate(f"{SHADOW}.querySelector('.ask-input').value")]
+    page.evaluate(f"(() => {{ {SHADOW}.querySelector('.ask-input').value = 'Lyon trip'; "
+                  f"{SHADOW}.querySelector('.ask-save').click(); }})()")
     page.wait_for_function("() => window.__requests.some((r) => r.method === 'POST' && r.url.endsWith('/api/trips'))")
     post = [r for r in page.evaluate("window.__requests") if r["method"] == "POST" and r["url"].endswith("/api/trips")]
     assert prompts == ["Amsterdam → Lyon"]

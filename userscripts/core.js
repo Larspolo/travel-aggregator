@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 11;
+const CORE_VERSION = 12;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -55,7 +55,25 @@ const CORE_VERSION = 11;
       <button type="button" class="send">Send</button>
       <button type="button" class="set-server">Server URL</button>
       <button type="button" class="set-token">API token</button>`;
-    shadow.append(style, controls, box);
+    // One inline form for the questions of the panel (#1066): a browser dialog blocks Playwright and agent tools.
+    const form = document.createElement("form");
+    form.className = "ask";
+    form.hidden = true;
+    form.innerHTML = `<label><span class="ask-label"></span> <input class="ask-input"></label>
+      <button type="submit" class="ask-save">Save</button>
+      <button type="button" class="ask-cancel">Cancel</button>`;
+    const input = form.querySelector(".ask-input");
+    let answer = null;
+    const close = (value) => {
+      form.hidden = true;
+      const done = answer;
+      answer = null;
+      if (done) done(value);
+    };
+    form.addEventListener("submit", (e) => { e.preventDefault(); close(input.value); });
+    form.querySelector(".ask-cancel").addEventListener("click", () => close(null));
+    input.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); close(null); } });
+    shadow.append(style, controls, form, box);
     // At document-start the page can have no root element yet (#155): mount when it comes.
     const mount = () => (document.body || document.documentElement).appendChild(host);
     if (document.documentElement) mount();
@@ -77,6 +95,16 @@ const CORE_VERSION = 11;
       setStatus(text, kind) {
         box.className = "panel " + (["ok", "error", "info", "warn"].includes(kind) ? kind : "info");
         box.textContent = String(text);
+      },
+      // Show the form; resolve with the text at "Save" or Enter, with null at "Cancel" or Escape.
+      ask(label, value, type) {
+        close(null);
+        form.querySelector(".ask-label").textContent = String(label);
+        input.type = type || "text";
+        input.value = String(value || "");
+        form.hidden = false;
+        input.focus();
+        return new Promise((resolve) => { answer = resolve; });
       },
       text: () => box.textContent,
       kind: () => box.className.replace("panel ", ""),
@@ -238,7 +266,7 @@ const CORE_VERSION = 11;
 
   async function newTrip() {
     const suggested = suggestion;
-    const title = root.prompt("Title of the new trip", suggested ? String(suggested.title || "") : "");
+    const title = await panel.ask("Title of the new trip", suggested ? String(suggested.title || "") : "");
     if (title === null || !title.trim()) return;
     suggestion = null;
     const trip = await trips("POST", Object.assign({}, suggested || {}, { title: title.trim() }));
@@ -385,12 +413,12 @@ const CORE_VERSION = 11;
   };
   root.TACore = core;
   // The panel has the settings too (#536): the Tampermonkey menu is hidden in the extension popup.
-  const setServer = () => {
-    const v = root.prompt("travel-aggregator server URL", config().server);
+  const setServer = async () => {
+    const v = await panel.ask("travel-aggregator server URL", config().server, "url");
     if (v !== null) { gm.setValue("server", v.trim()); loadTrips(); }
   };
-  const setToken = () => {
-    const v = root.prompt("travel-aggregator API token", "");
+  const setToken = async () => {
+    const v = await panel.ask("travel-aggregator API token", "", "password");
     if (v !== null) { gm.setValue("token", v.trim()); loadTrips(); }
   };
   panel.serverButton.addEventListener("click", setServer);

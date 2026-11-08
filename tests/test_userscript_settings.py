@@ -12,8 +12,6 @@ window.__gm = {};
 window.GM_getValue = (k, d) => (k in window.__gm ? window.__gm[k] : d);
 window.GM_setValue = (k, v) => { window.__gm[k] = v; };
 window.GM_xmlhttpRequest = (d) => setTimeout(() => d.onload({status: 200, responseText: "[]"}), 0);
-window.__answers = ["https://ta.example/", " secret-token "];
-window.prompt = () => window.__answers.shift();
 """
 
 
@@ -28,8 +26,10 @@ def test_panel_buttons_set_server_and_token():
         pg.add_script_tag(content=STUBS)
         pg.add_script_tag(content=CORE.read_text())
         root = "document.getElementById('ta-core-panel').shadowRoot"
-        pg.evaluate(f"{root}.querySelector('.set-server').click()")
-        pg.evaluate(f"{root}.querySelector('.set-token').click()")
+        for button, value in ((".set-server", "https://ta.example/"), (".set-token", " secret-token ")):
+            pg.evaluate(f"{root}.querySelector('{button}').click()")
+            pg.evaluate(f"{root}.querySelector('.ask-input').value = {value!r}")
+            pg.evaluate(f"{root}.querySelector('.ask-save').click()")
         assert pg.evaluate("window.__gm.server") == "https://ta.example/"
         assert pg.evaluate("window.__gm.token") == "secret-token"
         browser.close()
