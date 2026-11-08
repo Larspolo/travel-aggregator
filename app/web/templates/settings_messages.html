@@ -23,11 +23,8 @@
       {% if not smtp_ready %}<p class="help">E-mail needs SMTP_HOST on the server.</p>{% endif %}
     </div>
   </div>
-  <div class="form-actions"><button class="btn btn-primary" type="submit">Save</button></div>
-</form>
-<form method="post" action="/settings/messages/test">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-  <div class="form-actions"><button class="btn" type="submit">Send a test message</button></div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Save</button>
+    <button class="btn" type="submit" formaction="/settings/messages/test">Send a test message</button></div>
 </form>
 {% endcall %}
 {% call ui.card("Web Push") %}
