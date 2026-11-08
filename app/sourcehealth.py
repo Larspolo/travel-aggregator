@@ -1,9 +1,12 @@
 """The status of each source (#724): the last good capture, its parser version and the failed captures after it."""
 
+from datetime import UTC, datetime
+from urllib.parse import urlencode
+
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from app.models import Capture
+from app.models import Capture, Setting
 
 WARN_FAILED = 2  # the trips list warns when this many captures failed after the last good one (#726)
 
@@ -39,3 +42,43 @@ def source_health(session: Session) -> list[dict]:
 def failing_sources(session: Session) -> list[dict]:
     """The sources whose newest WARN_FAILED or more captures failed, for the warning of the trips list (#726)."""
     return [h for h in source_health(session) if h["failed_after"] >= WARN_FAILED]
+
+
+ALERT_PREFIX = "source_alert:"  # #1172: one row per source that has an open "failed" message
+
+
+def source_alert_messages(session: Session, base_url: str) -> list:
+    """A message "<source>: the last N captures failed" once per failure, and "<source> works again" after a good capture.
+
+    The caller commits and delivers. The channel `none` gives no message and stores no row (#1172).
+    """
+    from app.notify import alert_messages
+
+    now = datetime.now(UTC).isoformat()
+    base = base_url.rstrip("/")
+    health = {h["source"]: h for h in source_health(session)}
+    msgs = []
+    for h in failing_sources(session):
+        source = h["source"]
+        key = f"{ALERT_PREFIX}{source}"
+        if session.get(Setting, key) is not None:
+            continue
+        link = f"{base}/captures?{urlencode({'failed': 1, 'source': source})}"
+        n = h["failed_after"]
+        title = f"{source}: the last {n} capture{'' if n == 1 else 's'} failed"
+        new = alert_messages(session, title, f"{title}\n{link}", link)
+        if new:
+            msgs.extend(new)
+            session.merge(Setting(key=key, value=now))
+    for row in session.scalars(select(Setting).where(Setting.key.startswith(ALERT_PREFIX)).order_by(Setting.key)):
+        source = row.key[len(ALERT_PREFIX):]
+        h = health.get(source)
+        if h is None or h["failed_after"] != 0:
+            continue
+        title = f"{source} works again"
+        link = f"{base}/captures?{urlencode({'source': source})}"
+        new = alert_messages(session, title, f"{title}\n{link}", link)
+        if new:
+            msgs.extend(new)
+            session.delete(row)
+    return msgs
