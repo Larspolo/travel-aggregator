@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: bahn.de
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.1.0
+// @version      1.2.0
 // @description  Send the bahn.de search results (fahrplan and recon responses) to travel-aggregator.
 // @match        https://www.bahn.de/*
 // @match        https://int.bahn.de/*
@@ -20,17 +20,20 @@
   const core = root.TACore;
   if (!core) return;
   const SOURCE = "bahn.de";
-  const PARSER_VERSION = "1.0.0";
-  const PATHS = ["/web/api/angebote/fahrplan", "/web/api/angebote/recon"];
+  const PARSER_VERSION = "1.2.0";
+  const PATHS = ["/web/api/angebote/fahrplan", "/web/api/angebote/recon", "/web/api/angebote/tagesbestpreis"];
 
   const countRaw = (raw) => {
     const r = raw && raw.response;
-    return r && Array.isArray(r.verbindungen) ? r.verbindungen.length : 0;
+    if (!r) return 0;
+    if (Array.isArray(r.verbindungen)) return r.verbindungen.length;
+    // A day price response (#1196) counts its intervals that have a price.
+    return Array.isArray(r.intervalle) ? r.intervalle.filter((iv) => iv && iv.preis).length : 0;
   };
 
   core.watch(core.urlTest((u) => PATHS.includes(u.pathname)), ({ url, method, body, text }) => {
     const response = core.parseJson(text);
-    if (!response || !Array.isArray(response.verbindungen)) return;
+    if (!response || !(Array.isArray(response.verbindungen) || Array.isArray(response.intervalle))) return;
     core.capture(SOURCE, PARSER_VERSION, { url, method, request: core.parseJson(body), response }, countRaw);
   });
 })(typeof unsafeWindow !== "undefined" ? unsafeWindow : window);
