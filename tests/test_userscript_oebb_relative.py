@@ -3,6 +3,7 @@
 connections with their prices, and a capture with 0 offers is not sent. Playwright serves all URLs (P1)."""
 
 import json
+import os
 
 import pytest
 
@@ -17,7 +18,8 @@ PAGE = '<html><head><base href="/"></head><body><p>timetable</p></body></html>'
 def page():
     playwright = pytest.importorskip("playwright.sync_api")
     with playwright.sync_playwright() as p:
-        browser = p.chromium.launch(executable_path="/opt/pw-browsers/chromium")
+        exe = "/opt/pw-browsers/chromium"
+        browser = p.chromium.launch(executable_path=exe) if os.path.exists(exe) else p.chromium.launch()
         pg = browser.new_page()
 
         def serve(route):
