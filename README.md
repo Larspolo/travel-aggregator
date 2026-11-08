@@ -875,6 +875,17 @@ first band uses the hour markup. For example, with an hour markup of €4/h, Tie
 480 min at €15/h: the first 4 hours cost €4/h, the next 4 hours cost €8/h, and every hour after 8 hours costs €15/h.
 A trip of 6 hours costs 4 × 4 + 2 × 8 = €32 of time. A trip of 9 hours costs 4 × 4 + 4 × 8 + 1 × 15 = €63.
 
+### Group trips
+
+A trip has a number of travelers (the field "Travelers", 1 to 9). The score compares one traveler with another.
+
+- **Price per traveler.** For bahn.de, NS International, Flixbus and Kiwi.com, the score uses the price per traveler:
+  the group price divided by the number of travelers of the capture.
+- **Breakdown.** The breakdown shows the group price, for example `€180 for 2 travelers`, with the parts of one traveler.
+- **Warning.** A capture for another number of travelers than the trip gets a warning. The panel shows "These offers are
+  for 2 travelers; the trip has 1". The captures page `/captures` shows the same warning in the column of the trip.
+- **Manual entry.** The manual entry form has the field "Price for N travelers". Enter the group price there.
+
 ### Door-to-door
 
 The effective cost also counts the time and cost outside the vehicle. The breakdown shows each part on its own.
