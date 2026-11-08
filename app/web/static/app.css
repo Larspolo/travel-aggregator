@@ -590,7 +590,10 @@ input[name=it]:checked { counter-increment: picked; }
 .tl-leg.mode-flight { fill: var(--info); }
 .tl-leg.mode-walk { fill: var(--muted); }
 .tl-gap { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 2 3; }
-.tl-text { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; white-space: nowrap; }
+.tl-text { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; white-space: nowrap;
+  padding: 0 4px; border-radius: 3px; background: var(--surface); } /* the label stays readable on a leg (#946) */
+/* A link to a row (a timeline bar) stops the row below the sticky top bar (56 px), not under it (#946) */
+#table tr[id^="it-"] { scroll-margin-top: calc(56px + var(--space-3)); }
 .timeline-hours { position: absolute; left: 0; bottom: 0; width: 100%; height: 1.2rem; overflow: visible; }
 .timeline-hours text { font-size: 0.7rem; fill: var(--muted); }
 .upcoming-legs { list-style: none; margin: var(--space-1) 0 0; padding: 0; }
