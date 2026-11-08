@@ -46,8 +46,14 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - When a site changes its format, the trips list shows "bahn.de: the last 3 captures failed" with a link to the failed captures
 - [x] `capture:panel-best` (#879) The panel shows the best offer of the trip after each capture: its effective cost, and "(new)" when the search made it better
   - After a bahn.de search with a cheaper offer, the panel shows "Best of trip: €90 (new)"; after a search with no better offer, "Best of trip: €90"
-- [ ] `capture:next-source` (#884) The next travel site as a source, by the decision #884: userscript, server parser, trimmed fixtures
-  - A search on that site shows its offers on the trip page
+- [ ] `capture:oebb` (#948) ÖBB (shop.oebbtickets.at, Nightjet)
+  - A search on ÖBB shows its offers on the trip page
+- [ ] `capture:eurostar` (#953) Eurostar (eurostar.com)
+  - A search on Eurostar shows its offers on the trip page
+- [ ] `capture:sncf` (#955) SNCF Connect (sncf-connect.com)
+  - A search on SNCF Connect shows its offers on the trip page
+- [ ] `capture:trainline` (#884) Trainline (thetrainline.com)
+  - A search on Trainline shows its offers on the trip page; the offers can repeat those of bahn.de (`capture:merge`)
 
 ## 2. Rank offers by effective cost
 
