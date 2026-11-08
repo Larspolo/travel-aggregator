@@ -40,9 +40,13 @@ class Trip(Base):
     profile_id: Mapped[int | None] = mapped_column(ForeignKey("score_profiles.id", ondelete="SET NULL"))  # #232
     # The outbound trip of a return trip, and its return trip (#340): one-to-one.
     return_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL"), unique=True)
+    # The trip that this trip is a part of, split via a place (#1177); the database deletes it with that trip.
+    split_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), index=True)
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
 
     itineraries: Mapped[list["Itinerary"]] = relationship(back_populates="trip", cascade="all, delete-orphan")
+    split_trips: Mapped[list["Trip"]] = relationship(foreign_keys=[split_of_id], order_by="Trip.id",
+                                                     passive_deletes=True)
     return_of: Mapped["Trip | None"] = relationship(back_populates="return_trip", remote_side=[id],
                                                     foreign_keys=[return_of_id])
     return_trip: Mapped["Trip | None"] = relationship(back_populates="return_of", foreign_keys=[return_of_id],

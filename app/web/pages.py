@@ -184,10 +184,12 @@ FORM_FIELDS = tuple(TripForm.model_fields)
 
 
 def _form_page(request: Request, values: dict, errors: list[str], trip_id: int | None, session: Session,
-               code: int = 200):
+               code: int = 200, split_error: str | None = None):
     journey = len(chain(_get_trip(session, trip_id))) if trip_id else 1  # the button "Copy journey" (#802)
+    splittable = trip_id is not None and _get_trip(session, trip_id).split_of_id is None  # "Split via" (#1177)
     return templates.TemplateResponse(request, "trip_form.html",
                                       {"values": values, "errors": errors, "trip_id": trip_id, "journey": journey,
+                                       "splittable": splittable, "split_error": split_error,
                                        "profiles": list_profiles(session)}, status_code=code)
 
 
@@ -630,6 +632,26 @@ def make_return_trip(trip_id: int, session: Session = Depends(get_session)) -> R
         session.add(ret)
         session.commit()
     return RedirectResponse(f"/trips/{ret.id}/edit", status_code=303)
+
+
+@router.post("/trips/{trip_id}/split", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def split_trip(request: Request, trip_id: int, session: Session = Depends(get_session)):
+    """The two split trips of a trip via a place (#1177): A → X and X → B, with the dates, travelers and profile."""
+    trip = _get_trip(session, trip_id)
+    if trip.split_of_id is not None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "a split trip cannot have split trips")
+    place = str((await request.form()).get("via", "")).strip()[:200]
+    if not place:
+        values = {k: ("" if getattr(trip, k) is None else getattr(trip, k)) for k in FORM_FIELDS}
+        return _form_page(request, values, [], trip_id, session, 422, split_error="Split via: enter a place.")
+    origin, destination = trip.origin_text or "", trip.destination_text or ""
+    for a, b in ((origin, place), (place, destination)):
+        session.add(Trip(title=f"{a} → {b}"[:200], origin_text=a or None, destination_text=b or None,
+                         date_from=trip.date_from, date_to=trip.date_to, travelers=trip.travelers,
+                         profile_id=trip.profile_id, split_of_id=trip.id))
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
 @router.post("/trips/{trip_id}/next", dependencies=[Depends(require_login), Depends(verify_csrf)])
