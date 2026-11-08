@@ -1,11 +1,41 @@
 // ==UserScript==
 // @name         travel-aggregator: flixbus.com
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.1.0
+// @version      1.1.1
 // @description  Send the Flixbus search results (search service responses) to travel-aggregator.
-// @match        https://*.flixbus.nl/*
+// @match        https://*.flixbus.at/*
+// @match        https://*.flixbus.be/*
+// @match        https://*.flixbus.bg/*
+// @match        https://*.flixbus.ca/*
+// @match        https://*.flixbus.ch/*
+// @match        https://*.flixbus.co.uk/*
 // @match        https://*.flixbus.com/*
+// @match        https://*.flixbus.com.br/*
+// @match        https://*.flixbus.cz/*
 // @match        https://*.flixbus.de/*
+// @match        https://*.flixbus.dk/*
+// @match        https://*.flixbus.ee/*
+// @match        https://*.flixbus.es/*
+// @match        https://*.flixbus.fi/*
+// @match        https://*.flixbus.fr/*
+// @match        https://*.flixbus.gr/*
+// @match        https://*.flixbus.hr/*
+// @match        https://*.flixbus.hu/*
+// @match        https://*.flixbus.ie/*
+// @match        https://*.flixbus.in/*
+// @match        https://*.flixbus.it/*
+// @match        https://*.flixbus.lt/*
+// @match        https://*.flixbus.lv/*
+// @match        https://*.flixbus.nl/*
+// @match        https://*.flixbus.no/*
+// @match        https://*.flixbus.pl/*
+// @match        https://*.flixbus.pt/*
+// @match        https://*.flixbus.ro/*
+// @match        https://*.flixbus.rs/*
+// @match        https://*.flixbus.se/*
+// @match        https://*.flixbus.si/*
+// @match        https://*.flixbus.sk/*
+// @match        https://*.flixbus.com.ua/*
 // @run-at       document-start
 // @grant        GM_getValue
 // @grant        GM_setValue
