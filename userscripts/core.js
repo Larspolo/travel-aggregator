@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 13;
+const CORE_VERSION = 14;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -330,7 +330,11 @@ const CORE_VERSION = 13;
   // gets (P1). Each watcher gets {url, method, body, text} of a response whose URL it accepts.
   const watchers = [];
   let hooked = false;
+  // For the diagnosis of a missed capture (#1072): the time of the hook, the responses it saw, and if the page had
+  // wrapped XMLHttpRequest before it.
+  const probe = { at: null, seen: 0, nativeXhr: true };
   const notify = (url, method, body, text) => {
+    probe.seen += 1;
     const r = { url: String(url), method: String(method || "GET").toUpperCase(),
       body: typeof body === "string" ? body : null, text };
     watchers.forEach((w) => {
@@ -341,6 +345,7 @@ const CORE_VERSION = 13;
   function hook() {
     if (hooked) return;
     hooked = true;
+    probe.at = root.performance && root.performance.now ? root.performance.now() : null;
     const origFetch = root.fetch;
     if (typeof origFetch === "function") {
       root.fetch = function (input, init) {
@@ -357,6 +362,7 @@ const CORE_VERSION = 13;
     }
     const XHR = root.XMLHttpRequest && root.XMLHttpRequest.prototype;
     if (XHR) {
+      try { probe.nativeXhr = /\[native code\]/.test(Function.prototype.toString.call(XHR.send)); } catch (e) { /* */ }
       const open = XHR.open;
       const send = XHR.send;
       XHR.open = function (method, url) {
@@ -446,6 +452,24 @@ const CORE_VERSION = 13;
     },
   };
   root.TACore = core;
+  // A missed capture (#1072): the resource timing of the browser (a local list, no request, P1) shows the requests of
+  // the page that a watcher accepts. When the hook saw none of them, the panel tells why.
+  core.diagnose = () => {
+    if (probe.seen || probe.at === null || !root.performance || !root.performance.getEntriesByType) return null;
+    const missed = root.performance.getEntriesByType("resource").filter((e) => accepted(e.name)
+      && (e.initiatorType === "xmlhttprequest" || e.initiatorType === "fetch"));
+    if (!missed.length) return null;
+    const early = missed.filter((e) => e.startTime < probe.at).length;
+    const start = (probe.at / 1000).toFixed(2);
+    const text = early
+      ? `Missed ${early} search responses: they came before the script started (${start} s)`
+      : `Missed ${missed.length} search responses: ${probe.nativeXhr ? "the hook did not see them" : "the page wrapped XMLHttpRequest first"} (start ${start} s)`;
+    panel.setStatus(text, "warn");
+    return text;
+  };
+  const later = () => setTimeout(core.diagnose, 3000);
+  if (root.document && root.document.readyState === "complete") later();
+  else root.addEventListener("load", later);
   // The panel has the settings too (#536): the Tampermonkey menu is hidden in the extension popup.
   const setServer = async () => {
     const v = await panel.ask("travel-aggregator server URL", config().server, "url");
