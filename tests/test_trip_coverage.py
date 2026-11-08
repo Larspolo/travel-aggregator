@@ -45,7 +45,9 @@ def test_the_list_shows_the_newest_capture_and_the_sources_not_searched(trips):
     client, (trip_id, _) = trips
     items = _items(client.get(f"/trips/{trip_id}").text)
 
-    assert len(items) == len(parsers.all_sources())
+    # One line per parser, then one per search link with no parser yet (the Eurostar link, #1019, last).
+    assert len(items) == len(parsers.all_sources()) + 1
+    assert items[-1] == "Eurostar: not searched yet"  # the trip is Amsterdam → Berlin: no Eurostar place, no link
     assert items[0].startswith("bahn.de: 2 h ago · 14 offers · <a href=")
     ns = next(i for i in items if i.startswith("NS International"))
     assert ns.startswith("NS International: not searched yet · <a href=")
