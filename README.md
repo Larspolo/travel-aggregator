@@ -381,6 +381,16 @@ Each point is one day. Its title shows the date and the value, for example "2026
 The value of a day follows this rule: for each fare, the app takes its newest price at the end of the day (UTC). It then takes the lowest EUR value of these prices. A day with no capture keeps the value of the day before. A price with no exchange rate does not count, and a hidden offer does not count.
 The chart shows only when the trip has captures on 2 or more days.
 
+### What is new since your last view
+
+A trip page counts as viewed when you open it in full. The app then remembers the time of the view. The next time you look, it shows what changed since then:
+- The trips list shows "N new" next to a trip that has new offers (N is the number of new offers). A trip with no new offer shows no count.
+- The trip page marks each row "new" whose offer was first captured after your last view.
+- Each fare whose price changed since your last view shows the old and the new price, for example "€95.00 → €90.00". A rise and a fall both show.
+
+A slider change on the trip page (the re-rank) does not count as a view: the marks stay until you open the trip page in full.
+The first full view after a change shows the changes. A second full view shows none of them.
+
 ### Upcoming journeys
 
 The "Upcoming" link in the app bar opens `/upcoming`. The page lists the booked journeys that have not arrived yet:
