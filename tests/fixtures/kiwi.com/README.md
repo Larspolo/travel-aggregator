@@ -11,6 +11,7 @@ with `hasMorePending` false.
 | File | Search | What it shows |
 |---|---|---|
 | `search-amsterdam-zurich.json` | Amsterdam → Zürich | a direct flight with 2 fares (`KIWI`, `KIWI-BASIC`); a flight with a transfer in Paris (1 PNR); a direct flight with 1 fare |
+| `return-amsterdam-lisbon.json` | Amsterdam → Lisbon, return (1 to 8 December 2026; HAR of #1004, the last `SearchReturnItinerariesQuery` response) | `data.returnItineraries`: 3 direct return itineraries (`outbound` and `inbound` in place of `sector`), 5 fares; the price is of the return ticket |
 | `search-amsterdam-lisbon.json` | Amsterdam → Lisbon | a direct flight with 2 fares; a flight with a transfer in Madrid (1 PNR); a self-transfer (`pnrCount` 2, the second segment has a `guarantee`) |
 
 Notes for the parser:
