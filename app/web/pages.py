@@ -43,7 +43,8 @@ from app.profiles import active_weights, default_weights, delete as delete_profi
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
 from app.models import AccessTime, ApiToken, Capture, CurrencyRate, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting, Trip
-from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting, webpush_ready
+from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, alert_messages, deliver, setting,
+                        webpush_ready)
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.parsers import group_price
@@ -993,7 +994,22 @@ def messages_page(request: Request, session: Session = Depends(get_session)) -> 
         "ntfy_url": setting(session, NTFY_URL_KEY), "notify_email": setting(session, EMAIL_KEY),
         "smtp_ready": bool(get_settings().smtp_host),
         "vapid_public_key": get_settings().vapid_public_key if webpush_ready() else "",
-        "push_count": session.scalar(select(func.count()).select_from(PushSubscription))})
+        "push_count": session.scalar(select(func.count()).select_from(PushSubscription)),
+        "flash": request.session.pop("flash", None)})
+
+
+@router.post("/settings/messages/test", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def test_message(request: Request, session: Session = Depends(get_session)) -> RedirectResponse:
+    """Send one test message by the active channel, with no wait for a price drop (#1086)."""
+    click = str(request.base_url).rstrip("/") + "/settings/messages"
+    msgs = alert_messages(session, "Test message from travel-aggregator",
+                          "The channel of travel-aggregator works.", click)
+    if msgs:
+        deliver(msgs)
+        request.session["flash"] = f"Test message sent by {msgs[0].channel}"
+    else:
+        request.session["flash"] = "Select a channel first"
+    return RedirectResponse("/settings/messages", status_code=303)
 
 
 @router.post("/settings/messages", dependencies=[Depends(require_login), Depends(verify_csrf)])
