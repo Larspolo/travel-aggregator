@@ -14,7 +14,8 @@ MIN_WORD = 3  # shorter words ("a", "NL") are too common to tell two places apar
 # names one of them matches each other name of the group (#558). Names are matched as whole words, after _fold.
 ALIASES: dict[str, tuple[str, ...]] = {
     "Amsterdam": ("AMS",),
-    "Brussels": ("Bruxelles", "Brussel"),
+    "Berlin": ("Berlijn",),  # the Dutch name in the Flixbus captures of a Dutch browser (#1026)
+    "Brussels":("Bruxelles", "Brussel"),
     "Cologne": ("Köln", "Koln"),
     "Copenhagen": ("København", "Kobenhavn"),
     "Florence": ("Firenze",),

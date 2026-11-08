@@ -12,6 +12,10 @@ ids and no tokens. The searches are for 2026-12-01, in GBP, for 1 adult.
 | `search-amsterdam-paris.json` | Amsterdam Central → Paris (`search_by=cities`) | 2 direct connections and 1 connection with 1 change (bus, then bus the next day); a `direct express` product |
 | `search-amsterdam-berlin.json` | Amsterdam Central → Berlin | 2 direct connections and 1 connection with 1 change (bus, then train); `transfer_type_key` `direct#train` |
 | `search-utrecht-berlin.json` | Utrecht → Berlin (2026-12-01) | 2 direct connections and 1 connection with 1 change (bus, then bus); `transfer_type_key` `direct#fast` |
+| `search-2-adults.json` | Amsterdam → Berlin for 2 adults (`products` `{"adult":2}`, EUR, #768) | 2 direct connections and 1 connection with 1 change; `price.total` is the price for all travelers (the direct connections: `total` 55.98, `average` 27.99; the connection with 1 change: `total` 59.96, `average` 29.98) |
+
+`search-2-adults.json`: `price.total` is the price for all travelers of the search, and `price.average` is the price per
+traveler. The parser sets `group_price` (#1026).
 
 Utrecht → Berlin is the third search (bus, then bus).
 
