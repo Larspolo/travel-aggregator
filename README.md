@@ -358,7 +358,7 @@ The expanded row also shows a break-even line at the top of "Legs and fares": th
 shown row have the same effective cost. For example, `1 h 20 min faster, €3.00 more than the best: better above €12.50/h (yours: €10/h)`.
 "Yours" is your hour markup. "Better above €X/h" means that the row is the better one when your hour markup is above
 X. "Better below €X/h" means that it is the better one when your hour markup is below X. The best row shows no line,
-and a row with no break-even value shows no line. This line is text only: it has no link.
+and a row with no break-even value shows no line. A value from €0/h to €100/h is a link: a click opens the page with that hour markup, so the row is the better one after the click. The value is rounded up for "above" and down for "below". The other weights of the page stay. A value outside this range is text only.
 
 ### Departure days
 
