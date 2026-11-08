@@ -21,6 +21,7 @@ from app.tripmatch import best_trip, mismatch, suggest_trip, travelers_text
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 from app.notify import PriceDrop
+from app.currency import load_rates, to_eur
 
 log = logging.getLogger(__name__)
 
@@ -88,6 +89,22 @@ def _replace_legs(session: Session, it: Itinerary, offer: OfferIn) -> None:
     it.legs.extend(_legs(offer))
 
 
+def _crosses_target(session: Session, trip_id: int, old: tuple | None, offer: OfferIn) -> bool:
+    """The new price (in EUR) is at or below the target of the trip, and the fare is new or its old latest price
+    was above the target (#848). A fare with no rate does not cross."""
+    trip = session.get(Trip, trip_id)
+    if trip is None or trip.target_price is None:
+        return False
+    rates = load_rates(session)
+    new_eur = to_eur(offer.price_amount, offer.price_currency, rates)
+    if new_eur is None or new_eur > trip.target_price:
+        return False
+    if old is None:
+        return True
+    old_eur = to_eur(old[0], old[1], rates)
+    return old_eur is not None and old_eur > trip.target_price
+
+
 def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: OfferIn, source: str,
                 captured_at: datetime, drops: list | None = None) -> str:
     """Store one offer. Returns "created" (new itinerary), "updated" (known itinerary with a new fare or a changed
@@ -104,6 +121,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         if not has_real_legs(it.legs) and has_real_legs(offer.legs):
             _replace_legs(session, it, offer)
     fare = next((f for f in it.fares if f.source == source and f.fare_name == offer.fare_name), None)
+    old = None if fare is None else (fare.latest_price, fare.currency)
     if fare is None:
         fare = Fare(source=source, fare_name=offer.fare_name, latest_price=offer.price_amount,
                     currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers)
@@ -114,11 +132,13 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         fare.travel_class = offer.travel_class
         return result
     if captured_at >= fare.latest_captured_at:
-        if (drops is not None and it.pinned and not it.hidden and offer.price_currency == fare.currency
-                and offer.price_amount < fare.latest_price):
+        pinned_drop = (drops is not None and it.pinned and not it.hidden and old is not None
+                       and offer.price_currency == fare.currency and offer.price_amount < fare.latest_price)
+        target = drops is not None and not it.hidden and _crosses_target(session, trip_id, old, offer)
+        if pinned_drop or target:
             drops.append(PriceDrop(trip_id=trip_id, fare_name=fare.fare_name, source=source,
-                                   currency=fare.currency, old_price=fare.latest_price,
-                                   new_price=offer.price_amount))
+                                   currency=offer.price_currency, new_price=offer.price_amount, target=target,
+                                   old_price=old[0] if old is not None and old[1] == offer.price_currency else None))
         if offer.price_currency != fare.currency:
             fare.seen_price = None  # a drop in another currency is not a drop (#355)
         fare.latest_price, fare.currency, fare.latest_captured_at = (offer.price_amount, offer.price_currency,
