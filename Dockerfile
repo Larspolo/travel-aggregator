@@ -28,7 +28,10 @@ COPY --from=build /opt/venv /opt/venv
 COPY --chown=root:root . /app
 USER app
 EXPOSE 8000
-# No curl in the slim image: the healthcheck uses Python.
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+# No curl in the slim image: the healthcheck uses Python. Traefik sends no request to a container that is not
+# healthy yet: --start-interval checks each 2 s in the start period, so a new image is healthy a few seconds after
+# the start, not after the first 30 s interval (the 503 of the pages after a deploy, #996). The start period
+# of 60 s covers the backup and the migrations. --start-interval needs Docker Engine 25 or later.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --start-interval=2s --retries=3 \
   CMD ["python", "-c", "import os, urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ[\"PORT\"]}/api/health', timeout=4)"]
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

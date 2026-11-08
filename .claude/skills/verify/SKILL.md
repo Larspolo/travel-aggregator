@@ -56,5 +56,5 @@ body and link the run: the REST API cannot upload images.
 
 It checks `/api/health` (the commit) and the API with a test trip and offer, through the network secret of the
 environment. "HTTP 401" means the environment has no network secret: say so in the epic and stop. Never ask for a
-password or a token, and never test the pages there (basic auth and the login are the owner's): levels 2 and 4 test
+password or a token, and never test the pages there (the login is the owner's): levels 2 and 4 test
 them locally.

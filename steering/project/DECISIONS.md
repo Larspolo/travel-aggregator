@@ -23,3 +23,4 @@ the owner chose another option, `-`: no recommendation) · principle (`P<n>`, or
 - 2026-11-07 · #535 · Visual theme of the web pages: A "Dense tool" (neutral grey surfaces, thin borders, one cool accent, many rows per screen; `DESIGN.md`) · taken · P2
 - 2026-11-07 · #535, #619 · Correction (Larspolo): option A of #535 means only "dense"; its colours, borders, fonts and the limits that `DESIGN.md` took from P4 (system fonts only, no CSS framework, no own JavaScript) were not chosen. Common libraries and frameworks are allowed (#619). `DESIGN.md` version 3 · changed · new
 - 2026-11-08 · #884 · The next sources: all four options (A ÖBB, B Eurostar, C SNCF Connect, D Trainline), in this order · changed · new
+- 2026-11-08 · #996 · The preview pages lose the Traefik basic auth: only the app login protects them, as on the real instance (a browser forgets basic auth at each restart) · taken · P2
