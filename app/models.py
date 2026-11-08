@@ -45,8 +45,10 @@ class Trip(Base):
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
 
     itineraries: Mapped[list["Itinerary"]] = relationship(back_populates="trip", cascade="all, delete-orphan")
-    split_trips: Mapped[list["Trip"]] = relationship(foreign_keys=[split_of_id], order_by="Trip.id",
-                                                     passive_deletes=True)
+    split_trips: Mapped[list["Trip"]] = relationship(back_populates="split_of", foreign_keys=[split_of_id],
+                                                     order_by="Trip.id", passive_deletes=True)
+    split_of: Mapped["Trip | None"] = relationship(back_populates="split_trips", remote_side=[id],
+                                                   foreign_keys=[split_of_id])  # #1180
     return_of: Mapped["Trip | None"] = relationship(back_populates="return_trip", remote_side=[id],
                                                     foreign_keys=[return_of_id])
     return_trip: Mapped["Trip | None"] = relationship(back_populates="return_of", foreign_keys=[return_of_id],

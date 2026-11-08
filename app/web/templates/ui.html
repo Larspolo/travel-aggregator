@@ -10,8 +10,8 @@
 </header>
 {%- endmacro %}
 
-{% macro card(title=none) -%}
-<section class="card">
+{% macro card(title=none, css=none) -%}
+<section class="card{% if css %} {{ css }}{% endif %}">
   {% if title %}<div class="card-header"><h2>{{ title }}</h2></div>{% endif %}
   {% if caller is defined %}{{ caller() }}{% endif %}
 </section>

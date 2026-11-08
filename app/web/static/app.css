@@ -458,6 +458,8 @@ button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(
 }
 .trip-best strong { font-size: 18px; color: var(--text); font-weight: 650; margin-left: var(--space-1); }
 .journey-total { grid-column: 1 / -1; margin: 0; font-weight: 600; }
+.trip-split { margin-left: 1.5rem; border-left: 3px solid var(--line); } /* a split trip under its trip (#1180) */
+.split-of { margin: 0 0 1rem; }
 /* == Login == */
 .login { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-height: 80vh; padding: var(--space-4) 0; }
 .login-brand { margin: 0; }
