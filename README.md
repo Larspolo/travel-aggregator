@@ -716,6 +716,19 @@ The panel shows the number of captured offers.
 
 The search status of a trip shows a search link to eurostar.com. Use it to open the same search on the site.
 
+### ÖBB userscript
+
+The ÖBB userscript captures the search results of shop.oebbtickets.at: the connections with their times and the
+prices of the results list. When you open the offers of a Nightjet, it also captures its Seat, Couchette and Sleeper
+fares.
+It reads only the responses that the ÖBB page itself gets. It sends no request to oebbtickets.at.
+
+To install it, add the file `userscripts/oebb.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On shop.oebbtickets.at, search for a journey and
+wait until the prices show in the list. The panel shows the number of captured offers.
+
+The trip page has no ÖBB search link yet. Open the search on the ÖBB site yourself.
+
 ### Parse result of a capture
 
 The column "Captured" shows the age of each capture, for example "2 h ago". Point at the age to see the full UTC time.
