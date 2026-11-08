@@ -9,6 +9,7 @@
   <div class="form-grid">
     <div class="field"><label for="m-price">Price</label><input id="m-price" name="price_amount" required inputmode="decimal" value="{{ values.price_amount or '' }}"></div>
     <div class="field"><label for="m-currency">Currency</label><input id="m-currency" name="price_currency" maxlength="3" value="{{ values.price_currency or 'EUR' }}"></div>
+    <div class="field"><label for="m-travelers">Price for N travelers</label><input id="m-travelers" name="travelers" type="number" min="1" max="9" step="1" value="{{ values.travelers or '1' }}"></div>
     <div class="field"><label for="m-fare">Fare name</label><input id="m-fare" name="fare_name" maxlength="100" value="{{ values.fare_name or '' }}"></div>
     <div class="field"><label for="m-class">Class</label><select id="m-class" name="travel_class">
       {% for v, label in classes %}<option value="{{ v }}"{% if (values.travel_class or '') == v %} selected{% endif %}>{{ label }}</option>{% endfor %}
