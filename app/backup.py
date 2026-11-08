@@ -4,10 +4,12 @@ A migration marks itself with `changes_data = True` at module level. A missing m
 The step reads the pending revisions with the Alembic API. If one has the marker, it writes `pg_dump --format=custom`
 to BACKUP_DIR. `python -m app.backup --now` writes a manual backup at any time. A failed dump gives a non-zero exit code, so the entrypoint stops before any migration.
 `python -m app.backup --daily` runs as a service: it writes a `<UTC stamp>-daily.dump` when the newest one is older than
-BACKUP_INTERVAL_HOURS (default 24), and retries a failed dump after an hour.
+BACKUP_INTERVAL_HOURS (default 24), and retries a failed dump after an hour. A failed dump sends "Backup failed" by the
+channel of `app/notify.py` at most once in 24 hours, and the next good dump sends "Backup works again" (#1087).
 """
 
 import argparse
+import logging
 import os
 import subprocess
 import sys
@@ -19,9 +21,14 @@ from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 
 from app.config import get_settings
-from app.db import sqlalchemy_url
+from app.db import make_engine, make_sessionmaker, sqlalchemy_url
+
+log = logging.getLogger(__name__)
+ALERT_KEY = "backup_alert_at"
+ALERT_REPEAT = timedelta(hours=24)
 
 
 class BackupError(RuntimeError):
@@ -129,6 +136,47 @@ def newest_backup(backup_dir: Path) -> tuple[datetime, int] | None:
     return best
 
 
+def _redact(text: str, url: str) -> str:
+    """Remove the database URL and its password from a message text (P5)."""
+    secrets = [url, sqlalchemy_url(url)]
+    try:
+        password = make_url(sqlalchemy_url(url)).password
+    except Exception:  # noqa: BLE001
+        password = None
+    if password:
+        secrets.append(str(password))
+    for value in sorted(filter(None, secrets), key=len, reverse=True):
+        text = text.replace(value, "***")
+    return text
+
+
+def _alert(url: str, now: datetime, error: str | None) -> None:
+    """Send "Backup failed" (error) or "Backup works again" (None) when due. A failure only logs a warning."""
+    from app import notify
+    from app.models import Setting
+
+    engine = make_engine(sqlalchemy_url(url))
+    try:
+        with make_sessionmaker(engine)() as session:
+            row = session.get(Setting, ALERT_KEY)
+            if error is not None:
+                if row is not None and now - datetime.fromisoformat(row.value) < ALERT_REPEAT:
+                    return
+                msgs = notify.alert_messages(session, "Backup failed", _redact(error, url), "")
+                session.merge(Setting(key=ALERT_KEY, value=now.isoformat()))
+            else:
+                if row is None:
+                    return
+                msgs = notify.alert_messages(session, "Backup works again", "The daily backup works again.", "")
+                session.delete(row)
+            session.commit()
+        notify.deliver(msgs)
+    except Exception as e:  # noqa: BLE001 (an alert must not stop the backup loop)
+        log.warning("backup message not sent: %s", _redact(str(e), url))
+    finally:
+        engine.dispose()
+
+
 def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | None = None) -> float:
     """One step of the daily loop: dump when due. Return the seconds until the next step.
 
@@ -143,8 +191,10 @@ def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | 
             dump(url, backup_dir, "daily")
         except BackupError as exc:
             print(f"ERROR: daily backup failed: {exc}; retry in {DAILY_RETRY_SECONDS} s", file=sys.stderr)
+            _alert(url, now, str(exc))
             return float(DAILY_RETRY_SECONDS)
         rotate_daily(backup_dir, keep_count())
+        _alert(url, now, None)
         return interval.total_seconds()
     return (last + interval - now).total_seconds()
 
