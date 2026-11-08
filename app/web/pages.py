@@ -55,7 +55,7 @@ from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group,
                          per_traveler)
 from app.timeofday import night_extras, night_time_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
-from app.trips import archived_journeys, chain, list_trips
+from app.trips import archived_journeys, chain, find_journeys, list_trips
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -172,11 +172,12 @@ def new_by_trip(session: Session) -> dict[int, int]:
 
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def index(request: Request, archived: bool = False, session: Session = Depends(get_session)) -> HTMLResponse:
+def index(request: Request, archived: bool = False, q: str = Query("", max_length=200),
+          session: Session = Depends(get_session)) -> HTMLResponse:
     rows = list_trips(session)
     archived_count = sum(1 for kind, _, _ in archived_journeys(rows, True) if kind == "trip")
     return templates.TemplateResponse(request, "trips.html",
-                                      {"lines": archived_journeys(rows, archived), "drops": drops_by_trip(session),
+                                      {"lines": find_journeys(rows, q, archived), "q": q.strip(), "drops": drops_by_trip(session),
                                        "new": new_by_trip(session), "archived": archived, "archived_count": archived_count,
                                        "failing": failing_sources(session)})
 
