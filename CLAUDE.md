@@ -45,9 +45,10 @@ A new source is one userscript and one server parser, with its fixtures, and not
   **testable with no person** (P6: no browser dialogs): `steering/project/PRINCIPLES.md`.
 - All times are timezone-aware: store UTC and the original offset. Money is `Decimal`, never `float`.
 - The score is computed at query time from the active profile; derived values (duration, transfers) at ingest.
-- `README.md` is the guide for users. Change it only at the end of an epic, never in a ticket PR (owner): the epic
-  waits for one README PR for all that it added (`steering/project/PRINCIPLES.md`, "Try a feature"). It describes only
-  what works on `main`; the status of the features is only in the roadmap. Check: `python3 -m pytest -m readme`.
+- `README.md` is the guide for users. Change it only in the README PR of an epic (owner): the sub-issue whose title starts
+  "Describe ... in the README" and depends on the last feature ticket; do it when its "Depends on" tickets are closed. A feature
+  ticket never changes it (`steering/project/PRINCIPLES.md`, "Try a feature"). It describes only what works on `main`;
+  the status of the features is only in the roadmap. Check: `python3 -m pytest -m readme`.
 - Each merge goes live: a green `main` becomes the image `:preview` at `travel-preview.larspolo.nl` within 5 minutes
   (`deploy/preview/`). Its migrations run with no person in the loop: each migration needs a working `downgrade`,
   and one that drops or changes data says so in the PR. Keep the variable names of `deploy/preview/.env.example`.
