@@ -15,6 +15,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 # (source, file, English origin of the first offer, English destination of the last leg of that offer)
 CASES = [
     ("bahn.de", "fahrplan-amsterdam-berlin.json", "Amsterdam", "Berlin"),
+    ("bahn.de", "fahrplan-amsterdam-berlin-2-adults.json", "Amsterdam", "Berlin"),
     ("bahn.de", "fahrplan-amsterdam-bern-night.json", "Amsterdam", "Bern"),
     ("bahn.de", "fahrplan-amsterdam-zuerich.json", "Amsterdam", "Zurich"),
     ("bahn.de", "fahrplan-koeln-muenchen-bahncard25.json", "Cologne", "Munich"),

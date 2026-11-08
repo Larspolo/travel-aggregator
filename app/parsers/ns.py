@@ -37,6 +37,7 @@ def local_time(station: dict, kind: str) -> datetime:
 class NsParser:
     source = "nsinternational.com"
     version = "1.2.0"
+    group_price = True  # the price is for all travelers of the request (#767; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"request", "response"} or of the response body only: one per fare."""

@@ -11,7 +11,7 @@ from app.auth import require_login, token_limiter, verify_csrf
 from app.db import get_session
 from app.models import AccessTime, Itinerary, Trip
 from app.share import new_link, revoke, trip_for_token
-from app.web.pages import format_breakdown, load_rates, resolve_weights, row_cost, templates
+from app.web.pages import fare_travelers, format_breakdown, load_rates, resolve_weights, row_cost, templates
 
 router = APIRouter()
 
@@ -58,7 +58,8 @@ def shared_trip(request: Request, token: str, session: Session = Depends(get_ses
     places = session.scalars(select(AccessTime)).all()
     rates = load_rates(session)
     stale_before = datetime.now(timezone.utc) - timedelta(hours=weights.stale_hours)
-    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates)) for it in itineraries
+    counts = fare_travelers(session, itineraries)  # the price per traveler (#767)
+    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts)) for it in itineraries
             if it.fares and it.legs]
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))
     context = {"trip": trip, "rows": rows, "format_breakdown": format_breakdown}

@@ -1,0 +1,173 @@
+{
+ "url": "https://www.bahn.de/web/api/angebote/fahrplan",
+ "method": "POST",
+ "request": {
+  "anfrageZeitpunkt": "2026-12-01T08:00:00",
+  "klasse": "KLASSE_2",
+  "reisende": [
+   {
+    "typ": "ERWACHSENER",
+    "ermaessigungen": [
+     {
+      "art": "KEINE_ERMAESSIGUNG",
+      "klasse": "KLASSENLOS"
+     }
+    ],
+    "alter": [],
+    "anzahl": 2
+   }
+  ]
+ },
+ "response": {
+  "verbindungen": [
+   {
+    "tripId": "cb455dbe_3",
+    "verbindungsAbschnitte": [
+     {
+      "abfahrtsOrt": "Amsterdam Centraal",
+      "abfahrtsOrtExtId": "8400058",
+      "ankunftsOrt": "Hannover Hbf",
+      "ankunftsOrtExtId": "8000152",
+      "abfahrt": {
+       "sollzeit": "2026-12-01T08:00:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-12-01T12:01:00"
+      },
+      "verkehrsmittel": {
+       "typ": "PUBLICTRANSPORT",
+       "produktGattung": "ICE",
+       "name": "ICE 143",
+       "zugattribute": [
+        {
+         "key": "BEF",
+         "value": "Nederlandse Spoorwegen, DB Fernverkehr AG"
+        }
+       ]
+      }
+     },
+     {
+      "abfahrtsOrt": "Hannover Hbf",
+      "abfahrtsOrtExtId": "8000152",
+      "ankunftsOrt": "Berlin Hbf",
+      "ankunftsOrtExtId": "8098160",
+      "abfahrt": {
+       "sollzeit": "2026-12-01T12:31:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-12-01T15:18:00"
+      },
+      "verkehrsmittel": {
+       "typ": "PUBLICTRANSPORT",
+       "produktGattung": "ICE",
+       "name": "ICE 847",
+       "zugattribute": [
+        {
+         "key": "BEF",
+         "value": "DB Fernverkehr AG"
+        }
+       ]
+      }
+     }
+    ],
+    "angebotsPreis": {
+     "betrag": 113.98,
+     "waehrung": "EUR"
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "reiseAngebote": []
+   },
+   {
+    "tripId": "3976551c_3",
+    "verbindungsAbschnitte": [
+     {
+      "abfahrtsOrt": "Amsterdam Centraal",
+      "abfahrtsOrtExtId": "8400058",
+      "ankunftsOrt": "Duisburg Hbf",
+      "ankunftsOrtExtId": "8000086",
+      "abfahrt": {
+       "sollzeit": "2026-12-01T08:31:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-12-01T10:32:00"
+      },
+      "verkehrsmittel": {
+       "typ": "PUBLICTRANSPORT",
+       "produktGattung": "ICE",
+       "name": "ICE 225",
+       "zugattribute": [
+        {
+         "key": "BEF",
+         "value": "Nederlandse Spoorwegen, DB Fernverkehr AG"
+        }
+       ]
+      }
+     },
+     {
+      "abfahrtsOrt": "Duisburg Hbf",
+      "abfahrtsOrtExtId": "8000086",
+      "ankunftsOrt": "Berlin Hbf",
+      "ankunftsOrtExtId": "8098160",
+      "abfahrt": {
+       "sollzeit": "2026-12-01T11:06:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-12-01T16:26:00"
+      },
+      "verkehrsmittel": {
+       "typ": "PUBLICTRANSPORT",
+       "produktGattung": "ICE",
+       "name": "ICE 547",
+       "zugattribute": [
+        {
+         "key": "BEF",
+         "value": "DB Fernverkehr AG"
+        }
+       ]
+      }
+     }
+    ],
+    "angebotsPreis": {
+     "betrag": 131.98,
+     "waehrung": "EUR"
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "reiseAngebote": []
+   },
+   {
+    "tripId": "e24b3221_3",
+    "verbindungsAbschnitte": [
+     {
+      "abfahrtsOrt": "Amsterdam Centraal",
+      "abfahrtsOrtExtId": "8400058",
+      "ankunftsOrt": "Berlin Hbf",
+      "ankunftsOrtExtId": "8098160",
+      "abfahrt": {
+       "sollzeit": "2026-12-01T10:00:00"
+      },
+      "ankunft": {
+       "sollzeit": "2026-12-01T16:50:00"
+      },
+      "verkehrsmittel": {
+       "typ": "PUBLICTRANSPORT",
+       "produktGattung": "ICE",
+       "name": "ICE 145",
+       "zugattribute": [
+        {
+         "key": "BEF",
+         "value": "Nederlandse Spoorwegen, DB Fernverkehr AG"
+        }
+       ]
+      }
+     }
+    ],
+    "angebotsPreis": {
+     "betrag": 149.98,
+     "waehrung": "EUR"
+    },
+    "angebotsPreisKlasse": "KLASSE_2",
+    "reiseAngebote": []
+   }
+  ]
+ }
+}

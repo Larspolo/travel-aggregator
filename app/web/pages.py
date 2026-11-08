@@ -41,11 +41,13 @@ from app.sourcehealth import failing_sources
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
-from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, PushSubscription, ScoreProfile, Setting, Trip
+from app.models import AccessTime, ApiToken, Capture, CurrencyRate, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting, Trip
 from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting, webpush_ready
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
-from app.ranking import Weights, _amount, bar_parts, effective_cost, format_breakdown, format_total, in_eur
+from app.parsers import group_price
+from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group, format_breakdown, format_total, in_eur,
+                         per_traveler)
 from app.timeofday import night_extras, night_time_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trips import archived_journeys, chain, list_trips
@@ -307,19 +309,35 @@ def resolve_weights(session: Session, trip: Trip, overrides: dict, profile: int 
     return active_weights(base, overrides), chosen  # the score is computed here and never stored
 
 
-def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datetime, rates=None):
+def fare_travelers(session: Session, itineraries) -> dict[int, int]:
+    """The travelers of the newest price of each fare whose source gives the price of the group (#767): the fare id to
+    `Capture.travelers` of that price. Only counts of 2 or more: 1, no count or no capture keep the price."""
+    sources = {f.source for it in itineraries for f in it.fares}
+    ids = [f.id for it in itineraries for f in it.fares if f.source in {s for s in sources if group_price(s)}]
+    if not ids:
+        return {}
+    rows = session.execute(select(FarePrice.fare_id, Capture.travelers)
+                           .outerjoin(Capture, FarePrice.capture_id == Capture.id)
+                           .where(FarePrice.fare_id.in_(ids))
+                           .order_by(FarePrice.captured_at, FarePrice.id)).all()
+    newest = dict(rows)  # the last row of each fare is its newest price
+    return {fare_id: n for fare_id, n in newest.items() if n is not None and n > 1}
+
+
+def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datetime, rates=None, counts=None):
     """The main fare of one itinerary and its effective cost: the lowest cost, a tie goes to the lowest price (#175).
-    The cost uses the EUR value of the price (`rates` of `load_rates()`, #385); a fare with no rate comes last."""
-    rates = rates or {}
+    The cost uses the EUR value of the price (`rates` of `load_rates()`, #385); a fare with no rate comes last.
+    The price part is per traveler (`counts` of `fare_travelers()`, #767); the other parts are per person."""
+    rates, counts = rates or {}, counts or {}
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
             + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
             + transfer_extras(it, weights) + stale_extras(it, weights, stale_before))
     def cost(f):
-        eur = to_eur(f.latest_price, f.currency, rates)
-        b = effective_cost(eur if eur is not None else Decimal(0), it.duration_min, it.transfers, weights,
+        eur, n = to_eur(f.latest_price, f.currency, rates), counts.get(f.id)
+        b = effective_cost(per_traveler(eur, n) if eur is not None else Decimal(0), it.duration_min, it.transfers, weights,
                            base + flexibility_extras(f, weights) + class_extras(f, it.duration_min, weights)
                                + self_transfer_extras(f, weights))
-        return in_eur(b, f.latest_price, f.currency, eur)
+        return for_group(in_eur(b, f.latest_price, f.currency, eur), f.latest_price, f.currency, n)
     return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, fc[1].price))
 
 
@@ -330,7 +348,8 @@ def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: d
     its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     rates = load_rates(session)
-    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates)) for it in its if it.fares]
+    counts = fare_travelers(session, its)
+    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts)) for it in its if it.fares]
     if not rows:
         return None
     return min(rows, key=lambda r: (not r[0].booked, not r[0].pinned, r[2].total, r[0].depart_at))
@@ -346,7 +365,8 @@ def best_offer(session: Session, trip: Trip):
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()
     rates = load_rates(session)
-    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates)) for it in its if it.fares]
+    counts = fare_travelers(session, its)
+    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts)) for it in its if it.fares]
     if not rows:
         return None
     return min(rows, key=lambda r: (r[2].total, r[0].depart_at))
@@ -411,6 +431,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
     rates = load_rates(session)  # once per request (#385)
+    counts = fare_travelers(session, itineraries)  # once per request (#767)
     now = datetime.now(timezone.utc)
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
     rows, all_rows, modes, sources, carriers = [], [], set(), set(), set()
@@ -433,7 +454,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             continue  # the time limits hide this row (#181)
         if hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before:
             continue  # "hide stale" hides a row whose newest capture is stale (#277)
-        fare, cost = row_cost(it, fares, places, weights, stale_before, rates)
+        fare, cost = row_cost(it, fares, places, weights, stale_before, rates, counts)
         all_rows.append((it, fare, cost))  # before the day filter: the days show all offers (#710)
         if day and it.legs and depart_day(it) != day:
             continue  # the day filter shows only the offers that depart on that local day (#709)
@@ -469,7 +490,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
     # the break-even links re-rank this page with another hour value: the sort and the filters stay (#920)
     tradeoff = tradeoff_lines(rows, shown, source, places, weights, stale_before, rates,
-                              trip_id, {**query, "sort": sort, "dir": dir})  # #895
+                              trip_id, {**query, "sort": sort, "dir": dir}, counts)  # #895
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
@@ -967,7 +988,7 @@ def _span(minutes: int) -> str:
 
 
 def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, rates,
-                   trip_id: int, base_qs: dict) -> dict:
+                   trip_id: int, base_qs: dict, counts=None) -> dict:
     """The break-even line of each rendered row against the shown row with the lowest effective cost (#895).
     The best row and a row with no break-even get no line. Each line is (head, value, tail, link or None):
     the value is the link to this page with that hour value (#920)."""
@@ -977,7 +998,7 @@ def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, 
     higher = dataclasses.replace(weights, hour_markup=weights.hour_markup + 1)
     def nxt(it):
         fares = [f for f in it.fares if not source or f.source == source]
-        return row_cost(it, fares, places, higher, stale_before, rates)[1].total
+        return row_cost(it, fares, places, higher, stale_before, rates, counts)[1].total
     best_next, lines, yours = nxt(best[0]), {}, _amount(weights.hour_markup)
     for it, _, cost in rows:
         if it.id == best[0].id:
@@ -1021,8 +1042,9 @@ def compare_page(request: Request, trip_id: int, session: Session = Depends(get_
     places = session.scalars(select(AccessTime)).all()
     stale_before = datetime.now(timezone.utc) - timedelta(hours=weights.stale_hours)
     rates = load_rates(session)
+    counts = fare_travelers(session, found.values())  # the same price per traveler as the trip page (#767)
     for i in ids:
-        fare, cost = row_cost(found[i], found[i].fares, places, weights, stale_before, rates)
+        fare, cost = row_cost(found[i], found[i].fares, places, weights, stale_before, rates, counts)
         context["columns"].append((found[i], fare, cost))
     # the best column of each line: a tie marks every column with the lowest value (#294)
     lines = {"price": [c.price for _, _, c in context["columns"]],
@@ -1033,7 +1055,7 @@ def compare_page(request: Request, trip_id: int, session: Session = Depends(get_
     # the break-even hour value of each column against the lowest effective cost (#894)
     totals = [cost.total for _, _, cost in context["columns"]]
     higher = dataclasses.replace(weights, hour_markup=weights.hour_markup + 1)
-    nexts = [row_cost(found[i], found[i].fares, places, higher, stale_before, rates)[1].total for i in ids]
+    nexts = [row_cost(found[i], found[i].fares, places, higher, stale_before, rates, counts)[1].total for i in ids]
     best_n = totals.index(min(totals))  # a tie goes to the first column
     context["yours"] = _amount(weights.hour_markup)
     # a click on the value re-ranks the page with that hour value (#896): the other weights of the URL stay

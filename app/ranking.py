@@ -61,6 +61,7 @@ class Breakdown:
     extras: tuple[tuple[str, Decimal], ...] = ()
     original: str = ""  # the price in its own currency when it is not EUR, e.g. "CHF 120" (#385)
     no_rate: str = ""  # the currency code when it has no rate: then the price and the total are Infinity (#385)
+    group: str = ""  # the price of a capture for 2 or more travelers, e.g. "€180 for 2 travelers" (#767)
 
 
 def _cents(value: Decimal) -> Decimal:
@@ -115,6 +116,21 @@ def in_eur(b: Breakdown, amount: Decimal, currency: str, eur: Decimal | None) ->
     return replace(b, original=_amount(amount, f"{currency} "))
 
 
+def per_traveler(price: Decimal, travelers: int | None) -> Decimal:
+    """The price of one traveler (#767): a group price divided by its travelers; 1 or no count keeps the price.
+    `effective_cost()` rounds it to cents."""
+    return Decimal(price) / travelers if travelers is not None and travelers > 1 else price
+
+
+def for_group(b: Breakdown, amount: Decimal, currency: str, travelers: int | None) -> Breakdown:
+    """The breakdown of a group price (#767): `b` was computed with the price per traveler; the text keeps the price
+    of the group in its own currency. 1 or no count, or no rate, gives `b` with no change."""
+    if travelers is None or travelers < 2 or b.no_rate:
+        return b
+    shown = _amount(amount) if currency == "EUR" else _amount(amount, f"{currency} ")
+    return replace(b, group=f"{shown} for {travelers} travelers")
+
+
 def bar_parts(b: Breakdown) -> list[tuple[str, Decimal, Decimal]]:
     """Give the positive parts of the breakdown as (label, x, width), in percent of their sum, for the cost bar (#590).
 
@@ -145,7 +161,8 @@ def format_breakdown(b: Breakdown) -> str:
     """
     if b.no_rate:
         return f"no rate for {b.no_rate}"
-    price_label = f"{b.original} ({_amount(b.price)}) price" if b.original else None
+    shown = b.group or b.original  # the group price (#767) or the price in its own currency (#385)
+    price_label = f"{shown} ({_amount(b.price)}) price" if shown else None
     labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost)) + b.extras
     parts = [price_label if label == "price" and price_label else f"{_amount(value)} {label}"
              for label, value in labels if value != 0]
