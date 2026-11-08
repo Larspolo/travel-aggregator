@@ -3,7 +3,7 @@
 A self-hosted web app that collects the train, bus and flight offers that you see on travel sites, and ranks them by
 your own "effective cost": price plus your value of time, transfers, night travel and door-to-door access.
 
-You search on bahn.de, NS International, Flixbus or a flight site as usual. A Tampermonkey userscript reads the
+You search on bahn.de, NS International, Flixbus, SNCF Connect or a flight site as usual. A Tampermonkey userscript reads the
 results that the page shows and sends them to your server. The trip page then shows all offers of all sites in one
 ranked list, with a breakdown of each score ("€90 price + €62 time + €30 transfers = €182").
 
@@ -156,7 +156,7 @@ differs from the address that installed the userscript.
 
 Check: the Tampermonkey dashboard shows the script as on.
 
-The repository also has the userscripts (`userscripts/bahn.user.js`, `userscripts/ns.user.js`, `userscripts/flixbus.user.js`, `userscripts/kiwi.user.js`). To install from the
+The repository also has the userscripts (`userscripts/bahn.user.js`, `userscripts/ns.user.js`, `userscripts/flixbus.user.js`, `userscripts/sncf.user.js`, `userscripts/kiwi.user.js`). To install from the
 repository instead, add the file as a new script in Tampermonkey and set the server URL (`https://<host>`).
 
 #### 6. Capture a first offer
@@ -676,6 +676,21 @@ The panel shows the number of captured offers.
 The parser reads the currency from the search address of the page. It takes the fare name from the transfer type of
 each connection. A connection that the parser cannot read goes to the errors of the capture and is not stored as an
 offer.
+
+### SNCF Connect userscript
+
+The SNCF Connect userscript captures the search results of www.sncf-connect.com: the trains, their times and their
+fares. It reads only the responses that the SNCF Connect page itself gets. It sends no request to sncf-connect.com.
+
+To install it, add the file `userscripts/sncf.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On www.sncf-connect.com, search for a train.
+The panel shows the number of captured offers.
+
+The trains that show are TGV INOUI, OUIGO and TER, with the first-class and second-class fares. The trip page has no
+SNCF Connect search link: the name of the site shows only in the search status.
+
+The parser makes one offer per fare. It reads the times of France and adds the offset of Europe/Paris for the date of
+each leg. A train that the parser cannot read goes to the errors of the capture and is not stored as an offer.
 
 ### Parse result of a capture
 
