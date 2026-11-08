@@ -1,0 +1,373 @@
+{
+  "connections": [
+    {
+      "id": "72e71511b151018feb661092921176e6fca0b04a777eb985f06507ae23867c7a",
+      "from": {
+        "name": "Wien Hbf (Bahnsteige 3-12)",
+        "esn": 8103000,
+        "departure": "2026-12-01T08:28:00.000",
+        "showAsResolvedMetaStation": false
+      },
+      "to": {
+        "name": "Zürich HB",
+        "esn": 8503000,
+        "arrival": "2026-12-01T16:53:00.000",
+        "arrivalPlatform": "12",
+        "showAsResolvedMetaStation": false
+      },
+      "sections": [
+        {
+          "from": {
+            "name": "Wien Hbf (Bahnsteige 3-12)",
+            "esn": 8103000,
+            "departure": "2026-12-01T08:28:00.000"
+          },
+          "to": {
+            "name": "Feldkirch Bahnhof",
+            "esn": 8100197,
+            "arrival": "2026-12-01T15:12:00.000",
+            "arrivalPlatform": "4"
+          },
+          "duration": 24240000,
+          "category": {
+            "name": "RJX",
+            "number": "19962",
+            "direction": "Bregenz",
+            "shortName": "RJX",
+            "displayName": "RJX",
+            "longName": {
+              "de": "Railjet Xpress",
+              "en": "Railjet Xpress",
+              "it": "Railjet Xpress"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#AB0020",
+            "barColor": "#AB0020",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#AB0020",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "RJX",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 24240000
+        },
+        {
+          "from": {
+            "name": "Feldkirch Bahnhof",
+            "esn": 8100197,
+            "departure": "2026-12-01T15:20:00.000",
+            "departurePlatform": "5A-B"
+          },
+          "to": {
+            "name": "Buchs SG",
+            "esn": 8509404,
+            "arrival": "2026-12-01T15:41:00.000"
+          },
+          "duration": 1260000,
+          "category": {
+            "name": "s",
+            "number": "2",
+            "direction": "Buchs SG",
+            "shortName": "s",
+            "displayName": "S2",
+            "longName": {
+              "de": "S-Bahn",
+              "en": "S-Bahn Train",
+              "it": "S-Bahn Treno urbano"
+            },
+            "iconId": "sBahn",
+            "backgroundColor": "#ffffff",
+            "fontColor": "#2168F6",
+            "barColor": "#2168F6",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "sBahn",
+            "journeyPreviewIconColor": "#2168F6",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "S",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676",
+            "iconUrl": "https://shop.oebbtickets.at/api/public/images/categories/sBahn.png"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 25500000
+        },
+        {
+          "from": {
+            "name": "Buchs SG",
+            "esn": 8509404,
+            "departure": "2026-12-01T15:45:00.000",
+            "departurePlatform": "1"
+          },
+          "to": {
+            "name": "Sargans",
+            "esn": 8509411,
+            "arrival": "2026-12-01T15:54:00.000",
+            "arrivalPlatform": "6"
+          },
+          "duration": 540000,
+          "category": {
+            "name": "IR",
+            "number": "2219",
+            "direction": "Chur",
+            "shortName": "IR",
+            "displayName": "IR",
+            "longName": {
+              "de": "Interregio",
+              "en": "Interregio",
+              "it": "Interregio"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#E2002A",
+            "barColor": "#E2002A",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#E2002A",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "IR",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 26040000
+        },
+        {
+          "from": {
+            "name": "Sargans",
+            "esn": 8509411,
+            "departure": "2026-12-01T15:57:00.000",
+            "departurePlatform": "2"
+          },
+          "to": {
+            "name": "Zürich HB",
+            "esn": 8503000,
+            "arrival": "2026-12-01T16:53:00.000",
+            "arrivalPlatform": "12"
+          },
+          "duration": 3360000,
+          "category": {
+            "name": "IC",
+            "number": "780",
+            "direction": "Basel SBB",
+            "shortName": "IC",
+            "displayName": "IC",
+            "longName": {
+              "de": "Intercity",
+              "en": "Intercity",
+              "it": "Intercity"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#E2002A",
+            "barColor": "#E2002A",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#E2002A",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "REX",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 29400000
+        }
+      ],
+      "switches": 3,
+      "duration": 30300000
+    },
+    {
+      "id": "365caf029b7afda09c84dbc8b20084f08573f197b7bd2bb4f1a54facd5fd10cc",
+      "from": {
+        "name": "Wien Hbf (Bahnsteige 3-12)",
+        "esn": 8103000,
+        "departure": "2026-12-01T08:57:00.000",
+        "departurePlatform": "8A-B",
+        "showAsResolvedMetaStation": false
+      },
+      "to": {
+        "name": "Zürich HB",
+        "esn": 8503000,
+        "arrival": "2026-12-01T17:53:00.000",
+        "arrivalPlatform": "12",
+        "showAsResolvedMetaStation": false
+      },
+      "sections": [
+        {
+          "from": {
+            "name": "Wien Hbf (Bahnsteige 3-12)",
+            "esn": 8103000,
+            "departure": "2026-12-01T08:57:00.000",
+            "departurePlatform": "8A-B"
+          },
+          "to": {
+            "name": "Salzburg Hbf",
+            "esn": 8100002,
+            "arrival": "2026-12-01T11:49:00.000",
+            "arrivalPlatform": "7"
+          },
+          "duration": 10320000,
+          "category": {
+            "name": "IC",
+            "number": "546",
+            "direction": "Salzburg Hbf",
+            "shortName": "IC",
+            "displayName": "IC",
+            "longName": {
+              "de": "Intercity",
+              "en": "Intercity",
+              "it": "Intercity"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#E2002A",
+            "barColor": "#E2002A",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#E2002A",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "REX",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 10320000
+        },
+        {
+          "from": {
+            "name": "Salzburg Hbf",
+            "esn": 8100002,
+            "departure": "2026-12-01T11:56:00.000"
+          },
+          "to": {
+            "name": "Sargans",
+            "esn": 8509411,
+            "arrival": "2026-12-01T16:49:00.000",
+            "arrivalPlatform": "3"
+          },
+          "duration": 17580000,
+          "category": {
+            "name": "RJX",
+            "number": "162",
+            "direction": "Sargans",
+            "shortName": "RJX",
+            "displayName": "RJX",
+            "longName": {
+              "de": "Railjet Xpress",
+              "en": "Railjet Xpress",
+              "it": "Railjet Xpress"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#AB0020",
+            "barColor": "#AB0020",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#AB0020",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "RJX",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 27900000
+        },
+        {
+          "from": {
+            "name": "Sargans",
+            "esn": 8509411,
+            "departure": "2026-12-01T16:57:00.000",
+            "departurePlatform": "2"
+          },
+          "to": {
+            "name": "Zürich HB",
+            "esn": 8503000,
+            "arrival": "2026-12-01T17:53:00.000",
+            "arrivalPlatform": "12"
+          },
+          "duration": 3360000,
+          "category": {
+            "name": "ICE",
+            "number": "100",
+            "direction": "Dortmund Hbf",
+            "shortName": "ICE",
+            "displayName": "ICE",
+            "longName": {
+              "de": "Intercity Express",
+              "en": "Intercity Express",
+              "it": "Intercity Express"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#E2002A",
+            "barColor": "#E2002A",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#E2002A",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "ICE",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 31260000
+        }
+      ],
+      "switches": 2,
+      "duration": 32160000
+    }
+  ]
+}

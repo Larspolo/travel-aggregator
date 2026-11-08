@@ -1,0 +1,180 @@
+{
+  "connections": [
+    {
+      "id": "d6d3207650082f35276a64cc8bfb35eb6cf47fb397fcce23f38c9542efa919f3",
+      "from": {
+        "name": "Amsterdam Centraal",
+        "esn": 8400058,
+        "departure": "2026-12-01T18:01:00.000",
+        "showAsResolvedMetaStation": false
+      },
+      "to": {
+        "name": "Wien Hbf (Bahnsteige 3-12)",
+        "esn": 8103000,
+        "arrival": "2026-12-02T09:32:00.000",
+        "arrivalPlatform": "10A-B",
+        "showAsResolvedMetaStation": false
+      },
+      "sections": [
+        {
+          "from": {
+            "name": "Amsterdam Centraal",
+            "esn": 8400058,
+            "departure": "2026-12-01T18:01:00.000"
+          },
+          "to": {
+            "name": "Salzburg Hbf",
+            "esn": 8100002,
+            "arrival": "2026-12-02T06:46:00.000"
+          },
+          "duration": 45900000,
+          "category": {
+            "name": "NJ",
+            "number": "40421",
+            "direction": "Wien Hbf",
+            "shortName": "NJ",
+            "displayName": "NJ",
+            "longName": {
+              "de": "Nightjet",
+              "en": "Nightjet",
+              "it": "Nightjet"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#213264",
+            "barColor": "#213264",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#213264",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "NJ",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 45900000
+        },
+        {
+          "from": {
+            "name": "Salzburg Hbf",
+            "esn": 8100002,
+            "departure": "2026-12-02T07:07:00.000",
+            "departurePlatform": "4"
+          },
+          "to": {
+            "name": "Wien Hbf (Bahnsteige 3-12)",
+            "esn": 8103000,
+            "arrival": "2026-12-02T09:32:00.000",
+            "arrivalPlatform": "10A-B"
+          },
+          "duration": 8700000,
+          "category": {
+            "name": "RJX",
+            "number": "19969",
+            "direction": "Flughafen Wien",
+            "shortName": "RJX",
+            "displayName": "RJX",
+            "longName": {
+              "de": "Railjet Xpress",
+              "en": "Railjet Xpress",
+              "it": "Railjet Xpress"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#AB0020",
+            "barColor": "#AB0020",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#AB0020",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "RJX",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 54600000
+        }
+      ],
+      "switches": 1,
+      "duration": 55860000
+    },
+    {
+      "id": "9dfa4e9a7a9b0102c5067784204ba1acc6cab7a371ac57a67f8067081958e746",
+      "from": {
+        "name": "Amsterdam Centraal",
+        "esn": 8400058,
+        "departure": "2026-12-01T18:01:00.000",
+        "showAsResolvedMetaStation": false
+      },
+      "to": {
+        "name": "Wien Hbf (Bahnsteige 3-12)",
+        "esn": 8103000,
+        "arrival": "2026-12-02T09:48:00.000",
+        "showAsResolvedMetaStation": false
+      },
+      "sections": [
+        {
+          "from": {
+            "name": "Amsterdam Centraal",
+            "esn": 8400058,
+            "departure": "2026-12-01T18:01:00.000"
+          },
+          "to": {
+            "name": "Wien Hbf (Bahnsteige 3-12)",
+            "esn": 8103000,
+            "arrival": "2026-12-02T09:48:00.000"
+          },
+          "duration": 56820000,
+          "category": {
+            "name": "NJ",
+            "number": "40421",
+            "direction": "Wien Hbf",
+            "shortName": "NJ",
+            "displayName": "NJ",
+            "longName": {
+              "de": "Nightjet",
+              "en": "Nightjet",
+              "it": "Nightjet"
+            },
+            "backgroundColor": "#ffffff",
+            "fontColor": "#213264",
+            "barColor": "#213264",
+            "place": {
+              "de": "Bahnsteig",
+              "en": "Platform",
+              "it": "Binario"
+            },
+            "journeyPreviewIconId": "zug",
+            "journeyPreviewIconColor": "#213264",
+            "assistantIconId": "zugAssistant",
+            "train": true,
+            "parallelLongName": null,
+            "parallelDisplayName": "NJ",
+            "backgroundColorDisabled": "#F0F0F0",
+            "fontColorDisabled": "#767676",
+            "barColorDisabled": "#767676"
+          },
+          "type": "journey",
+          "hasRealtime": false,
+          "durationSum": 56820000
+        }
+      ],
+      "switches": 0,
+      "duration": 56820000
+    }
+  ]
+}
