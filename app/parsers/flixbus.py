@@ -54,6 +54,7 @@ def external_id(uid: Any) -> str | None:
 class FlixbusParser:
     source = "flixbus.com"
     version = "1.0.0"
+    group_price = True  # the price is for all travelers of the search: `total` (#1026; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"url", "request", "response"} or of the response body only."""

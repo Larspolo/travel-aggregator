@@ -13,9 +13,11 @@ from tests.test_capture_mismatch import _csrf, _setup
 from tests.test_trip_booked import _alembic
 
 FIXTURES = Path(__file__).parent / "fixtures"
-# the 1-adult fixtures; the 2-adult fixture of #767 is in tests/test_rank_travelers.py
+# the 1-adult fixtures; the 2-adult fixtures of #767 and #1026 are in tests/test_rank_travelers.py and
+# tests/test_flixbus_travelers.py
 CASES = [("bahn.de", f.name) for f in sorted((FIXTURES / "bahn.de").glob("fahrplan-*.json")) if "-2-adults" not in f.name] + [
-    (src, f.name) for src in ("nsinternational.com", "flixbus.com") for f in sorted((FIXTURES / src).glob("*.json"))]
+    (src, f.name) for src in ("nsinternational.com", "flixbus.com") for f in sorted((FIXTURES / src).glob("*.json"))
+    if "-2-adults" not in f.name]
 BAHN = FIXTURES / "bahn.de" / "fahrplan-koeln-muenchen.json"
 
 
