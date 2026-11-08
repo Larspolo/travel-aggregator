@@ -438,6 +438,24 @@ The text of each event gives:
 - the place of departure, in the location of the event,
 - the local departure and arrival times, with their offsets from UTC, and the name of the trip, in the description.
 
+### Subscribe in a calendar
+
+The "Upcoming" page has a "Calendar" section. Click "Subscribe in a calendar" to make a link to a calendar feed of
+all your booked journeys. The feed has one event for each leg of each booked journey. Its events are the same as in
+the `.ics` file of "Add to calendar".
+
+- The page shows the link once, with the button "Open in the calendar app" (it opens the `webcal://` link) and a field
+  "Link to copy". Copy the link when it shows. The page shows it again only after you make a new link.
+- Add the link to your calendar app as a new calendar subscription. Your app then reads the feed again, about every
+  6 hours. Some apps read it less often.
+- The feed holds the events of the booked journeys that arrive now or later, and of those that arrived up to 30 days
+  ago. A booked journey
+  shows in the feed after you book it, and it leaves the feed after you unbook it.
+- The feed holds no note, no price and no API token. Anyone with the link can read the feed, with no login, so keep
+  the link private.
+- "Make a new link" makes a new link. The old link stops at once.
+- "Revoke" stops the link at once: the old link then gives "not found". The page shows "No calendar link" again.
+
 ### Price drops of a pinned offer
 
 A pinned offer whose price went down since the last view of its trip page shows a mark:
