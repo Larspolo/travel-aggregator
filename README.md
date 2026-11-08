@@ -416,7 +416,12 @@ The journeys are in the order of their departure. Each journey shows:
 - the date of its first leg, in the local time of the place of departure,
 - each leg in the local time of its place: the carrier and the service number, the place of departure and of arrival,
   the departure and arrival times, and "+1 day" (or more) where the arrival is on a later day,
-- the link "Add to calendar" at the right side, which downloads the `.ics` file of the journey (see "Add to calendar" below).
+- the link "Add to calendar" at the right side, which downloads the `.ics` file of the journey (see "Add to calendar" below),
+- "Paid" and the paid price of the journey, when the offer has a paid price (see "Pin, hide, book and note an offer").
+
+The page also shows "Total paid: €..." above the list, the sum in EUR of the paid prices of the journeys. The EUR
+values use the exchange rates of `/rates`. A paid price in a currency with no rate is not in the total. The page then
+shows "(N price(s) in XXX has/have no rate)" after the total. With no paid price, the total line is not shown.
 
 With no booked journey, the page shows the text "No booked journeys. Mark an offer as booked on its trip page."
 
@@ -434,6 +439,15 @@ Each row of the trip table has buttons at its left side:
 - "Hide" removes the offer from the table and marks it "hidden". "Unhide" shows it again.
   The table does not show hidden offers, unless you tick "show hidden" above the table.
 - "Mark as booked" adds a "booked" badge to the row. "Not booked" removes it.
+  "Mark as booked" also stores the paid fare and the paid price: the main fare of the row (the fare with the lowest
+  effective cost), its latest price and its currency, and the time of the booking. "Not booked" clears all four.
+- A booked row shows "Paid €59.80", the paid price. When the latest price of the paid fare is in the same currency and
+  is another price, the row adds ", now €89.00 (+€29.20)" (or "−" when the price is lower).
+- To correct the paid fare or the paid price, open "Legs and fares" of the row. A booked row has
+  the fields "Paid fare" (a select of the fares of the row) and "Paid price", and the button "Save paid price".
+  The paid price is a number from 0 to 99999.99 with at most 2 decimals. A blank or a bad price shows an error (HTTP 422)
+  and stores nothing.
+- A new capture of the same journey keeps the paid price and the paid fare of the booked row.
 
 The three buttons update the table in place: the page does not reload, and it keeps its scroll position.
 Without JavaScript, each button sends the form and reloads the page.
@@ -600,6 +614,9 @@ Each direction is a normal trip. The userscripts capture offers into it when you
 - The JSON file (`/trips/{id}/export.json`) has the trip, its itineraries, the legs of each itinerary, the fares of each itinerary and the price history of each fare. The times are in UTC with the original offset. The money is text, not a number.
 - The CSV file (`/trips/{id}/export.csv`) has one row per fare. The columns are the route, the departure, the arrival, the duration, the transfers, the modes, the carriers, the service numbers, the source, the fare, the column `travel_class` (`first`, `standard` or empty), the price, the currency, the capture time, the pinned, hidden and booked flags, the note and the booking link. The file starts with a UTF-8 byte order mark, so that a spreadsheet opens the accents correctly.
 - A cell that a spreadsheet could run as a formula starts with a quote `'`. Such a cell starts with `=`, `+`, `-`, `@`, a tab or a carriage return.
+- The paid fields of each itinerary in the JSON export are `booked_price` (the paid price as text, or null), `booked_currency`,
+  `booked_at` and `booked_fare` (the position of the paid fare in the `fares` of the itinerary, or null).
+- The CSV column `paid` is the paid price on the row of the paid fare. The other rows have an empty cell.
 - The raw captures are not in the export.
 
 ### Import a trip
@@ -609,6 +626,8 @@ Each direction is a normal trip. The userscripts capture offers into it when you
 - The page has the field "Import into". It has two choices: "A new trip" (the default) or one trip of the list. The list shows only the trips with the status `planning`.
 - When you select a file, the page selects the trip with the same title, origin, destination and dates as the file. A second import of the same file then goes into the same trip.
 - The import adds the itineraries, the fares and the price history that the trip does not have yet. An itinerary is the same when its legs are the same. A fare is the same when its source and fare name are the same. A price is the same when its capture time, price and currency are the same.
+- The import keeps the paid fields of "Export a trip" above. An export from an older version has no paid fields: its
+  itineraries import with no paid price.
 - A second import of the same file adds no row. The counts show as "unchanged" instead.
 - After the import, the app opens the trip. A message at the top shows the counts: the itineraries, the fares and the prices that were added, and the number of rows that were unchanged.
 - The file can be at most 5,000,000 bytes, the same limit as the API body.
