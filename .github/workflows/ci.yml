@@ -34,8 +34,8 @@ jobs:
       - run: python3 -m pip install --quiet --disable-pip-version-check --root-user-action=ignore -r requirements-dev.txt
       - name: Lint
         run: ruff check .
-      - name: Fast tests
-        run: python3 -m pytest -n auto
+      - name: Fast tests   # the 25 slowest tests in the log (#1070)
+        run: python3 -m pytest -n auto --durations=25
 
   # The browser tests (`pytest -m slow`, about 20 s): each page at 390 px and 1280 px with no sideways scroll, the phone
   # check with touch (tests/test_mobile_touch.py), and the userscripts on local test pages (never a travel site, P1).
