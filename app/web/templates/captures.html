@@ -8,10 +8,11 @@
   {% if failed %}<a class="btn" href="{{ base }}{% if src %}?{{ src }}{% endif %}">Show all captures</a>{% else %}<a class="btn" href="{{ base }}?{% if src %}{{ src }}&amp;{% endif %}failed=1">Only failed captures</a>{% endif %}
 {% endcall %}
 {% if source %}<p>Source: {{ source }} · <a href="{{ base }}{% if failed %}?failed=1{% endif %}">All sources</a></p>{% endif %}
-{% for source in failed_sources %}
+{% for entry in failed_sources %}{% set source = entry.source %}
 <p id="reparse-source-{{ loop.index }}"><button name="source" value="{{ source }}" hx-post="/captures/reparse-failed"
   hx-vals='{{ {"source": source} | tojson }}' hx-target="#reparse-source-{{ loop.index }}"
-  hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button></p>
+  hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button>
+  <a class="report-link" href="{{ entry.report_url }}" target="_blank" rel="noopener">Report on GitHub</a></p>
 {% endfor %}
 {% if sources %}
 <section class="card data-card" id="source-health"><h2>Sources</h2><div class="scroll" tabindex="0" role="region" aria-label="Sources"><table>
