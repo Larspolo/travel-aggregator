@@ -46,3 +46,15 @@ def storage_use(session: Session, days: int, now: datetime) -> StorageUse:
     return StorageUse(database_bytes=database_bytes, sources=sources,
                       captures=sum(u.captures for u in sources), raw_bytes=sum(u.raw_bytes for u in sources),
                       cleanup_captures=cleanup_captures, cleanup_bytes=cleanup_bytes)
+
+
+def human_bytes(n: int) -> str:
+    """A size in bytes as text, base 1024: one decimal below 10, else none (`1.5 KB`, `88 MB`)."""
+    if n < 1024:
+        return f"{n} B"
+    value = float(n)
+    for unit in ("KB", "MB", "GB", "TB"):
+        value /= 1024
+        if value < 1024 or unit == "TB":
+            break
+    return f"{value:.1f} {unit}" if value < 10 else f"{value:.0f} {unit}"
