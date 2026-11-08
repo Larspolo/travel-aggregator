@@ -302,7 +302,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
 | `/trips/{id}/captures` | The captures of a trip, with the parse result and the action "reparse capture" (see below). The link "Only failed captures" shows only the failed captures (`?failed=1`); "Show all captures" shows all again |
 | `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
-| `/settings` | The capture retention period (see below), the channel of the price-drop messages with its ntfy topic URL and e-mail address (see "Messages outside the app"), and "Turn on push on this device" and "Remove push from this device" for Web Push |
+| `/settings` | The capture retention period (see below), the size of the data (card "Storage"), the channel of the price-drop messages with its ntfy topic URL and e-mail address (see "Messages outside the app"), and "Turn on push on this device" and "Remove push from this device" for Web Push |
 | `/sw.js` | The service worker of Web Push. It needs no login |
 | `POST /settings/push` | Subscribes the browser that sends the form to Web Push. Used by the settings page (CSRF token needed) |
 | `POST /settings/push/delete` | Removes the push subscription of the browser that sends it (CSRF token needed) |
@@ -946,6 +946,9 @@ the raw data, nothing moves, and the page shows the reason.
 A capture is the raw data that the userscript sent to the server. The app keeps each capture for a number of days.
 Open `/settings` to set the retention period. The default is 90 days. Enter `0` to keep all captures. The maximum is
 3650 days. Each ingest deletes the captures that are older than the period. The offers and their price history stay.
+
+The card "Storage" on `/settings` shows the size of the database and of the raw captures. It shows the number of captures
+and the raw size of each source. It also shows the captures that the next cleanup removes at the current period.
 
 A deleted capture cannot be reparsed (see above). Set a longer period before you need to reparse an old capture.
 
