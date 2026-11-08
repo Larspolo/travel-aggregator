@@ -38,5 +38,8 @@
   },
   "sncf.user.js": {
     "1.0.0": "3d2b906a8aea142eda057fada861893d0614278af01c574f55e32a4bb8b96938"
+  },
+  "eurostar.user.js": {
+    "1.0.0": "961ef3b655606993b88b4079fb79ca0b9400caaacf1f175277b77cfa94b39eb4"
   }
 }

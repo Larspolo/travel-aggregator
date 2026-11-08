@@ -38,3 +38,15 @@ Berlin = "40d8f682-8646-11e6-9066-549f350fcb0c"
 [sncf]
 source = "sncf-connect.com"
 name = "SNCF Connect"
+
+[eurostar]
+source = "eurostar.com"
+name = "Eurostar"
+template = "https://www.eurostar.com/search/uk-en?adult=1&origin={from}&destination={to}&outbound={date}"
+date_format = "%Y-%m-%d"
+
+[eurostar.places]
+Amsterdam = "8400058"
+London = "7015400"
+Brussels = "8814001"
+Paris = "8727100"
