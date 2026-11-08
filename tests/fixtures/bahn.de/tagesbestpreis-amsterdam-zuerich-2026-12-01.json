@@ -1,0 +1,112 @@
+{
+  "request": {
+    "abfahrtsHalt": "A=1@O=Amsterdam Centraal@X=4899427@Y=52379191@U=80@L=8400058@",
+    "anfrageZeitpunkt": "2026-12-01T08:00:00",
+    "ankunftsHalt": "A=1@O=Zürich HB@X=8540192@Y=47378177@U=80@L=8503000@",
+    "ankunftSuche": "ABFAHRT",
+    "klasse": "KLASSE_2",
+    "produktgattungen": [
+      "ICE",
+      "EC_IC",
+      "IR",
+      "REGIONAL",
+      "SBAHN",
+      "BUS",
+      "SCHIFF",
+      "UBAHN",
+      "TRAM",
+      "ANRUFPFLICHTIG"
+    ],
+    "reisende": [
+      {
+        "typ": "ERWACHSENER",
+        "ermaessigungen": [
+          {
+            "art": "KEINE_ERMAESSIGUNG",
+            "klasse": "KLASSENLOS"
+          }
+        ],
+        "alter": [],
+        "anzahl": 1
+      }
+    ],
+    "schnelleVerbindungen": true,
+    "autonomeReservierungOnly": false,
+    "bikeCarriage": false,
+    "reservierungsKontingenteVorhanden": false,
+    "nurFahrbareVerbindungen": false,
+    "nurDeutschlandTicketVerbindungen": false,
+    "deutschlandTicketVorhanden": false
+  },
+  "response": {
+    "intervalle": [
+      {
+        "ab": "2026-12-01T00:00:00",
+        "bis": "2026-12-01T07:00:00",
+        "preis": {
+          "betrag": 74.99,
+          "waehrung": "EUR",
+          "mwst": []
+        },
+        "bestpreis": false,
+        "teilpreis": false
+      },
+      {
+        "ab": "2026-12-01T07:00:00",
+        "bis": "2026-12-01T10:00:00",
+        "preis": {
+          "betrag": 99.99,
+          "waehrung": "EUR",
+          "mwst": []
+        },
+        "bestpreis": false,
+        "teilpreis": false
+      },
+      {
+        "ab": "2026-12-01T10:00:00",
+        "bis": "2026-12-01T13:00:00",
+        "preis": {
+          "betrag": 89.99,
+          "waehrung": "EUR",
+          "mwst": []
+        },
+        "bestpreis": false,
+        "teilpreis": false
+      },
+      {
+        "ab": "2026-12-01T13:00:00",
+        "bis": "2026-12-01T16:00:00",
+        "preis": {
+          "betrag": 58.99,
+          "waehrung": "EUR",
+          "mwst": []
+        },
+        "bestpreis": false,
+        "teilpreis": false
+      },
+      {
+        "ab": "2026-12-01T16:00:00",
+        "bis": "2026-12-01T19:00:00",
+        "preis": {
+          "betrag": 57.99,
+          "waehrung": "EUR",
+          "mwst": []
+        },
+        "bestpreis": false,
+        "teilpreis": false
+      },
+      {
+        "ab": "2026-12-01T19:00:00",
+        "bis": "2026-12-02T00:00:00",
+        "preis": {
+          "betrag": 49.99,
+          "waehrung": "EUR",
+          "mwst": []
+        },
+        "bestpreis": true,
+        "teilpreis": false
+      }
+    ],
+    "nachrichten": []
+  }
+}

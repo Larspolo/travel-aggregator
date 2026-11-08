@@ -1,4 +1,5 @@
-"""The parser of a bahn.de fahrplan or recon payload (`POST /web/api/angebote/fahrplan` or `/recon`, tests/fixtures/bahn.de/README.md).
+"""The parser of a bahn.de fahrplan or recon payload (`POST /web/api/angebote/fahrplan` or `/recon`, or of a day price payload
+(`POST /web/api/angebote/tagesbestpreis`, "Bestpreise anzeigen"; tests/fixtures/bahn.de/README.md).
 
 The payload has local times with no offset. The UIC country code (the first 2 digits of the station `extId`) gives the
 timezone of each station; Europe/Berlin is the default. The parser sends no request (P1)."""
@@ -10,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult, count
+from app.parsers import DayPrice, ParseResult, count
 from app.schemas import LegIn, OfferIn, _short_reason
 
 DEFAULT_TZ = "Europe/Berlin"
@@ -69,15 +70,17 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.1.0"
+    version = "1.2.0"
     group_price = True  # the price is for all travelers of the request (#767; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:
-        """Offers of a capture {"request", "response"} or of the response body only."""
+        """Offers (or day prices, #1196) of a capture {"request", "response"} or of the response body only."""
         if not isinstance(raw, dict):
             raise ValueError("the bahn.de payload is not an object")
         response = raw.get("response", raw)
         request = raw.get("request") if "response" in raw else None
+        if isinstance(response, dict) and isinstance(response.get("intervalle"), list):
+            return self._day_prices(response["intervalle"], travelers(request))
         conns = response.get("verbindungen") if isinstance(response, dict) else None
         if not isinstance(conns, list):
             raise ValueError("the bahn.de payload has no verbindungen list")
@@ -92,6 +95,31 @@ class BahnParser:
                 result.errors.append({"index": i, "reason": _short_reason(e)})
             except (KeyError, TypeError, ValueError, AttributeError) as e:
                 result.errors.append({"index": i, "reason": f"bad connection: {type(e).__name__} {e}"[:200]})
+        return result
+
+    def _day_prices(self, intervals: list, people: int | None) -> ParseResult:
+        """The cheapest price of each local day of the time intervals (`ab`, `preis`); a bad interval goes to `errors`."""
+        result, best = ParseResult(travelers=people), {}
+        for i, iv in enumerate(intervals):
+            try:
+                price = iv.get("preis") or {}
+                if not iv.get("ab"):
+                    raise NoPrice("no date (ab)")
+                if price.get("betrag") is None:
+                    raise NoPrice("no price (preis)")
+                day = datetime.fromisoformat(iv["ab"]).date()
+                # str() first: a JSON float such as 49.99 must not become a long binary Decimal
+                amount = Decimal(str(price["betrag"])).quantize(Decimal("0.01"))
+                if not amount.is_finite() or amount < 0:
+                    raise NoPrice(f"bad price {price['betrag']!r}"[:200])
+                currency = price.get("waehrung") or "EUR"
+                if day not in best or amount < best[day].price_amount:
+                    best[day] = DayPrice(day=day, price_amount=amount, price_currency=currency)
+            except NoPrice as e:
+                result.errors.append({"index": i, "reason": str(e)})
+            except (KeyError, TypeError, ValueError, AttributeError, ArithmeticError) as e:
+                result.errors.append({"index": i, "reason": f"bad interval: {type(e).__name__} {e}"[:200]})
+        result.day_prices = [best[d] for d in sorted(best)]
         return result
 
     def _offers(self, conn: dict, extra: list[str]) -> list[OfferIn]:
