@@ -540,3 +540,25 @@ input[name=it]:checked { counter-increment: picked; }
 .source-warning { display: flex; flex-direction: column; gap: var(--space-2, .5rem); margin-bottom: 1rem; }
 .source-warning .chip { height: auto; padding: 4px 9px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; align-self: flex-start; max-width: 100%; margin: 0; }
 .source-warning a { color: inherit; }
+
+/* The timeline of the trip page (#815): the axis keeps its width, the block scrolls in its own box */
+.timeline-view { margin: 0 0 var(--space-3); }
+.timeline-view[hidden] { display: none; }
+.timeline-view summary { cursor: pointer; font-weight: 600; }
+.timeline-date { font-size: 0.9rem; margin: var(--space-2) 0 var(--space-1); }
+.timeline-scroll { overflow-x: auto; max-width: 100%; }
+.timeline-axis { position: relative; min-width: 640px; padding-bottom: 1.4rem; }
+.timeline-bar { position: relative; display: block; height: 28px; margin: 4px 0; border-radius: 4px; background: var(--accent-soft); color: var(--text); text-decoration: none; }
+.timeline-bar:focus-visible, .timeline-bar:hover { outline: 2px solid var(--accent); }
+.timeline-bar.best-value { box-shadow: inset 3px 0 0 var(--accent); }
+.tl-leg, .tl-gap { position: absolute; top: 4px; bottom: 4px; border-radius: 3px; }
+.tl-leg { background: var(--accent); }
+.tl-leg.mode-bus { background: #2e8b57; }
+.tl-leg.mode-flight { background: #8a4fd1; }
+.tl-leg.mode-walk { background: #999; }
+.tl-gap { background: transparent; border-top: 2px dotted var(--muted); top: 13px; bottom: auto; }
+.tl-text { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; white-space: nowrap; }
+.timeline-hours { position: absolute; left: 0; right: 0; bottom: 0; height: 1.2rem; }
+.timeline-hours span { position: absolute; transform: translateX(-50%); font-size: 0.7rem; color: var(--muted); }
+.timeline-hours span:first-child { transform: none; }
+.timeline-hours span:last-child { transform: translateX(-100%); }

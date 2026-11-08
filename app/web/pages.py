@@ -25,6 +25,7 @@ from app.backup import newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.days import day_summary
+from app.timeline import timeline
 from app.db import get_session
 from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
@@ -442,6 +443,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "rates": rates}
     context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
+    # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
+    context["timeline"] = timeline(rows, lambda it: depart_day(it) if it.legs else None)
+    context["timeline_rows"] = {r[0].id: r for r in rows}
     # the links of the days strip (#711): all values of the query but the day
     context["days_qs"] = urlencode({k: v for k, v in query.items() if k != "day"}, doseq=True)
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)

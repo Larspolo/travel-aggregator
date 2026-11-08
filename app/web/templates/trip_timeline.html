@@ -1,0 +1,24 @@
+{# The timeline of the shown rows (#815): one block per departure day, one bar per itinerary on the time axis of
+   that day (app/timeline.py). A bar links to its row (#814); a transfer is a gap. An htmx request swaps it out of band. #}
+<details id="trip-timeline" class="timeline-view card"{% if oob %} hx-swap-oob="true"{% endif %}{% if not timeline %} hidden{% endif %}>
+<summary>Timeline</summary>
+{% for d in timeline %}{% set size = d.end_min - d.start_min %}
+<div class="timeline-day">
+  <h3 class="timeline-date">{{ d.day[8:10] }}-{{ d.day[5:7] }}</h3>
+  <div class="timeline-scroll">
+  <div class="timeline-axis">
+    {% for b in d.bars %}{% set it, fare, cost = timeline_rows[b.itinerary_id] %}{% set legs = it.legs | list %}
+    <a class="timeline-bar{% if 'best value' in view.badges.get(it.id, []) %} best-value{% endif %}" href="#it-{{ it.id }}"
+       aria-label="{{ legs[0].from_name }} → {{ legs[-1].to_name }}, {{ b.depart_text }} to {{ b.arrive_text }}, {{ it.transfers }} transfer{% if it.transfers != 1 %}s{% endif %}, {{ cost.price | money('EUR') }}">
+      {% for part in b.parts %}{% if part.kind == "leg" %}<span class="tl-leg mode-{{ part.mode }}" style="left: {{ part.left }}%; width: {{ part.width }}%"></span>{% else %}<span class="tl-gap" style="left: {{ part.left }}%; width: {{ part.width }}%" title="{{ part.minutes }} min at {{ part.from_name }}"></span>{% endif %}{% endfor %}
+      <span class="tl-text">{{ b.depart_text }}–{{ b.arrive_text }}{% if 'best value' in view.badges.get(it.id, []) %} <span class="badge best-value">best value</span>{% endif %}</span>
+    </a>
+    {% endfor %}
+    <div class="timeline-hours" aria-hidden="true">
+      {% for m in range(d.start_min, d.end_min + 1, 60 if size <= 720 else 120) %}<span style="left: {{ ((m - d.start_min) * 100 / size) | round(3) }}%">{{ "%02d" | format((m // 60) % 24) }}</span>{% endfor %}
+    </div>
+  </div>
+  </div>
+</div>
+{% endfor %}
+</details>
