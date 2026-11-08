@@ -156,8 +156,9 @@ FORM_FIELDS = tuple(TripForm.model_fields)
 
 def _form_page(request: Request, values: dict, errors: list[str], trip_id: int | None, session: Session,
                code: int = 200):
+    journey = len(chain(_get_trip(session, trip_id))) if trip_id else 1  # the button "Copy journey" (#802)
     return templates.TemplateResponse(request, "trip_form.html",
-                                      {"values": values, "errors": errors, "trip_id": trip_id,
+                                      {"values": values, "errors": errors, "trip_id": trip_id, "journey": journey,
                                        "profiles": list_profiles(session)}, status_code=code)
 
 
@@ -520,16 +521,35 @@ def make_next_trip(trip_id: int, session: Session = Depends(get_session)) -> Red
     return RedirectResponse(f"/trips/{new.id}/edit", status_code=303)
 
 
+def _copy_of(trip: Trip, return_of_id: int | None = None) -> Trip:
+    """A copy of a trip (#801): the places, travelers, profile and note; no dates, offers or link (unless given)."""
+    return Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
+                destination_text=trip.destination_text, travelers=trip.travelers, profile_id=trip.profile_id,
+                notes=trip.notes, return_of_id=return_of_id)
+
+
 @router.post("/trips/{trip_id}/copy", dependencies=[Depends(require_login), Depends(verify_csrf)])
 def copy_trip(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
-    """A copy of a trip for another date (#801): the places, travelers, profile and note; no dates, link or offers."""
-    trip = _get_trip(session, trip_id)
-    new = Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
-               destination_text=trip.destination_text, travelers=trip.travelers, profile_id=trip.profile_id,
-               notes=trip.notes)
+    """A copy of a trip for another date (#801)."""
+    new = _copy_of(_get_trip(session, trip_id))
     session.add(new)
     session.commit()
     return RedirectResponse(f"/trips/{new.id}/edit", status_code=303)
+
+
+@router.post("/trips/{trip_id}/copy-journey", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def copy_journey(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    """A copy of a whole journey (#802): the same order, each copy linked to the copy before it."""
+    previous, first_new = None, None
+    for trip in chain(_get_trip(session, trip_id)):
+        new = _copy_of(trip, return_of_id=previous.id if previous is not None else None)
+        session.add(new)
+        session.flush()  # the id links the next copy
+        if first_new is None:
+            first_new = new
+        previous = new
+    session.commit()
+    return RedirectResponse(f"/trips/{first_new.id}/edit", status_code=303)
 
 
 @router.post("/profiles",dependencies=[Depends(require_login), Depends(verify_csrf)])
