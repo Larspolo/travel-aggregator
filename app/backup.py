@@ -205,14 +205,36 @@ def _alert(url: str, now: datetime, error: str | None) -> None:
         engine.dispose()
 
 
+def _remind(url: str, now: datetime) -> None:
+    """Send the due "Search again" reminders (#1119). A failure only logs a warning: the backups continue."""
+    from app import reminder
+    from app.notify import setting
+
+    engine = make_engine(sqlalchemy_url(url))
+    try:
+        with make_sessionmaker(engine)() as session:
+            reminder.send_reminders(session, now, setting(session, reminder.BASE_URL_KEY))
+    except Exception as e:  # noqa: BLE001 (a reminder must not stop the backup loop)
+        log.warning("reminders not sent: %s", _redact(str(e), url))
+    finally:
+        engine.dispose()
+
+
 def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | None = None) -> float:
+    """One step of the daily loop: the dump when due (`_dump_step`), then the reminders (#1119)."""
+    now = now or datetime.now(UTC)
+    wait = _dump_step(url, backup_dir, interval, now)
+    _remind(url, now)
+    return wait
+
+
+def _dump_step(url: str, backup_dir: Path, interval: timedelta, now: datetime) -> float:
     """One step of the daily loop: dump when due. Return the seconds until the next step.
 
     The time of the newest daily dump decides, so a restart writes no extra dump. A failed dump prints an error and
     returns the retry delay of one hour; it does not raise. After a new dump, the older daily dumps beyond BACKUP_KEEP
     are deleted.
     """
-    now = now or datetime.now(UTC)
     last = newest_daily(backup_dir)
     if last is None or now - last >= interval:
         try:
