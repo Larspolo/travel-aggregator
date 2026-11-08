@@ -36,6 +36,7 @@ class Trip(Base):
     share_hash: Mapped[str | None] = mapped_column(String(128), unique=True)  # the secret share link (#903)
     shared_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
     viewed_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the last full view (#1090)
+    reminded_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the last reminder (#1118)
     profile_id: Mapped[int | None] = mapped_column(ForeignKey("score_profiles.id", ondelete="SET NULL"))  # #232
     # The outbound trip of a return trip, and its return trip (#340): one-to-one.
     return_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL"), unique=True)
