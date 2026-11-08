@@ -19,7 +19,7 @@
           {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }} · {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }}</span></div>
         {% if it.note %}<div class="muted">{{ it.note }}</div>{% endif %}</td>
       <td class="carrier"><div class="clip" title="{{ carriers }}">{{ carriers }}</div><div class="clip muted" title="{{ fare_line }}">{{ fare_line }}</div></td>
-      <td class="price">{{ fare.latest_price | money(fare.currency) }}</td>
+      <td class="price">{{ ui.price_change(fare, seen) }}</td>
       <td class="cost"><div class="total">{{ "no rate" if cost.no_rate else cost.total | money }}</div>
         {% set parts = bar_parts(cost) %}{% if parts %}<svg class="bar" width="100%" height="6" aria-hidden="true">{% for label, x, w in parts %}<rect class="part-{{ loop.index0 % 4 }}" x="{{ x }}%" width="{{ w }}%" height="6"></rect>{% endfor %}</svg>{% endif %}
         <div class="breakdown">{{ format_breakdown(cost) }}{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</div></td>
@@ -53,7 +53,7 @@
         </div>
         <div class="fares">
         {% for f in it.fares | by_eur(rates) %}
-          <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}{{ ui.class_badge(f) }}</span> <strong>{{ f.latest_price | money(f.currency) }}</strong>
+          <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}{{ ui.class_badge(f) }}</span> <strong>{{ ui.price_change(f, seen) }}</strong>
             {% if f.booking_url %}<a class="btn" href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">{{ ui.icon("arrow-right") }}Book</a>{% endif %}</div>
         {% endfor %}
         </div>

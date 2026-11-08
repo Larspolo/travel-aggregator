@@ -33,3 +33,11 @@
 {% macro class_badge(fare) -%}
 {%- if fare.travel_class == "first" and "1st" not in (fare.fare_name or "") %} <span class="badge first-class" title="1st class">1st</span>{% endif -%}
 {%- endmacro %}
+
+{# The price of a fare, with its change since the last view when it differs (#1092): "€95.00 → €90.00". #}
+{% macro price_change(fare, seen) -%}
+{%- set old = (seen or {}).get(fare.id, fare.seen_price) -%}
+{%- if old is not none and old != fare.latest_price -%}
+<span class="price-change {{ 'down' if fare.latest_price < old else 'up' }}" title="the price at the last view">{{ old | money(fare.currency) }} → {{ fare.latest_price | money(fare.currency) }}</span>
+{%- else -%}{{ fare.latest_price | money(fare.currency) }}{%- endif -%}
+{%- endmacro %}

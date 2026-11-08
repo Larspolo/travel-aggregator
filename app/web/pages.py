@@ -507,6 +507,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["timeline_rows"] = {r[0].id: r for r in rows}
     # the links of the days strip (#711): all values of the query but the day
     context["days_qs"] = urlencode({k: v for k, v in query.items() if k != "day"}, doseq=True)
+    # the seen price of each shown fare before mark_seen() changes it: the price changes of the rows (#1092)
+    context["seen"] = {f.id: f.seen_price for r in rows for f in r[0].fares}
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     context["drops"] = trip_drops(session, trip_id)  # the drops since the last full view (#355)

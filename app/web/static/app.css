@@ -620,3 +620,8 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 .card form.profile-edit { display: block; max-width: 48rem; }
 .profile-edit > .field { margin-bottom: var(--space-3); }
 .profile-edit details.advanced fieldset { border: 0; padding: 0; }
+
+/* the price change since the last view (#1092) */
+.price-change { white-space: nowrap; }
+.price-change.down { color: var(--good, #1a7f37); }
+.price-change.up { color: var(--bad, #b42318); }
