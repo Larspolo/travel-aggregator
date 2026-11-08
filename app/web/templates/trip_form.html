@@ -13,6 +13,7 @@
     <div class="field"><label for="f-date-from">From</label><input id="f-date-from" type="date" name="date_from" value="{{ values.date_from or '' }}"></div>
     <div class="field"><label for="f-date-to">To</label><input id="f-date-to" type="date" name="date_to" value="{{ values.date_to or '' }}"></div>
     <div class="field"><label for="f-travelers">Travelers</label><input id="f-travelers" type="number" name="travelers" min="1" max="9" value="{{ values.travelers or 1 }}"></div>
+    <div class="field"><label for="f-target-price">Target price (EUR)</label><input id="f-target-price" type="number" name="target_price" min="0.01" max="100000" step="0.01" value="{{ values.target_price or '' }}"><small>Mark the fares at or below this price</small></div>
     <div class="field"><label for="f-status">Status</label><select id="f-status" name="status">
       {% for s in ["planning", "booked", "archived"] %}
       <option value="{{ s }}"{% if values.status == s %} selected{% endif %}>{{ s }}</option>

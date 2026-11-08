@@ -526,10 +526,11 @@ def make_next_trip(trip_id: int, session: Session = Depends(get_session)) -> Red
 
 
 def _copy_of(trip: Trip, return_of_id: int | None = None) -> Trip:
-    """A copy of a trip (#801): the places, travelers, profile and note; no dates, offers or link (unless given)."""
+    """A copy of a trip (#801): the places, travelers, profile, note and target price; no dates, offers or link
+    (unless given)."""
     return Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
                 destination_text=trip.destination_text, travelers=trip.travelers, profile_id=trip.profile_id,
-                notes=trip.notes, return_of_id=return_of_id)
+                notes=trip.notes, target_price=trip.target_price, return_of_id=return_of_id)
 
 
 @router.post("/trips/{trip_id}/copy", dependencies=[Depends(require_login), Depends(verify_csrf)])

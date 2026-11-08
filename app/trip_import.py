@@ -34,6 +34,7 @@ class TripData(_Model):
     travelers: int = Field(1, ge=1)
     status: str = Field("planning", min_length=1, max_length=20)
     notes: str | None = None
+    target_price: Decimal | None = Field(None, gt=0, le=100000)  # missing in an older export: None (#846)
 
 
 class LegData(_Model):
@@ -137,7 +138,8 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
     if trip_id is None:
         t = export.trip
         trip = Trip(title=t.title, origin_text=t.origin, destination_text=t.destination, date_from=t.date_from,
-                    date_to=t.date_to, travelers=t.travelers, status=t.status, notes=t.notes)
+                    date_to=t.date_to, travelers=t.travelers, status=t.status, notes=t.notes,
+                    target_price=t.target_price)
         session.add(trip)
         session.flush()
     else:
