@@ -501,6 +501,20 @@ of an ingest. A failed send is logged and does not change the answer to the user
 A fare that comes to or below the target price of its trip (see "Target price of a trip") gives the title
 "Target price: " and the trip title instead.
 
+A "Search again" reminder asks you to search a trip again when its offers are old. It has the title "Search again: "
+and the trip title, the search links of the trip, and the link of the trip page. It uses the channel that you chose
+above. The reminder fetches nothing: the app only sends the message, and no travel site is contacted.
+
+Two settings on the messages settings page (`/settings/messages`) control the reminders:
+
+- "Reminder: age of the newest offers (days)": the number N. The default is `0`, which turns the reminders off.
+- "Reminder: days before the departure": the number D. The default is `14`.
+
+A trip gets a reminder when all of these are true: it is not archived; it has a pinned fare or a target price; it
+departs today or within D days; its newest offers are older than N days, or it has none; and its last reminder is
+older than N days, or it has none. So a trip gets at most one reminder in N days. The reminders are sent by the
+service `backup` (see "Backups"), so that service must run. All times are UTC.
+
 For Web Push, "Turn on push on this device" asks the browser for permission and subscribes it; "Remove push from this
 device" removes that browser. The settings page shows how many devices have push on. On an iPhone or iPad, Web Push
 works only in an app on the home screen: in Safari, tap Share, then "Add to Home Screen", and open the settings page
