@@ -25,13 +25,14 @@ def count(value: Any) -> int | None:
 def parser_classes() -> dict[str, type]:
     """The parser class of each source, keyed by its `source` name, in a fixed order."""
     from app.parsers.bahn import BahnParser
+    from app.parsers.eurostar import EurostarParser
     from app.parsers.flixbus import FlixbusParser
     from app.parsers.kiwi import KiwiParser
     from app.parsers.ns import NsParser
     from app.parsers.sncf import SncfParser
     from app.parsers.trainline import TrainlineParser
 
-    return {c.source: c for c in (BahnParser, NsParser, FlixbusParser, KiwiParser, TrainlineParser, SncfParser)}
+    return {c.source: c for c in (BahnParser, NsParser, FlixbusParser, KiwiParser, TrainlineParser, SncfParser, EurostarParser)}
 
 
 def all_sources() -> list[str]:
