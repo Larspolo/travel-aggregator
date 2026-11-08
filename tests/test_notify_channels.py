@@ -135,6 +135,6 @@ def test_a_send_error_is_logged_and_the_response_is_the_same(trip, sessions, vap
     _set_channel(sessions, channel)
     doubles.fail[channel] = error
     with_error = _post(client, auth, trip_id, "59.90")
-    assert with_error == without
+    assert {**with_error, "best": None} == {**without, "best": None}  # the best offer changes with the price (#880)
     assert doubles.calls == [channel]
     assert caplog.text.count("price drop message not sent") == 1

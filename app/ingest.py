@@ -6,7 +6,7 @@ import gzip
 import hashlib
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -325,6 +325,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     with the capture id (P3)."""
     raw_offers, raw_errors, unreadable, travelers = parse_raw(body)
     trip_id = _choose_trip(session, body, list(body.offers) + raw_offers)
+    before = _best(session, trip_id)
     capture = store_capture(session, trip_id, body)
     session.commit()
     if unreadable is not None:
@@ -347,7 +348,33 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     trip = session.get(Trip, trip_id)
     warning = _warning_text(reason, capture.travelers, None if trip is None else trip.travelers)
     return {**counts, "rejected": len(errors), "errors": errors, "warning": warning,
-            "trip_id": trip_id, "trip_title": None if trip is None else trip.title, "suggestion": suggestion}
+            "trip_id": trip_id, "trip_title": None if trip is None else trip.title, "suggestion": suggestion,
+            "best": _best_json(before, _best(session, trip_id))}
+
+
+def _best(session: Session, trip_id: int):
+    """The best offer of the trip (#880), or None."""
+    from app.web.pages import best_offer  # here: pages imports much of the app
+    trip = session.get(Trip, trip_id)
+    return None if trip is None else best_offer(session, trip)
+
+
+def _best_json(before, after) -> dict | None:
+    """The `best` key of the ingest response (#880): money as strings; `new` when the best changed or got cheaper."""
+    if after is None:
+        return None
+    it, fare, cost = after
+    legs = sorted(it.legs, key=lambda leg: leg.seq)
+    first, last = legs[0], legs[-1]
+    dep = first.depart_at.astimezone(timezone(timedelta(minutes=first.depart_offset_min)))
+    arr = last.arrive_at.astimezone(timezone(timedelta(minutes=last.arrive_offset_min)))
+    services = [leg.service_no for leg in legs if leg.service_no]
+    head = f"{services[0]} " if services else ""
+    tail = f"{services[-1]} " if len(services) > 1 else ""
+    summary = f"{head}{dep:%H:%M} → {tail}{arr:%H:%M}"
+    new = before is None or before[0].id != it.id or before[2].total > cost.total
+    return {"total": str(cost.total), "price": str(fare.latest_price), "currency": fare.currency,
+            "summary": summary, "new": new}
 
 
 def _choose_trip(session: Session, body: IngestIn, offers: list[OfferIn]) -> int:

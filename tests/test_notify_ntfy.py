@@ -86,7 +86,7 @@ def test_a_failed_post_is_logged_and_the_response_is_the_same(trip, sessions, mo
     _channel(sessions)
     full["offers"] = [offer("59.90")]
     with_channel = client.post("/api/ingest", json=full, headers=auth)
-    assert with_channel.status_code == 200 and with_channel.json() == without
+    assert with_channel.status_code == 200 and {**with_channel.json(), "best": None} == {**without, "best": None}
     assert "price drop message not sent" in caplog.text
 
 
