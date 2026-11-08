@@ -191,6 +191,20 @@ warning when the newest backup is older than 48 hours, or "No backup yet." when 
 Check: `docker compose exec app ls /backups` shows the new `.dump` file (a manual dump, or a `-daily.dump` file of the
 service `backup`).
 
+##### Backup messages
+
+The app can send a message about the backups by the channel that you choose on the messages settings page
+(`/settings/messages`, the same channel as the price-drop messages, see "Messages outside the app"). With the
+channel `none`, no message is sent.
+
+- "Send a test message": the button on the messages settings page sends one test message by the active channel. Use it
+  to check the channel. It needs a channel first; otherwise the page says "Select a channel first".
+- "Backup failed": the service `backup` could not write a daily dump. It sends at most one message in 24 hours while the
+  dumps fail.
+- "Backup works again": the next daily dump works after a "Backup failed" message. It is sent once.
+- "No backup for N days.": the newest backup is older than 48 hours. The app checks this when a userscript sends offers,
+  and it sends the message at most once in 24 hours. When there is no backup at all, the text is "No backup yet.".
+
 #### 8. Update
 
 The scoped watchtower checks the registry every 5 minutes and installs each new `:latest` image. Each closed epic
