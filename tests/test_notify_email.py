@@ -92,13 +92,13 @@ def test_an_smtp_error_is_logged_and_the_ingest_works(trip, sessions, smtp, capl
 
 
 def _save(c, **data):
-    return c.post("/settings", data={"retention": "30", "csrf_token": _token(c, "/settings"), **data},
+    return c.post("/settings/messages", data={"csrf_token": _token(c, "/settings"), **data},
                   follow_redirects=False)
 
 
 def test_email_without_smtp_host_gets_422(login_client, monkeypatch):  # noqa: F811
     monkeypatch.delenv("SMTP_HOST", raising=False)
-    assert "E-mail needs SMTP_HOST on the server" in login_client.get("/settings").text
+    assert "E-mail needs SMTP_HOST on the server" in login_client.get("/settings/messages").text
     assert _save(login_client, notify_channel="email", notify_email=ADDRESS).status_code == 422
 
 
@@ -106,5 +106,5 @@ def test_an_address_without_at_gets_422_and_a_good_one_is_saved(login_client, mo
     monkeypatch.setenv("SMTP_HOST", "smtp.example.org")
     assert _save(login_client, notify_channel="email", notify_email="owner.example.org").status_code == 422
     assert _save(login_client, notify_channel="email", notify_email=ADDRESS).status_code == 303
-    page = login_client.get("/settings").text
+    page = login_client.get("/settings/messages").text
     assert f'value="{ADDRESS}"' in page and '<option value="email" selected>' in page

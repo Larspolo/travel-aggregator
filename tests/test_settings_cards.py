@@ -45,7 +45,8 @@ def test_backup_chip_warn_for_old_and_good_for_recent(client, tmp_path):
 
 
 @pytest.mark.parametrize("path,titles", [
-    ("/settings", ["Captures", "Price-drop messages", "Backups", "Web Push"]),
+    ("/settings", ["Captures", "Backups"]),
+    ("/settings/messages", ["Channel", "Web Push"]),
     ("/rates", ["Add or change a rate", "Rates"]),
     ("/tokens", ["Userscripts", "Create a token", "Tokens"]),
 ])

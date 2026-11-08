@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "settings_base.html" %}
 {% import "ui.html" as ui %}
 {% block title %}Places – travel-aggregator{% endblock %}
-{% block content %}
-{{ ui.page_header("Access and egress places", subtitle="Access: from a place to the first station. Egress: from the last station to a place.") }}
+{% block header %}{{ ui.page_header("Access and egress places", subtitle="Access: from a place to the first station. Egress: from the last station to a place.") }}{% endblock %}
+{% block settings %}
 {% call ui.card("Add a place") %}
 <form method="post" action="/places">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">

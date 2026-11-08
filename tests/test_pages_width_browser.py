@@ -10,7 +10,7 @@ pytestmark = pytest.mark.slow
 
 PATHS = ["/", "/?archived=1", "/trips/new", "/trips/{id}/edit", "/trips/{id}/delete", "/trips/{id}",
          "/trips/{id}/compare?it={it0}&it={it1}&it={it2}", "/tokens", "/places", "/rates", "/profiles", "/captures", "/trips/{id}/captures",
-         "/settings", "/trips/{id}/itineraries/{it0}/history"]
+         "/settings", "/settings/messages", "/trips/{id}/itineraries/{it0}/history"]
 
 OUTSIDE = """(w) => [...document.querySelectorAll('body *')].filter(e => {
   const r = e.getBoundingClientRect(), s = getComputedStyle(e);

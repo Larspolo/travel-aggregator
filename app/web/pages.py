@@ -53,6 +53,17 @@ from app.trips import archived_journeys, chain, list_trips
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 templates.env.globals["csrf_token"] = csrf_token
+# All settings pages, in groups: the settings navigation of each settings page and the "Settings" link of the
+# app bar use this one list (#925, DESIGN.md section 5, "Settings").
+SETTINGS_NAV = [
+    ("App", [("/settings", "General", "settings"), ("/settings/messages", "Messages", "chart")]),
+    ("Ranking", [("/profiles", "Profiles", "user"), ("/places", "Places", "map-pin"),
+                 ("/rates", "Exchange rates", "arrow-right-left")]),
+    ("Capture", [("/tokens", "Userscripts", "key"), ("/sources/new", "Add a website", "plus")]),
+]
+SETTINGS_PATHS = [href for _, items in SETTINGS_NAV for href, _, _ in items]
+templates.env.globals["settings_nav"] = SETTINGS_NAV
+templates.env.globals["settings_paths"] = SETTINGS_PATHS
 
 
 def local(t: datetime, offset_min: int) -> datetime:
@@ -827,30 +838,41 @@ BACKUP_MAX_AGE = timedelta(hours=48)
 
 @router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def settings_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    """General: the capture retention period and the state of the backups (#925)."""
     newest = newest_backup(Path(os.environ.get("BACKUP_DIR", "/backups")))
     return templates.TemplateResponse(request, "settings.html", {"backup": newest,
                                                                  "backup_old": newest is not None and
                                                                  datetime.now(timezone.utc) - newest[0] > BACKUP_MAX_AGE,
                                                                  "retention_days": retention_days(session),
-                                                                 "max_days": MAX_RETENTION_DAYS,
-                                                                 "channel": setting(session, CHANNEL_KEY, "none"),
-                                                                 "channels": CHANNELS,
-                                                                 "ntfy_url": setting(session, NTFY_URL_KEY),
-                                                                 "notify_email": setting(session, EMAIL_KEY),
-                                                                 "smtp_ready": bool(get_settings().smtp_host),
-                                                                 "vapid_public_key": get_settings().vapid_public_key
-                                                                 if webpush_ready() else "",
-                                                                 "push_count": session.scalar(
-                                                                     select(func.count()).select_from(PushSubscription))})
+                                                                 "max_days": MAX_RETENTION_DAYS})
 
 
 @router.post("/settings", dependencies=[Depends(require_login), Depends(verify_csrf)])
-def save_settings(retention: str = Form(""), notify_channel: str = Form("none"), ntfy_url: str = Form(""),
-                  notify_email: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+def save_settings(retention: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+    """Saves only the field of the card "Captures": each card of a settings page saves its own fields (#925)."""
     value = retention.strip()
     if not value.isdigit() or int(value) > MAX_RETENTION_DAYS:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
                             f"the retention period must be a whole number from 0 to {MAX_RETENTION_DAYS}")
+    session.merge(Setting(key=RETENTION_KEY, value=str(int(value))))
+    session.commit()
+    return RedirectResponse("/settings", status_code=303)
+
+
+@router.get("/settings/messages", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def messages_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    """The channel of the price-drop messages and Web Push on this device (#925)."""
+    return templates.TemplateResponse(request, "settings_messages.html", {
+        "channel": setting(session, CHANNEL_KEY, "none"), "channels": CHANNELS,
+        "ntfy_url": setting(session, NTFY_URL_KEY), "notify_email": setting(session, EMAIL_KEY),
+        "smtp_ready": bool(get_settings().smtp_host),
+        "vapid_public_key": get_settings().vapid_public_key if webpush_ready() else "",
+        "push_count": session.scalar(select(func.count()).select_from(PushSubscription))})
+
+
+@router.post("/settings/messages", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), notify_email: str = Form(""),
+                  session: Session = Depends(get_session)) -> RedirectResponse:
     url = ntfy_url.strip()
     if notify_channel not in CHANNELS:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"the channel must be one of {', '.join(CHANNELS)}")
@@ -869,11 +891,10 @@ def save_settings(retention: str = Form(""), notify_channel: str = Form("none"),
     if notify_channel == "email" and not address:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the channel email needs an address")
     session.merge(Setting(key=EMAIL_KEY, value=address))
-    session.merge(Setting(key=RETENTION_KEY, value=str(int(value))))
     session.merge(Setting(key=CHANNEL_KEY, value=notify_channel))
     session.merge(Setting(key=NTFY_URL_KEY, value=url))
     session.commit()
-    return RedirectResponse("/settings", status_code=303)
+    return RedirectResponse("/settings/messages", status_code=303)
 
 
 class PushKeys(BaseModel):

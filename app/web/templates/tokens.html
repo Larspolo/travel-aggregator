@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "settings_base.html" %}
 {% import "ui.html" as ui %}
-{% block title %}API tokens – travel-aggregator{% endblock %}
-{% block content %}
-{{ ui.page_header("API tokens", back=("/settings", "Settings")) }}
+{% block title %}Userscripts and tokens – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header("Userscripts and tokens", subtitle="The userscripts send the offers of the travel sites to this server with an API token.") }}{% endblock %}
+{% block settings %}
 {% if new_token %}
 <section class="card new-token">
   <h2>New token</h2>

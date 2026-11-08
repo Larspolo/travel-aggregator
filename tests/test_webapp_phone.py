@@ -17,7 +17,7 @@ from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a f
 pytestmark = pytest.mark.slow
 
 PAGES = [("trips", "/"), ("archive", "/?archived=1"), ("trip-new", "/trips/new"), ("source-new", "/sources/new"),
-         ("captures", "/captures"), ("profiles", "/profiles"), ("places", "/places"), ("settings", "/settings"),
+         ("captures", "/captures"), ("profiles", "/profiles"), ("places", "/places"), ("settings", "/settings"), ("messages", "/settings/messages"),
          ("rates", "/rates"), ("tokens", "/tokens"), ("login", "/login")]
 
 
