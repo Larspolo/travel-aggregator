@@ -339,6 +339,9 @@ button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(
 .drops { padding: var(--space-4) var(--space-5); }
 .drops h2 { margin: 0 0 var(--space-2); }
 .drops ul { margin: 0; padding-left: var(--space-5); }
+.profile-best { padding: var(--space-4) var(--space-5); overflow-wrap: anywhere; }
+.profile-best h2 { margin: 0 0 var(--space-2); }
+.profile-best ul { margin: 0; padding-left: var(--space-5); }
 .journey {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow);
   padding: var(--space-4) var(--space-5); margin-bottom: var(--space-5);
