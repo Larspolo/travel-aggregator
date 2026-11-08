@@ -297,6 +297,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/rates` | The exchange rates: store the value in EUR of a currency, or delete a rate (see "Exchange rates" below) |
+| `/fees` | The booking fees: store the fee in EUR of a source, or set it to 0 to remove it (see "Booking fees" below) |
 | `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile. `/profiles/new` makes a profile with no trip, and `/profiles/{id}` edits its weights |
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
 | `/trips/{id}/captures` | The captures of a trip, with the parse result and the action "reparse capture" (see below). The link "Only failed captures" shows only the failed captures (`?failed=1`); "Show all captures" shows all again |
@@ -1045,6 +1046,29 @@ row has no cost and sorts after the rows with a cost.
 
 The trips list `/` shows the lowest EUR value of the fares of each trip. A trip with only fares without a rate shows
 its lowest price in its currency with "no rate". A journey with a fare that has no rate shows "no total".
+
+### Booking fees
+
+A source can add a fee to each booking, for example the fee of a booking site. Set the fees on `/fees` (link "Booking
+fees" on `/settings`):
+
+- Choose a source in the list "Source" and enter the fee in EUR in "Fee (€)". Then press "Save fee". The table "Fees"
+  shows each source and its fee.
+- The default fee of each source is €0.00.
+- A fee must be a number from 0 to 1000 with at most 2 decimals, for example `1.50`. Another value shows the error
+  "The fee must be a number from 0 to 1000 with at most 2 decimals." and stores nothing.
+- A fee of 0 removes the fee of the source.
+
+A fee changes the effective cost and the main fare of the offers of its source. The breakdown of an offer shows the
+part "<source name> fee", for example "Trainline fee €1.50". A fee of 0 adds no part. On a trip for 2 or more
+travelers, the part is the fee divided by the number of travelers, as the price is per traveler.
+
+Example: an ICE has a fare of €90.00 from bahn.de and a fare of €89.00 from Trainline. With a Trainline fee of €1.50,
+the Trainline fare costs €90.50. The bahn.de fare then is the main fare. With a Trainline fee of €0, the Trainline
+fare is the main fare.
+
+The fees apply on all pages that rank the offers: the trip page, the compare page, the shared trip, the CSV export and
+the best offer of the userscript panel.
 
 ## Development
 
