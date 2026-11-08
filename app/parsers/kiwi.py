@@ -49,6 +49,7 @@ def _time(station: dict) -> datetime:
 class KiwiParser:
     source = "kiwi.com"
     version = "1.2.0"
+    group_price = True  # the price is for all travelers of the request (#1027; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"currency", "response"} or of the response body only: one per fare."""
