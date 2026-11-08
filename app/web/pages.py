@@ -24,6 +24,7 @@ from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, req
 from app.backup import BACKUP_MAX_AGE, newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
+from app.fees import load_fees
 from app.days import day_summary, return_grid
 from app.timeline import timeline
 from app.db import get_session
@@ -42,7 +43,8 @@ from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_e
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
-from app.models import AccessTime, ApiToken, Capture, CurrencyRate, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting, Trip
+from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting,
+                        SourceFee, Trip)
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
                         REMINDER_DAYS_KEY, REMINDER_NOT_SENT, alert_messages, deliver, setting, webpush_ready)
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
@@ -62,7 +64,8 @@ templates.env.globals["csrf_token"] = csrf_token
 SETTINGS_NAV = [
     ("App", [("/settings", "General", "settings"), ("/settings/messages", "Messages", "chart")]),
     ("Ranking", [("/profiles", "Profiles", "user"), ("/places", "Places", "map-pin"),
-                 ("/rates", "Exchange rates", "arrow-right-left")]),
+                 ("/rates", "Exchange rates", "arrow-right-left"),
+                 ("/fees", "Booking fees", "arrow-right-left")]),
     ("Capture", [("/tokens", "Userscripts", "key"), ("/sources/new", "Add a website", "plus")]),
 ]
 SETTINGS_PATHS = [href for _, items in SETTINGS_NAV for href, _, _ in items]
@@ -990,6 +993,52 @@ def delete_rate(code: str, session: Session = Depends(get_session)) -> RedirectR
         session.delete(row)
         session.commit()
     return RedirectResponse("/rates", status_code=303)
+
+
+def fee_sources() -> list[tuple[str, str]]:
+    """Each source that can have a fee (#1142): the parsers and `manual`, with the name of the search links."""
+    from app.parsers import parser_classes
+    from app.search_links import load_sources
+
+    names = {v.get("source"): v.get("name") for v in load_sources().values() if isinstance(v, dict)}
+    return [(s, names.get(s) or s) for s in [*parser_classes(), "manual"]]
+
+
+def _fees_page(request: Request, session: Session, error: str | None = None, code: int = 200) -> HTMLResponse:
+    fees = load_fees(session)
+    rows = [(s, name, fees.get(s, Decimal("0"))) for s, name in fee_sources()]
+    return templates.TemplateResponse(request, "fees.html", {"rows": rows, "error": error}, status_code=code)
+
+
+@router.get("/fees", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def fees_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return _fees_page(request, session)
+
+
+@router.post("/fees", response_model=None, dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_fee(request: Request, source: str = Form(""), amount: str = Form(""),
+             session: Session = Depends(get_session)) -> HTMLResponse | RedirectResponse:
+    """Set the booking fee of one source; a fee of 0 deletes the row (#1142)."""
+    source = source.strip()
+    if source not in dict(fee_sources()):
+        return _fees_page(request, session, "The source is not known.", 422)
+    try:
+        value = Decimal(amount.strip())
+    except InvalidOperation:
+        value = None
+    if (value is None or not value.is_finite() or value < 0 or value > Decimal("1000")
+            or value.as_tuple().exponent < -2):
+        return _fees_page(request, session, "The fee must be a number from 0 to 1000 with at most 2 decimals.", 422)
+    row = session.get(SourceFee, source)
+    if value == 0:
+        if row is not None:
+            session.delete(row)
+    elif row is None:
+        session.add(SourceFee(source=source, amount=value, updated_at=datetime.now(timezone.utc)))
+    else:
+        row.amount, row.updated_at = value, datetime.now(timezone.utc)
+    session.commit()
+    return RedirectResponse("/fees", status_code=303)
 
 
 @router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
