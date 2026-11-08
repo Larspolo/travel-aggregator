@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from sqlalchemy.engine import make_url
 
 from app import backup, notify
 from app.backup import ALERT_KEY, STAMP_FORMAT
@@ -115,7 +116,7 @@ def test_no_message_holds_a_password_a_secret_or_a_token(trip, sent, tmp_path, s
                                                          migrated_url):
     client, auth, tid = trip
     # The test database uses trust authentication: the password in the URL is known to the app, not checked.
-    db_url = migrated_url.replace("postgres@", f"postgres:{PASSWORD}@", 1)
+    db_url = make_url(migrated_url).set(password=PASSWORD).render_as_string(hide_password=False)
     assert PASSWORD in db_url
     known = [PASSWORD, SECRET_KEY, SMTP_PASSWORD, auth["Authorization"].split(" ", 1)[1], db_url]
 
