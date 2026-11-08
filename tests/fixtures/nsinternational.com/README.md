@@ -12,6 +12,7 @@ and no tokens. The searches are for 2026-11-26.
 | `search-amsterdam-berlin.json` | Amsterdam Centraal (NLASC) → Berlin Hbf (DEBHG) | 1 change with 2 train legs; 6 offers per connection; `nsiNumberOfChanges` is 0 while `numberOfChanges` is 1 |
 | `search-rotterdam-paris.json` | Rotterdam Centraal (NLRTC) → Paris (FRPAR), 07:00 | direct connections (0 changes), 3 offers each; a fare name with a leading space |
 | `search-amsterdam-berlin-pair.json` | Amsterdam Centraal (NLASC) → Berlin Hbf (DEBHF), 2026-12-08 06:00 (HAR of #482, branch `owner/merge-captures`; all 5 connections) | the same search as `fahrplan-amsterdam-berlin.json` of bahn.de (#485); the 07:05 connection has no offers |
+| `search-amsterdam-berlin-2-adults.json` | Amsterdam Centraal (NLASC) → Berlin Hbf (DEBHF), 2026-12-01 07:00, 2 adults (HAR of #763, branch `owner/travelers-captures`; 3 of the 6 connections: 06:38, 08:00, 10:00) | the price for 2 travelers (#1029): `totalPrice` is for the group (`travelerReferences` `["A", "A"]`, `COLLECTIVE`); all prices end in .98 |
 
 Notes for the parser:
 
