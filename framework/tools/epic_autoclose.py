@@ -5,6 +5,7 @@ The epic check (`queue.md`, "Epics and refill") ends its comment with the line `
 all other criteria are met, or `Close this epic when #N and #M merge.` (also `#N, #M and #K`) when they wait for more
 than one ticket (#617: the whole test and the README of #559 cost one more deep run). When each of them then closes as
 completed by a merged PR, and the epic has no other open sub-issue
+(an open owner check with `needs-human` does not count, #922)
 and no open "Part of #E" ticket, `close.yml` runs this tool: an evidence comment and the label `close`. Before this, the
 pacer started one more deep run only to read the criteria again (7 % of the list price of 100 PRs, 2026-11-03).
 
@@ -63,15 +64,37 @@ def checks(issues, now=None):
     return usage.epic_checks(issues, now)
 
 
-def select(issues, comments_of, merged_pr, now=None):
+def owner_waits(issues, now=None):
+    """The open epics that pass the rules of `checks` only when the open owner checks (`needs-human`) do not count: as
+    a sub-issue or as a "Part of #E" ticket (#922). `select` reads the sub-issues of each one."""
+    open_subs = lambda i: (s := i.get("sub_issues_summary") or {}).get("total", 0) - s.get("completed", 0)
+    owner_check = lambda i: "needs-human" in {lb["name"] for lb in i.get("labels") or []} and "epic" not in \
+        {lb["name"] for lb in i.get("labels") or []}
+    done = [i | {"body": ""} if owner_check(i) else
+            i | {"sub_issues_summary": {"total": 1, "completed": 1}} if open_subs(i) else i for i in issues]
+    before = set(checks(issues, now))
+    return [e for e in checks(done, now) if e not in before]
+
+
+def only_owner_checks(subs):
+    """True when each open sub-issue has `needs-human`: an owner check, which is no criterion of the epic (#922)."""
+    return all("needs-human" in {lb["name"] for lb in s.get("labels") or []} for s in subs if s.get("state") == "open")
+
+
+def select(issues, comments_of, merged_pr, now=None, sub_issues_of=None):
     """[(E, (N, ...), (PR, ...), comment)]: each epic of `checks` whose last comment ends with the close line and whose
     tickets all merged. comments_of(E): the comments of E; merged_pr(N): the merged PR that closed #N as completed,
-    else None."""
+    else None. sub_issues_of(E): the sub-issues of E; with it, an epic whose open sub-issues are all owner checks
+    (`needs-human`) closes too (#922: #779, #689 and #718 stayed open with the close line and only an owner check)."""
     out = []
-    for e in checks(issues, now):
+    epics = checks(issues, now)
+    extra = owner_waits(issues, now) if sub_issues_of else []
+    for e in epics + extra:
         comments = comments_of(e)
         ns = close_line(comments)
         if ns is None:
+            continue
+        if e in extra and not only_owner_checks(sub_issues_of(e)):
             continue
         prs = _all_merged(ns, merged_pr)
         if prs:
@@ -94,6 +117,11 @@ def _all_merged(ns, merged_pr):
 def comments_of(number):
     import dashboard
     return dashboard.pages(f"issues/{number}/comments")
+
+
+def sub_issues_of(number):
+    import dashboard
+    return dashboard.pages(f"issues/{number}/sub_issues")
 
 
 def merged_pr(number):
@@ -135,7 +163,8 @@ def main(argv=None):
     ap.add_argument("--apply", action="store_true", help="comment and add the label close")
     args = ap.parse_args(argv)
     import dashboard
-    for e, ns, prs, comment in select(dashboard.pages("issues?state=open"), comments_of, merged_pr):
+    for e, ns, prs, comment in select(dashboard.pages("issues?state=open"), comments_of, merged_pr,
+                                    sub_issues_of=sub_issues_of):
         print(f"#{e}: " + ", ".join(f"#{n} merged by PR #{pr}" for n, pr in zip(ns, prs)), file=sys.stderr)
         if args.apply:
             dashboard.api(f"issues/{e}/comments", "POST", {"body": evidence(ns, prs, comment)})
