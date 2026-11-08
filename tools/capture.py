@@ -242,11 +242,11 @@ def hook(match):
 # Not in tools/: the file names the repository, and only agent.toml may name it in a tool (test_agent_config.py).
 USERSCRIPT_FILE = ROOT / "scripts" / "capture-hook.user.js"
 # The sites with no userscript in `userscripts/` that a capture ticket can need.
-EXTRA_SITES = ("https://www.skyscanner.nl/*", "https://www.google.com/travel/*")
+EXTRA_SITES = ("https://www.skyscanner.nl/*", "https://www.google.com/travel/*", "https://www.eurostar.com/*")
 # Change the script (HOOK, AUTO, the sites) → add 1 to the version and set the new hash, else Tampermonkey does not
 # update it. `tests/test_capture_userscript.py` fails when the hash does not agree.
-USERSCRIPT_VERSION = 4
-USERSCRIPT_HASH = "45e3d2b0621ff4cd"
+USERSCRIPT_VERSION = 5
+USERSCRIPT_HASH = "c25f683725b24097"
 AUTO = r"""(() => {
   window.__taCapAuto = __VERSION__;
   let cfg = null;

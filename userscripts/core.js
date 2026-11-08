@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 10;
+const CORE_VERSION = 11;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -359,7 +359,11 @@ const CORE_VERSION = 10;
         return;
       }
       const best = bestOf(resp);
-      if (warning) panel.setStatus(`Captured ${n} offers → sent ✓, but these offers do not match the trip${best}`, "warn");
+      // #945: the travelers warning of the server ("These offers are for 1 traveler; the trip has 2") as it is
+      if (warning && resp.mismatch === "travelers") {
+        const text = warning.charAt(0).toLowerCase() + warning.slice(1);
+        panel.setStatus(`Captured ${n} offers → sent ✓, but ${text}${best}`, "warn");
+      } else if (warning) panel.setStatus(`Captured ${n} offers → sent ✓, but these offers do not match the trip${best}`, "warn");
       else panel.setStatus(`Captured ${n} offers → sent ✓${best}`, "ok");
     },
     queue: loadQueue,

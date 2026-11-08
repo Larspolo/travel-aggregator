@@ -341,13 +341,15 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     capture.travelers = capture_travelers(capture, travelers)
     reason = _trip_mismatch(session, trip_id, offers, capture.travelers)
     capture.mismatch = reason
-    # #720: an auto_trip capture that no trip matches suggests a new trip from its offers
-    suggestion = suggest_trip(offers) if getattr(body, "auto_trip", False) and reason is not None else None
+    # #720: an auto_trip capture that no trip matches suggests a new trip from its offers. Another number of
+    # travelers (#765) is no reason: the trip matches the places and the date (#945).
+    suggestion = (suggest_trip(offers) if getattr(body, "auto_trip", False) and reason in ("places", "date")
+                  else None)
     delete_old_captures(session, retention_days(session), datetime.now(UTC))
     session.commit()
     trip = session.get(Trip, trip_id)
     warning = _warning_text(reason, capture.travelers, None if trip is None else trip.travelers)
-    return {**counts, "rejected": len(errors), "errors": errors, "warning": warning,
+    return {**counts, "rejected": len(errors), "errors": errors, "warning": warning, "mismatch": reason,
             "trip_id": trip_id, "trip_title": None if trip is None else trip.title, "suggestion": suggestion,
             "best": _best_json(before, _best(session, trip_id))}
 

@@ -20,12 +20,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-      # The pages: Traefik basic auth until the app has its own login (trip:list).
+      # The pages: only the login of the app (a session cookie that stays after a restart), as on the real
+      # instance (deploy/traefik/). No Traefik basic auth: a browser forgets it at each restart (#996).
       - traefik.http.routers.travel-preview.rule=Host(`travel-preview.larspolo.nl`)
-      - traefik.http.routers.travel-preview.middlewares=travel-preview-auth
       - traefik.http.routers.travel-preview.service=travel-preview
-      - traefik.http.middlewares.travel-preview-auth.basicauth.users=${TRAVEL_AUTH_USERS:?set TRAVEL_AUTH_USERS in .env}
-      # The API: no basic auth, because the userscript sends its own "Authorization: Bearer" token. The longer rule wins.
+      # The API: the userscript sends its own "Authorization: Bearer" token. The longer rule wins.
       - traefik.http.routers.travel-preview-api.rule=Host(`travel-preview.larspolo.nl`) && PathPrefix(`/api`)
       - traefik.http.routers.travel-preview-api.service=travel-preview
       - traefik.http.services.travel-preview.loadbalancer.server.port=8000

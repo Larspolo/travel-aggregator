@@ -170,5 +170,20 @@ request body), fix the cause before the end of the run:
   page at each load and at each change of a place: each one counts as a search. Set the flag, load the start page
   again (one search), set all fields, then "Search". The results stay on the start page (10 itineraries).
 
+- Eurostar (`www.eurostar.com`): no block (2026-11-08). Each search (the start page and "Edit search") is a full
+  page load to `/search/uk-en?adult=1&origin=<code>&destination=<code>&outbound=<yyyy-mm-dd>`; the results come
+  after the load with `POST https://site-api.eurostar.com/gateway`. It needs the capture script (step 2): set the flag
+  with `--match 'site-api\.eurostar\.com/gateway'` on the start page, then search (#954).
+- SNCF Connect (`www.sncf-connect.com`): no block and no login for a search (2026-11-08). Cookie banner: "Continuer
+  sans accepter". The results page is a single-page app: install the hook there; a change of the arrival in its
+  search bar is a new search in the same page. Keep `/bff/api/v1/itineraries` (POST, #956). In the calendar, the
+  columns are L M M J V S D (the first M is Tuesday).
+- Trainline (`www.thetrainline.com`): no block (2026-11-08). Uncheck "Get up to 20% off stays with Genius"
+  (Booking.com), else the search opens in a new tab. The form needs one passenger and an age group ("Prefer not
+  to say"). The results page is a single-page app: install the hook there and change the search in its bar. Keep
+  `/api/journey-search/` (POST, #960); `scrub` replaces the `dateOfBirth` that the site makes from the age group.
+- ÖBB (`shop.oebbtickets.at`): blocked (2026-11-08): a Cloudflare "Verify you are human" page before any search
+  (#949). Stop at once.
+
 The travel-aggregator userscript of the person also runs during a capture and sends the offers to the server (with
 "auto-select trip" to the trip that matches). That does not change the HAR.
