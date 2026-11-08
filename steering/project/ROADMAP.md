@@ -44,7 +44,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A search Amsterdam → Zürich on 20 December goes to the trip Amsterdam → Zürich with no change of the dropdown
 - [x] `capture:health` (#723) A status per source: the last good capture, the parser version and the failed captures after it; a warning on the trips list when the last captures of a source failed
   - When a site changes its format, the trips list shows "bahn.de: the last 3 captures failed" with a link to the failed captures
-- [ ] `capture:panel-best` (#879) The panel shows the best offer of the trip after each capture: its effective cost, and "(new)" when the search made it better
+- [x] `capture:panel-best` (#879) The panel shows the best offer of the trip after each capture: its effective cost, and "(new)" when the search made it better
   - After a bahn.de search with a cheaper offer, the panel shows "Best of trip: €90 (new)"; after a search with no better offer, "Best of trip: €90"
 - [ ] `capture:next-source` (#884) The next travel site as a source, by the decision #884: userscript, server parser, trimmed fixtures
   - A search on that site shows its offers on the trip page
@@ -72,6 +72,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With a 1st class bonus of €10 per hour, the breakdown of a 1st class fare of 3 hours shows "1st class −€30"
 - [ ] `rank:travelers` (#761) Group trips: the score compares the fares by the price per traveler; the ingest stores the travelers of each capture, and a capture for another number of travelers than the trip shows a warning
   - A bahn.de capture for 2 adults into a trip for 2 shows "€180 for 2 travelers" next to the price of €90 in the breakdown; a capture for 1 adult into that trip shows "These offers are for 1 traveler; the trip has 2"
+- [ ] `rank:tradeoff` (#892) For an offer that is not the best, the trip page and the compare view show the hour value at which it becomes better than the best offer
+  - "1 h 40 min faster, €25 more: better above €15 per hour (yours: €20)" shows on the compare view and in the expanded row of the trip table
 
 ## 3. Plan a trip in one place
 
@@ -117,6 +119,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The owner sees if the cheapest price of a trip goes up or down from day to day, and the lowest and highest value
 - [x] `trip:upcoming` (#861) An "Upcoming" page: the booked itineraries of all trips in date order, with their legs, local times and "Add to calendar"
   - After two bookings, one page lists both journeys in date order, each with its legs and its calendar link
+- [ ] `trip:share` A read-only link of a trip for a travel partner, with no login, that the owner can revoke
+  - The link shows the ranked rows and no notes, tokens or captures (P5); "Revoke" on the trip page makes the link show "not found"
 
 ## 4. Run it on my home server
 
