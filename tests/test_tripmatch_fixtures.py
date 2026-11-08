@@ -21,6 +21,7 @@ CASES = [
     ("bahn.de", "fahrplan-koeln-muenchen-bahncard25.json", "Cologne", "Munich"),
     ("bahn.de", "fahrplan-koeln-muenchen.json", "Cologne", "Munich"),
     ("bahn.de", "recon-169.json", "Cologne", "Munich"),
+    ("nsinternational.com", "search-amsterdam-berlin-2-adults.json", "Amsterdam", "Berlin"),
     ("nsinternational.com", "search-amsterdam-berlin-pair.json", "Amsterdam", "Berlin"),
     ("nsinternational.com", "search-amsterdam-berlin.json", "Amsterdam", "Berlin"),
     ("nsinternational.com", "search-amsterdam-london.json", "Amsterdam", "London"),
