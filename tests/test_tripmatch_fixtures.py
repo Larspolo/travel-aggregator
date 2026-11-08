@@ -30,6 +30,7 @@ CASES = [
     ("flixbus.com", "search-utrecht-berlin.json", "Utrecht", "Berlin"),
     ("kiwi.com", "return-amsterdam-lisbon.json", "Amsterdam", "Lisbon"),
     ("kiwi.com", "search-amsterdam-lisbon.json", "Amsterdam", "Lisbon"),
+    ("kiwi.com", "search-amsterdam-zurich-2-adults.json", "Amsterdam", "Zurich"),
     ("kiwi.com", "search-amsterdam-zurich.json", "Amsterdam", "Zurich"),
 ]
 IDS = [f"{source}/{name}" for source, name, _, _ in CASES]
