@@ -476,6 +476,16 @@ settings page (see "Messages outside the app"; with `none`, no message is sent).
 trip title. A new message comes only when a capture brings a fare to or below the target. While the fare stays at or
 below the target, no second message comes. After the price goes above the target and down again, a new message comes.
 
+### Search status of each source
+
+The trip page shows the list "Search status of each source", with one line for each source:
+- The time and the offer count of the newest capture of the trip, for example "bahn.de: 2 h ago · 14 offers".
+- "not searched yet" when no capture of the trip exists for the source.
+- "last search failed" when the newest capture of the source failed. A link "Failed captures" opens the failed captures of the trip.
+- The link "Search on <site>" when the source has a search link (see below).
+
+A new source shows in the list by itself.
+
 ### Search links
 
 The trip page shows a link "Search on <site>" for each source that has a search template and a value for the places of the trip. The link opens the site in a new tab.
