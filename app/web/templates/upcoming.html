@@ -27,5 +27,26 @@
   {% endfor %}
   </ol>
   {% endif %}
+  <section class="card calendar-feed"><h2>Calendar</h2>
+  {% if feed_link %}{% set webcal = "webcal://" ~ feed_link.split("://", 1)[1] %}
+    <div class="new-token" role="status">
+      <p>Keep this link: it shows only now. Each person with it sees your booked journeys, with no login.</p>
+      <p><a class="btn" href="{{ webcal }}">{{ ui.icon("calendar-plus") }}Open in the calendar app</a></p>
+      <label>Link to copy <input class="share-link" type="text" readonly value="{{ feed_link }}" onfocus="this.select()"></label>
+    </div>
+  {% endif %}
+  {% if feed_since %}<p class="muted">Subscribed since {{ feed_since.strftime("%d %b %Y") }}</p>
+  {% else %}<p class="muted">No calendar link</p>{% endif %}
+    <form method="post" action="/upcoming/calendar">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("calendar-plus") }}{% if feed_since %}Make a new link{% else %}Subscribe in a calendar{% endif %}</button>
+    </form>
+  {% if feed_since %}
+    <form method="post" action="/upcoming/calendar/revoke">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("eye-off") }}Revoke</button>
+    </form>
+  {% endif %}
+  </section>
 <script src="/static/offline.js" defer></script>
 {% endblock %}

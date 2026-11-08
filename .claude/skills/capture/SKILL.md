@@ -182,8 +182,12 @@ request body), fix the cause before the end of the run:
   (Booking.com), else the search opens in a new tab. The form needs one passenger and an age group ("Prefer not
   to say"). The results page is a single-page app: install the hook there and change the search in its bar. Keep
   `/api/journey-search/` (POST, #960); `scrub` replaces the `dateOfBirth` that the site makes from the age group.
-- ÖBB (`shop.oebbtickets.at`): blocked (2026-11-08): a Cloudflare "Verify you are human" page before any search
-  (#949). Stop at once.
+- ÖBB (`shop.oebbtickets.at`): a Cloudflare "Verify you are human" page can come before any search (#949). Stop at
+  once and ask the person to pass the check in his own browser; then the site works (2026-11-08). Cookie banner:
+  "Reject non-technical cookies"; ignore the login box. A single-page app: install the hook on the search form. Keep
+  `/api/hafas/v4/timetable` (connections), `/api/offer/v1/prices` ("from" prices) and `/api/offer/v6/offers` (the
+  fares of one connection after a click on its price: Nightjet types `SEAT`, `COUCHETTE`, `BERTH`). Type the time in
+  the hour field; the date needs the calendar button. "Back" from the offer page loads the timetable again (a search).
 
 The travel-aggregator userscript of the person also runs during a capture and sends the offers to the server (with
 "auto-select trip" to the trip that matches). That does not change the HAR.
