@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: oebbtickets.at
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.1.0
+// @version      1.1.1
 // @description  Send the ÖBB search results (timetable and fare responses of shop.oebbtickets.at) to travel-aggregator.
 // @match        https://shop.oebbtickets.at/*
 // @run-at       document-start
@@ -24,7 +24,8 @@
   // The search (connections) and the fares of one connection (offers). Both are POST requests with a JSON body.
   const TIMETABLE = "/api/hafas/v4/timetable";
   const PRICES = "/api/offer/v1/prices";
-  const PATHS = new Set([TIMETABLE, "/api/offer/v6/offers", PRICES]);
+  const FARES = "/api/offer/v6/offers";
+  const PATHS = new Set([TIMETABLE, FARES, PRICES]);
   // The timetables of the page: the prices of their connections come later with GET PRICES (#1050).
   const timetables = [];
 
@@ -41,8 +42,16 @@
 
   const isSource = (u) => u.hostname === HOST && PATHS.has(u.pathname);
 
+  // Relative to the base of the document, as core.urlTest (#1075): the results list requests "api/..." with
+  // `<base href="/">`, so the location of the page gives a wrong path.
   const pathOf = (url) => {
-    try { return new URL(String(url), root.location.href).pathname; } catch (e) { return ""; }
+    const base = (root.document && root.document.baseURI) || root.location.href;
+    try { return new URL(String(url), base).pathname; } catch (e) { return ""; }
+  };
+  // A capture with 0 offers is not sent (#1075): it only shows "sent ✓" and goes to a wrong trip.
+  const capture = (raw) => {
+    if (!countRaw(raw)) return;
+    core.capture(SOURCE, PARSER_VERSION, raw, countRaw);
   };
 
   // Send the timetable whose connections have the ids of the prices response, with the prices.
@@ -59,8 +68,7 @@
       const own = new Set(t.response.connections.map((c) => c && c.id));
       if (!ids.some((id) => own.has(id))) continue;
       timetables.splice(i, 1);
-      core.capture(SOURCE, PARSER_VERSION, { url: t.url, method: t.method, request: t.request,
-        response: t.response, prices }, countRaw);
+      capture({ url: t.url, method: t.method, request: t.request, response: t.response, prices });
       return;
     }
   };
@@ -80,6 +88,6 @@
       if (timetables.length > 10) timetables.shift();
       return;
     }
-    core.capture(SOURCE, PARSER_VERSION, { url, method, request, response }, countRaw);
+    if (path === FARES) capture({ url, method, request, response });
   });
 })(typeof unsafeWindow !== "undefined" ? unsafeWindow : window);
