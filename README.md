@@ -354,6 +354,11 @@ The cheapest, fastest and best-value rows show a badge. The badges use the rows 
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
 The expanded row also shows the price history chart of each fare: one point for each capture of the fare.
 The route `/trips/{id}/itineraries/{id}/history` shows the same chart and the table of the prices.
+The expanded row also shows a break-even line at the top of "Legs and fares": the hour value at which the row and the best
+shown row have the same effective cost. For example, `1 h 20 min faster, €3.00 more than the best: better above €12.50/h (yours: €10/h)`.
+"Yours" is your hour markup. "Better above €X/h" means that the row is the better one when your hour markup is above
+X. "Better below €X/h" means that it is the better one when your hour markup is below X. The best row shows no line,
+and a row with no break-even value shows no line. This line is text only: it has no link.
 
 ### Departure days
 
@@ -554,6 +559,13 @@ The page shows one column for each ticked offer. The lines are the route, the de
 the transfers, the modes, the carriers, the fare, the price and the effective cost with its breakdown.
 The best value of each line has the mark "best": the lowest price, duration, transfers and effective cost.
 A tie marks every column with the lowest value.
+The last line is "Break-even (yours: €X/h)". Each column that is not the best shows the hour value at which it and the
+best column have the same effective cost, for example "Better above €12.50/h". "Better above €X/h" means that the column
+is the better one when your hour markup is above X. "Better below €X/h" means that it is the better one when your hour
+markup is below X. The column with the lowest effective cost shows "Best now". A column with no break-even value shows
+"—". A value from €0/h to €100/h is a link: a click opens the page with that hour markup, so the column is the better
+one after the click. The value is rounded up for "above" and down for "below". The other weights of the page stay.
+A value outside this range is text only.
 The page uses the same weights as the trip page: the two sliders, and the profile that you chose there.
 Click "Back to the trip" to return to the trip page with the same weights.
 If you tick fewer than 2 or more than 4 offers, the page shows an error and asks you to select again.
