@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import ingest
+from app.failure_report import report_url
 from app.sourcehealth import failed_clause, source_health
 from app.auth import require_login, verify_csrf
 from app.db import get_session
@@ -86,11 +87,11 @@ def reparse_failed(source: str = Form(...), session: Session = Depends(get_sessi
     return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
 
 
-def _failed_sources(session: Session, source: str | None = None) -> list[str]:
+def _failed_sources(session: Session, source: str | None = None) -> list[dict]:
     query = select(Capture.source).where(failed_clause(), Capture.raw_gz.is_not(None)).distinct()
     if source:
         query = query.where(Capture.source == source)
-    return sorted(session.scalars(query).all())
+    return [{"source": s, "report_url": report_url(session, s)} for s in sorted(session.scalars(query).all())]
 
 
 @router.post("/captures/{capture_id}/reparse", response_class=HTMLResponse,

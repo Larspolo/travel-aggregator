@@ -18,6 +18,8 @@ class Settings:
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = ""
+    # The new-issue form of the "Report on GitHub" link (#929): a fork reports to its own repository.
+    issues_url: str = "https://github.com/Larspolo/travel-aggregator/issues/new"
 
 
 def get_settings() -> Settings:
@@ -33,4 +35,5 @@ def get_settings() -> Settings:
         smtp_user=os.environ.get("SMTP_USER", ""),
         smtp_password=os.environ.get("SMTP_PASSWORD", ""),
         smtp_from=os.environ.get("SMTP_FROM", ""),
+        issues_url=os.environ.get("ISSUES_URL") or "https://github.com/Larspolo/travel-aggregator/issues/new",
     )
