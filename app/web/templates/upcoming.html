@@ -21,11 +21,13 @@
         {% endfor %}
         </ul>
       </div>
-      <div class="journey-cost"><a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
+      <div class="journey-cost">{% if it.booked_price is not none %}<span class="paid">Paid {{ it.booked_price | money(it.booked_currency or "EUR") }}</span>{% endif %}<a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
            aria-label="Add to calendar" title="Add to calendar">{{ ui.icon("calendar-plus") }}</a></div>
     </li>
   {% endfor %}
   </ol>
+  {% if paid_total is not none or paid_missing %}<p class="paid-total"><strong>Total paid: {{ (paid_total if paid_total is not none else 0) | money("EUR") }}</strong>{% for code, n in paid_missing | dictsort %}
+    <span class="muted">({{ n }} price{% if n > 1 %}s{% endif %} in {{ code }} {% if n > 1 %}have{% else %}has{% endif %} no rate)</span>{% endfor %}</p>{% endif %}
   {% endif %}
   <section class="card calendar-feed"><h2>Calendar</h2>
   {% if feed_link %}{% set webcal = "webcal://" ~ feed_link.split("://", 1)[1] %}
