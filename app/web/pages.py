@@ -160,13 +160,20 @@ def logout(request: Request) -> RedirectResponse:
     return RedirectResponse("/login", status_code=303)
 
 
+def new_by_trip(session: Session) -> dict[int, int]:
+    """The count of itineraries since the last full view of each viewed trip, in one query (#1091)."""
+    q = (select(Itinerary.trip_id, func.count()).join(Trip, Trip.id == Itinerary.trip_id)
+         .where(Trip.viewed_at.is_not(None), Itinerary.first_seen_at > Trip.viewed_at).group_by(Itinerary.trip_id))
+    return {trip_id: n for trip_id, n in session.execute(q)}
+
+
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def index(request: Request, archived: bool = False, session: Session = Depends(get_session)) -> HTMLResponse:
     rows = list_trips(session)
     archived_count = sum(1 for kind, _, _ in archived_journeys(rows, True) if kind == "trip")
     return templates.TemplateResponse(request, "trips.html",
                                       {"lines": archived_journeys(rows, archived), "drops": drops_by_trip(session),
-                                       "archived": archived, "archived_count": archived_count,
+                                       "new": new_by_trip(session), "archived": archived, "archived_count": archived_count,
                                        "failing": failing_sources(session)})
 
 
