@@ -51,7 +51,9 @@ def _trip(origin, destination, day):
 
 def test_every_fixture_file_has_a_case():
     on_disk = sorted(f"{p.parent.name}/{p.name}" for p in FIXTURES.glob("*/*.json")
-                     if p.parent.name in {"bahn.de", "nsinternational.com", "flixbus.com", "kiwi.com"})
+                     if p.parent.name in {"bahn.de", "nsinternational.com", "flixbus.com", "kiwi.com"}
+                     # a day price response has no offers (#1196): tests/test_bahn_day_prices.py
+                     and not p.name.startswith("tagesbestpreis-"))
     assert on_disk == sorted(IDS)
 
 
