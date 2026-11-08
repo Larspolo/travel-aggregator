@@ -67,10 +67,17 @@ class Itinerary(Base):
     pinned: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     booked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     note: Mapped[str | None] = mapped_column(Text)
+    # The paid fare, price and time of the mark "booked" (#1146). The price stays when the ingest deletes the fare.
+    booked_fare_id: Mapped[int | None] = mapped_column(ForeignKey("fares.id", ondelete="SET NULL", use_alter=True),
+                                                       nullable=True)
+    booked_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)
+    booked_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    booked_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
 
     trip: Mapped[Trip] = relationship(back_populates="itineraries")
     legs: Mapped[list["Leg"]] = relationship(back_populates="itinerary", cascade="all, delete-orphan", order_by="Leg.seq")
-    fares: Mapped[list["Fare"]] = relationship(back_populates="itinerary", cascade="all, delete-orphan")
+    fares: Mapped[list["Fare"]] = relationship(back_populates="itinerary", cascade="all, delete-orphan",
+                                               foreign_keys="Fare.itinerary_id")
 
 
 class Leg(Base):
@@ -111,7 +118,7 @@ class Fare(Base):
     latest_captured_at: Mapped[datetime] = mapped_column(_tz())
     seen_price: Mapped[Decimal | None] = mapped_column(Money)  # the price at the last view of the trip page (#355)
 
-    itinerary: Mapped[Itinerary] = relationship(back_populates="fares")
+    itinerary: Mapped[Itinerary] = relationship(back_populates="fares", foreign_keys=[itinerary_id])
     prices: Mapped[list["FarePrice"]] = relationship(back_populates="fare", cascade="all, delete-orphan")
 
 
