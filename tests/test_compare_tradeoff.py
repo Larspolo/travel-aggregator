@@ -29,7 +29,7 @@ def _ids(sessions, trip_id):
 
 def _breakeven_cells(page):
     row = re.search(r'<th scope="row">Break-even.*?</tr>', page, re.S).group(0)
-    return re.findall(r"<td>([^<]*)</td>", row)
+    return [re.sub(r"<[^>]+>", "", cell) for cell in re.findall(r"<td>(.*?)</td>", row)]  # text of a link too (#896)
 
 
 def test_the_best_column_and_the_break_even_of_the_other(trip, sessions):  # noqa: F811
