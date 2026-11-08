@@ -106,4 +106,4 @@ def test_a_failed_send_does_not_change_the_response(trip, sessions, monkeypatch)
 
     monkeypatch.setattr(notify, "post", fail)
     bad = _post(client, auth, trip_id, "78.00")
-    assert bad == ok
+    assert {**bad, "best": None} == {**ok, "best": None}  # the best offer changes with the price (#880)

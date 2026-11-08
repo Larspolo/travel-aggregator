@@ -324,6 +324,22 @@ def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: d
     return min(rows, key=lambda r: (not r[0].booked, not r[0].pinned, r[2].total, r[0].depart_at))
 
 
+def best_offer(session: Session, trip: Trip):
+    """The best offer of the trip for the ingest response (#880): the lowest effective cost of the visible itineraries
+    with fares, by the profile of the trip (else the default); a tie goes to the lowest departure.
+    Returns (itinerary, fare, cost) or None."""
+    weights, _ = resolve_weights(session, trip, {}, None)
+    stale_before = datetime.now(timezone.utc) - timedelta(hours=weights.stale_hours)
+    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
+                          .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
+    places = session.scalars(select(AccessTime)).all()
+    rates = load_rates(session)
+    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates)) for it in its if it.fares]
+    if not rows:
+        return None
+    return min(rows, key=lambda r: (r[2].total, r[0].depart_at))
+
+
 def journey(session: Session, trip: Trip, weights: Weights, places, now: datetime):
     """The journey box (#342, #562): the chosen offer of each part of the chain and the total effective cost, or None
     when the trip has no link. The present part uses the page weights; the other parts their own profile."""
