@@ -101,6 +101,15 @@ def rename(session: Session, profile_id: int, name: str) -> bool:
     return True
 
 
+def update_weights(session: Session, profile_id: int, name: str, weights: Weights) -> bool:
+    """Give the profile a new name and new weights (#1013). False when another profile has the name; nothing changes."""
+    if not rename(session, profile_id, name):
+        return False
+    session.get(ScoreProfile, profile_id).config_json = to_config(weights)
+    session.commit()
+    return True
+
+
 def delete(session: Session, profile_id: int) -> bool:
     """Remove the profile (#233). False when it does not exist."""
     profile = session.get(ScoreProfile, profile_id)

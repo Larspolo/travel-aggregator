@@ -611,3 +611,12 @@ input[name=it]:checked { counter-increment: picked; }
 .shared-row .timeline .transfer { font-size: var(--text-sm); padding: var(--space-1) 0; }
 
 a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+/* The profile page (#1013): the "Advanced" weights in a grid of 1 column on a phone, 3 on a wide screen. */
+.profile-edit details.advanced { margin: var(--space-3) 0; }
+.profile-edit details.advanced fieldset { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: var(--space-2); margin-top: var(--space-2); }
+.profile-edit details.advanced fieldset legend { grid-column: 1 / -1; }
+.profile-edit details.advanced fieldset label { display: flex; flex-direction: column; justify-content: space-between; gap: 4px; min-width: 0; }
+.profile-edit details.advanced fieldset label input { width: 100%; min-width: 0; box-sizing: border-box; }
+.card form.profile-edit { display: block; max-width: 48rem; }
+.profile-edit > .field { margin-bottom: var(--space-3); }
+.profile-edit details.advanced fieldset { border: 0; padding: 0; }

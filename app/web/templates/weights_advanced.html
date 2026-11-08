@@ -1,0 +1,61 @@
+{# The "Advanced" weights (P2) of the trip page and the profile page (#1013); needs `weights`. #}
+    <fieldset><legend>Airport</legend>
+      <label>Airport before departure (min)
+        <input type="number" name="airport_before_min" min="0" max="1440" step="1" value="{{ weights.airport_before_min }}"></label>
+      <label>Airport after landing (min)
+        <input type="number" name="airport_after_min" min="0" max="1440" step="1" value="{{ weights.airport_after_min }}"></label>
+    </fieldset>
+    <fieldset><legend>Time windows</legend>
+      <label>Early limit (local)
+        <input type="time" name="early_limit" value="{{ weights.early_limit.strftime('%H:%M') }}"></label>
+      <label>Late limit (local)
+        <input type="time" name="late_limit" value="{{ weights.late_limit.strftime('%H:%M') }}"></label>
+      <label>Early or late penalty €
+        <input type="number" name="time_window_penalty" min="0" max="1000" step="0.01" value="{{ weights.time_window_penalty }}"></label>
+    </fieldset>
+    <fieldset><legend>Night</legend>
+      <label>Night start (local)
+        <input type="time" name="night_start" value="{{ weights.night_start.strftime('%H:%M') }}"></label>
+      <label>Night end (local)
+        <input type="time" name="night_end" value="{{ weights.night_end.strftime('%H:%M') }}"></label>
+      <label>Night minutes
+        <input type="number" name="night_min" min="0" max="1440" step="1" value="{{ weights.night_min }}"></label>
+      <label>Night travel € (negative = bonus)
+        <input type="number" name="night_adjust" min="-1000" max="1000" step="0.01" value="{{ weights.night_adjust }}"></label>
+      <label>Night hour markup €/h
+        <input type="number" name="night_hour_markup" min="0" max="100" step="0.01" value="{% if weights.night_hour_markup is not none %}{{ weights.night_hour_markup }}{% elif not night_blank %}{{ weights.hour_markup }}{% endif %}"{% if night_blank %} placeholder="the hour markup"{% endif %}></label>
+    </fieldset>
+    <fieldset><legend>Modes</legend>
+      <label>Train markup € (negative = discount)
+        <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
+      <label>Bus markup €
+        <input type="number" name="bus_markup" min="-1000" max="1000" step="0.01" value="{{ weights.bus_markup }}"></label>
+      <label>Flight markup €
+        <input type="number" name="flight_markup" min="-1000" max="1000" step="0.01" value="{{ weights.flight_markup }}"></label>
+      <label>Ferry markup €
+        <input type="number" name="ferry_markup" min="-1000" max="1000" step="0.01" value="{{ weights.ferry_markup }}"></label>
+      <label>1st class €/hour
+        <input type="number" name="first_class_hour" min="-1000" max="1000" step="0.01" value="{{ weights.first_class_hour }}"></label>
+      <label>Short transfer minutes
+        <input type="number" name="short_transfer_min" min="0" max="240" step="1" value="{{ weights.short_transfer_min }}"></label>
+      <label>Short transfer penalty €
+        <input type="number" name="short_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.short_transfer_penalty }}"></label>
+      <label>Self-transfer €
+        <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
+    </fieldset>
+    <fieldset><legend>Fares</legend>
+      <label>Baggage fee €
+        <input type="number" name="baggage_fee" min="0" max="1000" step="0.01" value="{{ weights.baggage_fee }}"></label>
+      <label>Non-refundable fare € (negative = bonus)
+        <input type="number" name="flex_non_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_non_refundable }}"></label>
+      <label>Partly refundable fare € (negative = bonus)
+        <input type="number" name="flex_partly_refundable" min="-1000" max="1000" step="0.01" value="{{ weights.flex_partly_refundable }}"></label>
+      <label>Flexible fare € (negative = bonus)
+        <input type="number" name="flex_flexible" min="-1000" max="1000" step="0.01" value="{{ weights.flex_flexible }}"></label>
+    </fieldset>
+    <fieldset><legend>Staleness</legend>
+      <label>Stale after hours
+        <input type="number" name="stale_hours" min="1" max="720" step="1" value="{{ weights.stale_hours }}"></label>
+      <label>Stale penalty €
+        <input type="number" name="stale_penalty" min="0" max="1000" step="0.01" value="{{ weights.stale_penalty }}"></label>
+    </fieldset>

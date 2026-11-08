@@ -41,6 +41,7 @@ from app.sourcehealth import failing_sources
 from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
+from app.profiles import update_weights as update_profile
 from app.models import AccessTime, ApiToken, Capture, CurrencyRate, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting, Trip
 from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting, webpush_ready
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
@@ -659,6 +660,98 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       stale_penalty=stale_penalty)
     save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+# The ranges of the weights in a form (#1013): the same as `weight_query()` and `save_profile_page()`.
+# (low, high) for a number, None for a time of day.
+WEIGHT_RANGES = {
+    "hour_markup": (0, 100), "transfer_markup": (0, 100), "airport_before_min": (0, 1440),
+    "airport_after_min": (0, 1440), "baggage_fee": (0, 1000), "early_limit": None, "late_limit": None,
+    "time_window_penalty": (0, 1000), "night_start": None, "night_end": None, "night_min": (0, 1440),
+    "night_adjust": (-1000, 1000), "night_hour_markup": (0, 100), "short_transfer_min": (0, 240),
+    "short_transfer_penalty": (0, 1000), "train_markup": (-1000, 1000), "bus_markup": (-1000, 1000),
+    "flight_markup": (-1000, 1000), "ferry_markup": (-1000, 1000), "flex_non_refundable": (-1000, 1000),
+    "flex_partly_refundable": (-1000, 1000), "flex_flexible": (-1000, 1000), "first_class_hour": (-1000, 1000),
+    "self_transfer_penalty": (0, 1000), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
+}
+
+
+def form_weights(form) -> tuple[Weights, str | None]:
+    """The `Weights` of a profile form (#1013) and the first error. A missing or empty field takes the `Weights`
+    default (`night_hour_markup`: None, the same as the hour markup)."""
+    values = {}
+    for f in dataclasses.fields(Weights):
+        raw = (form.get(f.name) or "").strip()
+        if not raw:
+            continue
+        bounds = WEIGHT_RANGES[f.name]
+        try:
+            if bounds is None:
+                values[f.name] = time.fromisoformat(raw)
+                continue
+            v = int(raw) if isinstance(f.default, int) else Decimal(raw)
+        except (ValueError, InvalidOperation):
+            return Weights(), f"{f.name}: {raw!r} is not a valid value; nothing changed."
+        if isinstance(v, Decimal) and not v.is_finite():
+            return Weights(), f"{f.name}: {raw!r} is not a valid value; nothing changed."
+        if not bounds[0] <= v <= bounds[1]:
+            return Weights(), f"{f.name}: {raw} is not in {bounds[0]} to {bounds[1]}; nothing changed."
+        values[f.name] = v
+    return Weights(**values), None
+
+
+def _profile_form(request: Request, profile: ScoreProfile | None, name: str, weights: Weights,
+                  error: str | None = None, code: int = 200) -> HTMLResponse:
+    return templates.TemplateResponse(request, "profile_edit.html", {"profile": profile, "name": name,
+                                      "weights": weights, "error": error}, status_code=code)
+
+
+@router.get("/profiles/new", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def new_profile_page(request: Request) -> HTMLResponse:
+    """A form with the `Weights` defaults for a new profile (#1013)."""
+    return _profile_form(request, None, "", Weights())
+
+
+@router.get("/profiles/{profile_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def edit_profile_page(profile_id: int, request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    """A form with the stored weights of the profile (#1013)."""
+    profile = session.get(ScoreProfile, profile_id)
+    if profile is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no profile {profile_id}")
+    return _profile_form(request, profile, profile.name, from_config(profile.config_json))
+
+
+@router.post("/profiles/new", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def create_profile_page(request: Request, session: Session = Depends(get_session)):
+    form = await request.form()
+    name = (form.get("name") or "").strip()
+    weights, error = form_weights(form)
+    if error is None and not 1 <= len(name) <= 100:
+        error = "A name needs 1 to 100 characters; nothing changed."
+    if error is None and session.scalars(select(ScoreProfile.id).where(ScoreProfile.name == name)).first():
+        error = f'The name "{name}" exists already; nothing changed.'
+    if error is not None:
+        return _profile_form(request, None, name, weights, error, 422)
+    save_profile(session, name, weights)
+    return RedirectResponse("/profiles", status_code=303)
+
+
+@router.post("/profiles/{profile_id}", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def update_profile_page(profile_id: int, request: Request, session: Session = Depends(get_session)):
+    profile = session.get(ScoreProfile, profile_id)
+    if profile is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no profile {profile_id}")
+    form = await request.form()
+    name = (form.get("name") or "").strip()
+    weights, error = form_weights(form)
+    if error is None and not 1 <= len(name) <= 100:
+        error = "A name needs 1 to 100 characters; nothing changed."
+    if error is None and not update_profile(session, profile_id, name, weights):
+        error = f'The name "{name}" exists already; nothing changed.'
+    if error is not None:
+        return _profile_form(request, profile, name, weights, error, 422)
+    return RedirectResponse("/profiles", status_code=303)
 
 
 def _profiles_page(request: Request, session: Session, error: str | None = None, code: int = 200) -> HTMLResponse:
