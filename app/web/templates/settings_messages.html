@@ -29,7 +29,8 @@
     </div>
     <div class="field wide">
       <input type="hidden" name="source_alert" value="0">
-      <label><input type="checkbox" name="source_alert" value="1"{% if source_alert != "0" %} checked{% endif %}> Send a message when the captures of a source fail</label>
+      <input id="source_alert_on" type="checkbox" name="source_alert" value="1"{% if source_alert != "0" %} checked{% endif %}>
+      <label for="source_alert_on">Send a message when the captures of a source fail</label>
     </div>
     <div class="field">
       <label for="reminder_before_days">Reminder: days before the departure</label>

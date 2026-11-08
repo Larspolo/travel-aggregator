@@ -27,7 +27,7 @@ def client(sessions, monkeypatch):
 
 def _checked(c):
     html = c.get("/settings/messages").text
-    box = re.search(r'<input type="checkbox" name="source_alert"[^>]*>', html).group(0)
+    box = re.search(r'<input id="source_alert_on"[^>]*>', html).group(0)
     return " checked" in box
 
 
