@@ -101,12 +101,18 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Add next trip" makes a linked trip from the destination of the last one, and the trips list shows the journey with the sum of the best offers
 - [ ] `trip:calendar` (#779) Add a booked itinerary to a calendar: an `.ics` file with one event per leg
   - "Add to calendar" on a booked row downloads one file; a calendar app shows each leg with its local times, its train, bus or flight number and its places
-- [ ] `trip:copy` (#800) Copy a trip or a journey for a new date: the places, the travelers, the profile and the note, with no dates and no offers
+- [x] `trip:copy` (#800) Copy a trip or a journey for a new date: the places, the travelers, the profile and the note, with no dates and no offers
   - "Copy trip" on the edit page of Amsterdam → Zürich opens a new trip Amsterdam → Zürich with the same profile and no offers; "Copy journey" copies all linked trips of a round trip or a multi-city journey
-- [ ] `trip:timeline` A timeline of the itineraries of a trip: each itinerary is a bar from its departure to its arrival on one time axis per day, with its legs and transfers
+- [ ] `trip:timeline` (#812) A timeline of the itineraries of a trip: each itinerary is a bar from its departure to its arrival on one time axis per day, with its legs and transfers
   - The owner sees at a glance which options leave after 08:00 and arrive before 18:00, and a click on a bar opens its row in the table
-- [ ] `trip:a11y` All pages work with a keyboard and a screen reader: a visible focus, a label for each control, and an automatic check of each page
+- [ ] `trip:a11y` (#816) All pages work with a keyboard and a screen reader: a visible focus, a label for each control, and an automatic check of each page
   - Each page has no "serious" or "critical" axe-core finding at 1280 px and 390 px, and the weights, the row expand, the menus and the dropdowns work with Tab, Enter and Escape
+- [ ] `trip:target` (#845) A target price per trip: a mark on the trips list and the trip page for the fares at or below it, and a notification by the channel of `trip:notify` when a capture brings a fare to it
+  - A target of €80 marks a fare of €78 as "at target", and the capture that brings it to €78 sends one message to the owner's phone
+- [ ] `trip:trend` (#849) The price trend of a trip: a chart of the cheapest price of the trip per day, from the price history
+  - The owner sees if the cheapest price of a trip goes up or down from day to day, and the lowest and highest value
+- [ ] `trip:upcoming` An "Upcoming" page: the booked itineraries of all trips in date order, with their legs, local times and "Add to calendar"
+  - After two bookings, one page lists both journeys in date order, each with its legs and its calendar link
 
 ## 4. Run it on my home server
 
