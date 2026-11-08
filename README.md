@@ -441,6 +441,19 @@ Each direction is a normal trip. The userscripts capture offers into it when you
 - A cell that a spreadsheet could run as a formula starts with a quote `'`. Such a cell starts with `=`, `+`, `-`, `@`, a tab or a carriage return.
 - The raw captures are not in the export.
 
+### Import a trip
+
+- The trips list `/` has the button "Import trip". It opens the import page `/trips/import`. The import page needs the login.
+- The input is a JSON export file of "Export a trip" above. The app reads only the format version 1. Another version, or a file that is not JSON, gives an error and nothing is added.
+- The page has the field "Import into". It has two choices: "A new trip" (the default) or one trip of the list. The list shows only the trips with the status `planning`.
+- When you select a file, the page selects the trip with the same title, origin, destination and dates as the file. A second import of the same file then goes into the same trip.
+- The import adds the itineraries, the fares and the price history that the trip does not have yet. An itinerary is the same when its legs are the same. A fare is the same when its source and fare name are the same. A price is the same when its capture time, price and currency are the same.
+- A second import of the same file adds no row. The counts show as "unchanged" instead.
+- After the import, the app opens the trip. A message at the top shows the counts: the itineraries, the fares and the prices that were added, and the number of rows that were unchanged.
+- The file can be at most 5,000,000 bytes, the same limit as the API body.
+- If one itinerary in the file is not valid, the whole import stops and no row is added.
+- Example: to move a trip from the preview server or from an old install to your own instance, open the trip on the old install and choose "Export JSON". On your instance, open "Import trip", select the file, keep "A new trip" and choose "Import". Open the trip to check the counts. A later import of the same file into the same trip adds nothing.
+
 ### Compare offers side by side
 
 To compare 2 to 4 offers of a trip:
