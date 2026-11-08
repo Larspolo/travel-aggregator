@@ -359,6 +359,15 @@ The strip shows all offers, also while one day is selected. Its costs do not cha
 Click a day to show only the offers that depart on that local day. The filter is the query parameter `day`, in the form `YYYY-MM-DD`. The selected day is marked as current. Click "All days" to remove the filter.
 A change of a slider keeps the selected day. The strip updates its costs with the new weights.
 
+### Timeline of a trip
+
+Above the table, the trip page shows a "Timeline" block. It shows the shown rows on a time axis, with one block for each departure day. The block is hidden when no row shows.
+Each row of the table is one bar on the axis of its departure day. The bar starts at the departure and ends at the arrival, with the local times at its left and right. An arrival on a later calendar day shows " +1" (or " +2" and so on) after the time. A bar shows the badge "best value" when its row has that badge.
+A bar has one part for each leg, in the colour of the mode of the leg: train, bus or flight. The parts show the order and the length of the legs.
+A gap is a line between two parts. It is a transfer, and its title shows the minutes and the place of the transfer.
+Click a bar to open its row: the page goes to the row and opens its "Legs and fares".
+The timeline follows the table. A change of a slider, a filter or the day strip updates it, so it shows the same rows as the table.
+
 ### Pin, hide, book and note an offer
 
 Each row of the trip table has buttons at its left side:
