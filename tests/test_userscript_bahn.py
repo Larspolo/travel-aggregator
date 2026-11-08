@@ -81,7 +81,7 @@ def test_fahrplan_response_is_sent_as_raw_capture(page, kind):
     sent = page.evaluate("window.__ingest")[0]
     assert sent["url"] == "https://ta.example/api/ingest"
     b = sent["body"]
-    assert (b["source"], b["trip_id"], b["parser_version"]) == ("bahn.de", 5, "1.0.0")
+    assert (b["source"], b["trip_id"], b["parser_version"]) == ("bahn.de", 5, "1.2.0")
     assert b["raw"]["response"] == FIXTURE["response"]
     assert b["raw"]["request"] == FIXTURE["request"]
     assert b["raw"]["method"] == "POST"
@@ -90,7 +90,7 @@ def test_fahrplan_response_is_sent_as_raw_capture(page, kind):
 
 def test_other_responses_are_not_sent(page):
     page.evaluate("""() => Promise.all([
-      fetch('/web/api/angebote/tagesbestpreis').then(r => r.json()),
+      fetch('/web/api/angebote/preisliste').then(r => r.json()),
       fetch('/web/api/angebote/fahrplan/x').then(r => r.json()),
       new Promise(ok => { const x = new XMLHttpRequest(); x.open('GET', '/web/api/reiseloesung/orte');
         x.onload = ok; x.send(); }),
