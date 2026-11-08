@@ -31,10 +31,13 @@ ALIASES: dict[str, tuple[str, ...]] = {
 }
 
 
-def _fold(text: str) -> str:
+def fold(text: str) -> str:
     """Casefold the text and strip the diacritics: "Zürich" becomes "zurich"."""
     decomposed = unicodedata.normalize("NFKD", text.casefold())
     return "".join(c for c in decomposed if not unicodedata.combining(c))
+
+
+_fold = fold  # the old name (#1220)
 
 
 def _words(text: str) -> set[str]:

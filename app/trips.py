@@ -28,6 +28,7 @@ class TripRow:
     at_target: bool = False  # the best EUR price is at or below the target price (#847)
     shared: bool = False  # the trip has an active share link (#905)
     split_of_id: int | None = None  # the trip that this trip is a part of (#1177)
+    notes: str | None = None  # not shown on the list; only searched (#1220)
 
 
 def list_trips(session: Session) -> list[TripRow]:
@@ -38,7 +39,7 @@ def list_trips(session: Session) -> list[TripRow]:
     stmt = (
         select(
             Trip.id, Trip.title, Trip.origin_text, Trip.destination_text, Trip.date_from, Trip.date_to,
-            Trip.status, Trip.return_of_id, Trip.split_of_id, Trip.target_price, Trip.share_hash,
+            Trip.status, Trip.return_of_id, Trip.split_of_id, Trip.target_price, Trip.share_hash, Trip.notes,
             Itinerary.id.label("itinerary_id"),
             Fare.latest_price, Fare.currency, CurrencyRate.eur_per_unit,
         )
@@ -77,7 +78,7 @@ def _trip_row(info: dict, rates: dict[str, Decimal]) -> TripRow:
         date_from=r.date_from, date_to=r.date_to, status=r.status, offer_count=len(info["itineraries"]),
         best_price=best_price, best_currency=best_currency, return_of_id=r.return_of_id, no_rate=no_rate,
         at_target=bool(in_eur) and r.target_price is not None and best_price <= r.target_price,
-        shared=r.share_hash is not None, split_of_id=r.split_of_id,
+        shared=r.share_hash is not None, split_of_id=r.split_of_id, notes=r.notes,
     )
 
 
@@ -146,6 +147,26 @@ def archived_journeys(rows: list[TripRow], archived: bool) -> list[tuple[str, Tr
     def first(r: TripRow) -> TripRow:  # a split trip goes with its trip (#1180)
         return _first_of(by_id.get(r.split_of_id, r), by_id)
     return in_journeys([r for r in rows if (first(r).status == "archived") == archived])
+
+
+def find_journeys(rows: list[TripRow], text: str, archived: bool) -> list[tuple[str, TripRow, str]]:
+    """The lines of `archived_journeys()` of the journeys with a trip that contains `text` (#1220): in the title,
+    origin, destination or note, with no case and no diacritics. A journey shows whole; a blank text keeps all."""
+    from app.tripmatch import fold
+
+    lines = archived_journeys(rows, archived)
+    needle = fold(text.strip())
+    if not needle:
+        return lines
+    groups: list[list[tuple[str, TripRow, str]]] = []
+    for line in lines:
+        if line[0] == "trip" or not groups:
+            groups.append([])
+        groups[-1].append(line)
+
+    def hit(t: TripRow) -> bool:
+        return any(needle in fold(v) for v in (t.title, t.origin_text, t.destination_text, t.notes) if v)
+    return [line for g in groups if any(kind != "total" and hit(t) for kind, t, _ in g) for line in g]
 
 
 def chain(trip: Trip) -> list[Trip]:
