@@ -6,7 +6,7 @@
     {% set newest = it.fares | map(attribute="latest_captured_at") | max %}
     {% set carriers %}{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
     {% set fare_line %}{% if fare.fare_name %}{{ fare.fare_name }} · {% endif %}{{ fare.source }}, {{ newest | ago(now) }}{% endset %}
-    <tr>
+    <tr id="it-{{ it.id }}">
       <td class="route">
         <div class="route-name">{{ first.from_name }} → {{ last.to_name }}
         {% if it.hidden %}<span class="muted">hidden</span>{% endif %}
