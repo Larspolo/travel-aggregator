@@ -45,5 +45,8 @@ def get_parser(source: str):
 
 
 def group_price(source: str) -> bool:
-    """True when the price of the source is for all travelers of the capture (#767), not per traveler."""
+    """True when the price of the source is for all travelers of the capture (#767), not per traveler. A manual offer
+    gives its count in the form (#1028); a count of 1 keeps the price."""
+    if source == "manual":
+        return True
     return bool(getattr(get_parser(source), "group_price", False))

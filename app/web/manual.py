@@ -47,8 +47,9 @@ def _offer(values: dict) -> dict:
 
 @router.get("/trips/{trip_id}/offers/new", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def manual_form(request: Request, trip_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
-    _get_trip(session, trip_id)
-    return _page(request, trip_id, {"price_currency": "EUR", "utc_offset": "+01:00"}, [])
+    trip = _get_trip(session, trip_id)
+    return _page(request, trip_id, {"price_currency": "EUR", "utc_offset": "+01:00",
+                                    "travelers": str(trip.travelers or 1)}, [])
 
 
 @router.post("/trips/{trip_id}/offers/new", response_class=HTMLResponse,
@@ -56,15 +57,22 @@ def manual_form(request: Request, trip_id: int, session: Session = Depends(get_s
 async def manual_offer(request: Request, trip_id: int, session: Session = Depends(get_session)):
     _get_trip(session, trip_id)
     form = await request.form()
-    names = ["price_amount", "price_currency", "fare_name", "travel_class", "utc_offset"]
+    names = ["price_amount", "price_currency", "fare_name", "travel_class", "utc_offset", "travelers"]
     names += [f"leg{i}_{k}" for i in range(MAX_FORM_LEGS) for k in LEG_FIELDS]
     values = {k: str(form.get(k, "")).strip() for k in names}
+    errors = []
+    travelers = int(values["travelers"]) if values["travelers"].isdigit() else None
+    if values["travelers"] and (travelers is None or not 1 <= travelers <= 9):
+        errors.append("travelers: the price is for 1 to 9 travelers")  # the count of the price (#1028)
     try:
         offer = OfferIn.model_validate(_offer(values))  # first: IngestIn keeps a bad offer only as a count
-        body = IngestIn(trip_id=trip_id, source="manual", captured_at=datetime.now(timezone.utc), offers=[offer])
+        body = IngestIn(trip_id=trip_id, source="manual", captured_at=datetime.now(timezone.utc), offers=[offer],
+                        search_context={"travelers": travelers} if travelers else None)
     except ValidationError as e:
-        errors = [f"{'.'.join(map(str, err['loc'])) or 'form'}: {err['msg']}"
+        errors += [f"{'.'.join(map(str, err['loc'])) or 'form'}: {err['msg']}"
                   for err in e.errors(include_input=False, include_url=False)]
+        return _page(request, trip_id, values, errors, 422)
+    if errors:
         return _page(request, trip_id, values, errors, 422)
     ingest.store(session, body)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
