@@ -36,6 +36,8 @@ body {
 }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 2px; }
+/* The Install links of the userscripts are in the text: an underline shows them not only by the colour (#819). */
+.userscripts a { text-decoration: underline; text-underline-offset: 2px; }
 h1, h2, h3 { line-height: 1.25; margin: var(--space-4) 0 var(--space-2); letter-spacing: -0.01em; }
 h1 { font-size: var(--text-xl); font-weight: 650; }
 h2 { font-size: var(--text-lg); font-weight: 600; }

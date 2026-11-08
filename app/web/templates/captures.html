@@ -14,7 +14,7 @@
   hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button></p>
 {% endfor %}
 {% if sources %}
-<section class="card data-card" id="source-health"><h2>Sources</h2><div class="scroll"><table>
+<section class="card data-card" id="source-health"><h2>Sources</h2><div class="scroll" tabindex="0" role="region" aria-label="Sources"><table>
   <thead><tr><th>Source</th><th>Last good capture</th><th>Parser</th><th>Failed after it</th></tr></thead>
   <tbody>
   {% for s in sources %}
@@ -27,7 +27,7 @@
 </table></div></section>
 {% endif %}
 {% if captures %}
-<section class="card data-card"><div class="scroll"><table>
+<section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Captures"><table>
   <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
   <tbody>
   {% for c in captures %}
