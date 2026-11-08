@@ -106,3 +106,21 @@ def itinerary_ics(trip: Trip, itinerary: Itinerary, now: datetime) -> str:
         lines.extend(_vevent(trip, leg, now))
     lines.append(_fold("END:VCALENDAR"))
     return CRLF.join(lines) + CRLF
+
+
+def feed_ics(itineraries: list[Itinerary], now: datetime) -> str:
+    """Return the calendar feed of the booked itineraries (#1112): one VEVENT per leg, with CRLF line ends."""
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//travel-aggregator//trip calendar//EN",
+        "CALSCALE:GREGORIAN",
+        "X-WR-CALNAME:travel-aggregator",
+        "REFRESH-INTERVAL;VALUE=DURATION:PT6H",
+    ]
+    lines = [_fold(line) for line in lines]
+    for itinerary in itineraries:
+        for leg in sorted(itinerary.legs, key=lambda item: item.seq):
+            lines.extend(_vevent(itinerary.trip, leg, now))
+    lines.append(_fold("END:VCALENDAR"))
+    return CRLF.join(lines) + CRLF
