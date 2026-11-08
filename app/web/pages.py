@@ -520,7 +520,19 @@ def make_next_trip(trip_id: int, session: Session = Depends(get_session)) -> Red
     return RedirectResponse(f"/trips/{new.id}/edit", status_code=303)
 
 
-@router.post("/profiles", dependencies=[Depends(require_login), Depends(verify_csrf)])
+@router.post("/trips/{trip_id}/copy", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def copy_trip(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    """A copy of a trip for another date (#801): the places, travelers, profile and note; no dates, link or offers."""
+    trip = _get_trip(session, trip_id)
+    new = Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
+               destination_text=trip.destination_text, travelers=trip.travelers, profile_id=trip.profile_id,
+               notes=trip.notes)
+    session.add(new)
+    session.commit()
+    return RedirectResponse(f"/trips/{new.id}/edit", status_code=303)
+
+
+@router.post("/profiles",dependencies=[Depends(require_login), Depends(verify_csrf)])
 def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length=1, max_length=100),
                       hour_markup: Decimal = Form(Weights.hour_markup, ge=0, le=100),
                       transfer_markup: Decimal = Form(Weights.transfer_markup, ge=0, le=100),

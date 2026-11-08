@@ -30,4 +30,10 @@
     {% if trip_id %}<a class="btn btn-danger" href="/trips/{{ trip_id }}/delete">Delete trip</a>{% endif %}
   </div>
 </form>
+{% if trip_id %}
+<form class="card" method="post" action="/trips/{{ trip_id }}/copy">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <button class="btn" type="submit">{{ ui.icon("plus") }}Copy trip</button>
+</form>
+{% endif %}
 {% endblock %}
