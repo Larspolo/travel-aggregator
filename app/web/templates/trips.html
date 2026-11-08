@@ -7,6 +7,12 @@
   <a class="btn" href="/trips/import">{{ ui.icon("upload") }}Import trip</a>
   <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
 {% endcall %}
+<form class="trip-find" method="get" action="/" role="search">
+  <label for="trip-q">Find trips</label>
+  <input type="search" id="trip-q" name="q" value="{{ q }}" maxlength="200">
+  {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
+  <button class="btn" type="submit">Find</button>
+</form>
 {% if failing %}
 <div class="source-warning" role="alert">
   {% for h in failing %}
@@ -40,6 +46,10 @@
     {% endif %}
   {% endfor %}
 </div>
+{% elif q %}
+{% call ui.empty_state('No trip matches "' ~ q ~ '".') %}
+  <a class="btn" href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a>
+{% endcall %}
 {% elif archived %}
 {{ ui.empty_state("No archived trips.") }}
 {% else %}
