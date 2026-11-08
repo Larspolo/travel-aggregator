@@ -499,7 +499,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
-               "rates": rates, "tradeoff": tradeoff}
+               "rates": rates, "tradeoff": tradeoff,
+               "new_since": trip.viewed_at}  # the rows after the last full view are "new" (#1090)
     context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
@@ -514,6 +515,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["trend"] = trend_chart(trend) if len(trend) >= 2 else None
     context["at_target"] = at_target(session, trip)  # the fares at or below the target price (#847)
     mark_seen(session, trip_id)
+    trip.viewed_at = now  # only the full view; an HX-Request keeps it (#1090)
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
     context["coverage"] = trip_coverage(session, trip)  # the search status and link per source (#318, #967)
