@@ -80,6 +80,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A bahn.de capture for 2 adults into a trip for 2 shows "€180 for 2 travelers" next to the price of €90 in the breakdown; a capture for 1 adult into that trip shows "These offers are for 1 traveler; the trip has 2"
 - [x] `rank:tradeoff` (#892) For an offer that is not the best, the trip page and the compare view show the hour value at which it becomes better than the best offer
   - "1 h 40 min faster, €25 more: better above €15 per hour (yours: €20)" shows on the compare view and in the expanded row of the trip table
+- [ ] `rank:profile-page` (#1006) Profiles on their own page, and hour tiers of the time cost (owner request)
+  - A profile is made and edited on `/profiles/new` and `/profiles/{id}` with no trip; with the rates €4/h, €8/h after 4 h and €15/h after 8 h, a trip of 9 h has a time cost of €63 (4 × €4 + 4 × €8 + 1 × €15)
+- [ ] `rank:return-fare` A return fare (one price for both ways, as most flights have) compares with the single-way offers of a round trip, by the rule of the decision #1036 (owner request)
+  - The owner sees on one page if a return flight or the best two single-way offers (train, bus or flight) cost less in effective cost
 
 ## 3. Plan a trip in one place
 
@@ -127,7 +131,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - After two bookings, one page lists both journeys in date order, each with its legs and its calendar link
 - [x] `trip:share` (#902) A read-only link of a trip for a travel partner, with no login, that the owner can revoke
   - The link shows the ranked rows and no notes, tokens or captures (P5); "Revoke" on the trip page makes the link show "not found"
-- [ ] `trip:coverage` (#966) The search status of each source on the trip page: the last search of the trip, its offer count, or "not searched yet" with the search link
+- [x] `trip:coverage` (#966) The search status of each source on the trip page: the last search of the trip, its offer count, or "not searched yet" with the search link
   - A trip with only bahn.de captures shows "bahn.de: searched 2 h ago, 14 offers" and "NS International: not searched yet" with its search link
 
 ## 4. Run it on my home server
