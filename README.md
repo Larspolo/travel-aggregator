@@ -396,6 +396,13 @@ The journeys are in the order of their departure. Each journey shows:
 
 With no booked journey, the page shows the text "No booked journeys. Mark an offer as booked on its trip page."
 
+The page also works with no network, after one online visit:
+- The first online visit to `/upcoming` saves a copy of the page on the device.
+- With no network, the page shows the saved copy with the line "Offline: saved at HH:MM", the time of the save.
+- With no saved copy, the page shows "No saved journeys: open Upcoming once with a network."
+- "Log out" deletes the saved copy from the device.
+- "Add to calendar" needs a network. Offline, the link shows "Add to calendar: needs a network".
+
 ### Pin, hide, book and note an offer
 
 Each row of the trip table has buttons at its left side:
