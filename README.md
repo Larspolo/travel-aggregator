@@ -241,6 +241,10 @@ panel". The answer then also has `trip_id` and `trip_title`: the trip that got t
 answer has the field `suggestion`: an object with `title`, `origin_text`, `destination_text` and `date_from` for a new
 trip, built from the offers. Else `suggestion` is `null`.
 
+The answer also has the field `best`: the best offer of the trip by its effective cost, as an object with `total`,
+`price`, `currency`, `summary` and `new`. Money is a string, for example `"182.00"`. `new` is `true` when this capture
+made the best offer better (or gave the first one). `best` is `null` when the trip has no offer.
+
 `POST /api/ingest` stores each offer by its journey. The same journey sent twice gives one itinerary. A changed price
 adds a price row; the same price adds none and counts as `unchanged`. Each offer is stored in its own transaction.
 
@@ -573,6 +577,10 @@ when the offers reached your server, or an error message.
   shows (see "Trip warning of a capture"). The dropdown then shows the trip that got the offers. When no trip matches,
   `+ new trip` is filled from the offers: the title is the route of the offers, and the places and the first departure
   day are set.
+- **Best offer.** After a sent capture, the panel adds the best offer of the trip, for example
+  `Captured 1 offers → sent ✓ · Best of trip: €182 (new)`. The best offer is the one with the lowest effective cost by
+  the profile of the trip. `(new)` means that this capture made it better. Whole euros show without decimals, other
+  amounts with two decimals. A warning keeps its text and style, with the best offer after it.
 - **Auto-send.** This check box is on by default. With it on, the offers are sent at once. With it off, the offers wait
   in the queue until you press Send.
 - **Settings.** Set the server URL and the API token once, in the Tampermonkey menu (`Set server URL`, `Set API token`).
