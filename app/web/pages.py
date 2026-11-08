@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session, subqueryload
 
 from app.web.userscripts import bundle_info, userscript_list
 from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
-from app.backup import newest_backup
+from app.backup import BACKUP_MAX_AGE, newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.days import day_summary
@@ -969,9 +969,6 @@ def delete_rate(code: str, session: Session = Depends(get_session)) -> RedirectR
         session.delete(row)
         session.commit()
     return RedirectResponse("/rates", status_code=303)
-
-
-BACKUP_MAX_AGE = timedelta(hours=48)
 
 
 @router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
