@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 9;
+const CORE_VERSION = 10;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -125,6 +125,15 @@ const CORE_VERSION = 9;
     const w = responseOf(r).warning;
     return w ? String(w) : null;
   };
+  // The best offer of the trip (#881) as a suffix of the sent text: "" when the response has none.
+  // Whole euros show without decimals ("€182"); other totals show 2 decimals ("€165.50").
+  function bestOf(resp) {
+    const best = resp && resp.best;
+    if (!best || typeof best !== "object" || typeof best.total !== "string") return "";
+    if (!/^\d+(\.\d+)?$/.test(best.total)) return "";
+    const amount = Number(best.total).toFixed(2).replace(/\.00$/, "");
+    return ` · Best of trip: €${amount}${best.new === true ? " (new)" : ""}`;
+  }
   // The parsed ingest response; {} when it is not a JSON object.
   function responseOf(r) {
     try {
@@ -346,11 +355,12 @@ const CORE_VERSION = 9;
         }
         panel.select.value = String(id);
         gm.setValue("trip", id);
-        panel.setStatus(`Captured ${n} offers → sent to ${resp.trip_title || `trip ${id}`} ✓`, "ok");
+        panel.setStatus(`Captured ${n} offers → sent to ${resp.trip_title || `trip ${id}`} ✓${bestOf(resp)}`, "ok");
         return;
       }
-      if (warning) panel.setStatus(`Captured ${n} offers → sent ✓, but these offers do not match the trip`, "warn");
-      else panel.setStatus(`Captured ${n} offers → sent ✓`, "ok");
+      const best = bestOf(resp);
+      if (warning) panel.setStatus(`Captured ${n} offers → sent ✓, but these offers do not match the trip${best}`, "warn");
+      else panel.setStatus(`Captured ${n} offers → sent ✓${best}`, "ok");
     },
     queue: loadQueue,
     flush,
