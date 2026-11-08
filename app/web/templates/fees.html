@@ -1,0 +1,38 @@
+{% extends "settings_base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Booking fees – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header("Booking fees", subtitle="The fee in EUR that a source adds to each booking. A fee of 0 removes it.") }}{% endblock %}
+{% block settings %}
+{% call ui.card("Set a fee") %}
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<form method="post" action="/fees">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field">
+      <label for="source">Source</label>
+      <select id="source" name="source">
+        {% for s, name, fee in rows %}<option value="{{ s }}">{{ name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="amount">Fee (€)</label>
+      <input id="amount" name="amount" required inputmode="decimal" placeholder="1.50">
+      <p class="help">From 0 to 1000, at most 2 decimals.</p>
+    </div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Save fee</button></div>
+</form>
+{% endcall %}
+{% call ui.card("Fees") %}
+<div class="scroll">
+<table>
+  <thead><tr><th>Source</th><th>Fee</th></tr></thead>
+  <tbody>
+  {% for s, name, fee in rows %}
+  <tr><td>{{ name }}</td><td>€{{ "%.2f"|format(fee) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endcall %}
+{% endblock %}

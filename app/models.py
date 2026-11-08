@@ -191,6 +191,18 @@ class CurrencyRate(Base):
     updated_at: Mapped[datetime] = mapped_column(_tz())
 
 
+class SourceFee(Base):
+    """The booking fee of one source in EUR, for the score (#1142). A source with no row has no fee."""
+    __tablename__ = "source_fees"
+    __table_args__ = (
+        CheckConstraint("amount >= 0", name="ck_source_fees_not_negative"),
+    )
+
+    source: Mapped[str] = mapped_column(String(50), primary_key=True)
+    amount: Mapped[Decimal] = mapped_column(Money)
+    updated_at: Mapped[datetime] = mapped_column(_tz())
+
+
 class ScoreProfile(Base):
     """A named set of weights (#229). Only one row can be the default: a partial unique index."""
     __tablename__ = "score_profiles"
