@@ -18,11 +18,25 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
       <button class="btn" type="submit">{{ ui.icon("calendar-plus") }}Add next trip</button>
     </form>
+    {% if trip.share_hash %}
+    <form method="post" action="/trips/{{ trip.id }}/share/revoke">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("eye-off") }}Revoke link</button>
+    </form>
+    {% else %}
+    <form method="post" action="/trips/{{ trip.id }}/share">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("key") }}Share</button>
+    </form>
+    {% endif %}
     <a class="btn" href="/trips/{{ trip.id }}/export.csv" download>{{ ui.icon("download") }}Export CSV</a>
     <a class="btn" href="/trips/{{ trip.id }}/export.json" download>{{ ui.icon("download") }}Export JSON</a>
     </div>
   </details>
 {% endcall %}
+{% if share_link %}<section class="card new-token" role="status"><h2>Share link</h2>
+  <p>Keep this link: it shows only now. Each person with it sees the offers of this trip, with no login.</p>
+  <pre class="share-link">{{ share_link }}</pre></section>{% endif %}
 {% if flash %}<p class="card" role="status">{{ flash }}</p>{% endif %}
 {% if search_links %}
 <p class="search-links">{% for name, url in search_links %}<a href="{{ url }}" target="_blank" rel="noopener">Search on {{ name }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>

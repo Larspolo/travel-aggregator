@@ -33,6 +33,8 @@ class Trip(Base):
     status: Mapped[str] = mapped_column(String(20), default="planning", server_default="planning")
     notes: Mapped[str | None] = mapped_column(Text)
     target_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)  # the fares at or below it (#846)
+    share_hash: Mapped[str | None] = mapped_column(String(128), unique=True)  # the secret share link (#903)
+    shared_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
     profile_id: Mapped[int | None] = mapped_column(ForeignKey("score_profiles.id", ondelete="SET NULL"))  # #232
     # The outbound trip of a return trip, and its return trip (#340): one-to-one.
     return_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL"), unique=True)
