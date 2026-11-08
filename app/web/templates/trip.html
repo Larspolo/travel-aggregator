@@ -133,7 +133,7 @@
 </ul>
 </section>
 {% endif %}
-{% with oob = false %}{% include "trip_days.html" %}{% include "trip_timeline.html" %}{% endwith %}
+{% with oob = false %}{% include "trip_days.html" %}{% include "trip_timeline.html" %}{% include "trip_split.html" %}{% endwith %}
 {% include "trip_return_grid.html" %}
 <div class="card table-card" id="table">
 {% include "trip_table.html" %}
@@ -150,6 +150,7 @@
 <div class="card empty">
   <p>No offers yet. Search on a travel site with the userscript, or send offers to <code>POST /api/ingest</code>.</p>
 </div>
+{% with oob = false %}{% include "trip_split.html" %}{% endwith %}{# the split tickets also with no direct offer (#1179) #}
 {% endif %}
 <script src="/static/row_link.js" defer></script>
 {% endblock %}

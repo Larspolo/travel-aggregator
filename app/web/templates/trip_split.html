@@ -1,0 +1,26 @@
+{# The split tickets of the trip (#1179): one section per via place; the weights form swaps it out of band. #}
+<div id="trip-split"{% if oob %} hx-swap-oob="true"{% endif %}>
+{% for sec in splits %}
+<section class="card split-section" aria-labelledby="split-{{ loop.index }}">
+  <h2 id="split-{{ loop.index }}">Split tickets via {{ sec.via }}</h2>
+  <p class="split-parts">{% for part in sec.parts %}<a href="/trips/{{ part.trip.id }}">{{ part.trip.title }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+  {% for part in sec.parts if not part.count %}
+  <p class="split-empty">{{ part.trip.title }}: No offers yet.{% for name, url in part.links %} <a href="{{ url }}" rel="noopener noreferrer" target="_blank">Search on {{ name }}</a>{% endfor %}</p>
+  {% endfor %}
+  {% if sec.pairs %}
+  <ol class="split-pairs">
+    {% for row in sec.pairs %}{% set p = row.pair %}{% set a, b = p.first[0], p.second[0] %}
+    <li>
+      <strong>{{ (a.legs[0].depart_at | local(a.legs[0].depart_offset_min)).strftime("%a %d %b %H:%M") }} → {{ (b.legs[-1].arrive_at | local(b.legs[-1].arrive_offset_min)).strftime("%a %d %b %H:%M") }}</strong>
+      <span class="split-legs">{{ a.legs[0].from_name }} → {{ a.legs[-1].to_name }} ({{ p.first[1].source }}) · {{ row.wait // 60 }} h {{ "%02d" | format(row.wait % 60) }} min transfer · {{ b.legs[0].from_name }} → {{ b.legs[-1].to_name }} ({{ p.second[1].source }})</span>
+      <span class="split-sum">{{ p.breakdown }}</span>
+      {% if row.diff is not none %}<span class="split-diff{% if row.diff < 0 %} good{% endif %}">{% if row.diff < 0 %}{{ (-row.diff) | money("EUR") }} less than the best direct offer{% elif row.diff > 0 %}{{ row.diff | money("EUR") }} more than the best direct offer{% else %}the same as the best direct offer{% endif %}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% elif sec.parts | selectattr("count") | list | length == 2 %}
+  <p class="muted">No pair of offers fits a transfer at {{ sec.via }}.</p>
+  {% endif %}
+</section>
+{% endfor %}
+</div>

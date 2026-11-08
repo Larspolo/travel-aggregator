@@ -641,3 +641,8 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 /* the calendar link of the Upcoming page (#1113): the field fits a 390 px screen */
 .calendar-feed input.share-link { width: 100%; max-width: 100%; box-sizing: border-box; }
 .calendar-feed form { display: inline-block; }
+/* The split tickets of a trip (#1179) */
+.split-pairs { margin: 0; padding-left: 1.25rem; }
+.split-pairs li { margin: 0.5rem 0; overflow-wrap: anywhere; }
+.split-pairs li > span { display: block; }
+.split-diff.good { color: var(--good, inherit); font-weight: 600; }
