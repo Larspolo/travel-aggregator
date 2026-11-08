@@ -36,6 +36,8 @@ def test_a_missing_or_bad_count_gives_none(passengers):
 
 def test_the_fixtures_of_main_give_none():
     for f in sorted(FIXTURES.glob("*.json")):
+        if "2-adults" in f.name:  # the 2-adult fixture gives 2 (test_kiwi_group_price.py)
+            continue
         raw = json.loads(f.read_text(encoding="utf-8"))
         assert KiwiParser().parse(raw).travelers is None, f.name
 

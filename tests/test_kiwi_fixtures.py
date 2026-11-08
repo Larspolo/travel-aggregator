@@ -22,7 +22,9 @@ def _walk(value):
 
 
 def test_one_fixture_per_captured_search():
-    assert [path.name for path in FILES] == ["search-amsterdam-lisbon.json", "search-amsterdam-zurich.json"]
+    assert [path.name for path in FILES] == [
+        "search-amsterdam-lisbon.json", "search-amsterdam-zurich-2-adults.json", "search-amsterdam-zurich.json",
+    ]
 
 
 @pytest.mark.parametrize("path", FILES, ids=lambda p: p.name)
