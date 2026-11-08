@@ -283,7 +283,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/rates` | The exchange rates: store the value in EUR of a currency, or delete a rate (see "Exchange rates" below) |
-| `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile |
+| `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile. `/profiles/new` makes a profile with no trip, and `/profiles/{id}` edits its weights |
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
 | `/trips/{id}/captures` | The captures of a trip, with the parse result and the action "reparse capture" (see below). The link "Only failed captures" shows only the failed captures (`?failed=1`); "Show all captures" shows all again |
 | `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
@@ -844,6 +844,24 @@ When the page ranks the offers, a value comes from the first source that has it,
 5. the defaults of the sliders (€15 for the hour markup, €10 for the transfer markup)
 
 The profiles are listed, changed and deleted on `/profiles`.
+
+To make a profile with no trip, open `/profiles/new`. Enter a name and the weights, and press "Save". To change the
+weights of a profile later, press "Edit" for the profile on `/profiles`. This opens `/profiles/{id}`: change the values
+and press "Save".
+
+#### Hour tiers
+
+The time cost can have up to two more hour rates, by the length of the trip. Set them under "Advanced" in the
+"Hour tiers" group:
+
+- **Tier 1 from min** and **Tier 2 from min**: the trip time, in minutes, from which the tier starts. A value of 0
+  turns the tier off.
+- **Tier 1 €/h** and **Tier 2 €/h**: the rate, in euro per hour, of that tier.
+
+The tiers are marginal, like the tax brackets of an income. Each hour costs the rate of the band where it falls. The
+first band uses the hour markup. For example, with an hour markup of €4/h, Tier 1 from 240 min at €8/h, and Tier 2 from
+480 min at €15/h: the first 4 hours cost €4/h, the next 4 hours cost €8/h, and every hour after 8 hours costs €15/h.
+A trip of 6 hours costs 4 × 4 + 2 × 8 = €32 of time. A trip of 9 hours costs 4 × 4 + 4 × 8 + 1 × 15 = €63.
 
 ### Door-to-door
 
