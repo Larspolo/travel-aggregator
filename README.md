@@ -704,6 +704,18 @@ The panel shows the number of captured offers.
 The date of birth of each passenger is not sent to your server. A train that bahn.de also sells is one row on the
 trip page: its offers from bahn.de and from Trainline count as the same itinerary.
 
+### Eurostar userscript
+
+The Eurostar userscript captures the search results of eurostar.com: the trains, their times and the prices of the
+Standard, Plus and Premier fares.
+It reads only the responses that the Eurostar page itself gets. It sends no request to eurostar.com.
+
+To install it, add the file `userscripts/eurostar.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On eurostar.com, search for a journey.
+The panel shows the number of captured offers.
+
+The search status of a trip shows a search link to eurostar.com. Use it to open the same search on the site.
+
 ### Parse result of a capture
 
 The column "Captured" shows the age of each capture, for example "2 h ago". Point at the age to see the full UTC time.
