@@ -542,3 +542,23 @@ input[name=it]:checked { counter-increment: picked; }
 .source-warning { display: flex; flex-direction: column; gap: var(--space-2, .5rem); margin-bottom: 1rem; }
 .source-warning .chip { height: auto; padding: 4px 9px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; align-self: flex-start; max-width: 100%; margin: 0; }
 .source-warning a { color: inherit; }
+
+/* The timeline of the trip page (#815): the axis keeps its width, the block scrolls in its own box */
+.timeline-view { margin: 0 0 var(--space-3); }
+.timeline-view[hidden] { display: none; }
+.timeline-view > summary { font-weight: 600; min-height: 44px; }
+.timeline-date { font-size: 0.9rem; margin: var(--space-2) 0 var(--space-1); }
+.timeline-scroll { overflow-x: auto; max-width: 100%; }
+.timeline-axis { position: relative; min-width: 640px; padding-bottom: 1.4rem; }
+.timeline-bar { position: relative; display: block; height: 28px; margin: 4px 0; border-radius: 4px; background: var(--accent-soft); color: var(--text); text-decoration: none; }
+.timeline-bar:focus-visible, .timeline-bar:hover { outline: 2px solid var(--accent); }
+.timeline-bar.best-value { box-shadow: inset 3px 0 0 var(--accent); }
+.tl-parts { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tl-leg { fill: var(--accent); }
+.tl-leg.mode-bus { fill: var(--good); }
+.tl-leg.mode-flight { fill: var(--info); }
+.tl-leg.mode-walk { fill: var(--muted); }
+.tl-gap { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 2 3; }
+.tl-text { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; white-space: nowrap; }
+.timeline-hours { position: absolute; left: 0; bottom: 0; width: 100%; height: 1.2rem; overflow: visible; }
+.timeline-hours text { font-size: 0.7rem; fill: var(--muted); }
