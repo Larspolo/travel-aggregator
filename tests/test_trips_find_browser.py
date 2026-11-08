@@ -1,6 +1,5 @@
 """The owner finds a trip among 40 trips with the keyboard, at 1280 px and at 390 px (#1223)."""
 
-import os
 import socket
 import threading
 import time
