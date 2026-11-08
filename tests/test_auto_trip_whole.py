@@ -174,8 +174,8 @@ def test_no_matching_trip_offers_a_new_trip_with_the_places_and_the_date(session
         try:
             _search(page)
             assert "No trip matches: + new trip" in _status(page)
-            page.on("dialog", lambda d: d.accept(d.default_value))
             page.evaluate(f"{SHADOW}.querySelector('.new-trip').click()")
+            page.evaluate(f"{SHADOW}.querySelector('.ask-save').click()")
             for _ in range(100):
                 if len(_trips(sessions)) == 2:
                     break
