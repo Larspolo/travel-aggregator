@@ -13,7 +13,7 @@ from typing import Annotated
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
 from pydantic import BaseModel, Field, ValidationError
@@ -863,6 +863,28 @@ def service_worker() -> Response:
     """The service worker of Web Push, at the root so that its scope is the whole app. No secret: no login."""
     return FileResponse(Path(__file__).parent / "static" / "sw.js", media_type="text/javascript",
                         headers={"Cache-Control": "no-cache"})
+
+
+MANIFEST = {
+    "name": "travel-aggregator",
+    "short_name": "Travel",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f5f5f7",
+    "theme_color": "#5145d6",
+    "icons": [
+        {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"},
+        {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png"},
+        {"src": "/static/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+    ],
+}
+
+
+@router.get("/manifest.webmanifest", include_in_schema=False)
+def web_app_manifest() -> Response:
+    """The web app manifest (#797): the name, colours and icons of the app on a phone. No secret: no login."""
+    return JSONResponse(MANIFEST, media_type="application/manifest+json")
 
 
 COMPARE_ERROR = "Select 2 to 4 offers of this trip."
