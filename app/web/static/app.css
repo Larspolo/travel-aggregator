@@ -563,3 +563,4 @@ input[name=it]:checked { counter-increment: picked; }
 .tl-text { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; white-space: nowrap; }
 .timeline-hours { position: absolute; left: 0; bottom: 0; width: 100%; height: 1.2rem; overflow: visible; }
 .timeline-hours text { font-size: 0.7rem; fill: var(--muted); }
+.upcoming-legs { list-style: none; margin: var(--space-1) 0 0; padding: 0; }

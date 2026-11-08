@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Upcoming – travel-aggregator{% endblock %}
+{% block content %}
+{% call ui.page_header("Upcoming") %}{% endcall %}
+  {% if not itineraries %}
+  <p class="muted">No booked journeys. Mark an offer as booked on its trip page.</p>
+  {% else %}
+  <ol class="journey-parts upcoming">
+  {% for it in itineraries %}{% set trip = it.trip %}
+    <li class="journey-part">
+      <div class="journey-what">
+        <strong><a href="/trips/{{ trip.id }}">{{ trip.title }}</a></strong>
+        {% if it.legs %}{% set first = it.legs[0] %}<span class="muted">{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %Y") }}</span>{% endif %}
+        <ul class="upcoming-legs">
+        {% for leg in it.legs %}{% set dep = leg.depart_at | local(leg.depart_offset_min) %}{% set arr = leg.arrive_at | local(leg.arrive_offset_min) %}{% set gap = arr | day_gap(dep) %}
+          <li class="journey-when">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon, leg.mode) }}{% endif %}
+            {{ leg.carrier or "" }} {{ leg.service_no or "" }} · {{ leg.from_name }} → {{ leg.to_name }} ·
+            {{ dep.strftime("%H:%M") }}–{{ arr.strftime("%H:%M") }}{% if gap > 0 %} <span class="chip">+{{ gap }} day{% if gap > 1 %}s{% endif %}</span>{% endif %}</li>
+        {% endfor %}
+        </ul>
+      </div>
+      <div class="journey-cost"><a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
+           aria-label="Add to calendar" title="Add to calendar">{{ ui.icon("calendar-plus") }}</a></div>
+    </li>
+  {% endfor %}
+  </ol>
+  {% endif %}
+{% endblock %}
