@@ -6,7 +6,7 @@
 {% if error %}
 <p class="error">{{ error }}</p>
 {% else %}
-<section class="card data-card"><div class="scroll"><table class="compare">
+<section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Comparison table"><table class="compare">
   <tbody>
   <tr><th scope="row">Route</th>{% for it, fare, cost in columns %}<td>{{ it.legs[0].from_name }} → {{ it.legs[-1].to_name }}</td>{% endfor %}</tr>
   <tr><th scope="row">Depart</th>{% for it, fare, cost in columns %}{% set first = it.legs[0] %}<td>{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }}</td>{% endfor %}</tr>
