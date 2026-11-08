@@ -368,6 +368,13 @@ A gap is a line between two parts. It is a transfer, and its title shows the min
 Click a bar to open its row: the page goes to the row and opens its "Legs and fares".
 The timeline follows the table. A change of a slider, a filter or the day strip updates it, so it shows the same rows as the table.
 
+### Price trend of a trip
+
+The trip page shows a "Price trend" chart above the table. It shows the lowest price of the trip for each day, in EUR.
+Each point is one day. Its title shows the date and the value, for example "2026-11-03: €90.00". The chart also shows the lowest and the highest value.
+The value of a day follows this rule: for each fare, the app takes its newest price at the end of the day (UTC). It then takes the lowest EUR value of these prices. A day with no capture keeps the value of the day before. A price with no exchange rate does not count, and a hidden offer does not count.
+The chart shows only when the trip has captures on 2 or more days.
+
 ### Pin, hide, book and note an offer
 
 Each row of the trip table has buttons at its left side:
