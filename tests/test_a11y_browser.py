@@ -14,14 +14,7 @@ from tests.test_trip_days_browser import days_trip, live  # noqa: F401  (fixture
 pytestmark = pytest.mark.slow
 
 # (path, width) -> rule ids. The key has the width: some findings occur only at 390 px (a table that scrolls sideways).
-KNOWN: dict[tuple[str, int], set[str]] = {
-    # The token links in the text have only the colour to show that they are links.
-    ("/tokens", 1280): {"link-in-text-block"},
-    ("/tokens", 390): {"link-in-text-block"},
-    # The table box that scrolls sideways at 390 px cannot get the keyboard focus.
-    ("/captures", 390): {"scrollable-region-focusable"},
-    ("/trips/{id}/captures", 390): {"scrollable-region-focusable"},
-}
+KNOWN: dict[tuple[str, int], set[str]] = {}
 
 
 def serious(page) -> set[str]:
