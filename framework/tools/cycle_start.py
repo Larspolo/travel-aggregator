@@ -69,6 +69,13 @@ def pr_ticket(pr, held):
     return next((n for n, (_, s) in held.items() if s.split(" ")[3:4] == [pr["head"]["ref"]]), None)
 
 
+def quick_green(checks):
+    """True when all parts of the job `quick` passed (`quick (1)` and `quick (2)`, #1077). checks: [(name, status,
+    conclusion)]."""
+    import ship_pr
+    return ship_pr.quick_green([dict(name=n, status=s, conclusion=c) for n, s, c in checks])
+
+
 def pr_work(pr, open_issues, checks, beat, now, me="", ticket=None):
     """The work that an open agent PR needs, or None. pr: an entry of /pulls; checks: [(name, status, conclusion)] of
     its head commit; beat: (minutes, subject) of its ticket claim, or None; me: the current branch; ticket: `pr_ticket`. The PRs of this run
@@ -88,7 +95,7 @@ def pr_work(pr, open_issues, checks, beat, now, me="", ticket=None):
     if "hold" in dashboard.labels(pr):     # nothing removes `hold`: a run that stopped left it for ever (#4553)
         if live or idle < STALE:
             return None
-        quick = any(n == "quick" and c == "success" for n, _, c in checks)
+        quick = quick_green(checks)
         state = "checks red: " + ", ".join(red) if red else "checks green" if quick else "checks not finished"
         if red or not quick:   # the auto mode denies a removal of `hold` on a PR of another run: the owner removes it (#581)
             return f"`hold`, no live claim, no change for {idle:.0f} min, {state}: add `needs-human` to #{ticket} with the reason"
@@ -98,7 +105,7 @@ def pr_work(pr, open_issues, checks, beat, now, me="", ticket=None):
         return f"no CI run on its head for {idle:.0f} min: start CI on its branch (`github.md`)"
     if not conflict and not red:
         age = (now - dashboard.ts(pr["created_at"])).total_seconds() / 60
-        quick = any(n == "quick" and c == "success" for n, _, c in checks)
+        quick = quick_green(checks)
         done = all(s == "completed" for _, s, _ in checks)   # #606: Automerge can need other checks, so wait for every check
         return f"green and open {age:.0f} min: start the Automerge sweep (`github.md`)" if quick and done and age > SWEEP else None
     what = "conflict" if conflict else "red CI: " + ", ".join(red)
@@ -298,7 +305,7 @@ def main(argv=None):
     work = []
     for p in prs:
         checks = [(c["name"], c["status"], c["conclusion"]) for c in
-                  dashboard.api(f"commits/{p['head']['sha']}/check-runs").get("check_runs", [])]
+                  dashboard.api(f"commits/{p['head']['sha']}/check-runs?per_page=100").get("check_runs", [])]
         t = pr_ticket(p, held)
         w = pr_work(p, issues, checks, held.get(t), now, me, t)
         if w:

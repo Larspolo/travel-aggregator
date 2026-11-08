@@ -40,7 +40,7 @@ def fake_github(monkeypatch, open_prs=(), lint=True):
         if method == "POST":
             return {"number": 9, "html_url": "https://x/9"}
         if path.startswith("commits/"):                  # the quick CI (#4784)
-            return {"check_runs": [{"id": 1, "status": "completed", "conclusion": "success"}]}
+            return {"check_runs": [{"id": 1, "name": "quick", "status": "completed", "conclusion": "success"}]}
         return {"mergeable_state": "clean", "merged": True}   # Automerge merged it after the green CI (#5584)
     monkeypatch.setattr(dashboard, "api", api)
     return calls

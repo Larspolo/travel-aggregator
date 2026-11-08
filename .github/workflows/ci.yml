@@ -1,6 +1,6 @@
 name: CI
 
-# Quick checks on each PR and on main: Automerge merges a green agent PR (workflow name "CI", job "quick").
+# Quick checks on each PR and on main: Automerge merges a green agent PR (workflow name "CI", job "quick", 2 parts).
 on:
   push:
     branches: [main]
@@ -11,9 +11,17 @@ permissions:
   contents: read
 
 jobs:
+  # Two jobs, each with one part of the fast tests (whole files, tests/shard.py): one job took 122 s for the step
+  # `Fast tests` after #1074, and the CI wait of each PR is this job (#1077). The check runs are `quick (1)` and
+  # `quick (2)`: each reader of the check `quick` takes both parts as one check, green only when both parts are green
+  # (`quick_run` of framework/tools/ship_pr.py, its QUICK_PARTS, and GREEN of automerge.yml). Part 1 also runs the lint.
   quick:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     services:
       postgres:                 # the test database (CLAUDE.md, "Commands")
         image: postgres:16
@@ -33,9 +41,10 @@ jobs:
           python-version: "3.12"
       - run: python3 -m pip install --quiet --disable-pip-version-check --root-user-action=ignore -r requirements-dev.txt
       - name: Lint
+        if: matrix.shard == 1
         run: ruff check .
-      - name: Fast tests   # the 25 slowest tests in the log (#1070)
-        run: python3 -m pytest -n auto --durations=25
+      - name: Fast tests   # the 25 slowest tests of the part in the log (#1070)
+        run: python3 -m pytest -n auto --shard ${{ matrix.shard }}/2 --durations=25
 
   # The browser tests (`pytest -m slow`, about 20 s): each page at 390 px and 1280 px with no sideways scroll, the phone
   # check with touch (tests/test_mobile_touch.py), and the userscripts on local test pages (never a travel site, P1).
