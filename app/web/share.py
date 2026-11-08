@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session, subqueryload
 
-from app.auth import require_login, verify_csrf
+from app.auth import require_login, token_limiter, verify_csrf
 from app.db import get_session
 from app.models import AccessTime, Itinerary, Trip
 from app.share import new_link, revoke, trip_for_token
@@ -43,8 +43,14 @@ def revoke_share(trip_id: int, session: Session = Depends(get_session)) -> Redir
 
 @router.get("/s/{token}", response_class=HTMLResponse, name="shared_trip")
 def shared_trip(request: Request, token: str, session: Session = Depends(get_session)) -> HTMLResponse:
+    address = request.client.host if request.client else "unknown"
+    wait = token_limiter.retry_after(address)
+    if wait > 0:  # too many bad links of this address (#904): nobody can guess a link
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "too many bad share links",
+                            headers={**PRIVATE_HEADERS, "Retry-After": str(wait)})
     trip = trip_for_token(session, token) if len(token) <= 100 else None
     if trip is None:
+        token_limiter.failure(address)
         raise HTTPException(status.HTTP_404_NOT_FOUND, "no shared trip", headers=PRIVATE_HEADERS)
     weights, _ = resolve_weights(session, trip, {}, None)  # the profile of the trip, no overrides
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
