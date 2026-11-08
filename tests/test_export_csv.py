@@ -69,7 +69,7 @@ def test_one_header_row_and_one_row_per_fare(client, trip_id):
     assert header == [
         "route", "departure", "arrival", "duration_min", "transfers", "modes", "carriers", "service_numbers",
         "source", "fare_name", "travel_class", "latest_price", "currency", "last_captured", "pinned", "hidden",
-        "booked", "note", "booking_url",
+        "booked", "note", "booking_url", "paid",
     ]
     assert len(rows) == 1  # the second itinerary has no fare
     row = dict(zip(header, rows[0]))

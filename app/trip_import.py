@@ -6,7 +6,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -73,8 +73,21 @@ class ItineraryData(_Model):
     hidden: bool = False
     booked: bool = False
     note: str | None = None
+    # The paid fare (#1150): missing in an older export, so None (no paid price).
+    booked_price: Decimal | None = Field(None, ge=0, max_digits=10, decimal_places=2)
+    booked_currency: str | None = Field(None, pattern=r"^[A-Z]{3}$")
+    booked_at: AwareDatetime | None = None
+    booked_fare: int | None = Field(None, ge=0)  # the index in `fares`
     legs: list[LegData] = Field(min_length=1, max_length=MAX_LEGS)
     fares: list[FareData] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _paid_fare_exists(self) -> "ItineraryData":
+        if self.booked_fare is not None and self.booked_fare >= len(self.fares):
+            raise ValueError(f"booked_fare {self.booked_fare} is not a fare of this itinerary")
+        if self.booked_price is not None and self.booked_currency is None:
+            raise ValueError("booked_price needs booked_currency")
+        return self
 
 
 class ExportData(_Model):
@@ -131,6 +144,15 @@ def _new_itinerary(trip_id: int, d: ItineraryData, fp: str, now: datetime) -> It
     return it
 
 
+def _restore_paid(it: Itinerary, d: ItineraryData, fare_objs: list[Fare]) -> None:
+    """Give the paid price and the paid fare back (#1150). A value the database has already keeps its place."""
+    if it.booked_price is None and d.booked_price is not None:
+        it.booked_price, it.booked_currency = d.booked_price, d.booked_currency
+        it.booked_at = d.booked_at.astimezone(UTC) if d.booked_at is not None else None
+    if it.booked_fare_id is None and d.booked_fare is not None:
+        it.booked_fare_id = fare_objs[d.booked_fare].id
+
+
 def import_trip(session: Session, data: dict, trip_id: int | None = None) -> ImportResult:
     """Make a trip from an export (trip_id None) or add the export to the trip `trip_id`. All the data is validated
     before a row is added, so a bad itinerary stops the whole import. The caller commits."""
@@ -157,6 +179,7 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
             result.itineraries_added += 1
         else:
             result.itineraries_unchanged += 1
+        fare_objs: list[Fare] = []
         for fd in d.fares:
             fare = next((f for f in it.fares if f.source == fd.source and f.fare_name == fd.fare_name), None)
             if fare is None:
@@ -168,6 +191,7 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                 result.fares_added += 1
             else:
                 result.fares_unchanged += 1
+            fare_objs.append(fare)
             known = {(p.captured_at, p.price, p.currency) for p in fare.prices}
             for pd in fd.prices:
                 if (pd.captured_at, pd.price, pd.currency) in known:
@@ -182,4 +206,5 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                     fare.latest_price, fare.currency, fare.latest_captured_at = (newest.price, newest.currency,
                                                                                   newest.captured_at)
         session.flush()
+        _restore_paid(it, d, fare_objs)
     return result

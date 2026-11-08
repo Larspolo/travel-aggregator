@@ -31,6 +31,16 @@ def _iso(at: datetime | None) -> str | None:
     return at.isoformat() if at is not None else None
 
 
+def _paid_index(it: Itinerary) -> int | None:
+    """The position of the paid fare in the `fares` list of the export (#1150), or None."""
+    if it.booked_fare_id is None:
+        return None
+    for index, fare in enumerate(sorted(it.fares, key=lambda f: f.id)):
+        if fare.id == it.booked_fare_id:
+            return index
+    return None
+
+
 def slug(text: str) -> str:
     ascii_text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
     return re.sub(r"[^a-z0-9]+", "-", ascii_text.lower()).strip("-")[:60].strip("-") or "trip"
@@ -68,6 +78,9 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                 "depart_at": _iso(it.depart_at), "arrive_at": _iso(it.arrive_at),
                 "duration_min": it.duration_min, "transfers": it.transfers,
                 "pinned": it.pinned, "hidden": it.hidden, "booked": it.booked, "note": it.note,
+                "booked_price": str(it.booked_price) if it.booked_price is not None else None,
+                "booked_currency": it.booked_currency, "booked_at": _iso(it.booked_at),
+                "booked_fare": _paid_index(it),
                 "legs": [
                     {
                         "seq": leg.seq, "mode": leg.mode, "carrier": leg.carrier, "service_no": leg.service_no,
@@ -109,7 +122,7 @@ def export_json(trip_id: int, session: Session = Depends(get_session)) -> Respon
 CSV_COLUMNS = [
     "route", "departure", "arrival", "duration_min", "transfers", "modes", "carriers", "service_numbers",
     "source", "fare_name", "travel_class", "latest_price", "currency", "last_captured", "pinned", "hidden",
-    "booked", "note", "booking_url",
+    "booked", "note", "booking_url", "paid",
 ]
 _FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
 
@@ -135,7 +148,8 @@ def csv_rows(data: dict) -> list[list[object]]:
     for it in data["itineraries"]:
         legs = sorted(it["legs"], key=lambda leg: leg["seq"])
         first, last = (legs[0], legs[-1]) if legs else ({}, {})
-        for fare in it["fares"]:
+        for index, fare in enumerate(it["fares"]):
+            paid = it["booked_price"] if index == it["booked_fare"] else None
             rows.append([
                 f"{first.get('from_name') or ''} - {last.get('to_name') or ''}",
                 first.get("depart_at") or it["depart_at"] or "",
@@ -146,7 +160,7 @@ def csv_rows(data: dict) -> list[list[object]]:
                 _join(leg["service_no"] for leg in legs),
                 fare["source"], fare["fare_name"], fare["travel_class"],
                 fare["latest_price"], fare["currency"], fare["latest_captured_at"],
-                it["pinned"], it["hidden"], it["booked"], it["note"], fare["booking_url"],
+                it["pinned"], it["hidden"], it["booked"], it["note"], fare["booking_url"], paid or "",
             ])
     return rows
 
