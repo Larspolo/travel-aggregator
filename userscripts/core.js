@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 12;
+const CORE_VERSION = 13;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -21,19 +21,44 @@ const CORE_VERSION = 12;
   };
   const RETRY_MS = 60000;
 
+  // The design tokens of app.css (#621, #1067), copied: the panel loads no CSS or font from a server (P1, P5).
   const STYLE = `
-    :host { all: initial; }
-    .panel { position: fixed; right: 12px; bottom: 12px; z-index: 2147483647;
-      font: 13px/1.4 system-ui, sans-serif; padding: 6px 10px; border-radius: 6px;
-      background: #f4f4f4; color: #222; border: 1px solid #999; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
-    .panel.ok { background: #e7f6e7; border-color: #2e7d32; color: #1b5e20; }
-    .panel.error { background: #fdecea; border-color: #c62828; color: #b71c1c; font-weight: bold; }
-    .panel.info { background: #e8f0fe; border-color: #1a73e8; color: #0d47a1; }
-    .panel.warn { background: #fff4e0; border-color: #ef6c00; color: #8a4b00; }
-    .controls { position: fixed; right: 12px; bottom: 48px; z-index: 2147483647; display: flex; gap: 6px;
-      align-items: center; font: 13px/1.4 system-ui, sans-serif; padding: 6px 10px; border-radius: 6px;
-      background: #f4f4f4; color: #222; border: 1px solid #999; }
-    .controls select, .controls button { font: inherit; }
+    :host { all: initial; color-scheme: light dark;
+      --surface: #ffffff; --surface-2: #f8f8fa; --text: #17171c; --muted: #5d5d68; --line: #e3e3e8;
+      --accent: #5145d6; --accent-text: #ffffff; --accent-soft: #eeedfd;
+      --good: #187a35; --info: #0a64c9; --warn: #9a4f00; --danger: #c4302b;
+      --shadow: 0 1px 2px rgb(16 16 24 / .05), 0 4px 12px rgb(16 16 24 / .08);
+      --ring: 0 0 0 3px rgb(81 69 214 / .22); --radius: 8px;
+      --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    @media (prefers-color-scheme: dark) {
+      :host { --surface: #15151a; --surface-2: #1b1b21; --text: #ececf0; --muted: #9b9ba6; --line: #2a2a31;
+        --accent: #8f87ff; --accent-text: #0c0c0f; --accent-soft: #23214a;
+        --good: #43c164; --info: #5eaaff; --warn: #e3a03f; --danger: #f47067;
+        --shadow: 0 4px 12px rgb(0 0 0 / .5); --ring: 0 0 0 3px rgb(143 135 255 / .3); }
+    }
+    .panel, .controls, .ask { position: fixed; right: 12px; z-index: 2147483647; box-sizing: border-box;
+      max-width: min(440px, calc(100vw - 24px)); font: 12.5px/1.4 var(--font); color: var(--text);
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      box-shadow: var(--shadow); }
+    .panel { bottom: 12px; padding: 6px 10px 6px 12px; border-left: 4px solid var(--info); cursor: pointer;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .panel.ok { border-left-color: var(--good); }
+    .panel.info { border-left-color: var(--info); }
+    .panel.warn { border-left-color: var(--warn); }
+    .panel.error { border-left-color: var(--danger); color: var(--danger); font-weight: 600; }
+    .controls { bottom: 48px; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; padding: 8px 10px; }
+    .ask { bottom: 48px; display: flex; gap: 6px; align-items: center; padding: 8px 10px; }
+    .ask:not([hidden]) ~ .controls { display: none; }
+    [hidden], .collapsed .controls, .collapsed .ask { display: none !important; }
+    label { display: inline-flex; gap: 4px; align-items: center; color: var(--muted); }
+    select, input:not([type=checkbox]) { font: inherit; color: var(--text); background: var(--surface-2);
+      border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; min-width: 0; }
+    input[type=checkbox] { accent-color: var(--accent); margin: 0; }
+    button { font: inherit; font-weight: 500; color: var(--text); background: var(--surface-2); cursor: pointer;
+      border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; }
+    button:hover { background: var(--accent-soft); }
+    button.send, button.ask-save { color: var(--accent-text); background: var(--accent); border-color: var(--accent); }
+    button:focus-visible, select:focus-visible, input:focus-visible { outline: none; box-shadow: var(--ring); }
   `;
 
   function createPanel() {
@@ -73,7 +98,14 @@ const CORE_VERSION = 12;
     form.addEventListener("submit", (e) => { e.preventDefault(); close(input.value); });
     form.querySelector(".ask-cancel").addEventListener("click", () => close(null));
     input.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); close(null); } });
-    shadow.append(style, controls, form, box);
+    // A click on the status line hides or shows the controls (#1067): the panel must not cover the buttons of the site.
+    const wrap = document.createElement("div");
+    const fold = (on) => { wrap.classList.toggle("collapsed", on); gm.setValue("collapsed", on); };
+    wrap.classList.toggle("collapsed", gm.getValue("collapsed", false) === true);
+    box.title = "Show or hide the travel-aggregator controls";
+    box.addEventListener("click", () => fold(!wrap.classList.contains("collapsed")));
+    wrap.append(form, controls, box);
+    shadow.append(style, wrap);
     // At document-start the page can have no root element yet (#155): mount when it comes.
     const mount = () => (document.body || document.documentElement).appendChild(host);
     if (document.documentElement) mount();
@@ -103,11 +135,13 @@ const CORE_VERSION = 12;
         input.type = type || "text";
         input.value = String(value || "");
         form.hidden = false;
+        if (wrap.classList.contains("collapsed")) fold(false);
         input.focus();
         return new Promise((resolve) => { answer = resolve; });
       },
       text: () => box.textContent,
       kind: () => box.className.replace("panel ", ""),
+      collapsed: () => wrap.classList.contains("collapsed"),
     };
   }
 
