@@ -40,7 +40,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A capture of Amsterdam → Lisbon into the trip Amsterdam → Zürich shows "These offers do not match the trip" in the panel and on the captures page
 - [x] `capture:move` (#578) Move the offers of a capture to another trip, after a capture into the wrong trip
   - "Move to trip" on the captures page moves the offers and their price rows of one capture, and the old trip does not show them
-- [ ] `capture:auto-trip` The panel selects the matching trip by itself: the server compares the search of a capture (places and date) with the trips in planning, as `capture:match-trip` does, and "+ new trip" is filled from the search
+- [ ] `capture:auto-trip` (#718) The panel selects the matching trip by itself: the server compares the search of a capture (places and date) with the trips in planning, as `capture:match-trip` does, and "+ new trip" is filled from the search
   - A search Amsterdam → Zürich on 20 December goes to the trip Amsterdam → Zürich with no change of the dropdown
 - [x] `capture:health` (#723) A status per source: the last good capture, the parser version and the failed captures after it; a warning on the trips list when the last captures of a source failed
   - When a site changes its format, the trips list shows "bahn.de: the last 3 captures failed" with a link to the failed captures
@@ -95,12 +95,18 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The trips list does not show an archived trip; "Archived trips (N)" opens them
 - [x] `trip:days` (#708) For a trip with a date range: the best effective cost and the cheapest price per departure day, and a click on a day filters the table
   - A trip from 18 to 22 December shows 5 days, each with its best offer, so the owner sees the best day at once
-- [ ] `trip:notify` Price-drop notifications outside the app for the pinned fares (`docs/SPEC.md`, milestone 6), by the channel of the decision #418
+- [ ] `trip:notify` (#511) Price-drop notifications outside the app for the pinned fares (`docs/SPEC.md`, milestone 6), by the channel of the decision #418
   - A new capture with a lower price of a pinned fare sends one notification to the owner's phone
 - [x] `trip:multicity` (#559) Multi-city journeys: three or more trips linked in sequence, as `trip:return` links two (`docs/SPEC.md`, section 13)
   - "Add next trip" makes a linked trip from the destination of the last one, and the trips list shows the journey with the sum of the best offers
-- [ ] `trip:calendar` Add a booked itinerary to a calendar: an `.ics` file with one event per leg
+- [ ] `trip:calendar` (#779) Add a booked itinerary to a calendar: an `.ics` file with one event per leg
   - "Add to calendar" on a booked row downloads one file; a calendar app shows each leg with its local times, its train, bus or flight number and its places
+- [ ] `trip:copy` (#800) Copy a trip or a journey for a new date: the places, the travelers, the profile and the note, with no dates and no offers
+  - "Copy trip" on the edit page of Amsterdam → Zürich opens a new trip Amsterdam → Zürich with the same profile and no offers; "Copy journey" copies all linked trips of a round trip or a multi-city journey
+- [ ] `trip:timeline` A timeline of the itineraries of a trip: each itinerary is a bar from its departure to its arrival on one time axis per day, with its legs and transfers
+  - The owner sees at a glance which options leave after 08:00 and arrive before 18:00, and a click on a bar opens its row in the table
+- [ ] `trip:a11y` All pages work with a keyboard and a screen reader: a visible focus, a label for each control, and an automatic check of each page
+  - Each page has no "serious" or "critical" axe-core finding at 1280 px and 390 px, and the weights, the row expand, the menus and the dropdowns work with Tab, Enter and Escape
 
 ## 4. Run it on my home server
 
@@ -121,5 +127,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The settings page shows a warning when the newest backup is older than 48 hours
 - [x] `host:export` (#699) Export the offers of a trip as CSV and JSON: the owner keeps the data (P5)
   - "Export CSV" on the trip page gives one row per fare with the price, the times, the source and the effective cost
-- [ ] `host:import` Import the JSON export of a trip (`host:export`) into an instance: the trip, its itineraries, fares and price history
+- [x] `host:import` (#775) Import the JSON export of a trip (`host:export`) into an instance: the trip, its itineraries, fares and price history
   - A trip exported from one instance and imported into another shows the same rows, prices and price history; a second import of the same file makes no duplicate
+- [ ] `host:webapp` (#795) Install the app on the home screen of a phone: a web app manifest and icons, so that it opens as an app and Web Push (`trip:notify`) works on an iPhone (Safari sends Web Push only to an app on the Home Screen)
+  - "Add to Home Screen" on a phone adds the app with its own icon and name, it opens with no browser bar, and the settings page of the installed app turns on Web Push
