@@ -530,6 +530,14 @@ departs today or within D days; its newest offers are older than N days, or it h
 older than N days, or it has none. So a trip gets at most one reminder in N days. The reminders are sent by the
 service `backup` (see "Backups"), so that service must run. All times are UTC.
 
+The app can send a message when the captures of a source fail. The checkbox "Send a message when the captures of a
+source fail" on the messages settings page (`/settings/messages`) turns these messages on or off. It is on by default.
+When the newest two or more captures of a source failed after its last good capture, the app sends a message with the
+title "<source>: the last N captures failed" and a link to the failed captures of that source. The app sends it once for
+each failure. When a good capture of the source comes, the app sends the message "<source> works again" with a link to
+the captures of that source. The messages use the channel that you chose above; with `none`, no message is sent. The
+app checks the captures when a userscript sends offers.
+
 For Web Push, "Turn on push on this device" asks the browser for permission and subscribes it; "Remove push from this
 device" removes that browser. The settings page shows how many devices have push on. On an iPhone or iPad, Web Push
 works only in an app on the home screen: in Safari, tap Share, then "Add to Home Screen", and open the settings page
