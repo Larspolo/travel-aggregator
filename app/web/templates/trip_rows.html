@@ -12,6 +12,7 @@
         {% if it.hidden %}<span class="muted">hidden</span>{% endif %}
         {% if it.pinned %}<span class="muted">pinned</span>{% endif %}
         {% if it.booked %}<span class="badge booked">booked</span>{% endif %}
+        {% if new_since and it.first_seen_at and it.first_seen_at > new_since %}<span class="badge new" title="new since your last view">new</span>{% endif %}
         {% for b in view.badges.get(it.id, []) %}<span class="badge {{ b | replace(" ", "-") }}">{{ b }}</span> {% endfor %}
         {% if newest < stale_before %}<span class="badge stale" title="stale, price may have changed">stale</span>{% endif %}</div>
         <div class="facts"><span class="times">{{ dep.strftime("%a %d %b %H:%M") }} → {{ arr.strftime("%H:%M") }}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}</span>
