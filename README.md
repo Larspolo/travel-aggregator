@@ -427,6 +427,11 @@ A journey can have three or more linked trips (multi-city). Each trip after the 
 
 Each direction is a normal trip. The userscripts capture offers into it when you choose the trip in the dropdown of the panel.
 
+### Copy a trip
+
+- The edit form `/trips/{id}/edit` of an existing trip has the button "Copy trip". It makes a new trip with the origin, destination, travelers, profile and note of the trip. Its title is the title of the trip with "(copy)". The new trip has no dates, no link to the trip and no offers. It opens its edit form. The original trip does not change.
+- The edit form of a trip of a journey with two or more trips has the button "Copy journey". It makes a copy of each trip of the journey, in the same order, and links each copy to the copy before it. The copies show in the trips list as one journey, with no offers. It opens the edit form of the first copy. The original journey does not change.
+
 ### Delete a trip
 
 - The edit form `/trips/{id}/edit` has the link "Delete trip". It opens the confirm page. The page shows the number of itineraries and captures of the trip.
