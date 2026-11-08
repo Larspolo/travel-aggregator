@@ -356,6 +356,17 @@ Without JavaScript, each button sends the form and reloads the page.
 To write a note on an offer, open "Legs and fares" in its row, change the text in the box and click "Save note".
 A note has at most 2000 characters. The row shows the note under its route.
 
+### Add to calendar
+
+Only a booked row has the link "Add to calendar". Click it to download one `.ics` file of the itinerary of the row.
+The file has one event per leg of the itinerary. Open the file with your calendar app to add the events.
+
+The event times are in UTC, so your calendar app shows them in the time zone of your device.
+The text of each event gives:
+- the carrier and the service number, in the title of the event,
+- the place of departure, in the location of the event,
+- the local departure and arrival times, with their offsets from UTC, and the name of the trip, in the description.
+
 ### Price drops of a pinned offer
 
 A pinned offer whose price went down since the last view of its trip page shows a mark:
