@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app import ingest, notify
 from app.backup import stale_backup_messages
+from app.sourcehealth import source_alert_messages
 from app.auth import require_token
 from app.db import get_session
 from app.models import ApiToken, Setting, Trip
@@ -34,6 +35,11 @@ def post_ingest(body: IngestIn, request: Request, tasks: BackgroundTasks, _: Api
     try:  # the backup service can stop with no message of its own (#1088)
         msgs += stale_backup_messages(session, Path(os.environ.get("BACKUP_DIR", "/backups")), datetime.now(UTC))
     except Exception:  # noqa: BLE001 (a backup check must not break the ingest)
+        session.rollback()
+    try:  # a source that fails, or works again, after its captures (#1173)
+        msgs += source_alert_messages(session, base_url)
+        session.commit()
+    except Exception:  # noqa: BLE001 (an alert check must not break the ingest)
         session.rollback()
     if msgs:  # after the response, so the userscript does not wait (#512)
         # a new session: the session of the request is closed then (the tests override get_session)
