@@ -20,6 +20,9 @@ dev = "docker compose up --build"  # starts the development server on the owner'
 [ci]                            # framework/tools/ship_pr.py
 gates = ["browser", "docker", "production"]   # the PR jobs of ci.yml besides `quick`: Automerge needs all green (tests/test_ci_gates.py)
 
+[git]                           # framework/tools/health.py, "Files that do not belong in git" (#853)
+png_ok = ["docs/", "samples/", "app/web/static/"]   # the folders where a .png belongs (the app icons, #796)
+
 [docs]
 system = "framework/docs/SYSTEM.md"
 steering = "framework/docs/STEERING.md"

@@ -34,7 +34,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 CI_JOB_RUNS = 20                          # read the step times of this many CI runs (one API call each)
 DENY = (".log", ".mca", ".png")           # suffixes that do not belong in git ...
-DENY_OK = ("docs/", "samples/")           # ... except .png in these folders
+DENY_OK = tuple(CONFIG.get("git", {}).get("png_ok", ("docs/", "samples/")))  # ... except .png here (#853)
 BIG = 1 << 20
 OWNER = CONFIG["owner"]                   # a reopen by an owner is rework (#899)
 OWNERS = owners(CONFIG)                   # each login of `owners` (#4241)
@@ -172,10 +172,13 @@ def claim_to_merge(prs, comments, since):
     return out
 
 
-def bad_files(files):
-    """[(path, bytes)] of the files over 1 MB or with a denied suffix. files: [(path, bytes)]."""
+def bad_files(files, png_ok=None):
+    """[(path, bytes)] of the files over 1 MB or with a denied suffix. files: [(path, bytes)].
+
+    A .png is allowed in the folders of `png_ok` (default: `png_ok` of `[git]` in `agent.toml`, #853)."""
+    ok = DENY_OK if png_ok is None else tuple(png_ok)
     return [(p, size) for p, size in files if size > BIG
-            or (p.endswith(DENY) and not (p.endswith(".png") and p.startswith(DENY_OK)))]
+            or (p.endswith(DENY) and not (p.endswith(".png") and p.startswith(ok)))]
 
 
 # `runs N` since #635 (claim beats); the older `claims N` lines counted too few runs, so they do not count.
