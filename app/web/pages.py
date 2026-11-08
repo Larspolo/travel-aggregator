@@ -32,6 +32,7 @@ from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
+from app.tradeoff import break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
 from app.money import money
@@ -44,7 +45,7 @@ from app.models import AccessTime, ApiToken, Capture, CurrencyRate, Itinerary, P
 from app.notify import CHANNEL_KEY, CHANNELS, EMAIL_KEY, NTFY_URL_KEY, setting, webpush_ready
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
-from app.ranking import Weights, bar_parts, effective_cost, format_breakdown, format_total, in_eur
+from app.ranking import Weights, _amount, bar_parts, effective_cost, format_breakdown, format_total, in_eur
 from app.timeofday import night_extras, night_time_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trips import archived_journeys, chain, list_trips
@@ -967,4 +968,17 @@ def compare_page(request: Request, trip_id: int, session: Session = Depends(get_
              "transfers": [it.transfers for it, _, _ in context["columns"]],
              "cost": [c.total for _, _, c in context["columns"]]}
     context["best"] = {k: {n for n, v in enumerate(vals) if v == min(vals)} for k, vals in lines.items()}
+    # the break-even hour value of each column against the lowest effective cost (#894)
+    totals = [cost.total for _, _, cost in context["columns"]]
+    higher = dataclasses.replace(weights, hour_markup=weights.hour_markup + 1)
+    nexts = [row_cost(found[i], found[i].fares, places, higher, stale_before, rates)[1].total for i in ids]
+    best_n = totals.index(min(totals))  # a tie goes to the first column
+    context["yours"] = _amount(weights.hour_markup)
+    context["tradeoff"] = []
+    for n, (total, nxt) in enumerate(zip(totals, nexts)):
+        if n == best_n:
+            context["tradeoff"].append("Best now")
+            continue
+        be = break_even(totals[best_n], nexts[best_n], total, nxt, weights.hour_markup)
+        context["tradeoff"].append("—" if be is None else f"Better {be.better} {_amount(be.hour_value)}/h")
     return templates.TemplateResponse(request, "compare.html", context)
