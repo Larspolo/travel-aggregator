@@ -148,6 +148,27 @@
 </ul>
 </section>
 {% endif %}
+{% if trend %}
+<section class="trend card" id="trend">
+<h2>Price trend</h2>
+{% with chart = trend %}
+<svg class="price-chart" viewBox="0 0 {{ chart.width }} {{ chart.height + 14 }}" width="100%" role="img"
+     aria-label="Price trend">
+  {% for line in chart.lines %}
+  <g class="fare-line">
+    <title>{{ line.name }}</title>
+    <polyline fill="none" stroke="currentColor" stroke-width="1.5" points="{{ line.points }}"/>
+    {% for d in line.dots %}
+    <circle cx="{{ d.x }}" cy="{{ d.y }}" r="3"><title>{{ d.title }}</title></circle>
+    {% endfor %}
+  </g>
+  {% endfor %}
+  <text x="0" y="{{ chart.height + 12 }}" font-size="10">low {{ chart.low | money(chart.currency) }}</text>
+  <text x="{{ chart.width }}" y="{{ chart.height + 12 }}" font-size="10" text-anchor="end">high {{ chart.high | money(chart.currency) }}</text>
+</svg>
+{% endwith %}
+</section>
+{% endif %}
 {% with oob = false %}{% include "trip_days.html" %}{% include "trip_timeline.html" %}{% endwith %}
 <div class="card table-card" id="table">
 {% include "trip_table.html" %}

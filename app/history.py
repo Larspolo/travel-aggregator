@@ -39,3 +39,18 @@ def chart(fares: list[Any], width: float = 320, height: float = 100) -> dict:
             lines.append({"name": name, "points": " ".join(f"{d['x']},{d['y']}" for d in dots), "dots": dots})
     return {"width": width, "height": height, "lines": lines, "low": low, "high": high,
             "currency": rows[0].currency}
+
+
+def trend_chart(points: list[tuple[Any, Decimal]], width: float = 320, height: float = 100,
+                currency: str = "EUR") -> dict:
+    """The price trend of a trip (#851): one line of (date, price) points, as `chart()`. No points: no line."""
+    if not points:
+        return {"width": width, "height": height, "lines": [], "low": None, "high": None, "currency": currency}
+    t0, t1 = points[0][0].toordinal(), points[-1][0].toordinal()
+    low = min(p for _, p in points)
+    high = max(p for _, p in points)
+    dots = [{"x": round(_scale(d.toordinal(), t0, t1, width), 1),
+             "y": round(height - _scale(float(p), float(low), float(high), height), 1),
+             "title": f"{d:%Y-%m-%d}: {money(p, currency)}"} for d, p in points]
+    line = {"name": "Cheapest price per day", "points": " ".join(f"{d['x']},{d['y']}" for d in dots), "dots": dots}
+    return {"width": width, "height": height, "lines": [line], "low": low, "high": high, "currency": currency}

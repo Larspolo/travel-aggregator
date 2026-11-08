@@ -31,7 +31,8 @@ from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
-from app.history import chart
+from app.history import chart, trend_chart
+from app.trend import trip_trend
 from app.money import money
 from app.search_links import links_for_trip
 from app.sourcehealth import failing_sources
@@ -451,6 +452,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     context["drops"] = trip_drops(session, trip_id)  # the drops since the last full view (#355)
+    trend = trip_trend(session, trip_id)  # the cheapest price per day (#851): a chart for 2 or more days
+    context["trend"] = trend_chart(trend) if len(trend) >= 2 else None
     mark_seen(session, trip_id)
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
