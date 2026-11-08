@@ -66,6 +66,18 @@
           <textarea id="note-{{ it.id }}" name="note" maxlength="2000">{{ it.note or "" }}</textarea></div>
           <button class="btn" type="submit">{{ ui.icon("check") }}Save note</button>
         </form>
+        {% if it.booked %}
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/paid">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <div class="field"><label for="paid-fare-{{ it.id }}">Paid fare</label>
+          <select id="paid-fare-{{ it.id }}" name="fare_id">
+            {% for f in it.fares %}<option value="{{ f.id }}"{% if f.id == it.booked_fare_id %} selected{% endif %}>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}</option>{% endfor %}
+          </select></div>
+          <div class="field"><label for="paid-price-{{ it.id }}">Paid price</label>
+          <input id="paid-price-{{ it.id }}" name="price" inputmode="decimal" value="{{ '' if it.booked_price is none else it.booked_price }}" required></div>
+          <button class="btn" type="submit">{{ ui.icon("check") }}Save paid price</button>
+        </form>
+        {% endif %}
         <div hx-get="/trips/{{ trip.id }}/itineraries/{{ it.id }}/history" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"></div>
       </details></td>
     </tr>

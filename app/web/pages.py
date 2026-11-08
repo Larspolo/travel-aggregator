@@ -892,6 +892,34 @@ def save_note(trip_id: int, itinerary_id: int, note: str = Form("", max_length=2
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
+PAID_PRICE_MAX = Decimal("100000")  # the paid price is below this (#1148)
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/paid",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_paid(trip_id: int, itinerary_id: int, fare_id: int = Form(...), price: str = Form(...),
+              session: Session = Depends(get_session)) -> RedirectResponse:
+    """The owner corrects the paid fare and price of a booked row (#1148): a fare of this itinerary, and a price of
+    0 to below 100000 with at most 2 decimals. A blank or a bad price is 422 and stores nothing."""
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    if not it.booked:
+        raise HTTPException(status.HTTP_409_CONFLICT, "the itinerary is not booked")
+    try:
+        value = Decimal(price.strip())
+    except InvalidOperation:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the price is not a number") from None
+    if not value.is_finite() or value < 0 or value >= PAID_PRICE_MAX or value.as_tuple().exponent < -2:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the price needs 0 to 99999.99 with 2 decimals")
+    fare = next((f for f in it.fares if f.id == fare_id), None)
+    if fare is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"fare {fare_id} is not a fare of this itinerary")
+    it.booked_fare_id, it.booked_price, it.booked_currency = fare.id, value, fare.currency
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
 @router.get("/trips/{trip_id}/itineraries/{itinerary_id}/history", response_class=HTMLResponse,
             dependencies=[Depends(require_login)])
 def price_history(trip_id: int, itinerary_id: int, request: Request,
