@@ -59,8 +59,8 @@ def test_app_bar_menu_on_a_phone_and_screenshots(sessions, monkeypatch, tmp_path
                         page.locator("details.menu summary").tap()
                         page.wait_for_function("document.querySelector('details.menu').open")
                         links = page.locator(".menu-links a")
-                        assert links.count() == 6
-                        for i in range(6):
+                        assert links.count() == 7
+                        for i in range(7):
                             assert links.nth(i).bounding_box()["height"] >= 44
                         page.screenshot(path=os.path.join(shots, f"frame-menu-390-{scheme}.png"))
                     else:
