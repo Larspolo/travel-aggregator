@@ -41,6 +41,14 @@ passenger names or payment data. Fixtures in this public repository are trimmed 
 reads, with no personal data (a test checks their size). The agents cannot open the travel sites (P1): for a new
 source, a `needs-human` ticket asks the owner to capture one real payload with the userscript.
 
+## P6. Testable with no person
+
+Choose the form of a feature that a test or a browser tool can check with no person, when one exists (owner,
+2026-11-08). The pages and the userscript panel use their own fields, buttons and messages, never the dialogs of the
+browser (`alert`, `confirm`, `prompt`): a dialog stops Playwright and the browser tool of an agent until a person
+answers it. Avoid other steps that only a person can do (for example a download that the browser must allow, or a
+system dialog), unless there is no other way; then the ticket says why.
+
 ## Owner involvement
 
 The areas where the owner decides each choice, also when one option is clearly best (a decision ticket). In all
