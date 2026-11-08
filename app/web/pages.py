@@ -19,6 +19,7 @@ from sqlalchemy import func, select
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session, subqueryload
 
+from app.storage import human_bytes, storage_use
 from app.web.userscripts import bundle_info, userscript_list
 from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
 from app.backup import BACKUP_MAX_AGE, newest_backup
@@ -133,6 +134,7 @@ templates.env.filters["mode_icon"] = mode_icon
 templates.env.filters["day_gap"] = day_gap
 templates.env.filters["ago"] = ago
 templates.env.filters["by_eur"] = by_eur
+templates.env.filters["human_bytes"] = human_bytes
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -1172,10 +1174,12 @@ def save_fee(request: Request, source: str = Form(""), amount: str = Form(""),
 def settings_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     """General: the capture retention period and the state of the backups (#925)."""
     newest = newest_backup(Path(os.environ.get("BACKUP_DIR", "/backups")))
+    days = retention_days(session)
     return templates.TemplateResponse(request, "settings.html", {"backup": newest,
                                                                  "backup_old": newest is not None and
                                                                  datetime.now(timezone.utc) - newest[0] > BACKUP_MAX_AGE,
-                                                                 "retention_days": retention_days(session),
+                                                                 "retention_days": days,
+                                                                 "storage": storage_use(session, days, datetime.now(timezone.utc)),
                                                                  "max_days": MAX_RETENTION_DAYS})
 
 

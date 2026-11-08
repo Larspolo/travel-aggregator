@@ -16,6 +16,14 @@
   <div class="form-actions"><button class="btn btn-primary" type="submit">Save</button></div>
 </form>
 {% endcall %}
+{% call ui.card("Storage") %}
+<p class="storage-line">Database {{ storage.database_bytes|human_bytes }} · raw captures {{ storage.raw_bytes|human_bytes }} in {{ "{:,}".format(storage.captures) }} captures ·
+{% if retention_days == 0 %}the cleanup removes nothing (0 keeps all captures){% else %}the next cleanup removes {{ "{:,}".format(storage.cleanup_captures) }} captures ({{ storage.cleanup_bytes|human_bytes }}){% endif %}</p>
+{% if storage.sources %}<table>
+  <thead><tr><th>Source</th><th>Captures</th><th>Raw size</th></tr></thead>
+  <tbody>{% for u in storage.sources %}<tr class="storage-row"><td>{{ u.source }}</td><td>{{ "{:,}".format(u.captures) }}</td><td>{{ u.raw_bytes|human_bytes }}</td></tr>{% endfor %}</tbody>
+</table>{% endif %}
+{% endcall %}
 {% call ui.card("Backups") %}
 {% if backup %}<p>Newest backup: {{ backup[0].strftime("%Y-%m-%d %H:%M") }} UTC, {{ "%.1f"|format(backup[1] / 1048576) }} MB ({{ backup[1] }} bytes).</p>
 {% if backup_old %}<p role="alert" class="chip warn backup-state">The newest backup is older than 48 hours.</p>
