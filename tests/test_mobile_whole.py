@@ -47,7 +47,7 @@ def test_every_page_fits_both_widths_and_the_phone_controls_are_big(live, sessio
     base, tid = live
     with sessions() as s:
         first, second = [i.id for i in s.query(Itinerary).filter_by(trip_id=tid).order_by(Itinerary.id).limit(2)]
-    paths = ["/", f"/trips/{tid}", f"/trips/{tid}/captures", "/profiles", "/places", "/tokens", "/settings",
+    paths = ["/", "/upcoming", f"/trips/{tid}", f"/trips/{tid}/captures", "/profiles", "/places", "/tokens", "/settings",
              "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/offers/new", "/sources/new", "/login",
              f"/trips/{tid}/delete", "/captures", "/rates", f"/trips/{tid}/compare?it={first}&it={second}",
              f"/trips/{tid}/itineraries/{first}/history"]
