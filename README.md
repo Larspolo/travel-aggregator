@@ -598,6 +598,16 @@ A journey can have three or more linked trips (multi-city). Each trip after the 
 
 Each direction is a normal trip. The userscripts capture offers into it when you choose the trip in the dropdown of the panel.
 
+### Split a trip via a place
+
+To travel via a place, split the trip there. Use the form "Split via" on the edit page of a trip, and type the place (for example "Köln").
+- The button "Split trip" makes two trips: from the origin of the trip to the place, and from the place to the destination. Their titles are "Origin → Place" and "Place → Destination". They keep the dates, the travelers and the score profile of the trip. A trip with no place shows "Split via: enter a place."
+- A split trip has no "Split via" form: a split trip cannot have split trips. The page of a split trip shows "Part of" and a link to its trip.
+- The trips list shows each split trip under its trip, with the text "split via" and the place.
+- The trip page has one section "Split tickets via <place>" for each place. The section lists the two split trips, with "No offers yet." for a part with no offers. It shows the best pairs of offers, cheapest first: a connection of the first part, a wait at the place and a connection of the second part. Each pair shows its times, its transfer (the wait), its sum of effective costs and the difference to the best direct offer of the trip ("less than" or "more than").
+- A pair needs a wait of at least the short-transfer minutes of the score profile (10 minutes by default) and at most 6 hours. A pair with a shorter wait does not show.
+- The pairs follow the score profile of the trip, so a change of the profile changes their order.
+
 ### Copy a trip
 
 - The edit form `/trips/{id}/edit` of an existing trip has the button "Copy trip". It makes a new trip with the origin, destination, travelers, profile and note of the trip. Its title is the title of the trip with "(copy)". The new trip has no dates, no link to the trip and no offers. It opens its edit form. The original trip does not change.
