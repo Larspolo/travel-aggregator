@@ -54,6 +54,12 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A search on SNCF Connect shows its offers on the trip page
 - [x] `capture:trainline` (#959) Trainline (thetrainline.com)
   - A search on Trainline shows its offers on the trip page; the offers can repeat those of bahn.de (`capture:merge`)
+- [ ] `capture:health-alert` (#1171) A message to the owner by the channel of `trip:notify` when the captures of a source fail (`capture:health`)
+  - When the newest 2 captures of bahn.de fail, the owner gets one message "bahn.de: the last 2 captures failed" with the link to the failed captures; after the next good capture, "bahn.de works again"
+- [ ] `capture:day-prices` (#1183) The day prices of bahn.de ("Bestpreise"): the cheapest price per day of a search, in the days of `trip:days`
+  - After a bahn.de search with the day prices on, a trip from 18 to 22 December shows "from €39 (bahn.de day price)" for each day that has no captured connection
+- [ ] `capture:flight-2` (#1182) A second flight source, by the decision #1182
+  - A search on the chosen flight site shows its flights on the trip page; the same flight from Kiwi.com and that site shows as one row (`capture:merge`)
 
 ## 2. Rank offers by effective cost
 
@@ -84,7 +90,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A profile is made and edited on `/profiles/new` and `/profiles/{id}` with no trip; with the rates €4/h, €8/h after 4 h and €15/h after 8 h, a trip of 9 h has a time cost of €63 (4 × €4 + 4 × €8 + 1 × €15)
 - [ ] `rank:return-fare` A return fare (one price for both ways, as most flights have) compares with the single-way offers of a round trip, by the rule of the decision #1036 (owner request)
   - The owner sees on one page if a return flight or the best two single-way offers (train, bus or flight) cost less in effective cost
-- [ ] `rank:source-fee` (#1141) The booking fee of each source in the effective cost
+- [x] `rank:source-fee` (#1141) The booking fee of each source in the effective cost
   - With a Trainline fee of €1.50, the same ICE from bahn.de at €90 and from Trainline at €89 ranks the bahn.de fare first
 
 ## 3. Plan a trip in one place
@@ -137,14 +143,16 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A trip with only bahn.de captures shows "bahn.de: searched 2 h ago, 14 offers" and "NS International: not searched yet" with its search link
 - [x] `trip:new-since` (#1089) What changed since the last visit of a trip: the new itineraries and the price changes of all fares, not only of the pinned fares (`trip:drops`)
   - After a bahn.de search, the trips list shows "4 new" next to Amsterdam → Zürich, and its trip page marks the 4 rows "new" and shows "€95 → €90" on a fare that changed
-- [ ] `trip:return-grid` (#1106) For a round trip with date ranges (`trip:return`, `trip:days`): a grid of the best sum of each outbound day and each return day
+- [x] `trip:return-grid` (#1106) For a round trip with date ranges (`trip:return`, `trip:days`): a grid of the best sum of each outbound day and each return day
   - A round trip with outbound 18 to 20 December and return 27 to 29 December shows 9 cells, each with the best sum in effective cost, and the best cell is marked
 - [x] `trip:calendar-feed` (#1111) A calendar subscription link (an `.ics` feed at a secret URL) of all booked journeys, that the owner can revoke (`trip:calendar`, P5 as `trip:share`)
   - A calendar app that subscribes to the link shows a new booking after its next update, with no download; "Revoke" makes the link show "not found"
 - [x] `trip:reminder` (#1116) A reminder to search again by the channel of `trip:notify`: when the newest offers of a pinned or target trip are older than N days and the departure is near (the reminder only tells the owner; it fetches nothing, P1)
   - With the reminder at 3 days, a trip that departs in 10 days and was last searched 4 days ago sends one message "Search again: Amsterdam → Zürich" with its search links
-- [ ] `trip:booked-fare` (#1145) Keep the fare and the price paid for a booked journey
+- [x] `trip:booked-fare` (#1145) Keep the fare and the price paid for a booked journey
   - A row booked at €59.80 shows "Paid €59.80" and, after a capture at €89, "now €89.00 (+€29.20)"; Upcoming shows the total paid
+- [ ] `trip:split` (#1176) Split tickets: a trip A → B with a via place X combines the captured connections A → X and X → B into rows with one sum
+  - A trip Amsterdam → Zürich split via Köln shows "Split tickets via Köln": the best pairs of a connection to Köln and a connection from Köln, with at least the transfer time of the profile between them, their sum in effective cost with the self-transfer penalty, and the difference to the best direct offer
 
 ## 4. Run it on my home server
 
