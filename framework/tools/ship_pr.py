@@ -148,8 +148,13 @@ def red_gate(sha):
     newest = {}
     for c in runs:                                  # newest first: the first run of each name counts, as in quick()
         newest.setdefault(c.get("name"), c)
-    return next((c for c in (newest.get(name) for name in GATES)
-                 if c and c["status"] == "completed" and c["conclusion"] == "failure"), None)
+    return next((c for name, c in newest.items() if gate(name) in GATES
+                 and c["status"] == "completed" and c["conclusion"] == "failure"), None)
+
+
+def gate(name):
+    """The job of a check run: `browser (2)`, a job of a matrix, is the gate `browser` (#1062)."""
+    return re.sub(r" \(.*\)$", "", name or "")
 
 
 def failures(check):

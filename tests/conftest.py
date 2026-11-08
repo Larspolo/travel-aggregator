@@ -13,8 +13,29 @@ import pytest
 from sqlalchemy import create_engine, text
 
 from app.db import sqlalchemy_url
+from tests import shard
 
 PG_BIN = Path("/usr/lib/postgresql/16/bin")
+
+
+def pytest_addoption(parser):
+    parser.addoption("--shard", default=None, metavar="K/N",
+                     help="run only part K of N of the selected tests: whole files (tests/shard.py, #1062)")
+
+
+@pytest.hookimpl(trylast=True)   # after `-m slow` deselects the other tests: the parts split only the selected tests
+def pytest_collection_modifyitems(config, items):
+    value = config.getoption("--shard")
+    if not value:
+        return
+    try:
+        k, n = shard.parse(value)
+    except ValueError as e:
+        raise pytest.UsageError(str(e)) from None
+    kept, dropped = shard.select(items, k, n)
+    if dropped:
+        config.hook.pytest_deselected(items=dropped)
+    items[:] = kept
 
 
 def _free_port() -> int:
