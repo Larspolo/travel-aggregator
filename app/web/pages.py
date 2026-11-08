@@ -398,7 +398,13 @@ def best_offer(session: Session, trip: Trip):
     with fares, by the profile of the trip (else the default); a tie goes to the lowest departure.
     Returns (itinerary, fare, cost) or None."""
     weights, _ = resolve_weights(session, trip, {}, None)
-    stale_before = datetime.now(timezone.utc) - timedelta(hours=weights.stale_hours)
+    return best_for_weights(session, trip, weights)
+
+
+def best_for_weights(session: Session, trip: Trip, weights: Weights, now: datetime | None = None):
+    """The first row of the ranked table with `weights` and no page filters (#1210): the lowest effective cost of the
+    visible itineraries with fares; a tie goes to the lowest departure. Returns (itinerary, fare, cost) or None."""
+    stale_before = (now or datetime.now(timezone.utc)) - timedelta(hours=weights.stale_hours)
     its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()
