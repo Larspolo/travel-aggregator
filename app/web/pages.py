@@ -453,6 +453,38 @@ def round_trip_grid(session: Session, trip: Trip, days, places, now: datetime):
     return {"grid": return_grid(outbound, back), "present": present}
 
 
+def split_sections(session: Session, trip: Trip, weights: Weights, places, now: datetime, best_direct):
+    """The sections "Split tickets via X" (#1179): one per pair of split trips (in id order), ranked with the weights
+    of the page, so the live re-rank updates them. Each: the place, the two parts, the best pairs and the difference
+    of each pair to the best direct offer (`best_direct`, a Decimal or None)."""
+    from app.search_links import links_for_trip
+    from app.split import split_pairs
+    parts = list(trip.split_trips)
+    if not parts:
+        return []
+    stale_before = now - timedelta(hours=weights.stale_hours)
+    rates, fees = load_rates(session), load_fees(session)
+
+    def ranked(t: Trip):
+        its = session.scalars(select(Itinerary).where(Itinerary.trip_id == t.id, Itinerary.hidden.is_(False))
+                              .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
+        counts = fare_travelers(session, its)
+        return [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts, fees))
+                for it in its if it.fares and it.legs]
+    sections = []
+    for a, b in zip(parts[0::2], parts[1::2]):
+        first, second = ranked(a), ranked(b)
+        pairs = []
+        for p in split_pairs(first, second, weights):
+            diff = p.total - best_direct if best_direct is not None and best_direct.is_finite() else None
+            wait = int((p.second[0].depart_at - p.first[0].arrive_at).total_seconds() // 60)
+            pairs.append({"pair": p, "diff": diff, "wait": wait})
+        sections.append({"via": a.destination_text or b.origin_text or "?", "parts": [
+            {"trip": t, "count": len(r), "links": [] if r else links_for_trip(t)} for t, r in ((a, first), (b, second))],
+            "pairs": pairs})
+    return sections
+
+
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
               overrides: dict = Depends(weight_query),
@@ -563,6 +595,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["days_qs"] = urlencode({k: v for k, v in query.items() if k != "day"}, doseq=True)
     # the seen price of each shown fare before mark_seen() changes it: the price changes of the rows (#1092)
     context["seen"] = {f.id: f.seen_price for r in rows for f in r[0].fares}
+    best_direct = min((r[2].total for r in shown), default=None)
+    context["splits"] = split_sections(session, trip, weights, places, now, best_direct)  # #1179
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
     context["drops"] = trip_drops(session, trip_id)  # the drops since the last full view (#355)
