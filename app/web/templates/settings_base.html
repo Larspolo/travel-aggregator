@@ -1,0 +1,21 @@
+{# The frame of all settings pages (#925, DESIGN.md section 5, "Settings"). A settings page extends this file,
+   sets the blocks "header" (its page header) and "settings" (its cards), and is one item of SETTINGS_NAV.
+   The page header is at the top, the settings navigation at the left (on a phone: under the header). #}
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block content %}{% set here = request.url.path %}
+<div class="settings-layout">
+  <div class="settings-head">{% block header %}{% endblock %}</div>
+  <nav class="settings-nav" aria-label="Settings">
+    {% for group, items in settings_nav %}
+    <div class="settings-group">
+      <p class="settings-group-name">{{ group }}</p>
+      {% for href, label, ic in items %}
+      <a href="{{ href }}"{% if here == href %} aria-current="page" class="current"{% endif %}>{{ ui.icon(ic) }}{{ label }}</a>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </nav>
+  <div class="settings-main">{% block settings %}{% endblock %}</div>
+</div>
+{% endblock %}

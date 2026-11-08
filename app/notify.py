@@ -105,7 +105,7 @@ def messages(session: Session, drops: list[PriceDrop], base_url: str) -> list[Me
 def post(url: str, text: str, headers: dict[str, str]) -> None:
     """The ntfy sender: one POST of the text. The tests replace it with a double (no request from CI)."""
     req = urllib.request.Request(url, data=text.encode(), method="POST", headers=headers)
-    with urllib.request.urlopen(req, timeout=TIMEOUT_S):  # noqa: S310 (save_settings accepts only https://)
+    with urllib.request.urlopen(req, timeout=TIMEOUT_S):  # noqa: S310 (save_messages accepts only https://)
         pass
 
 

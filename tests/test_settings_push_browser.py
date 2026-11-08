@@ -50,7 +50,7 @@ def test_settings_and_the_service_worker_load_at_390_px(live):
         page.goto(live + "/login")
         page.fill("input[name=password]", PASSWORD)
         page.click("button[type=submit]")
-        page.goto(live + "/settings")
+        page.goto(live + "/settings/messages")
         assert page.locator("#push-on").is_enabled() and page.locator("#push-on").is_visible()
         page.wait_for_function("navigator.serviceWorker.ready.then(r => !!r.active)")
         assert page.evaluate("document.documentElement.scrollWidth") <= 390

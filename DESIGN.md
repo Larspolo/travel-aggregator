@@ -75,7 +75,7 @@ Badges and chips are tinted: the status colour as text on a light mix of it (`co
 The Jinja2 macros of the components are in `app/web/templates/ui.html`.
 
 - **App bar.** A white bar over the full width, sticky: the brand at the left, the main links with an icon (Trips,
-  Captures, Profiles, Places, Settings), Log out at the right. The current page has `--accent-soft`. On a phone: the
+  Upcoming, Captures, Settings), Log out at the right. The current page has `--accent-soft`. On a phone: the
   brand and a "Menu" button.
 - **Page header.** A back link above the title when the page has a parent page, the `<h1>`, a muted subtitle, and
   a toolbar with the actions of the page at the right. At most three or four buttons: put the actions that people
@@ -102,6 +102,16 @@ The Jinja2 macros of the components are in `app/web/templates/ui.html`.
   at the right (a card). The price, hour and transfer controls are always open at the top of the panel (P2). The
   filters and "Advanced" (fieldsets: Airport, Time windows, Night, Modes, Fares, Staleness, Profile) are below them.
 - A row of the ranked table is at most 4 text lines high at 1280 px (`tests/test_trip_rows_look.py`).
+- Settings (#925): all settings pages are in one area with one link "Settings" in the app bar.
+  - Each settings page extends `settings_base.html`: the page header at the top, the settings navigation at the left
+    (14 rem, sticky), the cards at the right (at most 48 rem). On a phone the navigation is two columns of links under
+    the header. The navigation replaces the back links and the links to sub-pages in a toolbar.
+  - The groups and their pages are one list, `SETTINGS_NAV` in `app/web/pages.py`: App (General, Messages),
+    Ranking (Profiles, Places, Exchange rates), Capture (Userscripts, Add a website). A new setting goes on the page
+    of its topic; a new topic is one more page of `SETTINGS_NAV`, in the group that it changes.
+  - Each card with fields is one form with its own Save button, and the Save saves only the fields of that card.
+    A list (profiles, places, rates, tokens) saves each change at once with the button of its row or of its "Add"
+    card. A button that acts only on this device (Web Push) acts at once and says so.
 - Trips list: one card per trip in a grid. Login: one card of at most 24 rem in the middle of the page.
 
 ## 6. Responsive behaviour (agent choice)

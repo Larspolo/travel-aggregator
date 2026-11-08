@@ -120,7 +120,7 @@ def test_no_push_without_the_vapid_keys(trip, sessions, pushed, posted, monkeypa
 
 
 def test_subscribe_and_remove(login_client, sessions, vapid):  # noqa: F811
-    page = login_client.get("/settings").text
+    page = login_client.get("/settings/messages").text
     assert f'data-key="{vapid}"' in page and "Turn on push on this device" in page and "home screen" in page
     csrf = {"X-CSRF-Token": _token(login_client, "/settings")}
     assert login_client.post("/settings/push", json=SUB, headers=csrf).json() == {"subscriptions": 1}
@@ -152,7 +152,7 @@ def test_the_endpoints_need_the_login_and_the_csrf_token(login_client, sessions,
 
 def test_the_channel_webpush_needs_the_vapid_keys(login_client, monkeypatch):  # noqa: F811
     monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
-    r = login_client.post("/settings", data={"retention": "30", "notify_channel": "webpush", "ntfy_url": "",
+    r = login_client.post("/settings/messages", data={"notify_channel": "webpush", "ntfy_url": "",
                                              "csrf_token": _token(login_client, "/settings")}, follow_redirects=False)
     assert r.status_code == 422
 

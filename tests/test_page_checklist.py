@@ -89,7 +89,7 @@ def test_each_page_follows_the_page_checklist(sessions, monkeypatch):
     a, b = its[0], its[1]
     paths = ["/", "/?archived=1", f"/trips/{tid}", "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/delete",
              f"/trips/{tid}/offers/new", "/sources/new", "/captures", f"/trips/{tid}/captures", "/profiles",
-             "/places", "/settings", "/rates", "/tokens",
+             "/places", "/settings", "/settings/messages", "/rates", "/tokens",
              f"/trips/{tid}/compare?it={a}&it={b}", f"/trips/{tid}/itineraries/{a}/history"]
     responses = [("/login", TestClient(app).get("/login"))]  # a new client: not logged in
     responses += [(path, c.get(path)) for path in paths]

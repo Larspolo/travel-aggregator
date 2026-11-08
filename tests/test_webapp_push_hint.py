@@ -49,7 +49,7 @@ def _settings_status(live, init_script):
         page.goto(live + "/login")
         page.fill("input[name=password]", PASSWORD)
         page.click("button[type=submit]")
-        page.goto(live + "/settings")
+        page.goto(live + "/settings/messages")
         page.wait_for_function("document.getElementById('push-status').textContent.length > 0")
         text = page.locator("#push-status").text_content()
         disabled = page.locator("#push-on").is_disabled() and page.locator("#push-off").is_disabled()

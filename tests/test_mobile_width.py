@@ -42,7 +42,7 @@ def test_no_page_is_wider_than_a_phone(live):
     from playwright.sync_api import sync_playwright
 
     base, tid, its = live
-    paths = ["/", "/upcoming", f"/trips/{tid}", f"/trips/{tid}/compare?{its}", "/profiles", "/places", "/tokens", "/settings",
+    paths = ["/", "/upcoming", f"/trips/{tid}", f"/trips/{tid}/compare?{its}", "/profiles", "/places", "/tokens", "/settings", "/settings/messages",
              f"/trips/{tid}/captures", "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/offers/new", "/sources/new", "/login"]
     exe = "/opt/pw-browsers/chromium"
     wide = {}

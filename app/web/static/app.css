@@ -400,6 +400,26 @@ button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(
 }
 .weights { display: flex; gap: var(--space-6); flex-wrap: wrap; margin: var(--space-2) 0 var(--space-4); }
 /* == Settings == */
+/* All settings pages: the header at the top, the settings navigation at the left, the cards at the right (#925). */
+.settings-layout {
+  display: grid; grid-template-columns: 14rem minmax(0, 48rem); grid-template-areas: "head head" "nav main";
+  column-gap: var(--space-5); align-items: start;
+}
+.settings-head { grid-area: head; }
+.settings-main { grid-area: main; min-width: 0; }
+.settings-nav { grid-area: nav; position: sticky; top: calc(56px + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-4); }
+.settings-group { display: flex; flex-direction: column; gap: 2px; }
+.settings-group-name {
+  margin: 0 0 var(--space-1); padding: 0 var(--space-3); font-size: var(--text-sm); font-weight: 600; color: var(--muted);
+}
+.settings-nav a {
+  display: flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-3);
+  border-radius: var(--radius); color: var(--text); font-weight: 500; text-decoration: none;
+}
+.settings-nav a .icon { color: var(--muted); }
+.settings-nav a:hover { background: var(--surface-2); }
+.settings-nav a.current { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.settings-nav a.current .icon { color: var(--accent); }
 .inline-form { display: inline; margin: 0; }
 .card .table-actions { text-align: right; }
 /* == Profiles and places == */
@@ -456,6 +476,16 @@ button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(
   nav.topbar details.menu { display: block; }
   nav.topbar a { min-height: 44px; }
   .page-header { flex-direction: column; align-items: stretch; margin-top: var(--space-4); }
+  /* The settings navigation goes under the header: two columns of 44 px links in the order of the groups (#925). */
+  .settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "nav" "main"; }
+  .settings-nav {
+    position: static; display: grid; grid-template-columns: 1fr 1fr; gap: 2px var(--space-1);
+    margin-bottom: var(--space-4); padding: var(--space-1); background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+  }
+  .settings-group { display: contents; }
+  .settings-group-name { display: none; }
+  .settings-nav a { min-height: 44px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .card { padding: var(--space-4); }
   .btn { min-height: 44px; }
   .btn-icon { width: 44px; }

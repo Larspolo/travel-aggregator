@@ -1,4 +1,4 @@
-"""The top bar links all main pages and marks the current page (#619)."""
+"""The top bar links all main pages and marks the current page (#619); all settings pages mark "Settings" (#925)."""
 
 import re
 
@@ -20,10 +20,14 @@ def client(sessions, monkeypatch):
     return c
 
 
-@pytest.mark.parametrize("path", ["/", "/upcoming", "/captures", "/profiles", "/places", "/settings"])
-def test_current_page_is_marked(client, path):
+@pytest.mark.parametrize("path,marked", [("/", "/"), ("/upcoming", "/upcoming"), ("/captures", "/captures"),
+                                         ("/settings", "/settings"), ("/settings/messages", "/settings"),
+                                         ("/profiles", "/settings"), ("/places", "/settings"),
+                                         ("/rates", "/settings"), ("/tokens", "/settings"),
+                                         ("/sources/new", "/settings")])
+def test_current_page_is_marked(client, path, marked):
     html = client.get(path).text
-    for href in ["/", "/upcoming", "/captures", "/profiles", "/places", "/settings", "/logout"]:
+    for href in ["/", "/upcoming", "/captures", "/settings", "/logout"]:
         assert f'href="{href}"' in html
     active = re.findall(r'<a href="([^"]+)" class="active" aria-current="page">', html)
-    assert active == [path]
+    assert active == [marked]

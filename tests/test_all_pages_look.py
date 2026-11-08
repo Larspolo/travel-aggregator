@@ -105,7 +105,7 @@ def test_all_pages_look_right(trip, sessions, tmp_path):  # noqa: F811
              ("trip-edit", f"/trips/{tid}/edit"), ("trip-delete", f"/trips/{tid}/delete"),
              ("offer-new", f"/trips/{tid}/offers/new"), ("source-new", "/sources/new"), ("captures", "/captures"),
              ("trip-captures", f"/trips/{tid}/captures"), ("profiles", "/profiles"), ("places", "/places"),
-             ("settings", "/settings"), ("rates", "/rates"), ("tokens", "/tokens"),
+             ("settings", "/settings"), ("messages", "/settings/messages"), ("rates", "/rates"), ("tokens", "/tokens"),
              ("compare", f"/trips/{tid}/compare?it={a}&it={b}"),
              ("history", f"/trips/{tid}/itineraries/{a}/history"), ("login", "/login")]
     server, thread, base = _serve()

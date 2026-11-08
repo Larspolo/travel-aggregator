@@ -25,7 +25,7 @@ def test_each_page_has_one_h1_in_the_page_header_and_no_link_line(sessions, monk
         tid = trip.id
     paths = ["/", "/?archived=1", f"/trips/{tid}", "/trips/new", f"/trips/{tid}/edit", f"/trips/{tid}/delete",
              f"/trips/{tid}/offers/new", "/sources/new", "/captures", f"/trips/{tid}/captures", "/profiles",
-             "/places", "/settings", "/rates", "/tokens"]
+             "/places", "/settings", "/settings/messages", "/rates", "/tokens"]
     for path in paths:
         r = c.get(path)
         assert r.status_code == 200, path
@@ -41,5 +41,7 @@ def test_settings_links_its_sub_pages(sessions, monkeypatch):
     c = TestClient(app)
     token = re.search(r'name="csrf_token" value="([^"]+)"', c.get("/login").text).group(1)
     c.post("/login", data={"password": PASSWORD, "csrf_token": token})
-    toolbar = c.get("/settings").text.split('class="toolbar"')[1].split("</header>")[0]
-    assert 'href="/tokens"' in toolbar and 'href="/rates"' in toolbar
+    html = c.get("/settings").text
+    nav = html.split('<nav class="settings-nav"')[1].split("</nav>")[0]
+    for href in ["/settings", "/settings/messages", "/profiles", "/places", "/rates", "/tokens", "/sources/new"]:
+        assert f'href="{href}"' in nav, href

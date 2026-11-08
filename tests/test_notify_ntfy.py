@@ -91,15 +91,15 @@ def test_a_failed_post_is_logged_and_the_response_is_the_same(trip, sessions, mo
 
 
 def test_settings_save_the_channel_and_the_url(login_client):  # noqa: F811
-    r = login_client.post("/settings", data={"retention": "30", "notify_channel": "ntfy", "ntfy_url": URL,
+    r = login_client.post("/settings/messages", data={"notify_channel": "ntfy", "ntfy_url": URL,
                                              "csrf_token": _token(login_client, "/settings")}, follow_redirects=False)
     assert r.status_code == 303
-    page = login_client.get("/settings").text
+    page = login_client.get("/settings/messages").text
     assert f'value="{URL}"' in page and '<option value="ntfy" selected>' in page
 
 
 @pytest.mark.parametrize("url", ["http://ntfy.sh/topic", "ntfy.sh/topic"])
 def test_a_url_without_https_gets_422(login_client, url):  # noqa: F811
-    r = login_client.post("/settings", data={"retention": "30", "notify_channel": "ntfy", "ntfy_url": url,
+    r = login_client.post("/settings/messages", data={"notify_channel": "ntfy", "ntfy_url": url,
                                              "csrf_token": _token(login_client, "/settings")}, follow_redirects=False)
     assert r.status_code == 422
