@@ -34,3 +34,7 @@ date_format = "%d.%m.%Y"
 [flixbus.places]
 Amsterdam = "40dde3b8-8646-11e6-9066-549f350fcb0c"
 Berlin = "40d8f682-8646-11e6-9066-549f350fcb0c"
+
+[sncf]
+source = "sncf-connect.com"
+name = "SNCF Connect"
