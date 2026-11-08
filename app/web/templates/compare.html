@@ -18,7 +18,7 @@
   <tr><th scope="row">Fare</th>{% for it, fare, cost in columns %}<td>{{ fare.fare_name or "" }}{{ ui.class_badge(fare) }}<div class="muted">{{ fare.source }}</div></td>{% endfor %}</tr>
   <tr><th scope="row">Price</th>{% for it, fare, cost in columns %}<td class="price{{ ' best' if loop.index0 in best.price }}">{{ fare.latest_price | money(fare.currency) }}</td>{% endfor %}</tr>
   <tr><th scope="row">Effective cost</th>{% for it, fare, cost in columns %}<td class="cost{{ ' best' if loop.index0 in best.cost }}"><span class="breakdown">{{ format_breakdown(cost) }}</span>{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</td>{% endfor %}</tr>
-  <tr><th scope="row">Break-even <span class="muted">(yours: {{ yours }}/h)</span></th>{% for text in tradeoff %}<td>{{ text }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Break-even <span class="muted">(yours: {{ yours }}/h)</span></th>{% for text, link in tradeoff %}<td>{% if link %}<a href="{{ link }}">{{ text }}</a>{% else %}{{ text }}{% endif %}</td>{% endfor %}</tr>
   </tbody>
 </table></div></section>
 {% endif %}

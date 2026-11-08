@@ -7,7 +7,7 @@ import math
 import os
 import re
 from datetime import datetime, time, timedelta, timezone
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal, InvalidOperation
 from pathlib import Path
 from typing import Annotated
 from urllib.parse import urlencode
@@ -1005,11 +1005,22 @@ def compare_page(request: Request, trip_id: int, session: Session = Depends(get_
     nexts = [row_cost(found[i], found[i].fares, places, higher, stale_before, rates)[1].total for i in ids]
     best_n = totals.index(min(totals))  # a tie goes to the first column
     context["yours"] = _amount(weights.hour_markup)
-    context["tradeoff"] = []
+    # a click on the value re-ranks the page with that hour value (#896): the other weights of the URL stay
+    kept = [(k, v) for k, v in request.query_params.multi_items() if k != "hour_markup"]
+    context["tradeoff"] = []  # (text, link or None) per column
     for n, (total, nxt) in enumerate(zip(totals, nexts)):
         if n == best_n:
-            context["tradeoff"].append("Best now")
+            context["tradeoff"].append(("Best now", None))
             continue
         be = break_even(totals[best_n], nexts[best_n], total, nxt, weights.hour_markup)
-        context["tradeoff"].append("—" if be is None else f"Better {be.better} {_amount(be.hour_value)}/h")
+        if be is None:
+            context["tradeoff"].append(("—", None))
+            continue
+        # rounded up for "above", down for "below": the other offer is the better one after the click
+        rounding = ROUND_CEILING if be.better == "above" else ROUND_FLOOR
+        value = be.hour_value.to_integral_value(rounding=rounding)
+        link = None
+        if Decimal(0) <= value <= 100:
+            link = f"/trips/{trip_id}/compare?" + urlencode(kept + [("hour_markup", str(int(value)))])
+        context["tradeoff"].append((f"Better {be.better} {_amount(be.hour_value)}/h", link))
     return templates.TemplateResponse(request, "compare.html", context)
