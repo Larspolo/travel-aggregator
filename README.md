@@ -78,8 +78,7 @@ installs each new image within 5 minutes.
 1. Copy `deploy/preview/docker-compose.yml` and `deploy/preview/.env.example` to a folder on the server. Rename the
    second file to `.env`.
 2. In `.env`, set random values for `POSTGRES_PASSWORD` (also in `DATABASE_URL`) and `SECRET_KEY`
-   (`openssl rand -hex 24`). Set `TRAVEL_AUTH_USERS` to a basic auth line
-   (`docker run --rm httpd:2.4-alpine htpasswd -nbB USER 'PASSWORD'`) and `OWNER_PASSWORD_HASH` to the hash of your
+   (`openssl rand -hex 24`). Set `OWNER_PASSWORD_HASH` to the hash of your
    login password (`docker run --rm --entrypoint python ghcr.io/larspolo/travel-aggregator:preview -m app.auth 'PASSWORD'`),
    both in single quotes.
 3. Change the host name `travel-preview.larspolo.nl` in the compose file to your own.
@@ -210,7 +209,6 @@ Check: `curl https://<host>/api/health` shows the commit of the new release.
 | `SECRET_KEY` | The key that signs the login session (a long random value; with none, each restart ends the sessions) |
 | `OWNER_PASSWORD_HASH` | The hash of the login password: `python -m app.auth 'PASSWORD'` |
 | `APP_PORT` | The port on your computer for `docker compose up` (default `8000`) |
-| `TRAVEL_AUTH_USERS` | Server only: the Traefik basic auth line for the pages |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | The key pair of Web Push (channel `webpush`). Make it with `python3 -m app.notify`, which prints both lines. Keep the private key secret |
 | `VAPID_SUBJECT` | The contact of the sender for the push services: a `mailto:` address, for example `mailto:you@example.com` |
 | `SMTP_HOST`, `SMTP_PORT` | The SMTP server of the e-mail channel. Port `587` uses STARTTLS, port `465` uses SSL (default port `587`) |
@@ -679,6 +677,18 @@ The panel shows the number of captured offers.
 The parser reads the currency from the search address of the page. It takes the fare name from the transfer type of
 each connection. A connection that the parser cannot read goes to the errors of the capture and is not stored as an
 offer.
+
+### Trainline userscript
+
+The Trainline userscript captures the search results of thetrainline.com: the journeys, their times and their prices.
+It reads only the responses that the Trainline page itself gets. It sends no request to thetrainline.com.
+
+To install it, add the file `userscripts/trainline.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On thetrainline.com, search for a journey.
+The panel shows the number of captured offers.
+
+The date of birth of each passenger is not sent to your server. A train that bahn.de also sells is one row on the
+trip page: its offers from bahn.de and from Trainline count as the same itinerary.
 
 ### Parse result of a capture
 
