@@ -623,5 +623,5 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 
 /* the price change since the last view (#1092) */
 .price-change { white-space: nowrap; }
-.price-change.down { color: var(--good, #1a7f37); }
-.price-change.up { color: var(--bad, #b42318); }
+.price-change.down { color: var(--good); }
+.price-change.up { color: var(--danger); }
