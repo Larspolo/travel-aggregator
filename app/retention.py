@@ -22,10 +22,18 @@ def retention_days(session: Session) -> int:
         return RETENTION_DAYS
 
 
+def cutoff(days: int, now: datetime) -> datetime | None:
+    """The time before which the cleanup deletes a capture; None when `days == 0` (delete nothing)."""
+    if days == 0:
+        return None
+    return now - timedelta(days=days)
+
+
 def delete_old_captures(session: Session, days: int, now: datetime) -> int:
     """Delete the captures captured before `now - days`. Returns the number of deleted rows. `days == 0` deletes
     nothing. The caller commits."""
-    if days == 0:
+    limit = cutoff(days, now)
+    if limit is None:
         return 0
-    result = session.execute(delete(Capture).where(Capture.captured_at < now - timedelta(days=days)))
+    result = session.execute(delete(Capture).where(Capture.captured_at < limit))
     return result.rowcount
