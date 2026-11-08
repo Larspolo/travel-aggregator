@@ -38,9 +38,7 @@
   <p>Keep this link: it shows only now. Each person with it sees the offers of this trip, with no login.</p>
   <pre class="share-link">{{ share_link }}</pre></section>{% endif %}
 {% if flash %}<p class="card" role="status">{{ flash }}</p>{% endif %}
-{% if search_links %}
-<p class="search-links">{% for name, url in search_links %}<a href="{{ url }}" target="_blank" rel="noopener">Search on {{ name }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
-{% endif %}
+<ul class="search-links" aria-label="Search status of each source">{% for c in coverage %}<li>{% if c.captured_at %}{{ c.name }}: {{ c.captured_at|ago(now) }} · {{ c.offer_count or 0 }} offers{% else %}{{ c.name }}: not searched yet{% endif %}{% if c.url %} · <a href="{{ c.url }}" target="_blank" rel="noopener">Search on {{ c.name }}</a>{% endif %}</li>{% endfor %}</ul>
 {% include "journey.html" %}
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <div class="trip-layout">

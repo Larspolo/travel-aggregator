@@ -42,17 +42,29 @@ def search_link(template: str, trip, date_format: str = "%Y-%m-%d") -> str:
     )
 
 
+def _trip_link(source: dict, trip) -> str | None:
+    template = source.get("template")
+    places = source.get("places", {})
+    origin = places.get(getattr(trip, "origin_text", None) or "")
+    destination = places.get(getattr(trip, "destination_text", None) or "")
+    if not template or not origin or not destination or getattr(trip, "date_from", None) is None:
+        return None
+    values = SimpleNamespace(origin_text=origin, destination_text=destination, date_from=trip.date_from)
+    return search_link(template, values, source.get("date_format", "%Y-%m-%d"))
+
+
+def links_by_source(trip) -> dict[str, tuple[str, str | None]]:
+    """The (display name, search link or None) of each table of the data file, keyed by its parser source
+    (#967); a table with no `source` key is keyed by its table name."""
+    return {s.get("source") or key: (s.get("name") or s.get("source") or key, _trip_link(s, trip))
+            for key, s in load_sources().items()}
+
+
 def links_for_trip(trip) -> list[tuple[str, str]]:
     """The (source name, search link) pairs of `trip`. A source with no template, or no value for a place of the trip, gives no link."""
     links = []
     for source in load_sources().values():
-        template = source.get("template")
-        places = source.get("places", {})
-        origin = places.get(getattr(trip, "origin_text", None) or "")
-        destination = places.get(getattr(trip, "destination_text", None) or "")
-        if not template or not origin or not destination or getattr(trip, "date_from", None) is None:
-            continue
-        values = SimpleNamespace(origin_text=origin, destination_text=destination, date_from=trip.date_from)
-        url = search_link(template, values, source.get("date_format", "%Y-%m-%d"))
-        links.append((source["name"], url))
+        url = _trip_link(source, trip)
+        if url:
+            links.append((source["name"], url))
     return links

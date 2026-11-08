@@ -22,15 +22,23 @@ def count(value: Any) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 9 else None
 
 
-def get_parser(source: str):
+def parser_classes() -> dict[str, type]:
+    """The parser class of each source, keyed by its `source` name, in a fixed order."""
     from app.parsers.bahn import BahnParser
     from app.parsers.flixbus import FlixbusParser
     from app.parsers.kiwi import KiwiParser
     from app.parsers.ns import NsParser
 
-    parsers = {BahnParser.source: BahnParser, NsParser.source: NsParser, FlixbusParser.source: FlixbusParser,
-               KiwiParser.source: KiwiParser}
-    return parsers.get(source, lambda: None)()
+    return {c.source: c for c in (BahnParser, NsParser, FlixbusParser, KiwiParser)}
+
+
+def all_sources() -> list[str]:
+    """The `source` names of all parsers, in a fixed order (#967)."""
+    return list(parser_classes())
+
+
+def get_parser(source: str):
+    return parser_classes().get(source, lambda: None)()
 
 
 def group_price(source: str) -> bool:
