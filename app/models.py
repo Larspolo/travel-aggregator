@@ -246,3 +246,19 @@ class PushSubscription(Base):
     p256dh: Mapped[str] = mapped_column(String(200))
     auth: Mapped[str] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
+
+
+class DayPrice(Base):
+    """The newest cheapest price of one local day of a trip, by source (#1197): from a day price response
+    (`ParseResult.day_prices`). A later capture replaces the price; one row per source, trip and day."""
+    __tablename__ = "day_prices"
+    __table_args__ = (UniqueConstraint("source", "trip_id", "day", name="uq_day_prices_source_trip_day"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source: Mapped[str] = mapped_column(String(50))
+    trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), index=True)
+    day: Mapped[date] = mapped_column(Date)
+    price: Mapped[Decimal] = mapped_column(Money)
+    currency: Mapped[str] = mapped_column(String(3))
+    captured_at: Mapped[datetime] = mapped_column(_tz())
+    capture_id: Mapped[int | None] = mapped_column(ForeignKey("captures.id", ondelete="SET NULL"), index=True)
