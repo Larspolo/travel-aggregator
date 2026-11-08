@@ -10,6 +10,7 @@ import uvicorn
 
 from app import notify
 from app.auth import make_password_hash
+from tests.browser_wait import wait_js
 
 pytestmark = pytest.mark.slow
 PASSWORD = "pw"
@@ -52,7 +53,7 @@ def test_settings_and_the_service_worker_load_at_390_px(live):
         page.click("button[type=submit]")
         page.goto(live + "/settings/messages")
         assert page.locator("#push-on").is_enabled() and page.locator("#push-on").is_visible()
-        page.wait_for_function("navigator.serviceWorker.ready.then(r => !!r.active)")
+        wait_js(page, "navigator.serviceWorker.ready.then(r => !!r.active)")
         assert page.evaluate("document.documentElement.scrollWidth") <= 390
         sw = page.goto(live + "/sw.js")
         assert sw.status == 200 and "notificationclick" in sw.text()
