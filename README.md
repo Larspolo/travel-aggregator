@@ -314,6 +314,18 @@ iPhone: tap Share, then "Add to Home Screen"). The app then has its name, its ic
 manifest (`/manifest.webmanifest`). Each page links this manifest. On an iPhone or iPad, Web Push works only from the
 app on the home screen, not in a browser tab (see "Messages outside the app").
 
+### Use the keyboard and a screen reader
+
+Each page works with the keyboard only. Tab moves to the next control and Shift+Tab to the previous one. Each control
+that has the focus shows a visible focus mark.
+Enter opens a menu (the "Menu" button at a phone width, and "More" at a desktop width). Escape closes an open menu and
+puts the focus back on its button. On the trip page, Enter on "Legs and fares" opens the legs and fares of a row.
+On a weight slider, the arrow keys change the value by one step, and the list of offers ranks again at once.
+
+The pages are checked with axe-core, an automated accessibility tester, at a width of 1280 px and at 390 px. The check
+fails on each new finding of the rules "serious" and "critical". Known findings are listed in the test, and each one is
+removed when it is fixed.
+
 ### Compare offers in the trip table
 
 The table of `/trips/{id}` has one row per journey. The same train from bahn.de and NS International shows once, with the fares of both sources in its "Legs and fares". Two offers are one journey when their modes and service numbers are the same, and their first departure and last arrival are at the same UTC time (the carrier and the times of the legs between do not count). The pin, hide, booked, note and price history are per journey.
