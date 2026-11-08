@@ -27,6 +27,7 @@ class TripRow:
     no_rate: bool = False
     at_target: bool = False  # the best EUR price is at or below the target price (#847)
     shared: bool = False  # the trip has an active share link (#905)
+    split_of_id: int | None = None  # the trip that this trip is a part of (#1177)
 
 
 def list_trips(session: Session) -> list[TripRow]:
@@ -37,7 +38,7 @@ def list_trips(session: Session) -> list[TripRow]:
     stmt = (
         select(
             Trip.id, Trip.title, Trip.origin_text, Trip.destination_text, Trip.date_from, Trip.date_to,
-            Trip.status, Trip.return_of_id, Trip.target_price, Trip.share_hash,
+            Trip.status, Trip.return_of_id, Trip.split_of_id, Trip.target_price, Trip.share_hash,
             Itinerary.id.label("itinerary_id"),
             Fare.latest_price, Fare.currency, CurrencyRate.eur_per_unit,
         )
@@ -76,7 +77,7 @@ def _trip_row(info: dict, rates: dict[str, Decimal]) -> TripRow:
         date_from=r.date_from, date_to=r.date_to, status=r.status, offer_count=len(info["itineraries"]),
         best_price=best_price, best_currency=best_currency, return_of_id=r.return_of_id, no_rate=no_rate,
         at_target=bool(in_eur) and r.target_price is not None and best_price <= r.target_price,
-        shared=r.share_hash is not None,
+        shared=r.share_hash is not None, split_of_id=r.split_of_id,
     )
 
 
@@ -97,24 +98,41 @@ def _first_of(r: TripRow, by_id: dict[int, TripRow]) -> TripRow:
     return r
 
 
+def _via(split: TripRow, trip: TripRow) -> str:
+    """The place of a split trip (#1180): its destination when it starts where its trip starts, else its origin."""
+    return (split.destination_text if split.origin_text == trip.origin_text else split.origin_text) or "?"
+
+
 def in_journeys(rows: list[TripRow]) -> list[tuple[str, TripRow, str]]:
     """The list lines: each first trip, then the later trips of its chain in sequence, then the journey total (kind
     "total", the note is the total). A chain of 2 has the kind "return" for its second trip, a longer chain the kind
-    "next"; the note is the title of the previous trip. The order of the first trips is kept (#341, #561)."""
+    "next"; the note is the title of the previous trip. The order of the first trips is kept (#341, #561).
+    The split trips of a trip follow it (kind "split", the note is the place, #1180); they add nothing to a total."""
     by_id = {r.id: r for r in rows}
+    splits: dict[int, list[TripRow]] = {}
+    for r in rows:
+        if r.split_of_id in by_id:
+            splits.setdefault(r.split_of_id, []).append(r)
     after = {r.return_of_id: r for r in rows if r.return_of_id is not None}
     lines: list[tuple[str, TripRow, str]] = []
+
+    def add(kind: str, t: TripRow, note: str) -> None:
+        lines.append((kind, t, note))
+        lines.extend(("split", s, _via(s, t)) for s in sorted(splits.get(t.id, []), key=lambda s: s.id))
+
     for r in rows:
+        if r.split_of_id in by_id:
+            continue  # placed under its trip
         if r.return_of_id is not None and r.return_of_id in by_id and _first_of(r, by_id) is not r:
             continue  # placed under the first trip of its chain
         journey = [r]
         while (nxt := after.get(journey[-1].id)) is not None and nxt not in journey:
             journey.append(nxt)
-        lines.append(("trip", r, ""))
+        add("trip", r, "")
         if len(journey) > 1:
             kind = "return" if len(journey) == 2 else "next"
             for prev, t in zip(journey, journey[1:]):
-                lines.append((kind, t, prev.title))
+                add(kind, t, prev.title)
             lines.append(("total", journey[-1], _journey_total(*journey)))
     return lines
 
@@ -124,7 +142,10 @@ def archived_journeys(rows: list[TripRow], archived: bool) -> list[tuple[str, Tr
 
     The trips of a journey stay together: the status of the first trip of the chain decides for all (#561)."""
     by_id = {r.id: r for r in rows}
-    return in_journeys([r for r in rows if (_first_of(r, by_id).status == "archived") == archived])
+
+    def first(r: TripRow) -> TripRow:  # a split trip goes with its trip (#1180)
+        return _first_of(by_id.get(r.split_of_id, r), by_id)
+    return in_journeys([r for r in rows if (first(r).status == "archived") == archived])
 
 
 def chain(trip: Trip) -> list[Trip]:
