@@ -148,6 +148,16 @@
 </ul>
 </section>
 {% endif %}
+{% if at_target %}
+<section class="drops card" id="at-target">
+<h2>At your target price</h2>
+<ul>
+{% for f in at_target %}
+<li><a href="#it-{{ f.itinerary_id }}">{{ (f.depart_at | local(f.depart_offset_min or 0)).strftime("%a %d %b %H:%M") if f.depart_at else "" }} {{ f.mode_summary or "" }} · {{ f.source }}: {{ f.fare_name or "" }} · {{ f.price | money(f.currency) }}</a></li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
 {% with oob = false %}{% include "trip_days.html" %}{% include "trip_timeline.html" %}{% endwith %}
 <div class="card table-card" id="table">
 {% include "trip_table.html" %}
