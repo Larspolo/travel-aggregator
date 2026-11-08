@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.auth import require_token
 from app.db import get_session
 from app.models import Trip
+from app.schemas import TripStatus
 
 router = APIRouter(dependencies=[Depends(require_token)])
 
@@ -24,6 +25,7 @@ class TripIn(BaseModel):
     date_to: date | None = None
     travelers: int = Field(1, ge=1, le=20)
     notes: str | None = Field(None, max_length=5000)
+    status: TripStatus = "planning"
 
     @model_validator(mode="after")
     def _dates_in_order(self) -> "TripIn":
@@ -48,7 +50,7 @@ class TripOut(BaseModel):
 @router.get("/trips")
 def list_trips(status_filter: str | None = Query(None, alias="status", max_length=20),
                session: Session = Depends(get_session)) -> list[TripOut]:
-    """All trips, newest first; `?status=active` only those of one status."""
+    """All trips, newest first; `?status=planning` only those of one status."""
     query = select(Trip).order_by(Trip.created_at.desc(), Trip.id.desc())
     if status_filter:
         query = query.where(Trip.status == status_filter)

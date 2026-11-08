@@ -35,20 +35,22 @@ runs): give the ticket `lane:deep` and pick the next one.
 Epics first: an epic is never a candidate, so its rest of the work needs sub-issues. Before you claim a ticket, look
 at the open epics (label `epic`, not `needs-human`, not `muted` or `after-release`, any priority) with no open sub-issue, at most 3 per run. The
 priority does not matter here: a check of `P2` and `P3` epics was skipped, and six finished epics stayed open (#799).
-For each one, read its acceptance criteria and all its comments. An owner comment after the last agent comment comes
+For each one, lock it first: `python3 framework/tools/claim.py E --refill` (E = the epic). Exit 1: another run checks or
+refills it, skip the epic (#505, #371: two runs checked epic #354 at once, and the second check was waste). Only after the
+lock, read its acceptance criteria and all its comments. An owner comment after the last agent comment comes
 first: handle it as in step 3 (lock, answer). Do not post a request that the epic already has (#820: two runs asked
 the same thing, and no run answered the owner's question between them). An epic without a criterion that checks that the
 whole goal is covered (owner rule, #820: never only "All sub-issues are closed") gets one first (`ticket` skill, "Split
 an L ticket"). Check that criterion against the full scope (for "all X": the full list, for example a wiki of the original) and
 name each missing item. When `steering/project/PRINCIPLES.md` has the section "Try a feature", do what it says first
 (for example a `needs-human` test ticket, or a build); the epic waits for it. Close the epic with a comment only when all criteria are met
-(name the evidence for each, then the label `close`: `owner.md`, "Close an issue", #1740). When the epic waits only for one open
-ticket #N (all other criteria met), end the check comment with the line `Close this epic when #N merges.`: when #N
-closes as completed by a merged PR, `close.yml` adds the evidence comment and the label `close`
-(`framework/tools/epic_autoclose.py`), and the pacer starts no epic check for it. When an open criterion waits only for
+(name the evidence for each, then the label `close`: `owner.md`, "Close an issue", #1740). When the epic waits only for open agent
+tickets (all other criteria met), end the check comment with the line `Close this epic when #N merges.` (more tickets:
+`Close this epic when #N and #M merge.`, #617): when each closes as completed by a merged PR, `close.yml` adds the evidence comment and the label `close`
+(`framework/tools/epic_autoclose.py`; an open owner check with `needs-human` does not stop it, #922), and the pacer starts no epic check for it. When an open criterion waits only for
 an open ticket of another epic, add a line "Part of #E" to the body of that ticket: else the pacer starts a deep run
-for the epic check of E in each cycle (`usage.refill_need`). Else lock the epic first: `python3 framework/tools/claim.py E --refill`
-(E = the epic; exit 1: another run makes its sub-issue, skip the epic, #505). Then make one sub-issue (same priority)
+for the epic check of E in each cycle (`usage.refill_need`). The lock of the check (above) covers the close and the new sub-issues of the epic: do not lock it a second time
+in the same run (#371). Then make one sub-issue (same priority)
 for the criteria that an agent can do. A criterion that needs the owner stays on the epic. Then pick again (#176, #155 waited while P3 tickets ran).
 Release checks: when `cycle_start.py` prints the section "Release checks (no ticket, make them in the refill)", a deep
 run makes a check ticket for each listed check (`roadmap` skill, "Release checks"), also when the open epics have work
@@ -59,17 +61,18 @@ work: N = the target and R = the ready tickets of `python3 framework/tools/usage
 R < N, and make at most 2 × N − R tickets, so the queue stays at most twice the target (owner, #664: when fewer runs work
 again, a large queue only waits). Do this at most once per run, in about 10 minutes.
 Lock it first: `python3 framework/tools/claim.py 0 --refill` (one run per 10 minutes). Exit 1: another run makes the whole
-refill; then refill one open epic instead (the first one with open goals that an agent can do, under its lock below):
-up to 10 sub-issues (within the cap) for its open goals, then pick again. The pacer starts `refill_runs` runs more
-than the ready tickets for this (`agent.toml`): many runs close tickets faster than one refill makes them (#650;
-2026-10-28: 3 ready tickets for 40 target runs). It starts them only while an open ticket is less than 60 minutes old
-(`usage.refill_runs`), else 1: an empty refill run costs quota. It starts none when R >= N and no epic or release check
-waits (`usage.refill_need`, #3547), and none when R < N and the refill has no source: no such check, no roadmap
-feature with no epic and no fallback (#3560). A due process or roadmap review starts one too (deep locks).
-It starts none while a refill lock is younger than `refill_gap` minutes (`agent.toml`, `usage.refill_recent`), unless R < N / 2
-or a review is due: a review has its own lock (owner, 2026-10-29).
-Give each new ticket its lane (`ticket` skill, "Model lanes").
-Also lock each epic E with `python3 framework/tools/claim.py E --refill` before you make its tickets (exit 1: skip that epic, #505).
+refill; then refill one open epic instead (the first one with open goals that an agent can do, under its lock of the epic check above):
+up to 10 sub-issues (within the cap) for its open goals, then pick again. The pacer starts refill runs from the
+tickets that the queue misses (`usage.refill_count`, owner, 2026-11-06): one run for each `refill_tickets` of N − R, at
+least 1, less the live refill runs (a refill lock younger than `refill_minutes`, `usage.refill_live`). At most
+`refill_runs` (`[pacing]` of `steering/system/system.toml`) and one run per refill source with work (the whole refill
+when it has a source, and each epic that waits for its check, `usage.refill_sources`, #378), and only 1 when no open ticket is less than 60 minutes old (`usage.new_ticket`): an empty refill run costs quota.
+It starts none when R >= N and no epic or release check waits (`usage.refill_need`, #3547), and none when R < N and the
+refill has no source: no such check, no roadmap feature with no epic and no fallback (#3560). A due process or roadmap
+review starts one too (deep locks), also while refill runs are live: a review has its own lock (owner, 2026-10-29).
+Give each new ticket its lane (`ticket` skill, "Model lanes"). Make all tickets of the refill (an epic and its
+sub-issues too) in one call: `python3 framework/tools/new_tickets.py FILE.md` (`ticket` skill).
+The lock of the epic check (above) covers its tickets too: do not lock the epic a second time (#371).
 A `muted` or `after-release` ticket or epic (the owner holds it until later, 2026-10-26, #4175) is out of all these steps: no split, no check, no
 new sub-issues, no `needs-human`. Still answer an owner comment on it (step 3).
 Release focus (owner, 2026-11-01, `steering/project/RELEASE.md`; skip it and the release epic rule when the project has

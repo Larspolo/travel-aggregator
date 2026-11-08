@@ -4,7 +4,8 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
-    JSON, Boolean, Date, DateTime, ForeignKey, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, func,
+    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint,
+    func, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -29,11 +30,21 @@ class Trip(Base):
     date_from: Mapped[date | None] = mapped_column(Date)
     date_to: Mapped[date | None] = mapped_column(Date)
     travelers: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
-    status: Mapped[str] = mapped_column(String(20), default="active", server_default="active")
+    status: Mapped[str] = mapped_column(String(20), default="planning", server_default="planning")
     notes: Mapped[str | None] = mapped_column(Text)
+    target_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)  # the fares at or below it (#846)
+    share_hash: Mapped[str | None] = mapped_column(String(128), unique=True)  # the secret share link (#903)
+    shared_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
+    profile_id: Mapped[int | None] = mapped_column(ForeignKey("score_profiles.id", ondelete="SET NULL"))  # #232
+    # The outbound trip of a return trip, and its return trip (#340): one-to-one.
+    return_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL"), unique=True)
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
 
     itineraries: Mapped[list["Itinerary"]] = relationship(back_populates="trip", cascade="all, delete-orphan")
+    return_of: Mapped["Trip | None"] = relationship(back_populates="return_trip", remote_side=[id],
+                                                    foreign_keys=[return_of_id])
+    return_trip: Mapped["Trip | None"] = relationship(back_populates="return_of", foreign_keys=[return_of_id],
+                                                      remote_side=[return_of_id], uselist=False)
 
 
 class Itinerary(Base):
@@ -52,6 +63,7 @@ class Itinerary(Base):
     last_seen_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     pinned: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    booked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     note: Mapped[str | None] = mapped_column(Text)
 
     trip: Mapped[Trip] = relationship(back_populates="itineraries")
@@ -89,10 +101,13 @@ class Fare(Base):
     source: Mapped[str] = mapped_column(String(50))
     fare_name: Mapped[str | None] = mapped_column(String(100))
     flexibility: Mapped[str | None] = mapped_column(String(50))
+    travel_class: Mapped[str | None] = mapped_column(String(10))
+    self_transfers: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # #176, derived at ingest
     booking_url: Mapped[str | None] = mapped_column(Text)
     latest_price: Mapped[Decimal] = mapped_column(Money)
     currency: Mapped[str] = mapped_column(String(3))
     latest_captured_at: Mapped[datetime] = mapped_column(_tz())
+    seen_price: Mapped[Decimal | None] = mapped_column(Money)  # the price at the last view of the trip page (#355)
 
     itinerary: Mapped[Itinerary] = relationship(back_populates="fares")
     prices: Mapped[list["FarePrice"]] = relationship(back_populates="fare", cascade="all, delete-orphan")
@@ -124,6 +139,15 @@ class Capture(Base):
     search_context_json: Mapped[dict | None] = mapped_column(JSON)
     raw_gz: Mapped[bytes | None] = mapped_column(LargeBinary)
     captured_at: Mapped[datetime] = mapped_column(_tz())
+    # The result of the last parse (#346); NULL for the captures before 0010.
+    offer_count: Mapped[int | None] = mapped_column(Integer)
+    rejected_count: Mapped[int | None] = mapped_column(Integer)
+    errors_json: Mapped[list | None] = mapped_column(JSON)
+    unreadable: Mapped[str | None] = mapped_column(String(200))
+    # The trip warning of the last parse (#556): "places" or "date" (tripmatch.mismatch); NULL when the offers match.
+    mismatch: Mapped[str | None] = mapped_column(String(200))
+    # The number of travelers of the prices (#764): from the payload, else from search_context; NULL = not known.
+    travelers: Mapped[int | None] = mapped_column(Integer)
 
 
 class ApiToken(Base):
@@ -135,3 +159,63 @@ class ApiToken(Base):
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
     last_used_at: Mapped[datetime | None] = mapped_column(_tz())
     revoked_at: Mapped[datetime | None] = mapped_column(_tz())
+
+
+class AccessTime(Base):
+    """A way from a place to a station (`access`) or from a station to a place (`egress`), #97."""
+    __tablename__ = "access_times"
+    __table_args__ = (
+        CheckConstraint("kind IN ('access', 'egress')", name="ck_access_times_kind"),
+        CheckConstraint("minutes >= 0", name="ck_access_times_minutes"),
+        CheckConstraint("cost >= 0", name="ck_access_times_cost"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    place_text: Mapped[str] = mapped_column(String(200))
+    kind: Mapped[str] = mapped_column(String(10))
+    minutes: Mapped[int] = mapped_column(Integer)
+    cost: Mapped[Decimal] = mapped_column(Money)
+
+
+class CurrencyRate(Base):
+    """The rate of one currency to EUR: `eur_per_unit` EUR for one unit of `code` (#383)."""
+    __tablename__ = "currency_rates"
+    __table_args__ = (
+        CheckConstraint("eur_per_unit > 0", name="ck_currency_rates_positive"),
+    )
+
+    code: Mapped[str] = mapped_column(String(3), primary_key=True)
+    eur_per_unit: Mapped[Decimal] = mapped_column(Numeric(14, 6))
+    updated_at: Mapped[datetime] = mapped_column(_tz())
+
+
+class ScoreProfile(Base):
+    """A named set of weights (#229). Only one row can be the default: a partial unique index."""
+    __tablename__ = "score_profiles"
+    __table_args__ = (
+        Index("uq_score_profiles_default", "is_default", unique=True, postgresql_where=text("is_default")),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    config_json: Mapped[dict] = mapped_column(JSON)
+
+
+class Setting(Base):
+    """A value that the owner sets on the settings page (#207)."""
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)
+
+
+class PushSubscription(Base):
+    """One browser that gets the price-drop messages by Web Push (#514). The keys encrypt the message (RFC 8291)."""
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(String(200))
+    auth: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())

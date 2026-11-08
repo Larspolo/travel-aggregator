@@ -73,8 +73,9 @@ report of step 8, and the `Usage:` line (of the brief, else of the first `cycle_
    Do not merge by hand: CI runs only the quick checks on each PR (lint and fast tests, about 6 minutes), and the
    Automerge workflow merges the PR when CI is green, removes `in-progress` and deletes the branch. Exit 5: the quick
    CI (or a check of `[ci] gates` in `agent.toml`) is red, go to 9 now (a red PR after the run ends costs a takeover by a cold run, #4784). The CI still runs at
-   the time limit: `ship_pr.py N --ci` once, then continue. The slow and server tests run only each night on main:
-   do the levels of the `verify` skill that the change needs (slow tests, server check) before the push. Continue
+   the time limit: `ship_pr.py N --ci` once, then continue. The job `browser` runs all slow tests on each PR, and the server tests
+   run only each night on main: before the push, do the levels of the `verify` skill that the change needs (only the
+   slow test files of the change, #822). Continue
    with step 7 and the next ticket. Step 2 of a later cycle finds a red or conflicted PR.
 9. CI red → find the cause in the printed failed steps and tests, fix, commit, `ship_pr.py N --message MSG.txt`.
    After 3 failed attempts stop: comment the cause on the ticket, add `blocked` or `needs-human` and `hold`, run

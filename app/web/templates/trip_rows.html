@@ -1,0 +1,69 @@
+{% import "ui.html" as ui %}
+  {% for it, fare, cost in rows %}
+    {% set first, last = it.legs[0], it.legs[-1] %}
+    {% set dep, arr = first.depart_at | local(first.depart_offset_min), last.arrive_at | local(last.arrive_offset_min) %}
+    {% set days = arr | day_gap(dep) %}
+    {% set newest = it.fares | map(attribute="latest_captured_at") | max %}
+    {% set carriers %}{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
+    {% set fare_line %}{% if fare.fare_name %}{{ fare.fare_name }} · {% endif %}{{ fare.source }}, {{ newest | ago(now) }}{% endset %}
+    <tr id="it-{{ it.id }}">
+      <td class="route">
+        <div class="route-name">{{ first.from_name }} → {{ last.to_name }}
+        {% if it.hidden %}<span class="muted">hidden</span>{% endif %}
+        {% if it.pinned %}<span class="muted">pinned</span>{% endif %}
+        {% if it.booked %}<span class="badge booked">booked</span>{% endif %}
+        {% for b in view.badges.get(it.id, []) %}<span class="badge {{ b | replace(" ", "-") }}">{{ b }}</span> {% endfor %}
+        {% if newest < stale_before %}<span class="badge stale" title="stale, price may have changed">stale</span>{% endif %}</div>
+        <div class="facts"><span class="times">{{ dep.strftime("%a %d %b %H:%M") }} → {{ arr.strftime("%H:%M") }}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}</span>
+          <span class="muted"><span class="modes">{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{% if m | mode_icon %}{{ ui.icon(m | mode_icon, m) }}{% else %}•{% endif %}</span>{% endfor %}</span>
+          {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }} · {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }}</span></div>
+        {% if it.note %}<div class="muted">{{ it.note }}</div>{% endif %}</td>
+      <td class="carrier"><div class="clip" title="{{ carriers }}">{{ carriers }}</div><div class="clip muted" title="{{ fare_line }}">{{ fare_line }}</div></td>
+      <td class="price">{{ fare.latest_price | money(fare.currency) }}</td>
+      <td class="cost"><div class="total">{{ "no rate" if cost.no_rate else cost.total | money }}</div>
+        {% set parts = bar_parts(cost) %}{% if parts %}<svg class="bar" width="100%" height="6" aria-hidden="true">{% for label, x, w in parts %}<rect class="part-{{ loop.index0 % 4 }}" x="{{ x }}%" width="{{ w }}%" height="6"></rect>{% endfor %}</svg>{% endif %}
+        <div class="breakdown">{{ format_breakdown(cost) }}{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</div></td>
+      <td class="actions">
+        <label class="pick"><input type="checkbox" name="it" value="{{ it.id }}" form="compare" aria-label="Compare"><span class="pick-text">Compare</span></label>
+        {% for action, label, symbol in [("pin", "Unpin" if it.pinned else "Pin", "pin"),
+                                         ("hide", "Unhide" if it.hidden else "Hide", "eye" if it.hidden else "eye-off"),
+                                         ("booked", "Not booked" if it.booked else "Mark as booked", "check")] %}
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/{{ action }}"
+              hx-post="/trips/{{ trip.id }}/itineraries/{{ it.id }}/{{ action }}?{{ sort_qs }}&amp;sort={{ view.sort }}&amp;dir={{ view.dir }}" hx-target="#table">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button type="submit" class="icon" aria-label="{{ label }}" title="{{ label }}">{{ ui.icon(symbol) }}</button>
+        </form>{% endfor %}
+        {% if it.booked %}<a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
+           aria-label="Add to calendar" title="Add to calendar">{{ ui.icon("calendar-plus") }}</a>{% endif %}
+      </td>
+    </tr>
+    <tr class="detail">
+      <td colspan="5"><details><summary>Legs and fares</summary>
+        {% if tradeoff and it.id in tradeoff %}{% set head, value, tail, link = tradeoff[it.id] %}<p class="tradeoff muted">{{ head }}{% if link %}<a href="{{ link }}">{{ value }}</a>{% else %}{{ value }}{% endif %}{{ tail }}</p>{% endif %}
+        <div class="timeline legs">
+        {% for leg in it.legs %}
+          {% if not loop.first %}{% set gap = ((leg.depart_at - loop.previtem.arrive_at).total_seconds() // 60) | int %}
+          <div class="transfer muted">Transfer at {{ leg.from_name }}: {{ gap // 60 }}h {{ "%02d" | format(gap % 60) }}</div>{% endif %}
+          <div class="leg">
+            <div class="service">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon) }}{% endif %} {{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}</div>
+            <div class="stop"><time>{{ (leg.depart_at | local(leg.depart_offset_min)).strftime("%H:%M") }}</time> {{ leg.from_name }}</div>
+            <div class="stop"><time>{{ (leg.arrive_at | local(leg.arrive_offset_min)).strftime("%H:%M") }}</time> {{ leg.to_name }}</div>
+          </div>
+        {% endfor %}
+        </div>
+        <div class="fares">
+        {% for f in it.fares | by_eur(rates) %}
+          <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}{{ ui.class_badge(f) }}</span> <strong>{{ f.latest_price | money(f.currency) }}</strong>
+            {% if f.booking_url %}<a class="btn" href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">{{ ui.icon("arrow-right") }}Book</a>{% endif %}</div>
+        {% endfor %}
+        </div>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/note">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <div class="field"><label for="note-{{ it.id }}">Note</label>
+          <textarea id="note-{{ it.id }}" name="note" maxlength="2000">{{ it.note or "" }}</textarea></div>
+          <button class="btn" type="submit">{{ ui.icon("check") }}Save note</button>
+        </form>
+        <div hx-get="/trips/{{ trip.id }}/itineraries/{{ it.id }}/history" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"></div>
+      </details></td>
+    </tr>
+  {% endfor %}

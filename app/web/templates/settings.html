@@ -1,0 +1,25 @@
+{% extends "settings_base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Settings – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header("General", subtitle="The settings of the app and the state of its server.") }}{% endblock %}
+{% block settings %}
+{% call ui.card("Captures") %}
+<form method="post" action="/settings">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field">
+      <label for="retention">Keep raw captures for (days)</label>
+      <input id="retention" name="retention" type="number" min="0" max="{{ max_days }}" step="1" required value="{{ retention_days }}">
+      <p class="help">0 keeps all captures. Each ingest deletes the older captures; the offers and their prices stay.</p>
+    </div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Save</button></div>
+</form>
+{% endcall %}
+{% call ui.card("Backups") %}
+{% if backup %}<p>Newest backup: {{ backup[0].strftime("%Y-%m-%d %H:%M") }} UTC, {{ "%.1f"|format(backup[1] / 1048576) }} MB ({{ backup[1] }} bytes).</p>
+{% if backup_old %}<p role="alert" class="chip warn backup-state">The newest backup is older than 48 hours.</p>
+{% else %}<p class="chip good backup-state">Recent backup</p>{% endif %}
+{% else %}<p role="alert" class="chip warn backup-state">No backup yet.</p>{% endif %}
+{% endcall %}
+{% endblock %}

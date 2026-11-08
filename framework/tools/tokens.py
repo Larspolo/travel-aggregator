@@ -111,7 +111,10 @@ def label(name, inp):
     return name
 
 
-CHECKS = (("pytest -m mc", r"pytest\b.*-m\s+['\"]?mc\b"), ("pytest -m slow", r"pytest\b.*-m\s+['\"]?slow\b"),
+SLOW = r"pytest\b.*-m\s+['\"]?slow\b"
+CHECKS = (("pytest -m mc", r"pytest\b.*-m\s+['\"]?mc\b"),
+          ("pytest -m slow files", SLOW + r".*\b(framework/)?tests/\S+\.py|pytest\b.*\btests/\S+\.py\b.*-m\s+['\"]?slow\b"),  # #822
+          ("pytest -m slow", SLOW),
           ("playwright", r"\bplaywright\s+test\b"), ("lighthouse", r"\blighthouse\.mjs\b"),   # the Node checks (#810)
           ("build", r"\bnpm run build\b|\bnext build\b"),
           ("pytest files", r"pytest\b.*\btests/\S+\.py"), ("vitest files", r"\bvitest\b.*\btests/\S+\.ts\b"),
@@ -195,9 +198,12 @@ REPORT_FILE = r"(?i)(?:\bcat >|\btee)\s*\S*(?:body|msg|message|comment)[^/\s]*"
 REPORT_NAME = re.compile(r"body|msg|message|comment", re.I)
 
 
-# The phase of a Bash command: the first pattern that matches (`report.md`, phases; health.PHASES).
+# The phase of a Bash command: the first pattern that matches (`report.md`, phases; health.PHASES). `tokens.py --queued`
+# is the first call of each scheduled run (`scheduled` step 0), so it is the start, not the report: its call writes the
+# base to the cache (about 40k of the 50k report eq of a run in 66 of 67 runs, owner 2026-11-06).
 PHASE_RULES = (("conflict", r"merge_main\.py|unconflict\.py|\bgit merge\b"),
                ("ci", r"ship_pr\.py|\bgit push\b|/pulls\b|check-runs|mergeable|claim\.py \d+ --guard"),
+               ("claim", r"tokens\.py\s+--queued"),
                ("report", r"report\.py|tokens\.py|health\.py"),
                ("claim", r"claim\.py|cycle_start\.py|dashboard\.py|feedback\.py|usage\.py"),
                ("report", REPORT_FILE),
@@ -416,7 +422,7 @@ def data(t, records, repo=None, checks=None, force=None, k=10, parts=None):
     for s, x in t["sinks"].items():
         g[kind(s)] += x
     ph, lab, _ = calls(records)
-    out = {key: round(t.get(key, 0), 4) for key in ("eq", "write", "read", "out", "peak", "base", "usd", "in")}
+    out = {key: round(t.get(key, 0), 4) for key in ("eq", "write", "read", "out", "peak", "base", "usd", "in", "text")}
     return {**out, "calls": t["calls"], "repo": None if repo is None else round(repo),
             "base_parts": {p: round(n) for p, n in (parts or {}).items()},
             "sinks": {s: round(x / t["eq"], 4) for s, x in sorted(g.items(), key=lambda kv: -kv[1])[:k]} if t["eq"] else {},
@@ -434,9 +440,10 @@ def size(content):
 
 def analyse(records):
     """Totals and sinks of one chain of transcript records (in file order).
-    Returns {"eq", "calls", "in", "write", "read", "out", "peak", "base", "sinks": {label: eq}}."""
+    Returns {"eq", "calls", "in", "write", "read", "out", "peak", "base", "text", "sinks": {label: eq}}; `text`: the
+    estimated tokens of the chat text (a part of `out`; no one reads the chat of a scheduled run, owner 2026-11-06)."""
     seen, calls, uses = set(), [], {}
-    t = dict.fromkeys(("eq", "in", "write", "read", "out", "peak", "base", "usd", "unpriced"), 0.0)
+    t = dict.fromkeys(("eq", "in", "write", "read", "out", "peak", "base", "usd", "unpriced", "text"), 0.0)
     results = []                                    # (label, tokens, index of the next call)
     for r in records:
         msg = r.get("message") or {}
@@ -444,6 +451,8 @@ def analyse(records):
             for b in msg.get("content") or []:
                 if b.get("type") == "tool_use":
                     uses[b["id"]] = label(b.get("name", ""), b.get("input") or {})
+                elif b.get("type") == "text":
+                    t["text"] += len(b.get("text") or "") / CHARS     # the chat text: a part of `out`
             u = msg.get("usage")
             if u and msg.get("id") not in seen:     # one record per content block, all with the same usage
                 seen.add(msg.get("id"))

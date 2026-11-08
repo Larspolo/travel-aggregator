@@ -7,3 +7,4 @@ jinja2
 pydantic
 itsdangerous
 python-multipart
+pywebpush  # Web Push (#514): the message encryption of RFC 8291 (ECDH and AES-GCM) has no standard-library way

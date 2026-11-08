@@ -12,6 +12,9 @@ revision = ${repr(up_revision)}
 down_revision = ${repr(down_revision)}
 branch_labels = None
 depends_on = None
+# Set to True when upgrade() drops or changes data: the container then makes a pg_dump backup before it runs.
+# A missing marker means "no data change". Say it in the PR, too.
+changes_data = False
 
 
 def upgrade() -> None:

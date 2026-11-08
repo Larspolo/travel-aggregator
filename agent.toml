@@ -1,7 +1,7 @@
 # Project values of the agent system (#905). The tools in tools/ read this file (framework/tools/agent_config.py).
 
 repo = "Larspolo/travel-aggregator"
-owner = "Larspolo"
+owners = ["Larspolo", "Jeroenvb3"]
 branch = "main"
 
 [status]
@@ -18,10 +18,17 @@ server = ""
 dev = "docker compose up --build"  # starts the development server on the owner's computer (the `try` skill); "" = none
 
 [ci]                            # framework/tools/ship_pr.py
-gates = []                      # the PR checks of ci.yml besides `quick` that Automerge needs green (for example ["browser"])
+gates = ["browser", "docker", "production"]   # the PR jobs of ci.yml besides `quick`: Automerge needs all green (tests/test_ci_gates.py)
+
+[git]                           # framework/tools/health.py, "Files that do not belong in git" (#853)
+png_ok = ["docs/", "samples/", "app/web/static/"]   # the folders where a .png belongs (the app icons, #796)
 
 [docs]
 system = "framework/docs/SYSTEM.md"
 steering = "framework/docs/STEERING.md"
 learnings = "docs/LEARNINGS.md"
 roadmap = "steering/project/ROADMAP.md"
+
+[audience]                      # who answers a needs-human ticket: add one of these labels to each (#72)
+for-lars = "Larspolo"           # the agent system: Claude, Docker, the server, CI, the GitHub settings
+for-jeroen = "Jeroenvb3"        # the project: decisions, features, the roadmap, payload captures (#122)

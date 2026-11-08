@@ -1,34 +1,153 @@
 {% extends "base.html" %}
+{% import "ui.html" as ui %}
 {% block title %}{{ trip.title }} · travel-aggregator{% endblock %}
 {% block content %}
-<h1>{{ trip.title }}</h1>
-{% if trip.origin_text or trip.destination_text %}
-<p class="muted">{{ trip.origin_text or "?" }} → {{ trip.destination_text or "?" }}</p>
+{% call ui.page_header(trip.title, subtitle=((trip.origin_text or "?") ~ " → " ~ (trip.destination_text or "?")) if (trip.origin_text or trip.destination_text) else none, back=("/", "Trips")) %}
+  <a class="btn btn-primary" href="/trips/{{ trip.id }}/offers/new">{{ ui.icon("plus") }}Add an offer by hand</a>
+  <a class="btn" href="/trips/{{ trip.id }}/captures">{{ ui.icon("upload") }}Captures</a>
+  <details class="more">
+    <summary class="btn">{{ ui.icon("ellipsis") }}More</summary>
+    <div class="more-menu">
+    {% if not trip.return_of_id and not trip.return_trip %}
+    <form method="post" action="/trips/{{ trip.id }}/return">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("arrow-right-left") }}Make the return trip</button>
+    </form>
+    {% endif %}
+    <form method="post" action="/trips/{{ trip.id }}/next">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("calendar-plus") }}Add next trip</button>
+    </form>
+    {% if trip.share_hash %}
+    <form method="post" action="/trips/{{ trip.id }}/share/revoke">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("eye-off") }}Revoke link</button>
+    </form>
+    {% else %}
+    <form method="post" action="/trips/{{ trip.id }}/share">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("key") }}Share</button>
+    </form>
+    {% endif %}
+    <a class="btn" href="/trips/{{ trip.id }}/export.csv" download>{{ ui.icon("download") }}Export CSV</a>
+    <a class="btn" href="/trips/{{ trip.id }}/export.json" download>{{ ui.icon("download") }}Export JSON</a>
+    </div>
+  </details>
+{% endcall %}
+{% if share_link %}<section class="card new-token" role="status"><h2>Share link</h2>
+  <p>Keep this link: it shows only now. Each person with it sees the offers of this trip, with no login.</p>
+  <pre class="share-link">{{ share_link }}</pre></section>{% endif %}
+{% if flash %}<p class="card" role="status">{{ flash }}</p>{% endif %}
+<ul class="search-links" aria-label="Search status of each source">{% for c in coverage %}<li>{% if c.failed %}{{ c.name }}: last search failed · <a href="/trips/{{ trip.id }}/captures?failed=1">Failed captures</a>{% elif c.captured_at %}{{ c.name }}: {{ c.captured_at|ago(now) }} · {{ c.offer_count or 0 }} offers{% else %}{{ c.name }}: not searched yet{% endif %}{% if c.url %} · <a href="{{ c.url }}" target="_blank" rel="noopener">Search on {{ c.name }}</a>{% endif %}</li>{% endfor %}</ul>
+{% include "journey.html" %}
+{% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
+<div class="trip-layout">
+<aside class="panel card"><details class="panel-toggle"><summary>Weights and filters</summary>
+{% if profiles %}
+<form class="profile" method="get" action="/trips/{{ trip.id }}">
+  <label>Profile <select name="profile">
+    {% for p in profiles %}<option value="{{ p.id }}"{% if p.id == active_profile_id %} selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></label>
+  <button type="submit">Use profile</button>
+</form>
 {% endif %}
-{% if rows %}
-<div class="scroll">
-<table>
-  <thead>
-    <tr><th>Route</th><th>Departure</th><th>Arrival</th><th>Carrier</th><th>Fare</th><th>Price</th></tr>
-  </thead>
-  <tbody>
-  {% for it, fare in rows %}
-    {% set first, last = it.legs[0], it.legs[-1] %}
-    <tr>
-      <td>{{ first.from_name }} → {{ last.to_name }}
-        <div class="muted">{{ it.mode_summary }}, {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }},
-          {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }}</div></td>
-      <td>{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }}</td>
-      <td>{{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%a %d %b %H:%M") }}</td>
-      <td>{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</td>
-      <td>{{ fare.fare_name or "" }}<div class="muted">{{ fare.source }}</div></td>
-      <td class="price">{{ fare.currency }} {{ "%.2f" | format(fare.latest_price) }}</td>
-    </tr>
+<form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-indicator="#table" hx-trigger="input changed delay:150ms, change"
+      oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
+  {% if sort_query.profile %}<input type="hidden" name="profile" value="{{ sort_query.profile }}">{% endif %}
+  <label class="slider"><span>Hour markup €</span><output name="hour_value">{{ weights.hour_markup }}</output>
+    <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
+  <label class="slider"><span>Transfer markup €</span><output name="transfer_value">{{ weights.transfer_markup }}</output>
+    <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
+  <details class="filters" open><summary>Filters</summary>
+    <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
+    <label><input type="checkbox" name="hide_stale" value="true"{% if view.hide_stale %} checked{% endif %}> hide stale</label>
+    <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
+    <input type="hidden" id="view-day" name="day" value="{{ view.day }}">
+    <label class="field">Mode <select name="mode"><option value="">All</option>
+      {% for m in view.modes %}<option value="{{ m }}"{% if m == view.mode %} selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
+    <label class="field">Earliest departure <input type="time" name="earliest_depart" value="{{ view.earliest_depart }}"></label>
+    <label class="field">Latest arrival <input type="time" name="latest_arrive" value="{{ view.latest_arrive }}"></label>
+    <label class="field">Source <select name="source"><option value="">All</option>
+      {% for s in view.sources %}<option value="{{ s }}"{% if s == view.source %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+    <label class="field">Max transfers <input type="number" name="max_transfers" min="0" max="10" step="1" value="{{ view.max_transfers if view.max_transfers is not none else '' }}"></label>
+    <label class="field">Max duration (min) <input type="number" name="max_duration_min" min="0" max="10080" step="1" value="{{ view.max_duration_min if view.max_duration_min is not none else '' }}"></label>
+    <details class="exclude"><summary>Exclude</summary>
+      {% for m in view.modes %}<label><input type="checkbox" name="exclude_mode" value="{{ m }}"{% if m in view.exclude_mode %} checked{% endif %}> {{ m }}</label>{% endfor %}
+      {% for c in view.carriers %}<label><input type="checkbox" name="exclude_carrier" value="{{ c }}"{% if c in view.exclude_carrier %} checked{% endif %}> {{ c }}</label>{% endfor %}
+    </details>
+  </details>
+  <details class="advanced"><summary>Advanced</summary>
+    {% include "weights_advanced.html" %}
+    <fieldset><legend>Profile</legend>
+      <label>Profile name <input type="text" name="name" form="save-profile" required maxlength="100"></label>
+      <button type="submit" form="save-profile">Save as profile</button>
+    </fieldset>
+  </details>
+</form>
+<form id="save-profile" method="post" action="/profiles"
+      onformdata="for (const [k, v] of new FormData(document.querySelector('form.weights'))) event.formData.set(k, v)">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <input type="hidden" name="trip_id" value="{{ trip.id }}">
+</form>
+</details></aside>
+<div class="results">
+{% with oob = false %}{% include "compare_form.html" %}{% endwith %}
+{% if drops %}
+<section class="drops card" id="drops">
+<h2>Price drops</h2>
+<ul>
+{% for d in drops %}
+<li>{{ (d.depart_at | local(d.depart_offset_min or 0)).strftime("%a %d %b %H:%M") if d.depart_at else "" }} {{ d.mode_summary or "" }} · {{ d.source }}: {{ d.fare_name or "" }} · price dropped {{ d.amount | money(d.currency) }} · now {{ d.latest_price | money(d.currency) }}</li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
+{% if trend %}
+<section class="trend card" id="trend">
+<h2>Price trend</h2>
+{% with chart = trend %}
+<svg class="price-chart" viewBox="0 0 {{ chart.width }} {{ chart.height + 14 }}" width="100%" role="img"
+     aria-label="Price trend">
+  {% for line in chart.lines %}
+  <g class="fare-line">
+    <title>{{ line.name }}</title>
+    <polyline fill="none" stroke="currentColor" stroke-width="1.5" points="{{ line.points }}"/>
+    {% for d in line.dots %}
+    <circle cx="{{ d.x }}" cy="{{ d.y }}" r="3"><title>{{ d.title }}</title></circle>
+    {% endfor %}
+  </g>
   {% endfor %}
-  </tbody>
-</table>
+  <text x="0" y="{{ chart.height + 12 }}" font-size="10">low {{ chart.low | money(chart.currency) }}</text>
+  <text x="{{ chart.width }}" y="{{ chart.height + 12 }}" font-size="10" text-anchor="end">high {{ chart.high | money(chart.currency) }}</text>
+</svg>
+{% endwith %}
+</section>
+{% endif %}
+{% if at_target %}
+<section class="drops card" id="at-target">
+<h2>At your target price</h2>
+<ul>
+{% for f in at_target %}
+<li><a href="#it-{{ f.itinerary_id }}">{{ (f.depart_at | local(f.depart_offset_min or 0)).strftime("%a %d %b %H:%M") if f.depart_at else "" }} {{ f.mode_summary or "" }} · {{ f.source }}: {{ f.fare_name or "" }} · {{ f.price | money(f.currency) }}</a></li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
+{% with oob = false %}{% include "trip_days.html" %}{% include "trip_timeline.html" %}{% endwith %}
+<div class="card table-card" id="table">
+{% include "trip_table.html" %}
+</div>
+{# Shows only when a row is ticked (#664): CSS :has() and a counter, no JavaScript. Outside #compare, so the
+   out-of-band swap of that form keeps it. #}
+<div class="compare-bar card" role="region" aria-label="Compare selected">
+  <span class="compare-count"></span>
+  <button class="btn" type="submit" form="compare">{{ ui.icon("git-compare") }}Compare</button>
+</div>
+</div>
 </div>
 {% else %}
-<p>No offers yet. Search on a travel site with the userscript, or send offers to <code>POST /api/ingest</code>.</p>
+<div class="card empty">
+  <p>No offers yet. Search on a travel site with the userscript, or send offers to <code>POST /api/ingest</code>.</p>
+</div>
 {% endif %}
+<script src="/static/row_link.js" defer></script>
 {% endblock %}

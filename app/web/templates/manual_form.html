@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}New offer – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("New offer", back=("/trips/" ~ trip_id, "Trip")) }}
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<form class="card" method="post" action="/trips/{{ trip_id }}/offers/new">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field"><label for="m-price">Price</label><input id="m-price" name="price_amount" required inputmode="decimal" value="{{ values.price_amount or '' }}"></div>
+    <div class="field"><label for="m-currency">Currency</label><input id="m-currency" name="price_currency" maxlength="3" value="{{ values.price_currency or 'EUR' }}"></div>
+    <div class="field"><label for="m-travelers">Price for N travelers</label><input id="m-travelers" name="travelers" type="number" min="1" max="9" step="1" value="{{ values.travelers or '1' }}"></div>
+    <div class="field"><label for="m-fare">Fare name</label><input id="m-fare" name="fare_name" maxlength="100" value="{{ values.fare_name or '' }}"></div>
+    <div class="field"><label for="m-class">Class</label><select id="m-class" name="travel_class">
+      {% for v, label in classes %}<option value="{{ v }}"{% if (values.travel_class or '') == v %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select></div>
+    <div class="field"><label for="m-offset">UTC offset of the times</label><input id="m-offset" name="utc_offset" pattern="[+-][0-9]{2}:[0-9]{2}" value="{{ values.utc_offset or '+01:00' }}"></div>
+  </div>
+  {% for i in legs %}
+  <fieldset><legend>Leg {{ i + 1 }}{% if i > 0 %} (optional){% endif %}</legend>
+    <div class="form-grid">
+      <div class="field wide"><label for="leg{{ i }}-mode">Mode</label><select id="leg{{ i }}-mode" name="leg{{ i }}_mode">
+        {% for m in modes %}<option value="{{ m }}"{% if values['leg%d_mode' % i] == m %} selected{% endif %}>{{ m }}</option>{% endfor %}
+      </select></div>
+      <div class="field"><label for="leg{{ i }}-from">From</label><input id="leg{{ i }}-from" name="leg{{ i }}_from_name" maxlength="200" value="{{ values['leg%d_from_name' % i] or '' }}"></div>
+      <div class="field"><label for="leg{{ i }}-to">To</label><input id="leg{{ i }}-to" name="leg{{ i }}_to_name" maxlength="200" value="{{ values['leg%d_to_name' % i] or '' }}"></div>
+      <div class="field"><label for="leg{{ i }}-depart">Departure</label><input id="leg{{ i }}-depart" type="datetime-local" name="leg{{ i }}_depart_at" value="{{ values['leg%d_depart_at' % i] or '' }}"></div>
+      <div class="field"><label for="leg{{ i }}-arrive">Arrival</label><input id="leg{{ i }}-arrive" type="datetime-local" name="leg{{ i }}_arrive_at" value="{{ values['leg%d_arrive_at' % i] or '' }}"></div>
+    </div>
+  </fieldset>
+  {% endfor %}
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-ghost" href="/trips/{{ trip_id }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

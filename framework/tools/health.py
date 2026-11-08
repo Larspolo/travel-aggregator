@@ -28,13 +28,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from agent_config import CONFIG, first_account, owners  # noqa: E402
 from dashboard import api, closes, merges, owner_work, start_after  # noqa: E402
 from feedback import by_owner  # noqa: E402
-from usage import epic_key  # noqa: E402
+from usage import STRETCH, epic_key  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 CI_JOB_RUNS = 20                          # read the step times of this many CI runs (one API call each)
 DENY = (".log", ".mca", ".png")           # suffixes that do not belong in git ...
-DENY_OK = ("docs/", "samples/")           # ... except .png in these folders
+DENY_OK = tuple(CONFIG.get("git", {}).get("png_ok", ("docs/", "samples/")))  # ... except .png here (#853)
 BIG = 1 << 20
 OWNER = CONFIG["owner"]                   # a reopen by an owner is rework (#899)
 OWNERS = owners(CONFIG)                   # each login of `owners` (#4241)
@@ -90,7 +90,8 @@ def idle_queue(cycles, until):
     not idle (or `until`). The queue stood still for hours on 2026-10-31 while the pacer loop ran (#5199). A paused
     project is not idle. "No work": the hours of the idle cycles with `ready` 0 and `refill` 0, each until the next
     cycle: the queue had no ticket and the refill no source (each ticket waited for the owner, 19.7 h on 2026-11-03,
-    #854), so no fault of the pacer."""
+    #854), so no fault of the pacer. A cycle whose roadmap review waits only for the clock of the idle stretch
+    (`usage.STRETCH`, #491) is idle with work: the review can make new epics."""
     stretches, start, dry = [], None, 0.0
     rows = sorted(cycles, key=lambda c: c["at"])
     for i, c in enumerate(rows):
@@ -101,7 +102,7 @@ def idle_queue(cycles, until):
         elif not idle and start is not None:
             stretches.append((ts(c["at"]) - start).total_seconds() / 3600)
             start = None
-        if idle and not c.get("ready") and not c.get("refill"):
+        if idle and not c.get("ready") and not c.get("refill") and STRETCH not in c.get("line", ""):
             end = ts(rows[i + 1]["at"]) if i + 1 < len(rows) else until
             dry += max(0.0, (end - ts(c["at"])).total_seconds() / 3600)
     if start is not None:
@@ -127,12 +128,13 @@ def held_runs(runs):
 
 
 def slow_steps(jobs, n=3):
-    """[(median min, "job / step")] of the n slowest steps over all jobs (the `jobs` lists of several runs)."""
+    """[(median min, "job / step")] of the n slowest steps over all jobs (the `jobs` lists of several runs). The jobs of
+    a matrix (`browser (1)`, `browser (2)`, #1062) count as one job."""
     times = {}
     for job in jobs:
         for s in job.get("steps", []):
             if s.get("started_at") and s.get("completed_at"):
-                times.setdefault(f"{job['name']} / {s['name']}", []).append(
+                times.setdefault(f"{re.sub(r' [(].*[)]$', '', job['name'])} / {s['name']}", []).append(  # matrix jobs: one key
                     minutes(s["started_at"], s["completed_at"]))
     return sorted(((med(v), k) for k, v in times.items()), reverse=True)[:n]
 
@@ -171,10 +173,13 @@ def claim_to_merge(prs, comments, since):
     return out
 
 
-def bad_files(files):
-    """[(path, bytes)] of the files over 1 MB or with a denied suffix. files: [(path, bytes)]."""
+def bad_files(files, png_ok=None):
+    """[(path, bytes)] of the files over 1 MB or with a denied suffix. files: [(path, bytes)].
+
+    A .png is allowed in the folders of `png_ok` (default: `png_ok` of `[git]` in `agent.toml`, #853)."""
+    ok = DENY_OK if png_ok is None else tuple(png_ok)
     return [(p, size) for p, size in files if size > BIG
-            or (p.endswith(DENY) and not (p.endswith(".png") and p.startswith(DENY_OK)))]
+            or (p.endswith(DENY) and not (p.endswith(".png") and p.startswith(ok)))]
 
 
 # `runs N` since #635 (claim beats); the older `claims N` lines counted too few runs, so they do not count.

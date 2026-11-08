@@ -214,12 +214,12 @@ def ci_wait(pr, checks):
     if "conflict" in {lb["name"] for lb in pr.get("labels") or []}:
         return None
     checks = pr_checks(checks)
-    quick = [c for c in checks if c.get("name") == ship_pr.QUICK]
+    quick = ship_pr.quick_run(checks)   # the parts `quick (1)` and `quick (2)` as one run (#1077)
     if not quick or any(c.get("conclusion") in FAILED for c in checks):
         return None
-    if any(c.get("status") != "completed" for c in quick):
+    if quick.get("status") != "completed":
         return "run"
-    return "green" if all(c.get("conclusion") == "success" for c in quick) else None
+    return "green" if quick.get("conclusion") == "success" else None
 
 
 def head_checks(sha):

@@ -1,0 +1,52 @@
+{% extends "settings_base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Places – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header("Access and egress places", subtitle="Access: from a place to the first station. Egress: from the last station to a place.") }}{% endblock %}
+{% block settings %}
+{% call ui.card("Add a place") %}
+<form method="post" action="/places">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field wide">
+      <label for="place_text">Place</label>
+      <input id="place_text" name="place_text" required maxlength="200" placeholder="home → Amsterdam Centraal">
+    </div>
+    <div class="field wide">
+      <label for="kind">Kind</label>
+      <select id="kind" name="kind">{% for k in kinds %}<option value="{{ k }}">{{ k }}</option>{% endfor %}</select>
+    </div>
+    <div class="field">
+      <label for="minutes">Minutes</label>
+      <input id="minutes" name="minutes" type="number" min="0" step="1" required>
+    </div>
+    <div class="field">
+      <label for="cost">Cost (€)</label>
+      <input id="cost" name="cost" type="number" min="0" step="0.01" value="0">
+    </div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Add place</button></div>
+</form>
+{% endcall %}
+{% call ui.card("Places") %}
+{% if places %}
+<ul class="item-list">
+  {% for p in places %}
+  <li class="item">
+    <div class="item-main">
+      <strong>{{ p.place_text }}</strong> <span class="chip">{{ p.kind }}</span>
+      <p class="item-facts">{{ p.minutes }} min · €{{ p.cost }}</p>
+    </div>
+    <div class="item-actions">
+      <form class="inline-form" method="post" action="/places/{{ p.id }}/delete">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete {{ p.place_text }}" title="Delete {{ p.place_text }}">{{ ui.icon("trash") }}</button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+{% call ui.empty_state("You have no places.") %}<a class="btn" href="#place_text">Add a place</a>{% endcall %}
+{% endif %}
+{% endcall %}
+{% endblock %}

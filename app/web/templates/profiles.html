@@ -1,0 +1,43 @@
+{% extends "settings_base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Profiles – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header("Profiles", subtitle='The weights of the score. One profile is the default. Make a profile here, or save one on a trip page under "Advanced".') }}{% endblock %}
+{% block settings %}
+{% if error %}<p role="alert" class="chip danger">{{ error }}</p>{% endif %}
+{% call ui.card("Profiles") %}
+<p><a class="btn" href="/profiles/new">New profile</a></p>
+{% if rows %}
+<ul class="item-list">
+  {% for p, w in rows %}
+  <li class="item">
+    <div class="item-main">
+      <strong>{{ p.name }}</strong>{% if p.is_default %} <span class="chip good">default</span>{% endif %}
+      <p class="item-facts">€{{ w.hour_markup }}/h{% for after, markup in [(w.hour_tier1_after_min, w.hour_tier1_markup), (w.hour_tier2_after_min, w.hour_tier2_markup)]|sort if after > 0 %} · €{{ markup }}/h after {{ after // 60 }} h{% if after % 60 %} {{ after % 60 }} min{% endif %}{% endfor %} · €{{ w.transfer_markup }} per transfer</p>
+    </div>
+    <div class="item-actions">
+      <a class="btn" href="/profiles/{{ p.id }}">Edit</a>
+      <form class="inline-form rename" method="post" action="/profiles/{{ p.id }}/rename">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <div class="field">
+          <label for="name-{{ p.id }}">Name</label>
+          <input id="name-{{ p.id }}" name="name" required maxlength="100" value="{{ p.name }}">
+        </div>
+        <button class="btn" type="submit">Rename</button>
+      </form>
+      {% if not p.is_default %}<form class="inline-form" method="post" action="/profiles/{{ p.id }}/default">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <button class="btn" type="submit">Set default</button>
+      </form>{% endif %}
+      <form class="inline-form" method="post" action="/profiles/{{ p.id }}/delete">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete {{ p.name }}" title="Delete {{ p.name }}">{{ ui.icon("trash") }}</button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+{% call ui.empty_state("You have no profiles.") %}<a class="btn btn-primary" href="/">Open a trip</a>{% endcall %}
+{% endif %}
+{% endcall %}
+{% endblock %}

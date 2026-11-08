@@ -1,0 +1,900 @@
+{
+  "url": "https://www.sncf-connect.com/bff/api/v1/itineraries",
+  "method": "POST",
+  "request": {
+    "schedule": {
+      "outward": {
+        "date": "2026-12-01T06:00:00.000Z",
+        "arrivalAt": false
+      }
+    },
+    "mainJourney": {
+      "origin": {
+        "label": "Paris",
+        "id": "CITY_FR_6455259",
+        "codes": [
+          {
+            "type": "RESARAIL",
+            "value": "FRPAR"
+          }
+        ],
+        "geolocation": false
+      },
+      "destination": {
+        "label": "Lyon",
+        "id": "CITY_FR_6454573",
+        "geolocation": false,
+        "codes": []
+      }
+    }
+  },
+  "response": {
+    "longDistance": {
+      "proposals": {
+        "proposals": [
+          {
+            "globalTimeline": {
+              "steps": [
+                {
+                  "onBoarding": {
+                    "onBoardingLabel": "Accueil embarquement jusqu'à 2 min avant le départ",
+                    "onBoardingTimeLabel": "06:18",
+                    "onBoardingTimeImpactedByDisruptionLabel": ""
+                  }
+                },
+                {
+                  "train": {
+                    "departure": {
+                      "stationCode": "",
+                      "stationLabel": "Paris - Gare De Lyon - Hall 1 & 2",
+                      "isStationLinkDisplayed": false,
+                      "timeLabel": "06:20"
+                    },
+                    "arrival": {
+                      "stationCode": "",
+                      "stationLabel": "Lyon Part Dieu",
+                      "isStationLinkDisplayed": false,
+                      "timeLabel": "08:22"
+                    },
+                    "duration": {
+                      "label": "2h02",
+                      "labelImpactedByDisruption": ""
+                    },
+                    "transporter": {
+                      "modeIcon": {
+                        "iconGroup": "Transports",
+                        "iconName": "train"
+                      },
+                      "logo": "tgv_inoui",
+                      "number": "n° 6641",
+                      "referenceLabel": "n° 6641",
+                      "description": "TGV INOUI",
+                      "semanticDescription": "TGV INOUI"
+                    },
+                    "onBoardServices": [
+                      {
+                        "code": "WIFI",
+                        "label": "Wifi à bord",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "wifi"
+                        }
+                      },
+                      {
+                        "code": "VOITURE_BAR",
+                        "label": "Voiture bar",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "bar"
+                        }
+                      },
+                      {
+                        "code": "VELO_PAYANT",
+                        "label": "Espace vélo payant",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "bike"
+                        }
+                      },
+                      {
+                        "code": "NURSERIE",
+                        "label": "Espace nurserie",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "nursery"
+                        }
+                      },
+                      {
+                        "code": "HANDICAPE",
+                        "label": "Accessible voyageurs handicapés",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "accessibility"
+                        }
+                      },
+                      {
+                        "code": "ACCESSIBLE_TOILET_WITHOUT_GYRATION",
+                        "label": "Toilettes PMR sans giration",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "toilette_partial"
+                        }
+                      }
+                    ],
+                    "seatAssignments": [],
+                    "stops": [
+                      {
+                        "location": {
+                          "label": "Le Creusot - Montceau-Les-Mines - Montchanin TGV",
+                          "labelComplement": "RESARAIL_STA_8769410",
+                          "coordinates": {
+                            "latitude": 46.76533889770508,
+                            "longitude": 4.499433994293213
+                          }
+                        }
+                      }
+                    ],
+                    "tripIv": {
+                      "disruptions": {
+                        "messages": []
+                      },
+                      "vehicleDetails": {
+                        "screenTitle": "",
+                        "request": {
+                          "number": "6641",
+                          "date": "2026-12-01",
+                          "origin": "RESARAIL_STA_8768600",
+                          "destination": "RESARAIL_STA_8772319"
+                        }
+                      },
+                      "upcomingTripSeatsWithCoachLabels": []
+                    },
+                    "states": [],
+                    "segmentIcons": []
+                  }
+                }
+              ]
+            },
+            "departure": {
+              "originStationLabel": "Paris - Gare De Lyon - Hall 1 & 2",
+              "timeLabel": "06:20",
+              "dateLabel": "Aller : Mar. 1 déc.",
+              "displayDisabilityAssistance": false
+            },
+            "arrival": {
+              "destinationStationLabel": "Lyon Part Dieu",
+              "timeLabel": "08:22",
+              "dateLabel": "Mar. 1 déc.",
+              "displayDisabilityAssistance": false
+            },
+            "durationLabel": "2h02",
+            "transporterDescription": "Direct TGV INOUI",
+            "status": {
+              "isBookable": true
+            },
+            "travelId": "2026-12-01T06:20_6641",
+            "firstComfortClassOffers": {
+              "title": "1re classe",
+              "offers": [
+                {
+                  "comfortClass": {
+                    "code": "FIRST",
+                    "label": "1re classe",
+                    "accessibilityLabel": "1re classe"
+                  },
+                  "priceLabel": "55 €",
+                  "header": {
+                    "title": "1re classe",
+                    "accessibilityTitle": "1re classe",
+                    "subtitle": "Tarif Standard Première",
+                    "type": "FIRST"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "55 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "TGV INOUI",
+                          "transporterSemanticName": "TGV INOUI",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "6641",
+                          "comfort": "1re",
+                          "fareName": "Tarif STANDARD PREMIÈRE",
+                          "fareSemanticConditions": "Billet échangeable (avec ajustement au tarif en vigueur) et remboursable sans frais jusqu’à J-7. A partir de J-6 et jusqu’au départ:  19€ de frais sur TGV et 40% du prix (max 15€) sur Intercités. Dès 30 min avant départ, billet échangeable une seule fois et non remboursable ensuite. ",
+                          "price": "55 €",
+                          "segmentIcons": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "comfortClass": {
+                    "code": "FIRST",
+                    "label": "Tarif Flex Première",
+                    "accessibilityLabel": "Tarif Flex Première"
+                  },
+                  "priceLabel": "160 €",
+                  "header": {
+                    "title": "Tarif Flex Première",
+                    "accessibilityTitle": "Tarif Flex Première",
+                    "type": "PRO"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "160 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "TGV INOUI",
+                          "transporterSemanticName": "TGV INOUI",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "6641",
+                          "comfort": "1re",
+                          "fareName": "Tarif FLEX PREMIÈRE",
+                          "fareSemanticConditions": "Echange et remboursement sans frais jusqu'à 30 min après départ. Dès 30 min avant départ, billet échangeable 1 fois max et non remboursable après 1 échange. Si emprunt d’un autre train, échange obligatoire. ",
+                          "price": "160 €",
+                          "segmentIcons": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "comfortClass": {
+                    "code": "FIRST",
+                    "label": "OPTIMUM PLUS",
+                    "accessibilityLabel": "OPTIMUM PLUS"
+                  },
+                  "priceLabel": "180 €",
+                  "header": {
+                    "title": "OPTIMUM PLUS",
+                    "accessibilityTitle": "OPTIMUM PLUS",
+                    "type": "PRO"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "180 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "TGV INOUI",
+                          "transporterSemanticName": "TGV INOUI",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "6641",
+                          "comfort": "1re",
+                          "fareName": "Tarif OPTIMUM PLUS",
+                          "fareSemanticConditions": "Echange et remboursement sans frais jusqu'à 30 min après départ. Dès 30 min avant départ, billet échangeable 1 fois max et non remboursable après 1 échange. Si emprunt d’un autre train, échange obligatoire. \nLa Restauration est incluse dans le prix du billet mais ne pourra pas être assurée en cas d'échange sur train complet. Ce billet permet d'accéder à un Service Client Dédié via bot.tgvinoui.sncf, rubrique OPTIMUM. ",
+                          "price": "180 €",
+                          "segmentIcons": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "secondComfortClassOffers": {
+              "title": "2de classe",
+              "offers": [
+                {
+                  "comfortClass": {
+                    "code": "SECOND",
+                    "label": "2de classe",
+                    "accessibilityLabel": "Seconde classe"
+                  },
+                  "priceLabel": "47 €",
+                  "header": {
+                    "title": "2de classe",
+                    "accessibilityTitle": "Seconde classe",
+                    "subtitle": "Tarif Standard Seconde",
+                    "type": "SECOND"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "47 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "TGV INOUI",
+                          "transporterSemanticName": "TGV INOUI",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "6641",
+                          "comfort": "2de",
+                          "fareName": "Tarif STANDARD SECONDE",
+                          "fareSemanticConditions": "Billet échangeable (avec ajustement au tarif en vigueur) et remboursable sans frais jusqu’à J-7. A partir de J-6 et jusqu’au départ:  19€ de frais sur TGV et 40% du prix (max 15€) sur Intercités. Dès 30 min avant départ, billet échangeable une seule fois et non remboursable ensuite. ",
+                          "price": "47 €",
+                          "segmentIcons": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "globalTimeline": {
+              "steps": [
+                {
+                  "onBoarding": {
+                    "onBoardingLabel": "Accueil embarquement jusqu'à 2 min avant le départ",
+                    "onBoardingTimeLabel": "07:32",
+                    "onBoardingTimeImpactedByDisruptionLabel": ""
+                  }
+                },
+                {
+                  "train": {
+                    "departure": {
+                      "stationCode": "",
+                      "stationLabel": "Paris - Gare De Lyon - Hall 1 & 2",
+                      "isStationLinkDisplayed": false,
+                      "timeLabel": "07:34"
+                    },
+                    "arrival": {
+                      "stationCode": "",
+                      "stationLabel": "Lyon Part Dieu",
+                      "isStationLinkDisplayed": false,
+                      "timeLabel": "12:44"
+                    },
+                    "duration": {
+                      "label": "5h10",
+                      "labelImpactedByDisruption": ""
+                    },
+                    "transporter": {
+                      "modeIcon": {
+                        "iconGroup": "Transports",
+                        "iconName": "transilien_simple"
+                      },
+                      "logo": "ter",
+                      "number": "n° 17769",
+                      "operatedBy": "Opéré par SNCF VOYAGEURS 1187",
+                      "referenceLabel": "n° 17769",
+                      "description": "Train TER",
+                      "semanticDescription": "Train T E R"
+                    },
+                    "onBoardServices": [
+                      {
+                        "code": "VELO_GRATUIT",
+                        "label": "Espace vélo gratuit",
+                        "description": "Une réservation peut être nécessaire.",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "bike"
+                        }
+                      }
+                    ],
+                    "seatAssignments": [],
+                    "stops": [
+                      {
+                        "location": {
+                          "label": "Sens",
+                          "labelComplement": "RESARAIL_STA_8768300",
+                          "coordinates": {
+                            "latitude": 48.19786071777344,
+                            "longitude": 3.2678310871124268
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Joigny",
+                          "labelComplement": "RESARAIL_STA_8768324",
+                          "coordinates": {
+                            "latitude": 47.97385787963867,
+                            "longitude": 3.392996072769165
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Laroche - Migennes",
+                          "labelComplement": "RESARAIL_STA_8768326",
+                          "coordinates": {
+                            "latitude": 47.961002349853516,
+                            "longitude": 3.513190984725952
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Saint-Florentin - Vergigny",
+                          "labelComplement": "RESARAIL_STA_8768331",
+                          "coordinates": {
+                            "latitude": 47.981056213378906,
+                            "longitude": 3.7310359477996826
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Tonnerre",
+                          "labelComplement": "RESARAIL_STA_8771319",
+                          "coordinates": {
+                            "latitude": 47.859378814697266,
+                            "longitude": 3.9735469818115234
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Nuits Sous Ravieres",
+                          "labelComplement": "RESARAIL_STA_8771315",
+                          "coordinates": {
+                            "latitude": 47.729305267333984,
+                            "longitude": 4.21170711517334
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Montbard",
+                          "labelComplement": "RESARAIL_STA_8771313",
+                          "coordinates": {
+                            "latitude": 47.618736267089844,
+                            "longitude": 4.336207866668701
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Les Laumes - Alesia",
+                          "labelComplement": "RESARAIL_STA_8771311",
+                          "coordinates": {
+                            "latitude": 47.54305648803711,
+                            "longitude": 4.462604999542236
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Dijon",
+                          "labelComplement": "RESARAIL_STA_8771304",
+                          "coordinates": {
+                            "latitude": 47.32341384887695,
+                            "longitude": 5.027253150939941
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Beaune",
+                          "labelComplement": "RESARAIL_STA_8771354",
+                          "coordinates": {
+                            "latitude": 47.023014068603516,
+                            "longitude": 4.848422050476074
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Chagny",
+                          "labelComplement": "RESARAIL_STA_8771357",
+                          "coordinates": {
+                            "latitude": 46.90742111206055,
+                            "longitude": 4.749611854553223
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Chalon-Sur-Saone",
+                          "labelComplement": "RESARAIL_STA_8772500",
+                          "coordinates": {
+                            "latitude": 46.7816276550293,
+                            "longitude": 4.843478202819824
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Tournus",
+                          "labelComplement": "RESARAIL_STA_8772562",
+                          "coordinates": {
+                            "latitude": 46.56672286987305,
+                            "longitude": 4.906564235687256
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Macon",
+                          "labelComplement": "RESARAIL_STA_8772568",
+                          "coordinates": {
+                            "latitude": 46.302574157714844,
+                            "longitude": 4.824888229370117
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Belleville Sur Saone",
+                          "labelComplement": "RESARAIL_STA_8772135",
+                          "coordinates": {
+                            "latitude": 46.11194610595703,
+                            "longitude": 4.72900915145874
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Villefranche-Sur-Saone",
+                          "labelComplement": "RESARAIL_STA_8772133",
+                          "coordinates": {
+                            "latitude": 45.98448181152344,
+                            "longitude": 4.720801830291748
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "label": "Saint-Germain-Au-Mont-d'Or",
+                          "labelComplement": "RESARAIL_STA_8772128",
+                          "coordinates": {
+                            "latitude": 45.888431549072266,
+                            "longitude": 4.804203987121582
+                          }
+                        }
+                      }
+                    ],
+                    "tripIv": {
+                      "disruptions": {
+                        "messages": []
+                      },
+                      "vehicleDetails": {
+                        "screenTitle": "",
+                        "request": {
+                          "number": "17769",
+                          "date": "2026-12-01",
+                          "origin": "RESARAIL_STA_8768600",
+                          "destination": "RESARAIL_STA_8772319"
+                        }
+                      },
+                      "upcomingTripSeatsWithCoachLabels": []
+                    },
+                    "states": [],
+                    "segmentIcons": []
+                  }
+                }
+              ]
+            },
+            "departure": {
+              "originStationLabel": "Paris - Gare De Lyon - Hall 1 & 2",
+              "timeLabel": "07:34",
+              "dateLabel": "Aller : Mar. 1 déc.",
+              "displayDisabilityAssistance": false
+            },
+            "arrival": {
+              "destinationStationLabel": "Lyon Part Dieu",
+              "timeLabel": "12:44",
+              "dateLabel": "Mar. 1 déc.",
+              "displayDisabilityAssistance": false
+            },
+            "durationLabel": "5h10",
+            "transporterDescription": "Direct TER",
+            "status": {
+              "isBookable": true
+            },
+            "travelId": "2026-12-01T07:34_17769",
+            "firstComfortClassOffers": {
+              "title": "1re classe",
+              "offers": []
+            },
+            "secondComfortClassOffers": {
+              "title": "2de classe",
+              "offers": [
+                {
+                  "comfortClass": {
+                    "code": "SECOND",
+                    "label": "2de classe",
+                    "accessibilityLabel": "Seconde classe"
+                  },
+                  "priceLabel": "65,60 €",
+                  "header": {
+                    "title": "2de classe",
+                    "accessibilityTitle": "Seconde classe",
+                    "subtitle": "Billet Tarif Normal Inter-Régional Aura Bfc",
+                    "type": "SECOND"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "65,60 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "Train TER",
+                          "transporterSemanticName": "Train T E R",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "n° 17769",
+                          "comfort": "2de",
+                          "fareName": "Billet Tarif normal Inter-Régional AURA BFC",
+                          "fareSemanticConditions": "Valable sur T E R uniquement\npour la date de voyage choisie.\nNon échangeable. Remboursable jusqu'à \nla veille du Départ auprès du canal d'achat. ",
+                          "price": "65,60 €",
+                          "segmentIcons": [],
+                          "operatedBy": "Opéré par SNCF VOYAGEURS 1187"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "globalTimeline": {
+              "steps": [
+                {
+                  "onBoarding": {
+                    "onBoardingLabel": "Accueil embarquement jusqu'à 2 min avant le départ",
+                    "onBoardingTimeLabel": "06:58",
+                    "onBoardingTimeImpactedByDisruptionLabel": ""
+                  }
+                },
+                {
+                  "train": {
+                    "departure": {
+                      "stationCode": "",
+                      "stationLabel": "Paris - Gare De Lyon - Hall 1 & 2",
+                      "isStationLinkDisplayed": false,
+                      "timeLabel": "07:00"
+                    },
+                    "arrival": {
+                      "stationCode": "",
+                      "stationLabel": "Lyon Part Dieu",
+                      "isStationLinkDisplayed": false,
+                      "timeLabel": "08:56"
+                    },
+                    "duration": {
+                      "label": "1h56",
+                      "labelImpactedByDisruption": ""
+                    },
+                    "transporter": {
+                      "modeIcon": {
+                        "iconGroup": "Transports",
+                        "iconName": "train"
+                      },
+                      "logo": "tgv_inoui",
+                      "number": "n° 6603",
+                      "referenceLabel": "n° 6603",
+                      "description": "TGV INOUI",
+                      "semanticDescription": "TGV INOUI"
+                    },
+                    "onBoardServices": [
+                      {
+                        "code": "WIFI",
+                        "label": "Wifi à bord",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "wifi"
+                        }
+                      },
+                      {
+                        "code": "VOITURE_BAR",
+                        "label": "Voiture bar",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "bar"
+                        }
+                      },
+                      {
+                        "code": "VELO_PAYANT",
+                        "label": "Espace vélo payant",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "bike"
+                        }
+                      },
+                      {
+                        "code": "NURSERIE",
+                        "label": "Espace nurserie",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "nursery"
+                        }
+                      },
+                      {
+                        "code": "HANDICAPE",
+                        "label": "Accessible voyageurs handicapés",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "accessibility"
+                        }
+                      },
+                      {
+                        "code": "ACCESSIBLE_TOILET_WITHOUT_GYRATION",
+                        "label": "Toilettes PMR sans giration",
+                        "icon": {
+                          "iconGroup": "Services",
+                          "iconName": "toilette_partial"
+                        }
+                      }
+                    ],
+                    "seatAssignments": [],
+                    "stops": [],
+                    "tripIv": {
+                      "disruptions": {
+                        "messages": []
+                      },
+                      "vehicleDetails": {
+                        "screenTitle": "",
+                        "request": {
+                          "number": "6603",
+                          "date": "2026-12-01",
+                          "origin": "RESARAIL_STA_8768600",
+                          "destination": "RESARAIL_STA_8772319"
+                        }
+                      },
+                      "upcomingTripSeatsWithCoachLabels": []
+                    },
+                    "states": [],
+                    "segmentIcons": []
+                  }
+                }
+              ]
+            },
+            "departure": {
+              "originStationLabel": "Paris - Gare De Lyon - Hall 1 & 2",
+              "timeLabel": "07:00",
+              "dateLabel": "Aller : Mar. 1 déc.",
+              "displayDisabilityAssistance": false
+            },
+            "arrival": {
+              "destinationStationLabel": "Lyon Part Dieu",
+              "timeLabel": "08:56",
+              "dateLabel": "Mar. 1 déc.",
+              "displayDisabilityAssistance": false
+            },
+            "durationLabel": "1h56",
+            "transporterDescription": "Direct TGV INOUI",
+            "status": {
+              "isBookable": true
+            },
+            "travelId": "2026-12-01T07:00_6603",
+            "firstComfortClassOffers": {
+              "title": "1re classe",
+              "offers": [
+                {
+                  "comfortClass": {
+                    "code": "FIRST",
+                    "label": "1re classe",
+                    "accessibilityLabel": "1re classe"
+                  },
+                  "priceLabel": "74 €",
+                  "header": {
+                    "title": "1re classe",
+                    "accessibilityTitle": "1re classe",
+                    "subtitle": "Tarif Standard Première",
+                    "type": "FIRST"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "74 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "TGV INOUI",
+                          "transporterSemanticName": "TGV INOUI",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "6603",
+                          "comfort": "1re",
+                          "fareName": "Tarif STANDARD PREMIÈRE",
+                          "fareSemanticConditions": "Billet échangeable (avec ajustement au tarif en vigueur) et remboursable sans frais jusqu’à J-7. A partir de J-6 et jusqu’au départ:  19€ de frais sur TGV et 40% du prix (max 15€) sur Intercités. Dès 30 min avant départ, billet échangeable une seule fois et non remboursable ensuite. ",
+                          "price": "74 €",
+                          "segmentIcons": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "comfortClass": {
+                    "code": "FIRST",
+                    "label": "Tarif Flex Première",
+                    "accessibilityLabel": "Tarif Flex Première"
+                  },
+                  "priceLabel": "160 €",
+                  "header": {
+                    "title": "Tarif Flex Première",
+                    "accessibilityTitle": "Tarif Flex Première",
+                    "type": "PRO"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "160 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "TGV INOUI",
+                          "transporterSemanticName": "TGV INOUI",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "6603",
+                          "comfort": "1re",
+                          "fareName": "Tarif FLEX PREMIÈRE",
+                          "fareSemanticConditions": "Echange et remboursement sans frais jusqu'à 30 min après départ. Dès 30 min avant départ, billet échangeable 1 fois max et non remboursable après 1 échange. Si emprunt d’un autre train, échange obligatoire. ",
+                          "price": "160 €",
+                          "segmentIcons": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "comfortClass": {
+                    "code": "FIRST",
+                    "label": "OPTIMUM PLUS",
+                    "accessibilityLabel": "OPTIMUM PLUS"
+                  },
+                  "priceLabel": "180 €",
+                  "header": {
+                    "title": "OPTIMUM PLUS",
+                    "accessibilityTitle": "OPTIMUM PLUS",
+                    "type": "PRO"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "180 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "TGV INOUI",
+                          "transporterSemanticName": "TGV INOUI",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "6603",
+                          "comfort": "1re",
+                          "fareName": "Tarif OPTIMUM PLUS",
+                          "fareSemanticConditions": "Echange et remboursement sans frais jusqu'à 30 min après départ. Dès 30 min avant départ, billet échangeable 1 fois max et non remboursable après 1 échange. Si emprunt d’un autre train, échange obligatoire. \nLa Restauration est incluse dans le prix du billet mais ne pourra pas être assurée en cas d'échange sur train complet. Ce billet permet d'accéder à un Service Client Dédié via bot.tgvinoui.sncf, rubrique OPTIMUM. ",
+                          "price": "180 €",
+                          "segmentIcons": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "secondComfortClassOffers": {
+              "title": "2de classe",
+              "offers": [
+                {
+                  "comfortClass": {
+                    "code": "SECOND",
+                    "label": "2de classe",
+                    "accessibilityLabel": "Seconde classe"
+                  },
+                  "priceLabel": "56 €",
+                  "header": {
+                    "title": "2de classe",
+                    "accessibilityTitle": "Seconde classe",
+                    "subtitle": "Tarif Standard Seconde",
+                    "type": "SECOND"
+                  },
+                  "travelersFares": [
+                    {
+                      "travelerDescription": "30 - 59 ans",
+                      "priceLabel": "56 €",
+                      "segmentFares": [
+                        {
+                          "transporterName": "TGV INOUI",
+                          "transporterSemanticName": "TGV INOUI",
+                          "transporterType": "TRAIN",
+                          "transporterDescription": "6603",
+                          "comfort": "2de",
+                          "fareName": "Tarif STANDARD SECONDE",
+                          "fareSemanticConditions": "Billet échangeable (avec ajustement au tarif en vigueur) et remboursable sans frais jusqu’à J-7. A partir de J-6 et jusqu’au départ:  19€ de frais sur TGV et 40% du prix (max 15€) sur Intercités. Dès 30 min avant départ, billet échangeable une seule fois et non remboursable ensuite. ",
+                          "price": "56 €",
+                          "segmentIcons": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "status": "RESULTS"
+    }
+  }
+}

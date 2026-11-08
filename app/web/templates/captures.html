@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Captures{% if trip %} · {{ trip.title }}{% endif %} · travel-aggregator{% endblock %}
+{% block content %}
+{% set base = '/trips/' ~ trip.id ~ '/captures' if trip else '/captures' %}
+{% call ui.page_header("Captures of " ~ trip.title if trip else "Captures of all trips", back=("/trips/" ~ trip.id, "Back to the trip") if trip else none) %}
+  {% set src = "source=" ~ (source | urlencode) if source else "" %}
+  {% if failed %}<a class="btn" href="{{ base }}{% if src %}?{{ src }}{% endif %}">Show all captures</a>{% else %}<a class="btn" href="{{ base }}?{% if src %}{{ src }}&amp;{% endif %}failed=1">Only failed captures</a>{% endif %}
+{% endcall %}
+{% if source %}<p>Source: {{ source }} · <a href="{{ base }}{% if failed %}?failed=1{% endif %}">All sources</a></p>{% endif %}
+{% for entry in failed_sources %}{% set source = entry.source %}
+<p id="reparse-source-{{ loop.index }}"><button name="source" value="{{ source }}" hx-post="/captures/reparse-failed"
+  hx-vals='{{ {"source": source} | tojson }}' hx-target="#reparse-source-{{ loop.index }}"
+  hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse all failed captures of {{ source }}</button>
+  <a class="report-link" href="{{ entry.report_url }}" target="_blank" rel="noopener">Report on GitHub</a></p>
+{% endfor %}
+{% if sources %}
+<section class="card data-card" id="source-health"><h2>Sources</h2><div class="scroll" tabindex="0" role="region" aria-label="Sources"><table>
+  <thead><tr><th>Source</th><th>Last good capture</th><th>Parser</th><th>Failed after it</th></tr></thead>
+  <tbody>
+  {% for s in sources %}
+  <tr class="source-row"><td class="source-name">{{ s.source }}</td>
+    <td>{% if s.last_good_at %}<time datetime="{{ s.last_good_at.isoformat() }}" title="{{ s.last_good_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ s.last_good_at | ago(now) }}</time>{% else %}never{% endif %}</td>
+    <td>{{ s.parser_version or "-" }}</td>
+    <td>{% if s.failed_after %}<span class="chip danger">{{ s.failed_after }}</span>{% else %}0{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></section>
+{% endif %}
+{% if captures %}
+<section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Captures"><table>
+  <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
+  <tbody>
+  {% for c in captures %}
+  <tr>
+    {% if not trip %}<td><a href="/trips/{{ c.trip_id }}">{{ trip_titles[c.trip_id] }}</a></td>{% endif %}
+    <td><time datetime="{{ c.captured_at.isoformat() }}" title="{{ c.captured_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ c.captured_at | ago(now) }}</time></td><td>{{ c.source }}{% if c.travelers %}<br><small class="capture-travelers">{{ c.travelers }} traveler{{ "s" if c.travelers != 1 }}</small>{% endif %}</td><td>{{ c.parser_version or "-" }}</td>
+    <td>{{ c.offer_count if c.offer_count is not none else "-" }}</td>
+    <td>{{ c.rejected_count if c.rejected_count is not none else "-" }}</td>
+    {% set failed = c.unreadable or (c.rejected_count or 0) > 0 %}
+    {% if failed %}
+    <td class="capture-failed"><details><summary><span class="chip danger">failed</span></summary>
+      <ul>{% if c.unreadable %}<li>{{ c.unreadable }}</li>{% endif %}{% for e in c.errors_json or [] %}<li>offer {{ e.index }}: {{ e.reason }}</li>{% endfor %}</ul>
+    </details></td>
+    {% else %}
+    <td>{% if c.offer_count is none %}-{% else %}<span class="chip good">ok</span>{% endif %}</td>
+    {% endif %}
+    <td>{% if c.mismatch == "travelers" %}<span class="trip-mismatch">These offers are for {{ c.travelers }} traveler{{ "s" if c.travelers != 1 }}; the trip has {{ trip_travelers.get(c.trip_id) }}</span>{% elif c.mismatch %}<span class="trip-mismatch">These offers do not match the trip</span>{% else %}-{% endif %}</td>
+    <td>{{ "yes" if c.raw_gz is not none else "no" }}</td>
+    <td id="reparse-{{ c.id }}">{% if c.raw_gz is not none %}<button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
+      hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse capture</button>{% endif %}</td>
+    <td id="move-{{ c.id }}">{% set targets = move_trips | rejectattr("id", "equalto", c.trip_id) | list %}{% if c.raw_gz is not none and targets %}<form class="move-capture" hx-post="/captures/{{ c.id }}/move" hx-target="#move-{{ c.id }}"
+      hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'><select name="trip_id" aria-label="Trip to move to">{% for t in targets %}<option value="{{ t.id }}">{{ t.title }}</option>{% endfor %}</select>
+      <button type="submit">Move to trip</button></form>{% endif %}</td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table></div></section>
+{% elif failed %}
+{{ ui.empty_state("No failed captures.") }}
+{% elif source %}
+{{ ui.empty_state("No captures of this source.") }}
+{% else %}
+{% call ui.empty_state("No captures yet") %}<a class="btn btn-primary" href="/tokens">Install the userscripts</a>{% endcall %}
+{% endif %}
+{% endblock %}

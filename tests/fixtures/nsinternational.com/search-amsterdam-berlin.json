@@ -1,0 +1,888 @@
+{
+  "request": {
+    "origin": "NLASC",
+    "destination": "DEBHF",
+    "travelers": [
+      {
+        "ageType": "A"
+      }
+    ],
+    "outboundDatetime": {
+      "datetime": "2026-11-26T07:00:00",
+      "timetype": "DEPARTURE"
+    }
+  },
+  "response": {
+    "status": "success",
+    "data": {
+      "messages": [],
+      "travelOffers": [
+        {
+          "id": "811bd1a14415e51646a1173b70607127cebe76096923c9195bb402f0335d4768",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "Berlin Hbf",
+              "code": "DEBHG",
+              "alias": "Berlijn Centraal",
+              "country": "DE",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T14:26:00",
+                "delay": "PT0S",
+                "platform": "1",
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "duration": "PT7H48M",
+            "id": "811bd1a14415e51646a1173b70607127cebe76096923c9195bb402f0335d4768",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "ICE",
+                "name": "ICE",
+                "number": "121",
+                "features": []
+              },
+              {
+                "type": "TRAIN",
+                "code": "ICE",
+                "name": "ICE",
+                "number": "545",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 1,
+            "origin": {
+              "name": "Amsterdam Centraal",
+              "code": "NLASC",
+              "alias": "Amsterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T06:38:00",
+                "delay": "PT0S",
+                "platform": "2b",
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_NF_202611260638_94da909ccd6924d5d12a59b2d4ab87136d724eb8e5548495ab915c4aa6115bba",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 107.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 114.89,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 107.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_NF_202611260638_0f01c8dd8afafb7614c6e4d317ac0a105192ff6fc46903249c7a5368dce3627d",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 77.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 83.49,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 77.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_MF_202611260638_0620808f6ab667ede4bde92838e9fec6d8a0781d56d4a929aab80c1cc0fc15a8",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 120.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 127.89,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 120.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_MF_202611260638_c29053e32d80f15a37601b3c11fc55e59be2aac701dd999ebaa8f47360798df7",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 86.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 92.49,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 86.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611260638_e6f7d1498ac0d574161abd6201fe12ce7da94d53d7e06d0a098da9639334f419",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 358.2,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 358.2,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 358.2,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_FF_202611260638_3420c868fd26a68d3f2f32bd1cda52d889eba3f7ab1ce48eb2b0175c79240ca2",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 198.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 204.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 198.8,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            }
+          ],
+          "messages": []
+        },
+        {
+          "id": "11951f9c326cd0a99f231cbd24051af778d8b31e5cb13050c231c2f651abd633",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "Berlin Hbf",
+              "code": "DEBHG",
+              "alias": "Berlijn Centraal",
+              "country": "DE",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T15:18:00",
+                "delay": "PT0S",
+                "platform": "2",
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "duration": "PT7H18M",
+            "id": "11951f9c326cd0a99f231cbd24051af778d8b31e5cb13050c231c2f651abd633",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "ICE",
+                "name": "ICE",
+                "number": "143",
+                "features": []
+              },
+              {
+                "type": "TRAIN",
+                "code": "ICE",
+                "name": "ICE",
+                "number": "847",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 1,
+            "origin": {
+              "name": "Amsterdam Centraal",
+              "code": "NLASC",
+              "alias": "Amsterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T08:00:00",
+                "delay": "PT0S",
+                "platform": "8b",
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_NF_202611260800_94da909ccd6924d5d12a59b2d4ab87136d724eb8e5548495ab915c4aa6115bba",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 133.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 140.89,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 133.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_NF_202611260800_0f01c8dd8afafb7614c6e4d317ac0a105192ff6fc46903249c7a5368dce3627d",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 89.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 95.49,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 89.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_MF_202611260800_0620808f6ab667ede4bde92838e9fec6d8a0781d56d4a929aab80c1cc0fc15a8",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 148.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 155.89,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 148.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_MF_202611260800_c29053e32d80f15a37601b3c11fc55e59be2aac701dd999ebaa8f47360798df7",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 98.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 104.49,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 98.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611260800_e6f7d1498ac0d574161abd6201fe12ce7da94d53d7e06d0a098da9639334f419",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 324.6,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 324.6,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 324.6,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_FF_202611260800_3420c868fd26a68d3f2f32bd1cda52d889eba3f7ab1ce48eb2b0175c79240ca2",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 181.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 187.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 181.8,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            }
+          ],
+          "messages": []
+        },
+        {
+          "id": "50af5bb50794cc53b8bf456847ce8a9de13be1818a4c7189dfdc315669835924",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "Berlin Hbf",
+              "code": "DEBHG",
+              "alias": "Berlijn Centraal",
+              "country": "DE",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-11-26T16:26:00",
+                "delay": "PT0S",
+                "platform": "1",
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "duration": "PT7H55M",
+            "id": "50af5bb50794cc53b8bf456847ce8a9de13be1818a4c7189dfdc315669835924",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "ICE",
+                "name": "ICE",
+                "number": "225",
+                "features": []
+              },
+              {
+                "type": "TRAIN",
+                "code": "ICE",
+                "name": "ICE",
+                "number": "547",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 1,
+            "origin": {
+              "name": "Amsterdam Centraal",
+              "code": "NLASC",
+              "alias": "Amsterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-11-26T08:31:00",
+                "delay": "PT0S",
+                "platform": "5",
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "1_NF_202611260831_94da909ccd6924d5d12a59b2d4ab87136d724eb8e5548495ab915c4aa6115bba",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 135.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 142.89,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 135.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_NF_202611260831_0f01c8dd8afafb7614c6e4d317ac0a105192ff6fc46903249c7a5368dce3627d",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 99.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 105.49,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 99.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_MF_202611260831_0620808f6ab667ede4bde92838e9fec6d8a0781d56d4a929aab80c1cc0fc15a8",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 150.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 157.89,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 150.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_MF_202611260831_c29053e32d80f15a37601b3c11fc55e59be2aac701dd999ebaa8f47360798df7",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 108.99,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 114.49,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 108.99,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "1_FF_202611260831_e6f7d1498ac0d574161abd6201fe12ce7da94d53d7e06d0a098da9639334f419",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 358.2,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 358.2,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 358.2,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_FF_202611260831_3420c868fd26a68d3f2f32bd1cda52d889eba3f7ab1ce48eb2b0175c79240ca2",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 198.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 204.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCDEBHG",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 198.8,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "COLLECTIVE",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            }
+          ],
+          "messages": []
+        }
+      ],
+      "scroll": {
+        "searchId": "travel_04122687-36d3-4a2d-bfe8-6110b7058d91",
+        "earlier": "PREV_DEPARTURE",
+        "later": "NEXT_DEPARTURE"
+      },
+      "newOutboundTravelOfferId": null,
+      "newOutboundOfferId": null
+    }
+  }
+}

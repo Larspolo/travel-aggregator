@@ -1,0 +1,24 @@
+{% extends "settings_base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Add a website – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header("Add a website", subtitle="Ask for a userscript and a parser of a new travel site.") }}{% endblock %}
+{% block settings %}
+<form class="card" method="get" action="/sources/new">
+  <div class="form-grid">
+    <div class="field wide"><label for="s-site">Website</label><input id="s-site" name="site" value="{{ site }}" placeholder="www.example.com"></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Update the link</button></div>
+</form>
+{% call ui.card("Steps") %}
+<ol>
+  <li>Open the website and do a search for a trip.</li>
+  <li>Open the developer tools (F12) and select the tab "Network".</li>
+  <li>Reload the page and wait until the results show.</li>
+  <li>Right-click a request and select "Save all as HAR". Use the option "sanitized" if your browser has it.</li>
+  <li>Open the HAR file in a text editor and remove cookies, tokens, names, e-mail addresses and booking codes.
+      The issue is public.</li>
+  <li><a id="issue-link" href="{{ issue_url }}" target="_blank" rel="noopener">Open a new GitHub issue</a>,
+      drag the HAR file into the text, and submit the issue. The agent then writes the userscript and the parser.</li>
+</ol>
+{% endcall %}
+{% endblock %}
