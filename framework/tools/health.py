@@ -128,12 +128,13 @@ def held_runs(runs):
 
 
 def slow_steps(jobs, n=3):
-    """[(median min, "job / step")] of the n slowest steps over all jobs (the `jobs` lists of several runs)."""
+    """[(median min, "job / step")] of the n slowest steps over all jobs (the `jobs` lists of several runs). The jobs of
+    a matrix (`browser (1)`, `browser (2)`, #1062) count as one job."""
     times = {}
     for job in jobs:
         for s in job.get("steps", []):
             if s.get("started_at") and s.get("completed_at"):
-                times.setdefault(f"{job['name']} / {s['name']}", []).append(
+                times.setdefault(f"{re.sub(r' [(].*[)]$', '', job['name'])} / {s['name']}", []).append(  # matrix jobs: one key
                     minutes(s["started_at"], s["completed_at"]))
     return sorted(((med(v), k) for k, v in times.items()), reverse=True)[:n]
 

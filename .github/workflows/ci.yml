@@ -41,9 +41,16 @@ jobs:
   # check with touch (tests/test_mobile_touch.py), and the userscripts on local test pages (never a travel site, P1).
   # They gate each PR: no person checks what this job can check (owner, 2026-11-07). The job is not named `slow`,
   # because the pacer and Automerge do not count a job `slow` (#5462).
+  # Two jobs, each with one part of the slow tests (whole files, tests/shard.py): one job took 3.0 min (median of 100
+  # PRs) and the merge of each PR waits for it (#1062). The check runs are `browser (1)` and `browser (2)`: the gate
+  # `browser` of agent.toml covers both (framework/tools/ship_pr.py).
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     services:
       postgres:
         image: postgres:16
@@ -64,13 +71,13 @@ jobs:
       - run: python3 -m pip install --quiet --disable-pip-version-check --root-user-action=ignore -r requirements-dev.txt
       - run: python3 -m playwright install --with-deps chromium
       - name: Browser tests
-        run: python3 -m pytest -m slow -n auto
+        run: python3 -m pytest -m slow -n auto --shard ${{ matrix.shard }}/2 --durations=10
         env:
           SCREENSHOT_DIR: screenshots
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: screenshots
+          name: screenshots-${{ matrix.shard }}
           path: screenshots/
           if-no-files-found: ignore
 
