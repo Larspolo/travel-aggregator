@@ -48,6 +48,13 @@ class Weights:
     stale_hours: int = 24
     # The penalty of a stale row (#276): added to its cost; 0 disables it.
     stale_penalty: Decimal = Decimal("0")
+    # The hour tiers (#1014, marginal like tax brackets): from `after_min` of an active tier, each minute costs the
+    # markup of that tier; `hour_markup` is the rate before the first active tier. An `after_min` of 0 disables the
+    # tier. The night part (#143) stays night minutes × (night_hour_markup − hour_markup) / 60.
+    hour_tier1_after_min: int = 0
+    hour_tier1_markup: Decimal = Decimal("0")
+    hour_tier2_after_min: int = 0
+    hour_tier2_markup: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
@@ -66,6 +73,19 @@ class Breakdown:
 
 def _cents(value: Decimal) -> Decimal:
     return value.quantize(CENT, rounding=ROUND_HALF_EVEN)
+
+
+def time_cost_raw(duration_min: int, weights: Weights) -> Decimal:
+    """The unrounded time cost: each minute at the rate of its band (#1014); with no tier, minutes × hour_markup / 60."""
+    tiers = sorted((a, Decimal(m)) for a, m in ((weights.hour_tier1_after_min, weights.hour_tier1_markup),
+                                                (weights.hour_tier2_after_min, weights.hour_tier2_markup)) if a > 0)
+    bands = [(0, Decimal(weights.hour_markup))] + tiers
+    total = Decimal("0")
+    for i, (start, rate) in enumerate(bands):
+        end = bands[i + 1][0] if i + 1 < len(bands) else None
+        minutes = max(0, (duration_min if end is None else min(duration_min, end)) - start)
+        total += Decimal(minutes) * rate
+    return total / 60  # multiply first: exact halves
 
 
 def effective_cost(
@@ -90,7 +110,7 @@ def effective_cost(
         if value < 0:
             raise ValueError(f"{name} must not be negative: {value}")
     price_part = _cents(Decimal(price))
-    time_part = _cents(Decimal(duration_min) * weights.hour_markup / 60)  # multiply first: exact halves
+    time_part = _cents(time_cost_raw(duration_min, weights))
     transfer_part = _cents(Decimal(transfers) * weights.transfer_markup)
     extra_parts = tuple((label, _cents(Decimal(amount))) for label, amount in extras)
     total = price_part + time_part + transfer_part + sum((amount for _, amount in extra_parts), Decimal("0"))

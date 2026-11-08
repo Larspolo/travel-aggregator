@@ -294,7 +294,11 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  train_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  bus_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  flight_markup: Decimal | None = Query(None, ge=-1000, le=1000),
-                 ferry_markup: Decimal | None = Query(None, ge=-1000, le=1000)) -> dict:
+                 ferry_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 hour_tier1_after_min: int | None = Query(None, ge=0, le=2880),
+                 hour_tier1_markup: Decimal | None = Query(None, ge=0, le=100),
+                 hour_tier2_after_min: int | None = Query(None, ge=0, le=2880),
+                 hour_tier2_markup: Decimal | None = Query(None, ge=0, le=100)) -> dict:
     """The weights of the URL; None = not in the URL, the profile gives the value (#230)."""
     return dict(locals())
 
@@ -642,6 +646,10 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       self_transfer_penalty: Decimal = Form(Weights.self_transfer_penalty, ge=0, le=1000),
                       stale_hours: int = Form(Weights.stale_hours, ge=1, le=720),
                       stale_penalty: Decimal = Form(Weights.stale_penalty, ge=0, le=1000),
+                      hour_tier1_after_min: int = Form(Weights.hour_tier1_after_min, ge=0, le=2880),
+                      hour_tier1_markup: Decimal = Form(Weights.hour_tier1_markup, ge=0, le=100),
+                      hour_tier2_after_min: int = Form(Weights.hour_tier2_after_min, ge=0, le=2880),
+                      hour_tier2_markup: Decimal = Form(Weights.hour_tier2_markup, ge=0, le=100),
                       session: Session = Depends(get_session)) -> RedirectResponse:
     """Store the present weights of the trip page as a named profile (#229); the same ranges as `trip_page`."""
     if session.get(Trip, trip_id) is None:
@@ -657,7 +665,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       flex_partly_refundable=flex_partly_refundable, flex_flexible=flex_flexible,
                       first_class_hour=first_class_hour,
                       self_transfer_penalty=self_transfer_penalty, stale_hours=stale_hours,
-                      stale_penalty=stale_penalty)
+                      stale_penalty=stale_penalty, hour_tier1_after_min=hour_tier1_after_min,
+                      hour_tier1_markup=hour_tier1_markup, hour_tier2_after_min=hour_tier2_after_min,
+                      hour_tier2_markup=hour_tier2_markup)
     save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
@@ -673,6 +683,8 @@ WEIGHT_RANGES = {
     "flight_markup": (-1000, 1000), "ferry_markup": (-1000, 1000), "flex_non_refundable": (-1000, 1000),
     "flex_partly_refundable": (-1000, 1000), "flex_flexible": (-1000, 1000), "first_class_hour": (-1000, 1000),
     "self_transfer_penalty": (0, 1000), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
+    "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),
+    "hour_tier2_markup": (0, 100),
 }
 
 

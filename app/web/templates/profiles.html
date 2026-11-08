@@ -12,7 +12,7 @@
   <li class="item">
     <div class="item-main">
       <strong>{{ p.name }}</strong>{% if p.is_default %} <span class="chip good">default</span>{% endif %}
-      <p class="item-facts">€{{ w.hour_markup }}/h · €{{ w.transfer_markup }} per transfer</p>
+      <p class="item-facts">€{{ w.hour_markup }}/h{% for after, markup in [(w.hour_tier1_after_min, w.hour_tier1_markup), (w.hour_tier2_after_min, w.hour_tier2_markup)]|sort if after > 0 %} · €{{ markup }}/h after {{ after // 60 }} h{% if after % 60 %} {{ after % 60 }} min{% endif %}{% endfor %} · €{{ w.transfer_markup }} per transfer</p>
     </div>
     <div class="item-actions">
       <a class="btn" href="/profiles/{{ p.id }}">Edit</a>
