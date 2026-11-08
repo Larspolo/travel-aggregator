@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
-from app.models import Capture, Fare, FarePrice, Itinerary, Leg, Trip
+from app.models import Capture, DayPrice, Fare, FarePrice, Itinerary, Leg, Trip
 from app.parsers import count, get_parser
 from app.parsers.ns import CHANGE_STATION
 from app.tripmatch import best_trip, mismatch, suggest_trip, travelers_text
@@ -186,18 +186,35 @@ def capture_travelers(capture: Capture, parsed: int | None) -> int | None:
     return parsed if parsed is not None else count(ctx.get("travelers") if isinstance(ctx, dict) else None)
 
 
-def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None, int | None]:
+def store_day_prices(session: Session, trip_id: int, capture_id: int | None, day_prices: list, *, source: str,
+                     captured_at: datetime) -> None:
+    """Upsert the day prices of a parse (#1197): one row per source, trip and day. A capture at the same time or
+    later replaces the price; an older capture (a reparse of an old capture) does not."""
+    for dp in day_prices:
+        row = session.scalar(select(DayPrice).where(DayPrice.source == source, DayPrice.trip_id == trip_id,
+                                                    DayPrice.day == dp.day))
+        if row is None:
+            session.add(DayPrice(source=source, trip_id=trip_id, day=dp.day, price=dp.price_amount,
+                                 currency=dp.price_currency, captured_at=captured_at, capture_id=capture_id))
+        elif row.captured_at <= captured_at:
+            row.price, row.currency = dp.price_amount, dp.price_currency
+            row.captured_at, row.capture_id = captured_at, capture_id
+    session.flush()
+
+
+def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None, int | None, list]:
     """The offers and the rejected connections of the raw payload, by the parser of the source (none when the source
     has no parser). The third value is the reason when the parser cannot read the payload as a whole (P3): the
-    capture is stored anyway, with the offers of the body. The fourth value is the traveler count (#764)."""
+    capture is stored anyway, with the offers of the body. The fourth value is the traveler count (#764), the fifth
+    the day prices (#1197)."""
     parser = get_parser(body.source)
     if body.raw is None or parser is None:
-        return [], [], None, None
+        return [], [], None, None, []
     try:
         result = parser.parse(body.raw)
     except ValueError as e:
-        return [], [], str(e)[:200], None
-    return result.offers, result.errors, None, result.travelers
+        return [], [], str(e)[:200], None, []
+    return result.offers, result.errors, None, result.travelers, result.day_prices
 
 
 def set_result(capture: Capture, counts: dict, errors: list[dict], unreadable: str | None) -> None:
@@ -228,6 +245,8 @@ def reparse(session: Session, capture: Capture) -> dict | None:
         return {**counts, "rejected": 0, "unreadable": str(e)[:200]}
     counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
                            captured_at=capture.captured_at)
+    store_day_prices(session, capture.trip_id, capture.id, result.day_prices, source=capture.source,
+                     captured_at=capture.captured_at)
     set_result(capture, counts, result.errors, None)
     capture.travelers = capture_travelers(capture, result.travelers)
     capture.mismatch = _trip_mismatch(session, capture.trip_id, result.offers, capture.travelers)
@@ -326,7 +345,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors", "warning", "trip_id", "trip_title"}: the
     errors are the offers that the schema or the parser rejected, with their index (#54). Each failure is logged
     with the capture id (P3)."""
-    raw_offers, raw_errors, unreadable, travelers = parse_raw(body)
+    raw_offers, raw_errors, unreadable, travelers, day_prices = parse_raw(body)
     trip_id = _choose_trip(session, body, list(body.offers) + raw_offers)
     before = _best(session, trip_id)
     capture = store_capture(session, trip_id, body)
@@ -340,6 +359,8 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
                     body.parser_version or "-", err.get("index"), err.get("reason"))
     counts = upsert_offers(session, trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at, drops=drops)
+    store_day_prices(session, trip_id, capture.id, day_prices, source=body.source,
+                     captured_at=body.captured_at)
     set_result(capture, counts, errors, unreadable)
     capture.travelers = capture_travelers(capture, travelers)
     reason = _trip_mismatch(session, trip_id, offers, capture.travelers)
