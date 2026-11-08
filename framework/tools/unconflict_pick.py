@@ -22,6 +22,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from cycle_start import AGENT  # noqa: E402  (the branches of agent PRs, #3382)
 from dashboard import api  # noqa: E402
+from ship_pr import quick_green  # noqa: E402
 
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 YOUNG = 300                             # seconds: the run that pushed the head can still merge main itself
@@ -85,8 +86,8 @@ def main():
     main_runs = [(r["conclusion"], r["created_at"]) for r in runs
                  if r["event"] != "schedule" and r["conclusion"] in ("success", "failure")]
     head = git("rev-parse", "origin/main").stdout.strip()
-    checks = api(f"commits/{head}/check-runs?check_name=quick")["check_runs"]
-    green = any(c["conclusion"] == "success" for c in checks) or bool(main_runs and main_runs[0][0] == "success")
+    checks = api(f"commits/{head}/check-runs?per_page=100")["check_runs"]   # the parts `quick (K)` too (#1077)
+    green = quick_green(checks) or bool(main_runs and main_runs[0][0] == "success")
     recent = {}
     if green:                                       # the newest run of each head, newest first (#3685)
         for r in api("actions/workflows/ci.yml/runs?per_page=100")["workflow_runs"]:

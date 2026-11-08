@@ -43,6 +43,7 @@ from agent_config import CONFIG  # noqa: E402
 
 push = merge_main.push
 QUICK = "quick"                                     # the check of ci.yml that Automerge waits for
+QUICK_PARTS = 2   # the matrix `shard` of the job quick of ci.yml (#1077): the check runs `quick (1)` and `quick (2)`
 GATES = tuple(CONFIG.get("ci", {}).get("gates", ()))   # `[ci] gates` of agent.toml: the other checks of ci.yml
 #                         that Automerge needs green (#221; none: only `quick`). Red after a green quick CI, the
 #                         wait for the merge ended at the time limit with "Automerge merges it", and a cold run took
@@ -134,9 +135,33 @@ def state(number, tries=6, wait=5):
     return "unknown"
 
 
-def quick(sha, name=QUICK):
-    """The check run `name` (default `quick`) of commit `sha`, or None (not queued yet)."""
-    return next(iter(dashboard.api(f"commits/{sha}/check-runs?check_name={name}").get("check_runs", [])), None)
+def quick(sha):
+    """The check run `quick` of commit `sha` (its parts as one run: `quick_run`), or None (not queued yet)."""
+    return quick_run(dashboard.api(f"commits/{sha}/check-runs?per_page=100&filter=latest").get("check_runs", []))
+
+
+def quick_run(runs):
+    """One check run for the parts of the job `quick` in `runs` (newest first, the check runs of one commit), or None
+    (not queued yet). The job is a matrix of QUICK_PARTS jobs, `quick (1)` and `quick (2)` (#1077); an older commit
+    has one check run `quick`. A failed part first (its id gives the failed steps), then a part that still runs, then
+    a part with another conclusion than success (for example cancelled), else a green part. A missing part of the
+    matrix is "not queued yet": the result is green only when all parts are green."""
+    newest = {}
+    for c in runs:                                  # the first run of each name counts (a re-run is newer)
+        if gate(c.get("name")) == QUICK:
+            newest.setdefault(c.get("name"), c)
+    parts = list(newest.values())
+    if not parts or (QUICK not in newest and len(parts) < QUICK_PARTS):
+        return None
+    rank = lambda c: (0 if c.get("status") == "completed" and c.get("conclusion") == "failure" else
+                      1 if c.get("status") != "completed" else 2 if c.get("conclusion") != "success" else 3)
+    return min(parts, key=rank)
+
+
+def quick_green(runs):
+    """True when all parts of the job `quick` in `runs` passed (`quick_run`)."""
+    c = quick_run(runs)
+    return bool(c) and c.get("status") == "completed" and c.get("conclusion") == "success"
 
 
 def red_gate(sha):
@@ -153,7 +178,8 @@ def red_gate(sha):
 
 
 def gate(name):
-    """The job of a check run: `browser (2)`, a job of a matrix, is the gate `browser` (#1062)."""
+    """The job of a check run: `browser (2)`, a job of a matrix, is the gate `browser` (#1062), and `quick (1)` is
+    the job `quick` (#1077)."""
     return re.sub(r" \(.*\)$", "", name or "")
 
 
@@ -167,7 +193,7 @@ def failures(check):
 
 
 def wait_ci(sha, deadline, get=quick, now=time.monotonic, sleep=time.sleep):
-    """The completed check run `quick` of `sha`, or None at the deadline (a `now` time)."""
+    """The completed check run `quick` of `sha` (all its parts, `quick_run`), or None at the deadline (a `now` time)."""
     while True:
         c = get(sha)
         if c and c["status"] == "completed":
