@@ -78,4 +78,17 @@
 {% endif %}
 </div>
 {% endcall %}
+
+{% call ui.card("Recent logins") %}
+{% set labels = {"ok": ("login", ""), "code": ("login with code", ""), "recovery": ("recovery code", ""),
+                 "failed": ("failed", "warn"), "code-failed": ("failed (code)", "warn")} %}
+{% if logins %}
+<ul class="login-log">
+{% for row in logins %}{% set label = labels.get(row.result, (row.result, "")) %}
+<li>{{ row.at.strftime("%Y-%m-%d %H:%M") }} UTC · {{ row.address }} · {{ row.user_agent | browser }}
+  <span class="chip{% if label[1] %} {{ label[1] }}{% endif %}">{{ label[0] }}</span></li>
+{% endfor %}
+</ul>
+{% else %}<p>No logins yet.</p>{% endif %}
+{% endcall %}
 {% endblock %}
