@@ -43,7 +43,7 @@
 {% endif %}
 {% if captures %}
 <section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Captures"><table>
-  <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
+  <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Check the price</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
   <tbody>
   {% for c in captures %}
   <tr>
@@ -59,6 +59,7 @@
     {% else %}
     <td>{% if c.offer_count is none %}-{% else %}<span class="chip good">ok</span>{% endif %}</td>
     {% endif %}
+    <td>{% if c.offer_count is none %}-{% elif suspect_counts.get(c.id) %}<span class="warn">{{ suspect_counts[c.id] }}</span>{% else %}0{% endif %}</td>
     <td>{% if c.mismatch == "travelers" %}<span class="trip-mismatch">These offers are for {{ c.travelers }} traveler{{ "s" if c.travelers != 1 }}; the trip has {{ trip_travelers.get(c.trip_id) }}</span>{% elif c.mismatch %}<span class="trip-mismatch">These offers do not match the trip</span>{% else %}-{% endif %}</td>
     <td>{% if c.raw_gz is not none %}<a class="raw-link" href="/captures/{{ c.id }}/raw">Raw</a>{% else %}No raw payload{% endif %}</td>
     <td id="reparse-{{ c.id }}">{% if c.raw_gz is not none %}<button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
