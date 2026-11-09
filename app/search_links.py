@@ -11,6 +11,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from urllib.parse import quote, urlsplit, urlunsplit
 
+from app.trips import alt_places
+
 DATA_FILE = Path(__file__).parent / "data" / "search_links.toml"
 
 
@@ -60,11 +62,27 @@ def links_by_source(trip) -> dict[str, tuple[str, str | None]]:
             for key, s in load_sources().items()}
 
 
+def _pairs(trip) -> list[tuple[str | None, str | None]]:
+    """The (origin, destination) pairs of `trip` (#1424): the main pair first, then each other pair of the
+    origins and the destinations with their alternative places, with no pair twice."""
+    origins = [getattr(trip, "origin_text", None), *alt_places(getattr(trip, "origin_alt_text", None))]
+    destinations = [getattr(trip, "destination_text", None), *alt_places(getattr(trip, "destination_alt_text", None))]
+    pairs = [(origins[0], destinations[0])]
+    pairs += [(o, d) for o in origins for d in destinations if o and d]
+    return list(dict.fromkeys(pairs))
+
+
 def links_for_trip(trip) -> list[tuple[str, str]]:
-    """The (source name, search link) pairs of `trip`. A source with no template, or no value for a place of the trip, gives no link."""
+    """The (source name, search link) pairs of `trip`. The main pair gives the source name; each other pair
+    (#1424) gives "name: origin → destination". A source with no template, or no value for a place, gives no link."""
     links = []
     for source in load_sources().values():
-        url = _trip_link(source, trip)
-        if url:
-            links.append((source["name"], url))
+        for index, (origin, destination) in enumerate(_pairs(trip)):
+            pair = SimpleNamespace(origin_text=origin, destination_text=destination,
+                                   date_from=getattr(trip, "date_from", None))
+            url = _trip_link(source, pair)
+            if not url:
+                continue
+            name = source["name"] if index == 0 else f"{source['name']}: {origin} → {destination}"
+            links.append((name, url))
     return links
