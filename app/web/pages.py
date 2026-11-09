@@ -41,6 +41,7 @@ from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
+from app.co2 import co2_extras
 from app.tradeoff import break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
@@ -394,6 +395,11 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  train_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  bus_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  flight_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 co2_price_kg: Decimal | None = Query(None, ge=0, le=100),
+                 co2_train_kg_h: Decimal | None = Query(None, ge=0, le=1000),
+                 co2_bus_kg_h: Decimal | None = Query(None, ge=0, le=1000),
+                 co2_flight_kg_h: Decimal | None = Query(None, ge=0, le=1000),
+                 co2_ferry_kg_h: Decimal | None = Query(None, ge=0, le=1000),
                  ferry_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  hour_tier1_after_min: int | None = Query(None, ge=0, le=2880),
                  hour_tier1_markup: Decimal | None = Query(None, ge=0, le=100),
@@ -455,6 +461,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     travelers = it.trip.travelers if fees else 1  # the trip is read only when a fee can add a part
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
             + night_extras(it, weights) + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
+            + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
             + transfer_extras(it, weights) + stale_extras(it, weights, stale_before))
     def cost(f):
@@ -902,6 +909,11 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       bus_markup: Decimal = Form(Weights.bus_markup, ge=-1000, le=1000),
                       flight_markup: Decimal = Form(Weights.flight_markup, ge=-1000, le=1000),
                       ferry_markup: Decimal = Form(Weights.ferry_markup, ge=-1000, le=1000),
+                      co2_price_kg: Decimal = Form(Weights.co2_price_kg, ge=0, le=100),
+                      co2_train_kg_h: Decimal = Form(Weights.co2_train_kg_h, ge=0, le=1000),
+                      co2_bus_kg_h: Decimal = Form(Weights.co2_bus_kg_h, ge=0, le=1000),
+                      co2_flight_kg_h: Decimal = Form(Weights.co2_flight_kg_h, ge=0, le=1000),
+                      co2_ferry_kg_h: Decimal = Form(Weights.co2_ferry_kg_h, ge=0, le=1000),
                       flex_non_refundable: Decimal = Form(Weights.flex_non_refundable, ge=-1000, le=1000),
                       flex_partly_refundable: Decimal = Form(Weights.flex_partly_refundable, ge=-1000, le=1000),
                       flex_flexible: Decimal = Form(Weights.flex_flexible, ge=-1000, le=1000),
@@ -925,7 +937,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       overnight_min=overnight_min, overnight_cost=overnight_cost, wait_hour_markup=wait_hour_markup,
                       short_transfer_min=short_transfer_min, short_transfer_penalty=short_transfer_penalty,
                       train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
-                      ferry_markup=ferry_markup, flex_non_refundable=flex_non_refundable,
+                      ferry_markup=ferry_markup, co2_price_kg=co2_price_kg, co2_train_kg_h=co2_train_kg_h,
+                      co2_bus_kg_h=co2_bus_kg_h, co2_flight_kg_h=co2_flight_kg_h, co2_ferry_kg_h=co2_ferry_kg_h,
+                      flex_non_refundable=flex_non_refundable,
                       flex_partly_refundable=flex_partly_refundable, flex_flexible=flex_flexible,
                       first_class_hour=first_class_hour,
                       self_transfer_penalty=self_transfer_penalty, stale_hours=stale_hours,
@@ -946,6 +960,8 @@ WEIGHT_RANGES = {
     "night_hour_markup": (0, 100), "short_transfer_min": (0, 240),
     "short_transfer_penalty": (0, 1000), "train_markup": (-1000, 1000), "bus_markup": (-1000, 1000),
     "flight_markup": (-1000, 1000), "ferry_markup": (-1000, 1000), "flex_non_refundable": (-1000, 1000),
+    "co2_price_kg": (0, 100), "co2_train_kg_h": (0, 1000), "co2_bus_kg_h": (0, 1000),
+    "co2_flight_kg_h": (0, 1000), "co2_ferry_kg_h": (0, 1000),
     "flex_partly_refundable": (-1000, 1000), "flex_flexible": (-1000, 1000), "first_class_hour": (-1000, 1000),
     "self_transfer_penalty": (0, 1000), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
     "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),

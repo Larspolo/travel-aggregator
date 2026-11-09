@@ -12,7 +12,8 @@ NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide
          "baggage_fee", "early_limit", "late_limit", "time_window_penalty", "night_start", "night_end", "night_min",
          "night_adjust", "overnight_min", "overnight_cost", "wait_hour_markup", "night_hour_markup", "short_transfer_min", "short_transfer_penalty", "stale_hours",
          "stale_penalty", "hour_tier1_after_min", "hour_tier1_markup", "hour_tier2_after_min", "hour_tier2_markup",
-         "train_markup", "bus_markup", "flight_markup", "ferry_markup", "flex_non_refundable",
+         "train_markup", "bus_markup", "flight_markup", "ferry_markup", "co2_price_kg", "co2_train_kg_h",
+         "co2_bus_kg_h", "co2_flight_kg_h", "co2_ferry_kg_h", "flex_non_refundable",
          "flex_partly_refundable", "flex_flexible", "first_class_hour", "self_transfer_penalty", "exclude_mode", "exclude_carrier"}
 
 
@@ -31,7 +32,7 @@ def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  
     assert re.findall(r"<fieldset><legend>([^<]+)</legend>", advanced) == GROUPS
     fieldsets = re.findall(r"<fieldset>.*?</fieldset>", advanced, flags=re.S)
     outside = re.sub(r"<fieldset>.*?</fieldset>", "", advanced, flags=re.S)
-    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 32
+    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 37
 
 
 def test_each_input_name_of_the_form_is_still_sent(trip):  # noqa: F811

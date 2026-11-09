@@ -29,6 +29,12 @@ class Weights:
     # The overnight stop (#1256): a transfer with at least overnight_min night minutes adds overnight_cost.
     overnight_min: int = 240
     overnight_cost: Decimal = Decimal("0")
+    # The CO₂ part (#1416): € per kg of CO₂ (0 disables it), and kg of CO₂ per hour and traveler per mode.
+    co2_price_kg: Decimal = Decimal("0")
+    co2_train_kg_h: Decimal = Decimal("3")
+    co2_bus_kg_h: Decimal = Decimal("2")
+    co2_flight_kg_h: Decimal = Decimal("90")
+    co2_ferry_kg_h: Decimal = Decimal("3")
     # The wait before the "arrive by" time of the trip (#1295): € per hour; 0 disables it.
     wait_hour_markup: Decimal = Decimal("0")
     # The hour markup inside the night window (#143); None = the same as hour_markup.
