@@ -8,6 +8,7 @@ max_ci_queue = 5                # flow brake: at this many queued CI runs the pa
 refill_runs = 3                 # the most refill runs at one time: one per 4 missing tickets (`usage.refill_count`)
 refill_tickets = 4              # the ready tickets that one refill run adds: more missing tickets, more refill runs
 refill_minutes = 20             # a refill lock this young: its run still makes tickets, so it counts as a refill run
+epic_hold_hours = 3             # a single epic check waits this long for a 2nd epic or other refill work, if R > 0 (#1596)
 weights = { haiku = 0.25, deep = 4.0 }   # a lane run in Opus runs (start value); deep: high effort
 reserved = ["haiku", "deep"]    # lanes whose tickets Opus runs never take; with deep, only deep runs do the reviews and the refill
 pacer = "workflow"              # pacer.yml starts the runs (framework/tools/pacer.py); another value stops its loop
