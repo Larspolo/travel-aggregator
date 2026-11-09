@@ -10,8 +10,9 @@ from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a f
 pytestmark = pytest.mark.slow
 
 # 1280 px: the height of the open part was 1987 px with one label per line; the grid makes it at least 40 % shorter (#668).
-# The limit grows with the inputs at the same density: 1192 px for 25 inputs; the hour tiers (#1014) added 4, the overnight stop (#1256) 2.
-MAX_HEIGHT = 1192 * 31 // 25
+# The limit grows with the inputs at the same density: 1192 px for 25 inputs; the hour tiers (#1014) added 4, the overnight stop (#1256) 2,
+# the CO₂ weights (#1416) 5.
+MAX_HEIGHT = 1192 * 36 // 25
 
 # The labels that overlap another label of their fieldset, and the inputs that are wider than their label.
 LAYOUT = """() => {
