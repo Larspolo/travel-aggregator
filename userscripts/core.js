@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 15;
+const CORE_VERSION = 16;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -164,6 +164,15 @@ const CORE_VERSION = 15;
     const q = gm.getValue("queue", []);
     return Array.isArray(q) ? q : [];
   };
+  // The queue as status text (#1664): "3 captures wait (oldest 12 min)", "1 capture waits". The age comes from the
+  // oldest item with a valid captured_at; an item without one counts but gives no age.
+  const queueText = () => {
+    const q = loadQueue();
+    const n = q.length;
+    const times = q.map((item) => Date.parse(item && item.captured_at)).filter((t) => Number.isFinite(t));
+    const age = times.length ? ` (oldest ${Math.max(0, Math.floor((Date.now() - Math.min(...times)) / 60000))} min)` : "";
+    return n === 1 ? `1 capture waits${age}` : `${n} captures wait${age}`;
+  };
   const tripId = () => {
     const id = Number(gm.getValue("trip", 0));
     return Number.isInteger(id) && id > 0 ? id : null;
@@ -219,7 +228,7 @@ const CORE_VERSION = 15;
       return Promise.resolve("retry");
     }
     return new Promise((resolve) => {
-      const fail = () => { panel.setStatus("Send failed: kept in the queue", "error"); resolve("retry"); };
+      const fail = () => { panel.setStatus(`Send failed: ${queueText()}, kept in the queue`, "error"); resolve("retry"); };
       gm.request({
         method: "POST",
         url: server + "/api/ingest",
@@ -457,7 +466,7 @@ const CORE_VERSION = 15;
       const item = Object.assign({}, payload, id ? { trip_id: id } : {}, autoTrip() ? { auto_trip: true } : {});
       gm.setValue("queue", loadQueue().concat([item]));
       if (!autoSend()) {
-        panel.setStatus(`Captured ${count(item)} offers: ${loadQueue().length} waiting, press Send`, "info");
+        panel.setStatus(`Captured ${count(item)} offers: ${queueText()}, press Send`, "info");
         return Promise.resolve();
       }
       return flush();
