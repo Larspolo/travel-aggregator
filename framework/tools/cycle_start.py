@@ -294,9 +294,16 @@ def checkout(remote="origin", branch=None):
 OWNER_CHECK = re.compile(r"^\s*[-*]\s*After\s+((?:#\d+[,\s]*(?:and\s+)?)+):\s*(.+)$", re.I)
 
 
+def _owner_check_sub(sub):
+    """True for a sub-issue that is an owner check: `needs-human`, `owner-sample`, or an open `check` (#1547)."""
+    labels = dashboard.labels(sub)
+    return "needs-human" in labels or "owner-sample" in labels or ("check" in labels and sub.get("state") == "open")
+
+
 def owner_check_missing(issues, sub_issues_of):
     """Lines for the open epics with an `## Owner checks` line `- After #a, #b: ...` whose tickets are all closed
-    (not in `issues`, the open issues) and that have no sub-issue with `needs-human` (#1342: `report.md`)."""
+    (not in `issues`, the open issues) and that have no owner check sub-issue (#1342: `report.md`). An owner check sub-issue
+    has `needs-human`, or the label `owner-sample` (closed on the evidence of an agent, #1547), or is an open `check`."""
     out = []
     for n, i in sorted(issues.items()):
         if "epic" not in dashboard.labels(i):
@@ -309,7 +316,7 @@ def owner_check_missing(issues, sub_issues_of):
             c = OWNER_CHECK.match(line)
             if c and not any(int(t) in issues for t in re.findall(r"#(\d+)", c[1])):
                 ready.append(line.strip().lstrip("-* ").strip())
-        if not ready or any("needs-human" in dashboard.labels(s) for s in sub_issues_of(n) or []):
+        if not ready or any(_owner_check_sub(s) for s in sub_issues_of(n) or []):
             continue
         out += [f"#{n} {i['title']}: no owner check ticket for \"{r}\": make it (`report.md`)" for r in ready]
     return out
