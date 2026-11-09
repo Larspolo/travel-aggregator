@@ -62,7 +62,7 @@ def test_failed_captures_warn_on_the_trips_list_and_link_to_them(trip, tmp_path)
 
             page.goto(f"{base}/captures")
             bahn_row = page.locator("#source-health tr.source-row", has_text="bahn.de")
-            assert bahn_row.locator("td").nth(2).inner_text() == "1.0.0"
+            assert bahn_row.locator("td").nth(2).inner_text().splitlines()[0] == "1.0.0"  # #1495: then the old-userscript chip
 
             _post(client, auth, tid, BAHN, 5, "1.0.0", [offer("89.90")])
             page.goto(f"{base}/")

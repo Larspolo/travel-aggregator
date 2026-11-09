@@ -27,16 +27,36 @@ def source_health(session: Session) -> list[dict]:
     good = (select(Capture.source, Capture.captured_at, Capture.parser_version)
             .where(_good_clause()).distinct(Capture.source)
             .order_by(Capture.source, Capture.captured_at.desc(), Capture.id.desc())).subquery()
+    newest = (select(Capture.source, Capture.parser_version)
+              .distinct(Capture.source)
+              .order_by(Capture.source, Capture.captured_at.desc(), Capture.id.desc())).subquery()
     query = (select(Capture.source, func.max(Capture.captured_at).label("last_at"),
+                    func.max(newest.c.parser_version).label("script_version"),
                     func.max(good.c.captured_at).label("last_good_at"),
                     func.max(good.c.parser_version).label("parser_version"),
                     func.count(Capture.id).filter(failed_clause(), or_(good.c.captured_at.is_(None),
                                                                        Capture.captured_at > good.c.captured_at))
                     .label("failed_after"))
              .outerjoin(good, good.c.source == Capture.source)
+             .outerjoin(newest, newest.c.source == Capture.source)
              .group_by(Capture.source).order_by(Capture.source))
     return [{"source": r.source, "last_good_at": r.last_good_at, "parser_version": r.parser_version,
-             "failed_after": r.failed_after, "last_at": r.last_at} for r in session.execute(query)]
+             "failed_after": r.failed_after, "last_at": r.last_at, "script_version": r.script_version}
+            for r in session.execute(query)]
+
+
+def add_old_script(health: list[dict]) -> list[dict]:
+    """Set "served_version" when the newest capture came from an older userscript than the served one (#1495).
+
+    A capture with no parser_version (an upload, a manual offer) or a source with no served script gives no warning.
+    """
+    from app.web.userscripts import _weight, served_versions
+
+    served = served_versions()
+    for h in health:
+        version, current = h.get("script_version"), served.get(h["source"])
+        h["served_version"] = current if version and current and _weight(version) < _weight(current) else None
+    return health
 
 
 def failing_sources(session: Session) -> list[dict]:

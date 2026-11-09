@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app import ingest
 from app.failure_report import report_url
-from app.sourcehealth import failed_clause, source_health
+from app.sourcehealth import add_old_script, failed_clause, source_health
 from app.auth import require_login, verify_csrf
 from app.db import get_session
 from app.models import Capture, Trip
@@ -109,7 +109,7 @@ def all_captures_page(request: Request, failed: bool = False, source: str | None
     return templates.TemplateResponse(request, "captures.html",
                                       {"trip": None, "captures": captures, "trip_titles": trip_titles, "failed": failed,
                                        "trip_travelers": {t.id: t.travelers for t in trips},
-                                       "source": source, "sources": [] if failed or source else source_health(session), "now": datetime.now(timezone.utc),
+                                       "source": source, "sources": [] if failed or source else add_old_script(source_health(session)), "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session, source) if failed else []})
 
