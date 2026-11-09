@@ -843,6 +843,7 @@ The rules:
 - A price in another currency is changed to EUR with the rate that the app has. A price with no rate is not in the sum. The page
   says how many prices of each currency have no rate.
 - A journey with no paid price counts as a journey, but adds nothing to the sum.
+- The CO₂ is an estimate per traveler: the hours of each leg times the kg per hour of its mode, with the kg per hour of the default profile. The page shows "about N kg CO₂" for each year and each mode, and names the profile.
 
 ## Userscript panel
 
