@@ -57,7 +57,7 @@
       <label>Short transfer penalty €
         <input type="number" name="short_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.short_transfer_penalty }}"></label>
       <label>Change of station: minimum minutes
-        <input type="number" name="station_change_min" min="0" max="240" step="1" value="{% if weights.station_change_min is not none %}{{ weights.station_change_min }}{% endif %}"></label>
+        <input type="number" name="station_change_min" min="0" max="240" step="1" value="{% if weights.station_change_min is not none %}{{ weights.station_change_min }}{% elif not station_blank %}{{ weights.short_transfer_min }}{% endif %}"{% if station_blank %} placeholder="as the short transfer"{% endif %}></label>
       <label>Change of station penalty €
         <input type="number" name="station_change_penalty" min="0" max="1000" step="0.01" value="{{ weights.station_change_penalty }}"></label>
       <label>Self-transfer €
