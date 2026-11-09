@@ -726,6 +726,10 @@ The form has a price (required), a currency (EUR by default), an optional fare n
 Each leg has a mode, a from and to place, a departure and an arrival. The form has up to four legs. A leg with no field filled in is left out.
 The app saves the offer with the source `manual`. Save returns you to the trip page, where the offer is ranked with the others.
 
+### Correct a manual offer
+
+A manual fare on `/trips/{id}` has the links "Change price" and "Delete" under its price. "Change price" opens a form with the price and the currency; "Save price" adds a point to the price history of the fare. "Delete" opens a page with the button "Delete offer", and removes the manual fare. The offer goes too when it has no other fare. A captured fare has no such links: use "Hide" to remove it from the table (see "Pin, hide, book and note an offer").
+
 ## Userscript panel
 
 Each userscript shows a small panel at the bottom right of the travel site. The panel shows `Captured N offers → sent ✓`
