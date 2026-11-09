@@ -188,6 +188,16 @@ older daily dumps are deleted. The manual dumps (`make backup`) and the dumps be
 The settings page has the section "Backups". It shows the time (UTC) and the size of the newest backup. It shows a
 warning when the newest backup is older than 48 hours, or "No backup yet." when there is none.
 
+After each daily dump, the service reads the new file again with `pg_restore --list`. This shows that the file can
+be read. The card "Backups" on the settings page shows the result of this check:
+
+- "Checked: N tables": the check passed. N is the number of tables in the dump.
+- "Check failed": the check of the newest daily dump failed. The card shows the time (UTC) and the error.
+- "Not checked yet": no daily dump is checked yet.
+
+A failed check renames the file to `<UTC time>-daily.dump.failed`. The file stays in the volume, and only the newest
+`*.failed` file stays. The service sends "Backup failed" and tries again after one hour.
+
 Check: `docker compose exec app ls /backups` shows the new `.dump` file (a manual dump, or a `-daily.dump` file of the
 service `backup`).
 
