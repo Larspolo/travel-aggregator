@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 17;
+const CORE_VERSION = 18;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -509,6 +509,15 @@ const CORE_VERSION = 17;
   };
   panel.serverButton.addEventListener("click", setServer);
   panel.tokenButton.addEventListener("click", setToken);
+  // "Discard the queue" (#1666): empties the queue; no request and no browser dialog (P1, P6).
+  const discard = () => {
+    const n = loadQueue().length;
+    if (!n) { panel.setStatus("The queue is empty", "info"); return; }
+    gm.setValue("queue", []);
+    panel.setStatus(`Discarded ${n} ${n === 1 ? "capture" : "captures"}`, "info");
+  };
+  gm.menu("Send now", () => flush());
+  gm.menu("Discard the queue", discard);
   gm.menu("Set server URL", setServer);
   gm.menu("Set API token", setToken);
   gm.menu("Add this website", () => {
