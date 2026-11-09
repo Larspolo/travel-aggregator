@@ -2,6 +2,7 @@
 the sort links keep the filter."""
 
 import copy
+import json
 from datetime import datetime, timedelta, timezone
 
 from tests.test_ingest_api import BODY
@@ -12,7 +13,10 @@ from tests.test_trip_page import offer, trip  # noqa: F401 (fixture)
 def _ingest_hours_ago(client, auth, trip_id, hours_ago, service_no, price):
     body = copy.deepcopy(BODY)
     captured = datetime.now(timezone.utc) - timedelta(hours=hours_ago)
-    body.update(trip_id=trip_id, offers=[offer(price, service_no)], captured_at=captured.isoformat())
+    o = offer(price, service_no)
+    if service_no == "ICE 123":  # an other departure: the newer capture does not mark ICE 105 as gone (#1386)
+        o = json.loads(json.dumps(o).replace("2026-12-20T", "2026-12-21T"))  # the same times on the next day
+    body.update(trip_id=trip_id, offers=[o], captured_at=captured.isoformat())
     assert client.post("/api/ingest", json=body, headers=auth).status_code == 200
 
 
