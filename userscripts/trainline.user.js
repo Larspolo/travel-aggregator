@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: thetrainline.com
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.0.0
+// @version      1.1.0
 // @description  Send the Trainline search results (journey search responses) to travel-aggregator.
 // @match        https://www.thetrainline.com/*
 // @match        https://thetrainline.com/*
@@ -20,7 +20,7 @@
   const core = root.TACore;
   if (!core) return;
   const SOURCE = "thetrainline.com";
-  const PARSER_VERSION = "1.0.0";
+  const PARSER_VERSION = "1.1.0";
   const HOST = "www.thetrainline.com";
   const PATH = "/api/journey-search/";
 
