@@ -24,6 +24,7 @@ from app.storage import human_bytes, storage_use
 from app.web.userscripts import bundle_info, userscript_list
 from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter,
                       require_login, session_epoch, verify_csrf)
+from app import departed
 from app.backup import BACKUP_MAX_AGE, newest_backup
 import segno
 from markupsafe import Markup
@@ -592,6 +593,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
               show_hidden: bool = Query(False),
+              show_departed: bool = Query(False),
               hide_stale: bool = Query(False),
               profile: int | None = Query(None)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
@@ -611,6 +613,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     limit_arrive = time.fromisoformat(latest_arrive) if latest_arrive else None
     # subqueryload: one statement per relation; selectinload adds one per 500 offers (#115)
     hidden_filter = [] if show_hidden else [Itinerary.hidden.is_(False)]  # "show hidden" (#200)
+    departed_now = departed.clock()
+    if not show_departed:
+        hidden_filter.append(departed.not_departed(departed_now))  # "show departed" (#1391)
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, *hidden_filter)
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()  # once per request
@@ -646,15 +651,18 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         rows.append((it, fare, cost))
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
-    shown = [r for r in rows if not r[0].hidden]  # a hidden row gets no highlight (#200)
+    # a hidden or departed row gets no highlight (#200, #1391)
+    shown = [r for r in rows if not r[0].hidden and not departed.is_departed(r[0], departed_now)]
     if shown:
         for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[2].price),
                           ("fastest", lambda r: r[0].duration_min)):
             badges.setdefault(min(shown, key=key)[0].id, []).append(name)
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
+    rows.sort(key=lambda r: departed.is_departed(r[0], departed_now))  # the departed rows last (#1391)
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
     view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "show_hidden": show_hidden,
+            "show_departed": show_departed, "departed_now": departed_now,
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
@@ -669,6 +677,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     if show_hidden:
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
+    if show_departed:
+        query["show_departed"] = True  # the sort links and the sliders keep it (#1391)
     if hide_stale:
         query["hide_stale"] = True  # the sort links keep it (#277)
     if chosen is not None:
