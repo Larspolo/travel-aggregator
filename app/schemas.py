@@ -46,6 +46,8 @@ class OfferIn(BaseModel):
     fare_name: str | None = Field(None, max_length=100)
     flexibility: str | None = Field(None, max_length=50)
     travel_class: Literal["first", "standard"] | None = None
+    checked_bags_included: int | None = Field(None, ge=0, le=9)  # #1525
+    checked_bag_price: Decimal | None = Field(None, ge=0, max_digits=10, decimal_places=2)  # first bag, price currency
     legs: list[LegIn] = Field(min_length=1, max_length=MAX_LEGS)
     booking_url: str | None = Field(None, max_length=2000, pattern=r"^https?://")
 
