@@ -5,13 +5,15 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import ValidationError
+from decimal import Decimal
+
+from pydantic import ValidationError, create_model
 from sqlalchemy.orm import Session
 
 from app import ingest
 from app.auth import require_login, verify_csrf
 from app.db import get_session
-from app.models import Fare
+from app.models import Fare, FarePrice
 from app.schemas import IngestIn, OfferIn
 from app.web.pages import _get_trip, templates
 
@@ -79,14 +81,14 @@ async def manual_offer(request: Request, trip_id: int, session: Session = Depend
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
-def _manual_fare(session: Session, trip_id: int, fare_id: int) -> Fare:
+def _manual_fare(session: Session, trip_id: int, fare_id: int, action: str = "deleted") -> Fare:
     """The fare of the trip, 404 when it is not in the trip and 400 when it is not a manual offer (#1252)."""
     _get_trip(session, trip_id)
     fare = session.get(Fare, fare_id)
     if fare is None or fare.itinerary.trip_id != trip_id:
         raise HTTPException(404, "Offer not found")
     if fare.source != "manual":
-        raise HTTPException(400, "Only a manual offer can be deleted")
+        raise HTTPException(400, f"Only a manual offer can be {action}")
     return fare
 
 
@@ -109,5 +111,47 @@ def manual_delete(trip_id: int, fare_id: int, session: Session = Depends(get_ses
     session.flush()
     if not it.fares:
         session.delete(it)
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+# The price rules of OfferIn, with no legs (#1253, P4).
+PriceIn = create_model("PriceIn", price_amount=(Decimal, OfferIn.model_fields["price_amount"]),
+                       price_currency=(str, OfferIn.model_fields["price_currency"]))
+
+
+def _price_page(request: Request, trip_id: int, fare: Fare, values: dict, errors: list[str],
+                code: int = 200) -> HTMLResponse:
+    return templates.TemplateResponse(request, "manual_price.html",
+                                      {"trip_id": trip_id, "fare": fare, "it": fare.itinerary, "values": values,
+                                       "errors": errors}, status_code=code)
+
+
+@router.get("/trips/{trip_id}/fares/{fare_id}/price", response_class=HTMLResponse,
+            dependencies=[Depends(require_login)])
+def manual_price_form(request: Request, trip_id: int, fare_id: int,
+                      session: Session = Depends(get_session)) -> HTMLResponse:
+    fare = _manual_fare(session, trip_id, fare_id, "changed")
+    return _price_page(request, trip_id, fare,
+                       {"price_amount": str(fare.latest_price), "price_currency": fare.currency}, [])
+
+
+@router.post("/trips/{trip_id}/fares/{fare_id}/price", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def manual_price(request: Request, trip_id: int, fare_id: int, session: Session = Depends(get_session)):
+    fare = _manual_fare(session, trip_id, fare_id, "changed")
+    form = await request.form()
+    values = {k: str(form.get(k, "")).strip() for k in ("price_amount", "price_currency")}
+    try:
+        price = PriceIn.model_validate({"price_amount": values["price_amount"],
+                                        "price_currency": values["price_currency"].upper() or "EUR"})
+    except ValidationError as e:
+        errors = [f"{'.'.join(map(str, err['loc'])) or 'form'}: {err['msg']}"
+                  for err in e.errors(include_input=False, include_url=False)]
+        return _price_page(request, trip_id, fare, values, errors, 422)
+    now = datetime.now(timezone.utc)
+    session.add(FarePrice(fare_id=fare.id, price=price.price_amount, currency=price.price_currency,
+                          captured_at=now, capture_id=None))
+    fare.latest_price, fare.currency, fare.latest_captured_at = price.price_amount, price.price_currency, now
     session.commit()
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)

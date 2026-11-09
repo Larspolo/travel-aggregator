@@ -26,6 +26,7 @@ TRIP_PAGES = [
     "/trips/{trip_id}/itineraries/{itinerary_id}/history",
     "/trips/{trip_id}/offers/new",
     "/trips/{trip_id}/fares/{fare_id}/delete",
+    "/trips/{trip_id}/fares/{fare_id}/price",
     "/trips/{trip_id}/captures",
     "/trips/{trip_id}/export.json",
     "/trips/{trip_id}/export.csv",
