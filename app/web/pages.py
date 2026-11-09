@@ -1430,17 +1430,18 @@ def _backup_check(session: Session, newest: tuple[datetime, int] | None) -> dict
 
     The stamp at the start of the file name gives its time: a check of another file gives "none". A broken value gives "none".
     """
-    if newest is None:
-        return None
     try:
         data = json.loads(setting(session, "backup_check"))
         checked = datetime.strptime(str(data["file"]).split("-", 1)[0], STAMP_FORMAT).replace(tzinfo=timezone.utc)
     except (ValueError, TypeError, KeyError, AttributeError):
-        return {"state": "none"}
+        return {"state": "none"} if newest is not None else None
+    # A failed check renames its file to `*.failed`, so the newest `*.dump` is an older good one (or none) (#1516).
+    if "error" in data and (newest is None or checked >= newest[0]):
+        return {"state": "failed", "at": str(data.get("at", "")), "error": str(data["error"])}
+    if newest is None:
+        return None
     if checked != newest[0]:
         return {"state": "none"}
-    if "error" in data:
-        return {"state": "failed", "at": str(data.get("at", "")), "error": str(data["error"])}
     if isinstance(data.get("tables"), int):
         return {"state": "ok", "tables": data["tables"]}
     return {"state": "none"}
