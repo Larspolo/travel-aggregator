@@ -60,7 +60,15 @@ def station_changes(itinerary) -> list[int]:
     The codes are compared when both are set, else the names: case and spaces do not count. No score part is added.
     """
     return [i for i, (before, after) in enumerate(zip(itinerary.legs, itinerary.legs[1:]))
-            if not _same_station(before, after)]
+            if other_station(before, after)]
+
+
+def other_station(before, after) -> bool:
+    """True when the leg `before` arrives at another station than the leg `after` departs from (#1500, #1502).
+
+    One rule for the transfers of an itinerary and for the pairs of the split trips.
+    """
+    return not _same_station(before, after)
 
 
 def _same_station(before, after) -> bool:
