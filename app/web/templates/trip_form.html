@@ -43,9 +43,22 @@
 <form class="card" method="post" action="/trips/{{ trip_id }}/split">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   {% if split_error %}<p class="error" role="alert">{{ split_error }}</p>{% endif %}
-  <div class="field"><label for="f-via">Split via</label><input id="f-via" type="text" name="via" maxlength="200" placeholder="Köln"></div>
+  <div class="field"><label for="f-via">Split via</label><input id="f-via" type="text" name="via" maxlength="200" placeholder="Köln"{% if via_places %} list="via-places"{% endif %}></div>
+  {% if via_places %}<datalist id="via-places">{% for place, n in via_places %}<option value="{{ place }}">{% endfor %}</datalist>{% endif %}
   <button class="btn" type="submit">Split trip</button>
 </form>
+{% if via_places %}
+<section class="card">
+  <div class="card-header"><h2>Transfer places of your offers</h2></div>
+  {% for place, n in via_places %}
+  <form method="post" action="/trips/{{ trip_id }}/split">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    <input type="hidden" name="via" value="{{ place }}">
+    <button class="btn" type="submit">Split via {{ place }} ({{ n }} offer{{ "s" if n != 1 }})</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
 {% endif %}
 {% if merge %}
 <section class="card">
