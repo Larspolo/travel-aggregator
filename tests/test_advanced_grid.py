@@ -10,9 +10,9 @@ from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a f
 pytestmark = pytest.mark.slow
 
 # 1280 px: the height of the open part was 1987 px with one label per line; the grid makes it at least 40 % shorter (#668).
-# The limit grows with the inputs at the same density: 1192 px for 25 inputs; the hour tiers (#1014) added 4, the overnight stop (#1256) 2,
-# the CO₂ weights (#1416) 5, the change of station minutes and penalty (#1501) 2, the carrier slots (#1530) 6: 45 inputs in all.
-MAX_HEIGHT = 1192 * 45 // 25
+# The limit grows with the inputs at the same density: 1192 px for 25 inputs. The test counts the inputs of the page, so a
+# new setting in "Advanced" needs no change here (5 feature PRs changed a hand count, and 3 CI runs failed on it).
+PX_PER_INPUT = 1192 / 25
 
 # The labels that overlap another label of their fieldset, and the inputs that are wider than their label.
 LAYOUT = """() => {
@@ -33,7 +33,8 @@ LAYOUT = """() => {
       }
     }
   }
-  return [Math.round(adv.getBoundingClientRect().height), bad];
+  const inputs = adv.querySelectorAll('input:not([type=hidden]), select, textarea').length;
+  return [Math.round(adv.getBoundingClientRect().height), bad, inputs];
 }"""
 
 
@@ -45,7 +46,7 @@ def test_advanced_part_is_a_compact_grid(trip, tmp_path):  # noqa: F811
     shots = os.environ.get("SCREENSHOT_DIR", str(tmp_path))
     os.makedirs(shots, exist_ok=True)
     server, thread, base = _serve()
-    heights = {}
+    heights, inputs = {}, {}
     try:
         with sync_playwright() as p:
             browser = _launch(p)
@@ -54,14 +55,16 @@ def test_advanced_part_is_a_compact_grid(trip, tmp_path):  # noqa: F811
                 page.goto(f"{base}/trips/{tid}")
                 if width == PHONE:
                     page.evaluate("document.querySelector('.panel-toggle').open = true")
-                height, bad = page.evaluate(LAYOUT)
+                height, bad, count = page.evaluate(LAYOUT)
                 assert bad == [], (width, bad)
                 heights[width] = height
+                inputs[width] = count
                 page.locator("details.advanced").screenshot(path=os.path.join(shots, f"advanced-{width}.png"))
                 page.close()
             browser.close()
     finally:
         server.should_exit = True
         thread.join(5)
-    print(heights)
-    assert heights[DESKTOP] <= MAX_HEIGHT, heights
+    print(heights, inputs)
+    assert inputs[DESKTOP] >= 25, inputs  # the count works: the panel had 25 inputs at #668
+    assert heights[DESKTOP] <= PX_PER_INPUT * inputs[DESKTOP], (heights, inputs)
