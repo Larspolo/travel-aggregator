@@ -1,7 +1,7 @@
 """The body of POST /api/ingest (docs/SPEC.md section 5). Captured data is untrusted: Pydantic validates each field
 and limits each size (P4, P5)."""
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any, Literal
 
@@ -140,6 +140,7 @@ class TripForm(BaseModel):
     status: TripStatus = "planning"
     notes: str | None = Field(None, max_length=5000)
     target_price: Decimal | None = Field(None, gt=0, le=100000)  # EUR; the fares at or below it (#846)
+    arrive_by: time | None = None  # the local time at the arrival place (#1294)
     profile_id: int | None = None  # the score profile of this trip; None = the default profile (#232)
 
     @model_validator(mode="before")

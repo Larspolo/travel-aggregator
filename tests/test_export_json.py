@@ -60,7 +60,8 @@ def test_the_export_is_a_json_attachment_with_all_data(client, trip_id):
     assert datetime.fromisoformat(data["exported_at"]).tzinfo is not None
     assert data["trip"] == {"id": trip_id, "title": "Amsterdam – Zürich", "origin": "Amsterdam",
                             "destination": "Zürich", "date_from": "2026-12-01", "date_to": None,
-                            "travelers": 2, "status": "planning", "notes": "ski", "target_price": None}
+                            "travelers": 2, "status": "planning", "notes": "ski", "target_price": None,
+                            "arrive_by": None}
     a, b = data["itineraries"]
     assert (a["pinned"], a["hidden"], a["booked"], a["note"]) == (True, False, False, "best")
     assert (b["pinned"], b["hidden"], b["booked"]) == (False, True, True)

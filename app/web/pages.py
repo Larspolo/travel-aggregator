@@ -733,7 +733,8 @@ def _copy_of(trip: Trip, return_of_id: int | None = None) -> Trip:
     (unless given)."""
     return Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
                 destination_text=trip.destination_text, travelers=trip.travelers, profile_id=trip.profile_id,
-                notes=trip.notes, target_price=trip.target_price, return_of_id=return_of_id)
+                notes=trip.notes, target_price=trip.target_price, arrive_by=trip.arrive_by,
+                return_of_id=return_of_id)
 
 
 @router.post("/trips/{trip_id}/copy", dependencies=[Depends(require_login), Depends(verify_csrf)])
