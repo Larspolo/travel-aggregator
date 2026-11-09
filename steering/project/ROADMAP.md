@@ -64,7 +64,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Change price" from €90 to €85 on a manual fare shows €85 on the trip page and 2 points in its price history; "Delete" removes the manual offer from the trip page
 - [x] `capture:raw-view` (#1289) Show the raw payload of a capture: the formatted JSON on its own page and a download, so that the owner gives the payload of a failed capture to a parser fix (P3)
   - "Raw" on a failed bahn.de capture shows its JSON, and "Download JSON" gives the file bahn.de-<id>.json
-- [ ] `capture:upload` Upload a saved payload file of a supported source on the captures page: the server stores it as a capture of a trip and parses it, as a capture of the userscript (P3: a capture when the userscript fails or the site is open in another browser; P1: the owner saved the file, the app fetches nothing)
+- [x] `capture:upload` (#1337) Upload a saved payload file of a supported source on the captures page: the server stores it as a capture of a trip and parses it, as a capture of the userscript (P3: a capture when the userscript fails or the site is open in another browser; P1: the owner saved the file, the app fetches nothing)
   - Upload of the file bahn.de-<id>.json (`capture:raw-view`) into the trip Amsterdam → Zürich shows its offers on the trip page, and a file of an unknown source or with no valid JSON gives a clear error and stores nothing
 
 ## 2. Rank offers by effective cost
@@ -171,9 +171,9 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Merge into" on the edit page of a second Amsterdam → Zürich moves all its offers into the first trip, with one row for the same journey, and the second trip is not in the trips list
 - [x] `trip:pinned-page` (#1298) A "Pinned" page: the pinned offers of all trips in planning, with the current price, the lowest price and the drop since the last view
   - With pins in 3 trips, one page lists the 3 offers in the order of the departure, each with "lowest €78, now €12 above" and a link to its row
-- [ ] `trip:print` A print layout of a booked journey (`trip:upcoming`): the legs, local times, carriers, numbers and the paid price on one A4 page, with no app bar, buttons or sliders
+- [x] `trip:print` (#1348) A print layout of a booked journey (`trip:upcoming`): the legs, local times, carriers, numbers and the paid price on one A4 page, with no app bar, buttons or sliders
   - The print preview of the Upcoming page of a journey with 3 legs fits one A4 page and shows each leg with its times and number
-- [ ] `trip:spend` A summary of the booked journeys per year (`trip:booked-fare`): the count of journeys, the sum of the paid prices in EUR and the hours of travel, per mode
+- [x] `trip:spend` (#1362) A summary of the booked journeys per year (`trip:booked-fare`): the count of journeys, the sum of the paid prices in EUR and the hours of travel, per mode
   - The summary for 2026 shows "7 journeys · €642.50 paid · 61 h" and one line each for train, bus and flight
 
 ## 4. Run it on my home server
@@ -211,5 +211,5 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - After "Log out on all other devices" on the computer, the next page on the phone goes to the login page; the computer stays logged in, and the API tokens still work
 - [x] `host:totp` (#1312) A second login step with a one-time code of an authenticator app (TOTP, RFC 6238) and one-time recovery codes (P5)
   - With the second step on, the login asks for the 6-digit code of the phone app after the password; a wrong or used code does not log in, and a recovery code works once
-- [ ] `host:login-log` The recent logins on the settings page: the time, the address and the browser of the last 20 logins and failed logins, with or without the second step (P5: the owner sees a stolen password)
+- [x] `host:login-log` (#1352) The recent logins on the settings page: the time, the address and the browser of the last 20 logins and failed logins, with or without the second step (P5: the owner sees a stolen password)
   - After a failed login from the phone and a good login from the computer, the settings page lists both, newest first, with "failed" on the first
