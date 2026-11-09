@@ -43,9 +43,10 @@ def _join(session: Session, it: Itinerary, into: Itinerary) -> None:
             it.fares.remove(fare)
             into.fares.append(fare)
             continue
+        target_rows = same.prices  # load before the moves: a lazy load would autoflush the orphans (#1287)
         for row in list(fare.prices):
             fare.prices.remove(row)
-            same.prices.append(row)
+            target_rows.append(row)
         newest = max(same.prices, key=lambda p: (p.captured_at, p.id or 0))
         same.latest_price, same.currency, same.latest_captured_at = newest.price, newest.currency, newest.captured_at
     into.pinned, into.booked, into.hidden = into.pinned or it.pinned, into.booked or it.booked, into.hidden or it.hidden
