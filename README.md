@@ -407,6 +407,7 @@ A fare of the 1st class shows the badge "1st" after its name. The badge shows in
 An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on).
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
 If the newest capture is older than the stale hours, the row also shows "stale, price may have changed". See "Stale offers".
+A fare that a newer search of the same site did not show again, in the departure span of that search, shows the mark "not in the last <source> search". The best offer does not use such a fare. The next search that shows the fare again removes the mark.
 Click a column header to sort by it. Click it again to reverse the order.
 The Mode and Source lists show only one mode or one source.
 
