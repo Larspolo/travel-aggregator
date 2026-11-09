@@ -134,6 +134,8 @@ class TripForm(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     origin_text: str | None = Field(None, max_length=200)
     destination_text: str | None = Field(None, max_length=200)
+    origin_alt_text: str | None = Field(None, max_length=200)  # other origins, comma-separated (#1422)
+    destination_alt_text: str | None = Field(None, max_length=200)
     date_from: date | None = None
     date_to: date | None = None
     travelers: int = Field(1, ge=1, le=9)
