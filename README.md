@@ -474,6 +474,14 @@ The page also works with no network, after one online visit:
 - "Log out" deletes the saved copy from the device.
 - "Add to calendar" needs a network. Offline, the link shows "Add to calendar: needs a network".
 
+### Print the upcoming journeys
+
+To print the page, open `/upcoming` and use the print command of your browser (Ctrl+P, or Cmd+P on a Mac).
+To print one journey, click its "Print" icon: the page then shows only that journey.
+In the print dialog you can print on paper, or choose "Save as PDF". A journey is kept on one page where the browser allows it.
+
+The print has no app bar, no form and no buttons: only the journeys are printed. The print uses a white background and black text.
+
 ### Pin, hide, book and note an offer
 
 Each row of the trip table has buttons at its left side:
