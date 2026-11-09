@@ -25,6 +25,7 @@ TRIP_PAGES = [
     "/trips/{trip_id}/compare",
     "/trips/{trip_id}/itineraries/{itinerary_id}/history",
     "/trips/{trip_id}/offers/new",
+    "/trips/{trip_id}/fares/{fare_id}/delete",
     "/trips/{trip_id}/captures",
     "/trips/{trip_id}/export.json",
     "/trips/{trip_id}/export.csv",
@@ -74,7 +75,7 @@ def test_each_page_of_a_deleted_trip_is_404(engine, monkeypatch, template):
     out_id, _, it_id = _seed(engine)
     c = _client(monkeypatch)
     _delete(c, out_id)
-    path = template.format(trip_id=out_id, itinerary_id=it_id)
+    path = template.format(trip_id=out_id, itinerary_id=it_id, fare_id=it_id)
     assert c.get(path).status_code == 404
 
 

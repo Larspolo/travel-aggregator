@@ -57,7 +57,8 @@
         <div class="fares">
         {% for f in it.fares | by_eur(rates) %}
           <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}{{ ui.class_badge(f) }}</span> <strong>{{ ui.price_change(f, seen) }}</strong>
-            {% if f.booking_url %}<a class="btn" href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">{{ ui.icon("arrow-right") }}Book</a>{% endif %}</div>
+            {% if f.booking_url %}<a class="btn" href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">{{ ui.icon("arrow-right") }}Book</a>{% endif %}
+            {% if f.source == "manual" %}<a class="btn btn-ghost" href="/trips/{{ trip.id }}/fares/{{ f.id }}/delete">Delete</a>{% endif %}</div>
         {% endfor %}
         </div>
         <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/note">
