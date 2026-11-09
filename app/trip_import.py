@@ -29,6 +29,8 @@ class TripData(_Model):
     title: str = Field(min_length=1, max_length=200)
     origin: str | None = Field(None, max_length=200)
     destination: str | None = Field(None, max_length=200)
+    origin_alt: str | None = Field(None, max_length=200)  # missing in an older export: None (#1422)
+    destination_alt: str | None = Field(None, max_length=200)
     date_from: date | None = None
     date_to: date | None = None
     travelers: int = Field(1, ge=1)
@@ -160,8 +162,9 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
     export = parse_export(data)
     if trip_id is None:
         t = export.trip
-        trip = Trip(title=t.title, origin_text=t.origin, destination_text=t.destination, date_from=t.date_from,
-                    date_to=t.date_to, travelers=t.travelers, status=t.status, notes=t.notes,
+        trip = Trip(title=t.title, origin_text=t.origin, destination_text=t.destination,
+                    origin_alt_text=t.origin_alt, destination_alt_text=t.destination_alt,
+                    date_from=t.date_from, date_to=t.date_to, travelers=t.travelers, status=t.status, notes=t.notes,
                     target_price=t.target_price, arrive_by=t.arrive_by)
         session.add(trip)
         session.flush()
