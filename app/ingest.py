@@ -21,6 +21,7 @@ from app.tripmatch import best_trip, mismatch, suggest_trip, travelers_text
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 from app.notify import PriceDrop
+from app.suspect import implausible
 from app.currency import load_rates, to_eur
 from app.flexibility import tier
 
@@ -140,6 +141,9 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
         return result
     if captured_at >= fare.latest_captured_at:
+        same_old = old[0] if old is not None and old[1] == offer.price_currency else None
+        if implausible(offer.price_amount, same_old):
+            drops = None  # a suspect price makes no message (#1606)
         pinned_drop = (drops is not None and it.pinned and not it.hidden and old is not None
                        and offer.price_currency == fare.currency and offer.price_amount < fare.latest_price)
         target = drops is not None and not it.hidden and _crosses_target(session, trip_id, old, offer)
