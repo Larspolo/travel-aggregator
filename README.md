@@ -22,7 +22,7 @@ ranked list, with a breakdown of each score ("€90 price + €62 time + €30 t
 
 - **Passive capture only.** The userscripts read only the responses that the page loaded for your own search. The
   app sends no request to a travel site: no crawler, no replayed request, no scheduled fetch.
-- **No personal data.** The app does not store login data, cookies, passenger names or payment data.
+- **No personal data.** The app does not store cookies of travel sites, passenger names or payment data. It keeps the time, IP address and browser of your last 200 logins and failed logins (see [Recent logins](#recent-logins)).
 - The full specification: [`docs/SPEC.md`](docs/SPEC.md).
 
 ## Run it on your computer
