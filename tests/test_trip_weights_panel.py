@@ -15,7 +15,8 @@ NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide
          "train_markup", "bus_markup", "flight_markup", "ferry_markup", "co2_price_kg", "co2_train_kg_h",
          "co2_bus_kg_h", "co2_flight_kg_h", "co2_ferry_kg_h", "flex_non_refundable",
          "flex_partly_refundable", "flex_flexible", "first_class_hour", "self_transfer_penalty", "exclude_mode", "exclude_carrier",
-         "carrier1_name", "carrier1_markup", "carrier2_name", "carrier2_markup", "carrier3_name", "carrier3_markup"}
+         "carrier1_name", "carrier1_markup", "carrier2_name", "carrier2_markup", "carrier3_name", "carrier3_markup",
+         "train_hour_markup", "bus_hour_markup", "flight_hour_markup", "ferry_hour_markup"}
 
 
 def _form(html):
@@ -33,7 +34,7 @@ def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  
     assert re.findall(r"<fieldset><legend>([^<]+)</legend>", advanced) == GROUPS
     fieldsets = re.findall(r"<fieldset>.*?</fieldset>", advanced, flags=re.S)
     outside = re.sub(r"<fieldset>.*?</fieldset>", "", advanced, flags=re.S)
-    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 45
+    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 49
 
 
 def test_each_input_name_of_the_form_is_still_sent(trip):  # noqa: F811
