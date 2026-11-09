@@ -213,12 +213,25 @@ def failures(check):
     return [f"failed step: {s}" for s in steps] + notes
 
 
-def wait_ci(sha, deadline, get=quick, now=time.monotonic, sleep=time.sleep):
-    """The completed check run `quick` of `sha` (all its parts, `quick_run`), or None at the deadline (a `now` time)."""
+LOST = {"status": "completed", "conclusion": "lost"}   # the CI run ended with no job quick (#1599)
+
+
+def ci_ended(sha):
+    """True when the workflow run `CI` (event pull_request) of commit `sha` is completed (#1599)."""
+    runs = dashboard.api(f"actions/runs?head_sha={sha}&event=pull_request&per_page=20").get("workflow_runs", [])
+    return any(r.get("name") == "CI" and r.get("status") == "completed" for r in runs)
+
+
+def wait_ci(sha, deadline, get=quick, now=time.monotonic, sleep=time.sleep, ended=None):
+    """The completed check run `quick` of `sha` (all its parts, `quick_run`), LOST when the `CI` run of `sha` ended
+    with no job quick (`ended`, #1599), or None at the deadline (a `now` time)."""
+    ended = ended or (ci_ended if get is quick else lambda s: False)
     while True:
         c = get(sha)
         if c and c["status"] == "completed":
             return c
+        if c is None and ended(sha):
+            return LOST
         if now() + POLL > deadline:
             return None
         sleep(POLL)
@@ -256,6 +269,9 @@ def ci(number, sha, deadline, pr=None):
     if c is None:
         print(f"the quick CI still runs: run `python3 framework/tools/ship_pr.py {number} --ci` to wait again")
         return 0
+    if c is LOST:
+        print(f"the CI run ended with no job quick: run `merge_main.py --push {number}`")
+        return 5
     print(f"quick CI {c['conclusion']}")
     if c["conclusion"] != "failure":
         if pr is None:
