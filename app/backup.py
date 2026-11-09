@@ -224,7 +224,7 @@ def _alert(url: str, now: datetime, error: str | None) -> None:
 
 def _remind(url: str, now: datetime) -> None:
     """Send the due "Search again" reminders (#1119). A failure only logs a warning: the backups continue."""
-    from app import reminder
+    from app import reminder, travel_day
     from app.notify import setting
 
     engine = make_engine(sqlalchemy_url(url))
@@ -233,6 +233,11 @@ def _remind(url: str, now: datetime) -> None:
             reminder.send_reminders(session, now, setting(session, reminder.BASE_URL_KEY))
     except Exception as e:  # noqa: BLE001 (a reminder must not stop the backup loop)
         log.warning("reminders not sent: %s", _redact(str(e), url))
+    try:  # its own try: a failed reminder does not stop the travel-day messages (#1649)
+        with make_sessionmaker(engine)() as session:
+            travel_day.send_travel_days(session, now, setting(session, reminder.BASE_URL_KEY))
+    except Exception as e:  # noqa: BLE001 (a message must not stop the backup loop)
+        log.warning("travel-day messages not sent: %s", _redact(str(e), url))
     finally:
         engine.dispose()
 
