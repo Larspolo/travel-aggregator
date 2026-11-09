@@ -125,6 +125,16 @@
 {% endwith %}
 </section>
 {% endif %}
+{% if duplicates %}
+<section class="duplicates card" id="duplicates">
+<h2>A trip on this route and date already exists</h2>
+<ul>
+{% for d in duplicates %}
+<li><a href="/trips/{{ d.id }}">{{ d.title }}</a> · {{ d.date_from }}{% if d.date_to %} to {{ d.date_to }}{% endif %} · <a href="/trips/{{ trip.id }}/merge">Merge</a></li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
 {% if route_history %}
 <section class="route-history card" id="route-history">
 <h2>Earlier trips on this route</h2>

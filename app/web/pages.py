@@ -48,6 +48,7 @@ from app.co2 import co2_extras, co2_kg
 from app.tradeoff import break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
+from app.duplicates import duplicate_trips
 from app.route_history import route_history
 from app.money import money
 from app.coverage import trip_coverage
@@ -894,6 +895,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["trend"] = trend_chart(trend) if len(trend) >= 2 else None
     context["at_target"] = at_target(session, trip)  # the fares at or below the target price (#847)
     context["route_history"] = route_history(session, trip)  # the older trips on the same route (#1522)
+    context["duplicates"] = duplicate_trips(session, trip)  # the other trips in planning of this journey (#1592)
     mark_seen(session, trip_id)
     trip.viewed_at = now  # only the full view; an HX-Request keeps it (#1090)
     session.commit()
