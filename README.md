@@ -1239,6 +1239,12 @@ its part from the ranking. Each part shows its own label in the breakdown.
 - **Short transfer minutes**, default `10`. A transfer is short when it lasts less than this many minutes. A transfer
   is the time from the arrival of one leg to the departure of the next leg.
 - **Short transfer penalty €**, default `0`. The part `short transfer` is this amount times the count of short transfers.
+- **Change of station: minimum minutes**, default blank. A transfer where you change station is short when it lasts
+  less than this many minutes, for the short-transfer count. A transfer without a change of station uses "Short
+  transfer minutes". When this field is blank, a change of station uses "Short transfer minutes" too.
+- **Change of station penalty €**, default `0`. The part `change of station` is this amount times the count of changes
+  of station. A transfer counts as a change of station when the leg before it arrives at another station than the leg
+  after it departs from. The expanded row shows the change as "Change of station: A → B". Split tickets use the same rule.
 - **Train markup €**, **Bus markup €**, **Flight markup €** and **Ferry markup €**, each default `0`. An itinerary that
   uses the mode adds the part `<mode> markup` once. A negative amount is a discount.
 - **Non-refundable fare €**, **Partly refundable fare €** and **Flexible fare €**, each default `0`. A fare of that tier
