@@ -7,7 +7,7 @@ two directions as one ticket.
 
 Each itinerary is one journey. Each fare (`bookingOptions.edges[].node`) is one offer. The times have no airport time
 zone table: the offset of an end of a segment is `localTime` minus `utcTimeIso`. The parser sends no request (P1).
-Baggage (`bagsInfo`) has no field in OfferIn yet, so it is not stored (#331)."""
+Baggage (`bagsInfo`) gives the checked bags of each fare (#1526)."""
 
 import logging
 from datetime import datetime, timezone
@@ -46,9 +46,27 @@ def _time(station: dict) -> datetime:
     return utc.astimezone(timezone(offset))
 
 
+def _bags(info: Any) -> tuple[int | None, Decimal | None]:
+    """The included checked bags and the lowest price of one checked bag (`checkedBagTiers`), else None (fail soft)."""
+    if not isinstance(info, dict):
+        return None, None
+    included = info.get("includedCheckedBags")
+    if not isinstance(included, int) or isinstance(included, bool):
+        included = None
+    prices = []
+    for tier in info.get("checkedBagTiers") or []:
+        amount = ((tier or {}).get("tierPrice") or {}).get("amount")
+        if amount is not None:
+            try:
+                prices.append(Decimal(str(amount)).quantize(Decimal("0.01")))
+            except (ArithmeticError, ValueError):
+                continue
+    return included, (min(prices) if prices else None)
+
+
 class KiwiParser:
     source = "kiwi.com"
-    version = "1.2.0"
+    version = "1.3.0"
     group_price = True  # the price is for all travelers of the request (#1027; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:
@@ -105,6 +123,7 @@ class KiwiParser:
 
     def _offers(self, it: dict, currency: str) -> list[OfferIn]:
         legs = self._legs(it)
+        included, bag_price = _bags(it.get("bagsInfo"))
         offers, suffix = [], " return" if "outbound" in it else ""
         for edge in it["bookingOptions"]["edges"]:
             node = edge["node"]
@@ -114,5 +133,7 @@ class KiwiParser:
                 fare_name=(node["itineraryProvider"]["code"] or "") + suffix or None,
                 legs=legs,
                 booking_url=BOOKING_BASE + node["bookingUrl"],
+                checked_bags_included=included,
+                checked_bag_price=bag_price,
             ))
         return offers

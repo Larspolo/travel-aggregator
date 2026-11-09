@@ -79,6 +79,6 @@ def test_userscript_sends_a_return_search():
         pg.wait_for_function("window.__ingest.length === 1")
         body = pg.evaluate("window.__ingest")[0]["body"]
         browser.close()
-    assert (body["source"], body["parser_version"]) == ("kiwi.com", "1.2.0")
+    assert (body["source"], body["parser_version"]) == ("kiwi.com", "1.3.0")
     assert body["raw"] == {"currency": "gbp", "passengers": {"adults": 1, "children": 0, "infants": 0},
                            "response": FIXTURE["response"]}
