@@ -1234,6 +1234,16 @@ its part from the ranking. Each part shows its own label in the breakdown.
 - **Self-transfer €**, default `0`. The part `self-transfer` is this amount times the count of self-transfers of the fare.
   The count comes from the `ticket` field of the legs (see "API").
 
+### CO₂
+
+The ranking can count the CO₂ of an offer as a cost. The estimate is per traveler: the hours of each leg times the kg of
+CO₂ per hour of its mode. The defaults are 3 kg per hour for train and ferry, 2 kg for bus and 90 kg for flight. The
+**Advanced** section under the sliders sets these values and **CO₂ price € per kg**, which has the default `0`.
+
+- With a price of 0, the CO₂ adds no part to the effective cost. The row still shows "CO₂ about N kg per traveler (estimate)".
+- With a price above 0, the breakdown shows the part `CO₂ <n> kg`, for example `CO₂ 180 kg`. Its amount is the kg times
+  the price per kg.
+
 ### Stale offers
 
 An offer is stale when its newest capture is older than **Stale after hours**, default `24` (from 1 to 720).
