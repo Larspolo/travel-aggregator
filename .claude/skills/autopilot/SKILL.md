@@ -80,6 +80,8 @@ report of step 8, and the `Usage:` line (of the brief, else of the first `cycle_
 9. CI red → find the cause in the printed failed steps and tests, fix, commit, `ship_pr.py N --message MSG.txt`.
    After 3 failed attempts stop: comment the cause on the ticket, add `blocked` or `needs-human` and `hold`, run
    `claim.py N --release` (it removes `in-progress`), and go to step 8 of the skill (report).
+   A failed test that passes on your tree with no change is a flake: make a `bug` ticket with the test, the CI run
+   id and the assert line first, then start the failed jobs again once (#1409: 2 re-runs had no ticket).
 10. Merge conflict → as in 8.
 11. CI green → the Automerge workflow merges. Add label `hold` to the PR if it must not merge yet.
 
