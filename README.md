@@ -1067,6 +1067,9 @@ times of the stored offset.
   A value of 0 removes the part.
 - **Night hour markup €/h**, default empty. Empty means the same as the hour markup. A value sets the hour markup inside
   the night window. The difference to the hour markup adds the part `night hours` for the night minutes.
+- **Overnight stop: minimum night minutes**, default `240`, and **Overnight stop: hotel cost (€)**, default `0`. In the
+  section "Advanced". A transfer with at least the minimum night minutes adds the hotel cost as the part
+  `overnight stop in <place>`. A cost of 0 adds no part.
 
 ### Risk
 
