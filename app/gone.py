@@ -4,10 +4,10 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Capture, Fare, FarePrice, Itinerary
+from app.models import Capture, Fare, Itinerary
 
 
 @dataclass(frozen=True)
@@ -17,20 +17,15 @@ class GoneMark:
 
 
 def gone_fares(session: Session, trip_ids) -> dict[int, GoneMark]:
-    """The key is Fare.id. The span of a capture is the min and max departure of the fares that it priced
-    (inclusive). Only captures of the same source and trip, with no mismatch, newer than the fare. 2 statements."""
+    """The key is Fare.id. The span of a capture is the first and the last departure of its offers (inclusive,
+    `Capture.depart_from` and `depart_to`, #1404: also when all its prices are steady). Only captures of the same
+    source and trip, with no mismatch, newer than the fare. 2 statements."""
     trip_ids = list(trip_ids)
     if not trip_ids:
         return {}
     spans = session.execute(
-        select(Capture.trip_id, Capture.source, Capture.captured_at,
-               func.min(Itinerary.depart_at), func.max(Itinerary.depart_at))
-        .select_from(FarePrice)
-        .join(Capture, Capture.id == FarePrice.capture_id)
-        .join(Fare, Fare.id == FarePrice.fare_id)
-        .join(Itinerary, Itinerary.id == Fare.itinerary_id)
-        .where(Capture.trip_id.in_(trip_ids), Capture.mismatch.is_(None))
-        .group_by(FarePrice.capture_id, Capture.trip_id, Capture.source, Capture.captured_at)
+        select(Capture.trip_id, Capture.source, Capture.captured_at, Capture.depart_from, Capture.depart_to)
+        .where(Capture.trip_id.in_(trip_ids), Capture.mismatch.is_(None), Capture.depart_from.is_not(None))
     ).all()
     by_key = defaultdict(list)
     for trip_id, source, captured_at, low, high in spans:

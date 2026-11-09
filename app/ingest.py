@@ -127,6 +127,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
                     currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers)
         it.fares.append(fare)
     elif fare.latest_price == offer.price_amount and fare.currency == offer.price_currency:
+        fare.latest_captured_at = max(fare.latest_captured_at, captured_at)  # a capture of the same price (#1404)
         fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
                                                           offer.self_transfers)
         fare.travel_class = offer.travel_class
@@ -226,6 +227,13 @@ def set_result(capture: Capture, counts: dict, errors: list[dict], unreadable: s
     capture.unreadable = unreadable
 
 
+def set_span(capture: Capture, offers) -> None:
+    """The first and the last departure of the offers of the capture (#1404): the span of the gone check
+    (`app/gone.py`). Both NULL when the capture has no offer."""
+    departs = [o.legs[0].depart_at for o in offers if o.legs]
+    capture.depart_from, capture.depart_to = (min(departs), max(departs)) if departs else (None, None)
+
+
 def reparse(session: Session, capture: Capture) -> dict | None:
     """Run the current parser of the source again on the stored raw of the capture (after a parser fix), and upsert
     its offers with the capture id and time. None when the capture has no raw or the source has no parser. Returns
@@ -239,6 +247,7 @@ def reparse(session: Session, capture: Capture) -> dict | None:
         log.warning("capture %s: reparse of %s raw payload failed: %s", capture.id, capture.source, e)
         counts = {"created": 0, "updated": 0, "unchanged": 0}
         set_result(capture, counts, [], str(e)[:200])
+        set_span(capture, [])
         capture.mismatch = None
         capture.travelers = capture_travelers(capture, None)
         session.commit()
@@ -248,6 +257,7 @@ def reparse(session: Session, capture: Capture) -> dict | None:
     store_day_prices(session, capture.trip_id, capture.id, result.day_prices, source=capture.source,
                      captured_at=capture.captured_at)
     set_result(capture, counts, result.errors, None)
+    set_span(capture, result.offers)
     capture.travelers = capture_travelers(capture, result.travelers)
     capture.mismatch = _trip_mismatch(session, capture.trip_id, result.offers, capture.travelers)
     session.commit()
@@ -288,6 +298,7 @@ def move_capture(session: Session, capture: Capture, target_trip_id: int) -> dic
         _give_flags(session, target_trip_id, flags)
         capture.trip_id = target_trip_id
         set_result(capture, counts, result.errors, None)
+        set_span(capture, result.offers)
         capture.travelers = capture_travelers(capture, result.travelers)
         capture.mismatch = _trip_mismatch(session, target_trip_id, result.offers, capture.travelers)
         session.commit()
@@ -362,6 +373,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     store_day_prices(session, trip_id, capture.id, day_prices, source=body.source,
                      captured_at=body.captured_at)
     set_result(capture, counts, errors, unreadable)
+    set_span(capture, offers)
     capture.travelers = capture_travelers(capture, travelers)
     reason = _trip_mismatch(session, trip_id, offers, capture.travelers)
     capture.mismatch = reason
