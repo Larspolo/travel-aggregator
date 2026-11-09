@@ -137,6 +137,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
                                                           offer.self_transfers)
         fare.travel_class = offer.travel_class
+        fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
         return result
     if captured_at >= fare.latest_captured_at:
         pinned_drop = (drops is not None and it.pinned and not it.hidden and old is not None
@@ -163,6 +164,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
     fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
                                                           offer.self_transfers)
     fare.travel_class = offer.travel_class
+    fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
     fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=captured_at,
                                  capture_id=capture_id))
     session.flush()
