@@ -15,7 +15,7 @@ open epics have no goal left that an agent can do. A goal that has an open sub-i
 sub-issue waits for another ticket: then make the next epic (owner, 2026-11-06: a deep run read such waiting sub-issues
 as work left and stopped with no refill, 113k eq for no ticket).
 
-1. List the epics: `gh api "repos/OWNER/NAME/issues?labels=epic&state=all&per_page=100"` (`repo` in `agent.toml`). A feature has an epic when an
+1. List all the epics, page by page: `gh api "repos/OWNER/NAME/issues?labels=epic&state=all&per_page=100&page=P"` (`repo` in `agent.toml`), with P = 1, 2, ... until a page has fewer than 100 entries. `gh api --paginate` stops after the first page in the cloud, so add `&page=P` yourself (`../autopilot/github.md`, "GitHub access", #1707; the repository had 115 epics on 2026-11-09). A feature has an epic when an
    epic body names its key ("Roadmap: `<key>`"). A `muted` epic counts too.
 2. Pick the goal whose newest epic is the oldest (a goal without an epic first). Tie: the order of the file.
 3. In that goal, take the first missing feature without an epic. Grep the code for it first: when the code does it
