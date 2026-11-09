@@ -57,6 +57,7 @@ from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group,
                          per_traveler)
 from app.timeofday import night_extras, night_time_extras, overnight_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
+from app.trip_merge import is_linked, merge_choices
 from app.trips import archived_journeys, chain, find_journeys, list_trips
 
 router = APIRouter()
@@ -197,9 +198,13 @@ def _form_page(request: Request, values: dict, errors: list[str], trip_id: int |
                code: int = 200, split_error: str | None = None):
     journey = len(chain(_get_trip(session, trip_id))) if trip_id else 1  # the button "Copy journey" (#802)
     splittable = trip_id is not None and _get_trip(session, trip_id).split_of_id is None  # "Split via" (#1177)
+    merge = None  # "Merge into another trip" (#1262)
+    if trip_id is not None:
+        trip = _get_trip(session, trip_id)
+        merge = {"linked": is_linked(session, trip), "choices": merge_choices(session, trip)}
     return templates.TemplateResponse(request, "trip_form.html",
                                       {"values": values, "errors": errors, "trip_id": trip_id, "journey": journey,
-                                       "splittable": splittable, "split_error": split_error,
+                                       "splittable": splittable, "split_error": split_error, "merge": merge,
                                        "profiles": list_profiles(session)}, status_code=code)
 
 

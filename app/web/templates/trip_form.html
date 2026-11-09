@@ -44,6 +44,23 @@
   <button class="btn" type="submit">Split trip</button>
 </form>
 {% endif %}
+{% if merge %}
+<section class="card">
+  <div class="card-header"><h2>Merge into another trip</h2></div>
+  {% if merge.linked %}
+  <p>This trip is linked to another trip (a return or a split), so it cannot be merged.</p>
+  {% elif merge.choices %}
+  <form method="get" action="/trips/{{ trip_id }}/merge">
+    <div class="field"><label for="f-merge-into">Target trip</label><select id="f-merge-into" name="into">
+      {% for t in merge.choices %}<option value="{{ t.id }}">{{ t.title }}{% if t.status == "archived" %} (archived){% endif %} – {{ t.origin_text or "" }} → {{ t.destination_text or "" }}{% if t.date_from %}, {{ t.date_from }}{% endif %}{% if t.date_to %} to {{ t.date_to }}{% endif %}</option>{% endfor %}
+    </select></div>
+    <button class="btn" type="submit">Merge…</button>
+  </form>
+  {% else %}
+  <p>There is no other trip to merge into.</p>
+  {% endif %}
+</section>
+{% endif %}
 {% if journey > 1 %}
 <form class="card" method="post" action="/trips/{{ trip_id }}/copy-journey">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
