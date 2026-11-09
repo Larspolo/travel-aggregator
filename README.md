@@ -302,7 +302,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
 | `/trips/{id}/captures` | The captures of a trip, with the parse result and the action "reparse capture" (see below). The link "Only failed captures" shows only the failed captures (`?failed=1`); "Show all captures" shows all again |
 | `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
-| `/settings` | The capture retention period (see below), the size of the data (card "Storage"), the channel of the price-drop messages with its ntfy topic URL and e-mail address (see "Messages outside the app"), and "Turn on push on this device" and "Remove push from this device" for Web Push |
+| `/settings` | The capture retention period (see below), the size of the data (card "Storage"), the card "Sessions" with the button "Log out on all other devices" (see below), the channel of the price-drop messages with its ntfy topic URL and e-mail address (see "Messages outside the app"), and "Turn on push on this device" and "Remove push from this device" for Web Push |
 | `/sw.js` | The service worker of Web Push. It needs no login |
 | `POST /settings/push` | Subscribes the browser that sends the form to Web Push. Used by the settings page (CSRF token needed) |
 | `POST /settings/push/delete` | Removes the push subscription of the browser that sends it (CSRF token needed) |
@@ -315,6 +315,17 @@ Profiles, Places and Settings follow it, and "Log out" ends the login session. T
 Most pages start with a page header: the title, a subtitle, and a link such as "Back to the trip" where one applies. Its buttons
 sit at the right side. The content is in cards, each with an optional title. A list with no item shows an empty state:
 a short text and, where it helps, a button to the next step (for example "Install the userscripts" on an empty captures page).
+
+### Log out on all other devices
+
+The card "Sessions" on the settings page (`/settings`) has the button "Log out on all other devices". The button ends the
+login on all other browsers and devices. This browser stays logged in. Use it when you lost a device or you used a
+computer that is not yours.
+
+The saved copy of the Upcoming page (see "Upcoming journeys") goes from the other devices at their next online visit to
+the app. Until then, a device with no network can still show it. The API tokens and the share and calendar links have
+their own "Revoke": on `/tokens` for the API tokens, on the trip page for a share link, and on the Upcoming page for a calendar link.
+The button does not revoke them.
 
 ### Use a phone
 
@@ -714,6 +725,10 @@ The trip page has a link "Add an offer by hand" above the offer table. It opens 
 The form has a price (required), a currency (EUR by default), an optional fare name, a field "Class" (`Not set`, `1st class` or `2nd class`; `Not set` stores no class) and the UTC offset of the times.
 Each leg has a mode, a from and to place, a departure and an arrival. The form has up to four legs. A leg with no field filled in is left out.
 The app saves the offer with the source `manual`. Save returns you to the trip page, where the offer is ranked with the others.
+
+### Correct a manual offer
+
+A manual fare on `/trips/{id}` has the links "Change price" and "Delete" under its price. "Change price" opens a form with the price and the currency; "Save price" adds a point to the price history of the fare. "Delete" opens a page with the button "Delete offer", and removes the manual fare. The offer goes too when it has no other fare. A captured fare has no such links: use "Hide" to remove it from the table (see "Pin, hide, book and note an offer").
 
 ## Userscript panel
 

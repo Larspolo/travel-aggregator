@@ -21,7 +21,8 @@ from sqlalchemy.orm import Session, subqueryload
 
 from app.storage import human_bytes, storage_use
 from app.web.userscripts import bundle_info, userscript_list
-from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
+from app.auth import (EPOCH_KEY, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter, require_login,
+                      session_epoch, verify_csrf)
 from app.backup import BACKUP_MAX_AGE, newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
@@ -54,7 +55,7 @@ from app.schemas import TripForm
 from app.parsers import group_price
 from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group, format_breakdown, format_total, in_eur,
                          per_traveler)
-from app.timeofday import night_extras, night_time_extras, time_extras
+from app.timeofday import night_extras, night_time_extras, overnight_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trips import archived_journeys, chain, find_journeys, list_trips
 
@@ -143,7 +144,7 @@ def login_form(request: Request) -> HTMLResponse:
 
 
 @router.post("/login", response_class=HTMLResponse, dependencies=[Depends(verify_csrf)])
-def login(request: Request, password: str = Form("")) -> HTMLResponse:
+def login(request: Request, password: str = Form(""), session: Session = Depends(get_session)) -> HTMLResponse:
     address = request.client.host if request.client else "unknown"
     wait = login_limiter.retry_after(address)
     if wait:
@@ -154,6 +155,7 @@ def login(request: Request, password: str = Form("")) -> HTMLResponse:
         login_limiter.success(address)
         request.session.clear()
         request.session[SESSION_KEY] = True
+        request.session[EPOCH_KEY] = session_epoch(session)
         csrf_token(request)  # a new token after the login
         return RedirectResponse("/", status_code=303)
     login_limiter.failure(address)
@@ -302,6 +304,8 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  night_end: time | None = Query(None),
                  night_min: int | None = Query(None, ge=0, le=1440),
                  night_adjust: Decimal | None = Query(None, ge=-1000, le=1000),
+                 overnight_min: int | None = Query(None, ge=0, le=1440),
+                 overnight_cost: Decimal | None = Query(None, ge=0, le=1000),
                  night_hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  short_transfer_min: int | None = Query(None, ge=0, le=240),
                  short_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
@@ -375,7 +379,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     rates, counts, fees = rates or {}, counts or {}, fees or {}
     travelers = it.trip.travelers if fees else 1  # the trip is read only when a fee can add a part
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
-            + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
+            + night_extras(it, weights) + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
             + transfer_extras(it, weights) + stale_extras(it, weights, stale_before))
     def cost(f):
         eur, n = to_eur(f.latest_price, f.currency, rates), counts.get(f.id)
@@ -763,6 +767,8 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       night_start: time = Form(Weights.night_start), night_end: time = Form(Weights.night_end),
                       night_min: int = Form(Weights.night_min, ge=0, le=1440),
                       night_adjust: Decimal = Form(Weights.night_adjust, ge=-1000, le=1000),
+                      overnight_min: int = Form(Weights.overnight_min, ge=0, le=1440),
+                      overnight_cost: Decimal = Form(Weights.overnight_cost, ge=0, le=1000),
                       night_hour_markup: Decimal | None = Form(None, ge=0, le=100),
                       short_transfer_min: int = Form(Weights.short_transfer_min, ge=0, le=240),
                       short_transfer_penalty: Decimal = Form(Weights.short_transfer_penalty, ge=0, le=1000),
@@ -790,6 +796,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       baggage_fee=baggage_fee, early_limit=early_limit, late_limit=late_limit,
                       time_window_penalty=time_window_penalty, night_start=night_start, night_end=night_end,
                       night_min=night_min, night_adjust=night_adjust, night_hour_markup=night_hour_markup,
+                      overnight_min=overnight_min, overnight_cost=overnight_cost,
                       short_transfer_min=short_transfer_min, short_transfer_penalty=short_transfer_penalty,
                       train_markup=train_markup, bus_markup=bus_markup, flight_markup=flight_markup,
                       ferry_markup=ferry_markup, flex_non_refundable=flex_non_refundable,
@@ -809,7 +816,8 @@ WEIGHT_RANGES = {
     "hour_markup": (0, 100), "transfer_markup": (0, 100), "airport_before_min": (0, 1440),
     "airport_after_min": (0, 1440), "baggage_fee": (0, 1000), "early_limit": None, "late_limit": None,
     "time_window_penalty": (0, 1000), "night_start": None, "night_end": None, "night_min": (0, 1440),
-    "night_adjust": (-1000, 1000), "night_hour_markup": (0, 100), "short_transfer_min": (0, 240),
+    "night_adjust": (-1000, 1000), "overnight_min": (0, 1440), "overnight_cost": (0, 1000),
+    "night_hour_markup": (0, 100), "short_transfer_min": (0, 240),
     "short_transfer_penalty": (0, 1000), "train_markup": (-1000, 1000), "bus_markup": (-1000, 1000),
     "flight_markup": (-1000, 1000), "ferry_markup": (-1000, 1000), "flex_non_refundable": (-1000, 1000),
     "flex_partly_refundable": (-1000, 1000), "flex_flexible": (-1000, 1000), "first_class_hour": (-1000, 1000),
@@ -1182,7 +1190,19 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  datetime.now(timezone.utc) - newest[0] > BACKUP_MAX_AGE,
                                                                  "retention_days": days,
                                                                  "storage": storage_use(session, days, datetime.now(timezone.utc)),
-                                                                 "max_days": MAX_RETENTION_DAYS})
+                                                                 "max_days": MAX_RETENTION_DAYS,
+                                                                 "flash": request.session.pop("flash", None)})
+
+
+@router.post("/settings/sessions/end-others", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def end_other_sessions(request: Request, session: Session = Depends(get_session)) -> RedirectResponse:
+    """Make the session cookies of all other browsers invalid: +1 on the epoch (#1266)."""
+    epoch = session_epoch(session) + 1
+    session.merge(Setting(key=SESSION_EPOCH, value=str(epoch)))
+    session.commit()
+    request.session[EPOCH_KEY] = epoch
+    request.session["flash"] = "All other devices are logged out."
+    return RedirectResponse("/settings", status_code=303)
 
 
 @router.post("/settings", dependencies=[Depends(require_login), Depends(verify_csrf)])

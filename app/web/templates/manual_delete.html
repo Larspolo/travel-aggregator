@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Delete offer – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Delete offer", subtitle=it.legs[0].from_name ~ " → " ~ it.legs[-1].to_name, back=("/trips/" ~ trip_id, "Trip")) }}
+<form class="card" method="post" action="/trips/{{ trip_id }}/fares/{{ fare.id }}/delete">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p>Delete the manual offer {{ it.legs[0].from_name }} → {{ it.legs[-1].to_name }},
+    {% set first, last = it.legs[0], it.legs[-1] %}
+    {{ (first.depart_at | local(first.depart_offset_min)).strftime("%Y-%m-%d %H:%M") }}–{{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%Y-%m-%d %H:%M") }},
+    {{ fare.latest_price | money(fare.currency) }}? This cannot be undone.</p>
+  <div class="form-actions">
+    <button class="btn btn-danger confirm" type="submit">Delete offer</button>
+    <a class="btn btn-ghost" href="/trips/{{ trip_id }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

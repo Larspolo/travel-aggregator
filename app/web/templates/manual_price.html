@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Change price – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Change price", subtitle=it.legs[0].from_name ~ " → " ~ it.legs[-1].to_name, back=("/trips/" ~ trip_id, "Trip")) }}
+<form class="card" method="post" action="/trips/{{ trip_id }}/fares/{{ fare.id }}/price">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  {% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  <p>The price history keeps the old price {{ fare.latest_price | money(fare.currency) }}.</p>
+  <label>Price <input name="price_amount" inputmode="decimal" value="{{ values.price_amount }}" required></label>
+  <label>Currency <input name="price_currency" maxlength="3" value="{{ values.price_currency }}"></label>
+  <div class="form-actions">
+    <button class="btn" type="submit">Save price</button>
+    <a class="btn btn-ghost" href="/trips/{{ trip_id }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
