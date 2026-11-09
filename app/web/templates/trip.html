@@ -42,6 +42,16 @@
 {% if flash %}<p class="card" role="status">{{ flash }}</p>{% endif %}
 <ul class="search-links" aria-label="Search status of each source">{% for c in coverage %}<li>{% if c.failed %}{{ c.name }}: last search failed · <a href="/trips/{{ trip.id }}/captures?failed=1">Failed captures</a>{% elif c.captured_at %}{{ c.name }}: {{ c.captured_at|ago(now) }} · {{ c.offer_count or 0 }} offers{% else %}{{ c.name }}: not searched yet{% endif %}{% if c.url %} · <a href="{{ c.url }}" target="_blank" rel="noopener">Search on {{ c.name }}</a>{% endif %}</li>{% endfor %}</ul>
 {% include "journey.html" %}
+{% if booked_conflicts %}
+<section class="booked-conflicts card" id="booked-conflicts" role="alert">
+<h2>A booked journey conflicts with another</h2>
+<ul>
+{% for c in booked_conflicts %}
+<li>{% if c.kind == "order" %}This journey departs before the journey before it arrives{% else %}This journey overlaps another booked journey{% endif %} · <a href="/trips/{{ c.other_trip_id }}">Open the other trip</a></li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <div class="trip-layout">
 <aside class="panel card" tabindex="0" aria-label="Weights and filters"><details class="panel-toggle"><summary>Weights and filters</summary>
