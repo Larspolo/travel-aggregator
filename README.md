@@ -428,7 +428,7 @@ Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 - `earliest_depart`: the first leg departs at or after this local time.
 - `latest_arrive`: the last leg arrives by this local time, on the day of its departure.
 - `exclude_mode`: a mode (train, bus or flight) hides each offer with one of its legs.
-- `exclude_carrier`: a carrier hides each offer with one of its legs.
+- `exclude_carrier`: a carrier hides each offer with one of its legs. A carrier markup (under "Advanced", see "Risk") ranks an offer; an exclusion hides it.
 - `hide_stale`: the checkbox "hide stale" above the table hides each stale offer. The badges count only the rows that show.
 When the filters hide offers, the line "Filters hide N of M offers" shows above the table. It gives the count of each filter, for example "max transfers 1 hides 3", and each filter name is a link to the page without that filter. The line "Best hidden offer" shows the cheapest offer that the filters hide, with its time, route, source and the filters that hide it. Its "Show it" link opens the page without those filters at that row.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
@@ -1253,6 +1253,9 @@ its part from the ranking. Each part shows its own label in the breakdown.
   after it departs from. The expanded row shows the change as "Change of station: A → B". Split tickets use the same rule.
 - **Train markup €**, **Bus markup €**, **Flight markup €** and **Ferry markup €**, each default `0`. An itinerary that
   uses the mode adds the part `<mode> markup` once. A negative amount is a discount.
+- **Carriers**, in "Advanced": three slots, each with **Carrier n name** and **Carrier n markup €**. The default is no name
+  and a markup of `0`, so no slot adds a part. A leg whose carrier is the name of a slot adds the part `carrier <name>`
+  with the markup, once per itinerary. The name matches without case and outer spaces. A negative markup is a discount.
 - **Non-refundable fare €**, **Partly refundable fare €** and **Flexible fare €**, each default `0`. A fare of that tier
   adds the part `non-refundable`, `partly refundable` or `flexible`. A negative amount is a bonus. The tier comes from
   the `flexibility` text of the offer. The text `non_refundable`, `nonrefundable`, `no_refund` or `saver` gives
