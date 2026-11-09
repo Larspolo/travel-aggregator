@@ -369,12 +369,24 @@ def phase_minutes(comments):
     return out
 
 
-def quota_per_merge(samples, merged):
-    """The rise of the 5-hour usage (0..1) over the samples, summed over consecutive samples in the same window, per
-    merged PR; None without merges or rises."""
-    rise = sum(b[1] - a[1] for a, b in zip(samples, samples[1:])
+def quota_rise(samples):
+    """The rise of the 5-hour usage (0..1) over the samples, summed over consecutive samples in the same window."""
+    return sum(b[1] - a[1] for a, b in zip(samples, samples[1:])
                if abs((b[2] - a[2]).total_seconds()) < 600 and b[1] >= a[1])
+
+
+def quota_per_merge(samples, merged):
+    """The rise of the 5-hour usage (0..1) per merged PR; None without merges or rises."""
+    rise = quota_rise(samples)
     return rise / merged if merged and rise else None
+
+
+def quota_per_dollar(samples, spent):
+    """The rise of the 5-hour usage (0..1) per $ of the API list price of the runs; None without cost or rise (#1577).
+    A rise of this number shows usage that the run reports do not explain: in one review the quota per merged PR went
+    from 0.3 % to 1.0 %, but the run cost went up only 23 %."""
+    rise = quota_rise(samples)
+    return rise / spent if spent and rise else None
 
 
 TOKENS = re.compile(r"^Tokens: (\d+(?:\.\d+)?)M eq · .*?· sinks (.*)$", re.M)
@@ -872,6 +884,9 @@ def report(since, runs, jobs, status_comments, comments, prs, files, files_of=No
     spent = sum(map(sum, costs.values()))
     out.append(f"API list price of the runs (the `cost` of {sum(map(len, costs.values()))} Tokens lines): ${spent:.0f}"
                + (f" · per merged PR ${spent / len(ok):.2f}" if spent and ok else ""))
+    qd = quota_per_dollar(s, spent)
+    out.append("Quota per $ of the run cost (usage that the runs do not explain, #1577): "
+               + ("-" if qd is None else f"{qd:.2%} of the 5-hour window per $"))
     shares = lane_shares(costs)
     for name, (n, pr, mins, eq) in sorted(lanes(status_comments).items()):
         out.append(f"Lane {name}: {n} runs, {pr} PRs, median {fmt(med(mins))} min, median {fmt(med(eq))}M eq"
