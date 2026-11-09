@@ -126,6 +126,7 @@ def backup_if_needed(url: str, backup_dir: Path, cfg: Config | None = None) -> P
 
 
 DAILY_RETRY_SECONDS = 3600
+REMIND_SECONDS = 900  # the loop sends the due reminders at least this often, between two dump steps (#1647)
 DEFAULT_KEEP = 14
 STAMP_FORMAT = "%Y%m%dT%H%M%SZ"
 
@@ -244,6 +245,17 @@ def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | 
     return wait
 
 
+def loop_step(url: str, backup_dir: Path, interval: timedelta, next_dump: datetime, now: datetime) -> tuple[datetime, float]:
+    """One step of the service loop (#1647): dump only when `next_dump` has passed, remind at each step.
+
+    Return the time of the next dump step and the seconds to sleep: at most REMIND_SECONDS, and not past the next dump step.
+    """
+    if now >= next_dump:
+        next_dump = now + timedelta(seconds=_dump_step(url, backup_dir, interval, now))
+    _remind(url, now)
+    return next_dump, min(float(REMIND_SECONDS), (next_dump - now).total_seconds())
+
+
 def _store_check(url: str, value: dict) -> None:
     """Store the result of the newest dump check in the setting CHECK_KEY. A failure only logs a warning."""
     import json
@@ -310,8 +322,10 @@ def main(argv: list[str] | None = None) -> int:
     backup_dir = Path(os.environ.get("BACKUP_DIR", "/backups"))
     if a.daily:
         interval = timedelta(hours=float(os.environ.get("BACKUP_INTERVAL_HOURS", "24")))
+        next_dump = datetime.now(UTC)
         while True:
-            time.sleep(daily_step(url, backup_dir, interval))
+            next_dump, sleep_for = loop_step(url, backup_dir, interval, next_dump, datetime.now(UTC))
+            time.sleep(sleep_for)
     if a.now:
         try:
             target = dump(url, backup_dir, "manual")
