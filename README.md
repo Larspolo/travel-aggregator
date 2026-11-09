@@ -420,6 +420,7 @@ Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 - `exclude_mode`: a mode (train, bus or flight) hides each offer with one of its legs.
 - `exclude_carrier`: a carrier hides each offer with one of its legs.
 - `hide_stale`: the checkbox "hide stale" above the table hides each stale offer. The badges count only the rows that show.
+When the filters hide offers, the line "Filters hide N of M offers" shows above the table. It gives the count of each filter, for example "max transfers 1 hides 3", and each filter name is a link to the page without that filter. The line "Best hidden offer" shows the cheapest offer that the filters hide, with its time, route, source and the filters that hide it. Its "Show it" link opens the page without those filters at that row.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
 Open "Legs and fares" in a row to see its legs, the transfer times and all fares, each with its link.
 The expanded row also shows the price history chart of each fare: one point for each capture of the fare.
