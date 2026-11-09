@@ -39,6 +39,11 @@ class Weights:
     wait_hour_markup: Decimal = Decimal("0")
     # The hour markup inside the night window (#143); None = the same as hour_markup.
     night_hour_markup: Decimal | None = None
+    # The hour value per mode (#1567): € per hour of a leg of the mode; None = the hour markup (no part).
+    train_hour_markup: Decimal | None = None  # (#1567)
+    bus_hour_markup: Decimal | None = None  # (#1567)
+    flight_hour_markup: Decimal | None = None  # (#1567)
+    ferry_hour_markup: Decimal | None = None  # (#1567)
     # The short-transfer penalty (#173): a transfer shorter than the minimum; a penalty of 0 disables it.
     short_transfer_min: int = 10
     short_transfer_penalty: Decimal = Decimal("0")
