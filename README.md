@@ -451,6 +451,8 @@ An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
 If the newest capture is older than the stale hours, the row also shows "stale, price may have changed". See "Stale offers".
 A fare that a newer search of the same site did not show again, in the departure span of that search, shows the mark "not in the last <source> search". The best offer does not use such a fare. The next search that shows the fare again removes the mark.
+A fare whose latest price is implausible shows the chip "check the price" next to its price. A price is implausible when it is €0, or when it is below a fifth or above five times the last usable price of the fare in the same currency. The chip title names the last price, for example "The last price was €39.00". A price of €0 with no earlier price shows the title "A price of 0 cannot be right".
+The best offer, the highlights and "Best by profile" do not use a fare with the chip, as long as the row or the trip has a usable fare. A row with only such fares still shows, with the chip and no highlight. The trips list, the target price check and the price-drop messages do not use such a fare either. A later capture with a plausible price removes the chip, and the fare counts again.
 Click a column header to sort by it. Click it again to reverse the order.
 The Mode and Source lists show only one mode or one source.
 
@@ -1042,6 +1044,7 @@ Each capture on the captures pages has these columns:
 - "Rejected": the offers that the parser rejected.
 - "Result": "ok", or "failed". Open "failed" to see the reason: the reason when the parser cannot read the raw data,
   and "offer N: reason" for each rejected offer.
+- "Check the price": the number of fares of the capture that show the chip "check the price" (see "Compare offers in the trip table"). The number has the warning style when it is more than 0, and "-" when the capture has no offer.
 
 A capture from the time before this feature shows "-" in these columns. The reasons do not show the input values.
 
