@@ -114,6 +114,7 @@ framework/tests/test_health_takeovers.py
 framework/tests/test_health_misses.py
 framework/tests/test_owner_work.py
 framework/tests/test_review_gap.py
+framework/tests/test_review_gap_ready.py
 framework/tests/test_health_until_pages.py
 framework/tests/test_operator.py
 framework/tests/test_owner_tasks.py

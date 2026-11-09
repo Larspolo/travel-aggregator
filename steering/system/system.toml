@@ -15,6 +15,7 @@ trigger = "trig_01HEyJbcmgrWgkRE4dEbjL66"                 # the ID of the schedu
 
 [review]                        # the process review (`improve` skill): merged PRs, never hours
 gap = 80                        # merged PRs: the first gap, and the reset when the result of the reviews turns
-min_gap = 10                    # a review with a change halves a gap up to `gap`, down to this
+min_gap = 10                    # a review with a change halves a gap up to `gap`, down to the count of ready tickets, at least this
+max_min_gap = 40                # ... and at most this: many ready tickets, later reviews (#1597, P9)
 max_gap = 640                   # a review with no change doubles a gap from `gap` up, up to this
 owner_gap = 20                  # the gap when an owner session merged a PR since the last review
