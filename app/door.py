@@ -13,7 +13,8 @@ def flight_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...
     if not any(leg.mode == FLIGHT for leg in itinerary.legs):
         return ()
     minutes = weights.airport_before_min + weights.airport_after_min
-    return (("airport time", Decimal(minutes) * weights.hour_markup / 60),)
+    rate = weights.hour_markup if weights.flight_hour_markup is None else weights.flight_hour_markup  # (#1567)
+    return (("airport time", Decimal(minutes) * rate / 60),)
 
 
 def baggage_extras(fare, itinerary, weights: Weights, rates=None) -> tuple[tuple[str, Decimal], ...]:

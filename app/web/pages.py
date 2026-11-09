@@ -52,7 +52,7 @@ from app.route_history import route_history
 from app.money import money
 from app.coverage import trip_coverage
 from app.sourcehealth import failing_sources
-from app.risk import carrier_extras, mode_extras, self_transfer_extras, stale_extras, station_change_extras, station_changes, transfer_extras
+from app.risk import carrier_extras, mode_extras, mode_hour_extras,self_transfer_extras, stale_extras, station_change_extras, station_changes, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -483,6 +483,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     travelers = it.trip.travelers if fees else 1  # the trip is read only when a fee can add a part
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
             + night_extras(it, weights) + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
+                + mode_hour_extras(it, weights)
             + carrier_extras(it, weights) + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
             + transfer_extras(it, weights) + station_change_extras(it, weights) + stale_extras(it, weights, stale_before))
@@ -1040,6 +1041,10 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier2_markup: Decimal = Form(Weights.carrier2_markup, ge=-1000, le=1000),
                       carrier3_name: str = Form(Weights.carrier3_name, max_length=50),
                       carrier3_markup: Decimal = Form(Weights.carrier3_markup, ge=-1000, le=1000),
+                      train_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
+                      bus_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
+                      flight_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
+                      ferry_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       session: Session = Depends(get_session)) -> RedirectResponse:
     """Store the present weights of the trip page as a named profile (#229); the same ranges as `trip_page`."""
     if session.get(Trip, trip_id) is None:
@@ -1064,7 +1069,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       hour_tier2_markup=hour_tier2_markup,
                       carrier1_name=carrier1_name, carrier1_markup=carrier1_markup,
                       carrier2_name=carrier2_name, carrier2_markup=carrier2_markup,
-                      carrier3_name=carrier3_name, carrier3_markup=carrier3_markup)
+                      carrier3_name=carrier3_name, carrier3_markup=carrier3_markup,
+                      train_hour_markup=train_hour_markup, bus_hour_markup=bus_hour_markup,
+                      flight_hour_markup=flight_hour_markup, ferry_hour_markup=ferry_hour_markup)
     save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 

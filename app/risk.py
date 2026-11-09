@@ -20,6 +20,28 @@ def mode_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     return tuple(parts)
 
 
+HOUR_FIELDS = {"train": "train_hour_markup", "bus": "bus_hour_markup", "flight": "flight_hour_markup",
+               "ferry": "ferry_hour_markup"}  # (#1567)
+
+
+def mode_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """One part ("<mode> hours", amount) for each mode with an hour value (#1567): the minutes of its legs times
+    (value − hour_markup) / 60. A value of None or a difference of 0 adds no part; another mode adds 0."""
+    parts = []
+    for mode, field in HOUR_FIELDS.items():
+        value = getattr(weights, field)
+        if value is None:
+            continue
+        diff = Decimal(value) - Decimal(weights.hour_markup)
+        if diff == 0:
+            continue
+        seconds = sum(int((leg.arrive_at - leg.depart_at).total_seconds()) for leg in itinerary.legs
+                      if leg.mode == mode)
+        if seconds:
+            parts.append((f"{mode} hours", Decimal(seconds) / 60 * diff / 60))
+    return tuple(parts)
+
+
 def carrier_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """One part ("carrier <name>", amount) for each carrier slot whose name a leg of the itinerary has (#1530). The name
     matches without case and outer spaces. A slot with an empty name or a markup of 0 adds no part. A negative amount

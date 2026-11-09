@@ -8,6 +8,7 @@ The agent writes here what it learned the hard way. Each line must save time in 
 - Level 3 with the trip page: a token and a trip with `tokens.create(make_sessionmaker(make_engine())(), "v3")` (`app.db`, no `SessionLocal`); set `SECRET_KEY` and `export OWNER_PASSWORD_HASH="$(python3 app/auth.py PW)"` in a second `export` after `PYTHONPATH` (one `export` runs the `$(...)` before `PYTHONPATH` is set); log in with `curl -c jar` GET `/login`, then POST `csrf_token` and `password` (#1404).
 
 ## Code
+- A new `Weights` field needs a `Form` in `save_profile()` and an entry in `CHANGED` of `tests/test_profiles_store.py` (#1567).
 - A test file name must not repeat a name in `framework/tests/` (rootdir import mode): pytest stops with "import file mismatch". Check `ls framework/tests` first.
 - `addopts` of `pyproject.toml` has `-q`: do not add `-q` to pytest (`-qq` hides the "N passed" line). A Playwright script outside the tests: `chromium.launch(executable_path="/opt/pw-browsers/chromium")`.
 - A Playwright touch `tap()` returns before the click of the gesture: wait for its result (`wait_for_function`), never read it once (#508).

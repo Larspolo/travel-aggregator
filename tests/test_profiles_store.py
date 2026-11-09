@@ -27,7 +27,8 @@ CHANGED = {"hour_markup": "22.5", "transfer_markup": "7", "airport_before_min": 
            "hour_tier1_after_min": "240", "hour_tier1_markup": "8", "hour_tier2_after_min": "480",
            "hour_tier2_markup": "15",
            "carrier1_name": "Ryanair", "carrier1_markup": "15", "carrier2_name": "KLM", "carrier2_markup": "-5",
-           "carrier3_name": "Flixbus", "carrier3_markup": "8"}
+           "carrier3_name": "Flixbus", "carrier3_markup": "8",
+           "train_hour_markup": "5", "bus_hour_markup": "6", "flight_hour_markup": "30", "ferry_hour_markup": "7"}
 
 
 def _expected(name, raw):
