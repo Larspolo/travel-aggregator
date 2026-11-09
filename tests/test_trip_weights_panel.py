@@ -10,7 +10,7 @@ GROUPS = ["Hour tiers", "Airport", "Time windows", "Night", "Modes", "Fares", "S
 NAMES = {"hour_markup", "transfer_markup", "show_hidden", "hide_stale", "sort", "dir", "mode", "earliest_depart",
          "latest_arrive", "day", "source", "max_transfers", "max_duration_min", "airport_before_min", "airport_after_min",
          "baggage_fee", "early_limit", "late_limit", "time_window_penalty", "night_start", "night_end", "night_min",
-         "night_adjust", "night_hour_markup", "short_transfer_min", "short_transfer_penalty", "stale_hours",
+         "night_adjust", "overnight_min", "overnight_cost", "night_hour_markup", "short_transfer_min", "short_transfer_penalty", "stale_hours",
          "stale_penalty", "hour_tier1_after_min", "hour_tier1_markup", "hour_tier2_after_min", "hour_tier2_markup",
          "train_markup", "bus_markup", "flight_markup", "ferry_markup", "flex_non_refundable",
          "flex_partly_refundable", "flex_flexible", "first_class_hour", "self_transfer_penalty", "exclude_mode", "exclude_carrier"}
@@ -31,7 +31,7 @@ def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  
     assert re.findall(r"<fieldset><legend>([^<]+)</legend>", advanced) == GROUPS
     fieldsets = re.findall(r"<fieldset>.*?</fieldset>", advanced, flags=re.S)
     outside = re.sub(r"<fieldset>.*?</fieldset>", "", advanced, flags=re.S)
-    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 29
+    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 31
 
 
 def test_each_input_name_of_the_form_is_still_sent(trip):  # noqa: F811
