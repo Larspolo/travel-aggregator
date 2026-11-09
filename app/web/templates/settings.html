@@ -84,6 +84,28 @@
 </div>
 {% endcall %}
 
+{% call ui.card("Passkeys") %}
+<div id="passkeys" data-csrf="{{ csrf_token(request) }}">
+{% if passkeys %}
+<ul class="passkey-list">
+{% for p in passkeys %}<li><span class="passkey-name">{{ p.name }}</span> · added {{ p.created_at.strftime("%Y-%m-%d") }} ·
+  {% if p.last_used_at %}last use {{ p.last_used_at.strftime("%Y-%m-%d") }}{% else %}never used{% endif %}
+  <form method="post" action="/settings/passkeys/{{ p.id }}/delete" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    <button class="btn" type="submit">Remove</button></form></li>
+{% endfor %}
+</ul>
+{% else %}<p>No passkeys yet.</p>{% endif %}
+<form id="passkey-add">
+  <div class="field"><label for="passkey-name">Name of the device</label>
+    <input id="passkey-name" name="name" maxlength="100" placeholder="Laptop" required></div>
+  <div class="form-actions"><button class="btn" type="submit">Add a passkey</button></div>
+</form>
+<p id="passkey-status" role="status"></p>
+</div>
+<script src="/static/passkey.js" defer></script>
+{% endcall %}
+
 {% call ui.card("Recent logins") %}
 {% set labels = {"ok": ("login", ""), "code": ("login with code", ""), "recovery": ("recovery code", ""),
                  "failed": ("failed", "warn"), "code-failed": ("failed (code)", "warn")} %}

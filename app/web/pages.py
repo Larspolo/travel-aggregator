@@ -30,7 +30,7 @@ from app.backup import BACKUP_MAX_AGE, STAMP_FORMAT, newest_backup
 import segno
 from markupsafe import Markup
 
-from app import login_log, recovery, totp
+from app import login_log, passkeys, recovery, totp
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
@@ -56,7 +56,7 @@ from app.risk import carrier_extras, mode_extras, self_transfer_extras, stale_ex
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
-from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, PushSubscription, ScoreProfile, Setting,
+from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PushSubscription, ScoreProfile, Setting,
                         SourceFee, Trip)
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
                         REMINDER_DAYS_KEY, REMINDER_NOT_SENT, SOURCE_ALERT_KEY, alert_messages, deliver, setting,
@@ -1484,6 +1484,7 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  "max_days": MAX_RETENTION_DAYS,
                                                                  "flash": request.session.pop("flash", None),
                                                                  "totp": totp_state(request, session),
+                                                                 "passkeys": passkeys.listing(session),
                                                                  "logins": login_log.recent(session)})
 
 
@@ -1565,6 +1566,38 @@ def totp_recovery_new(request: Request, code: str = Form(""), session: Session =
     _show_codes(request, session)
     session.commit()
     return RedirectResponse("/settings#totp", status_code=303)
+
+
+class PasskeyIn(BaseModel):
+    name: str = ""
+    credential: dict
+
+
+@router.post("/settings/passkeys/options", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def passkey_options(request: Request, session: Session = Depends(get_session)) -> Response:
+    """The options of navigator.credentials.create() for a new passkey (#1558)."""
+    return Response(passkeys.registration_options(request, session), media_type="application/json")
+
+
+@router.post("/settings/passkeys", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def passkey_add(request: Request, body: PasskeyIn, session: Session = Depends(get_session)) -> JSONResponse:
+    """Check and store the new passkey; a wrong challenge or origin is a 400 with the reason (#1558)."""
+    try:
+        row = passkeys.register(request, session, body.name, body.credential)
+    except passkeys.PasskeyError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    request.session["flash"] = f"The passkey “{row.name}” is added."
+    return JSONResponse({"id": row.id})
+
+
+@router.post("/settings/passkeys/{passkey_id}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def passkey_remove(request: Request, passkey_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    row = session.get(Passkey, passkey_id)
+    if row is not None:
+        session.delete(row)
+        session.commit()
+        request.session["flash"] = f"The passkey “{row.name}” is removed."
+    return RedirectResponse("/settings#passkeys", status_code=303)
 
 
 @router.post("/settings/sessions/end-others", dependencies=[Depends(require_login), Depends(verify_csrf)])
