@@ -30,6 +30,7 @@
     <span class="muted">({{ n }} price{% if n > 1 %}s{% endif %} in {{ code }} {% if n > 1 %}have{% else %}has{% endif %} no rate)</span>{% endfor %}</p>{% endif %}
   {% endif %}
   {% if only %}<p><a href="/upcoming">All upcoming journeys</a></p>{% else %}
+  <p><a href="/upcoming/years">Travel per year</a></p>
   <section class="card calendar-feed"><h2>Calendar</h2>
   {% if feed_link %}{% set webcal = "webcal://" ~ feed_link.split("://", 1)[1] %}
     <div class="new-token" role="status">
