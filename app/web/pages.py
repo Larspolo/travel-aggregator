@@ -421,11 +421,11 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  hour_tier1_markup: Decimal | None = Query(None, ge=0, le=100),
                  hour_tier2_after_min: int | None = Query(None, ge=0, le=2880),
                  hour_tier2_markup: Decimal | None = Query(None, ge=0, le=100),
-                 carrier1_name: str | None = Query(None, max_length=100),
+                 carrier1_name: str | None = Query(None, max_length=50),
                  carrier1_markup: Decimal | None = Query(None, ge=-1000, le=1000),
-                 carrier2_name: str | None = Query(None, max_length=100),
+                 carrier2_name: str | None = Query(None, max_length=50),
                  carrier2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
-                 carrier3_name: str | None = Query(None, max_length=100),
+                 carrier3_name: str | None = Query(None, max_length=50),
                  carrier3_markup: Decimal | None = Query(None, ge=-1000, le=1000)) -> dict:
     """The weights of the URL; None = not in the URL, the profile gives the value (#230)."""
     return dict(locals())
@@ -1034,11 +1034,11 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       hour_tier1_markup: Decimal = Form(Weights.hour_tier1_markup, ge=0, le=100),
                       hour_tier2_after_min: int = Form(Weights.hour_tier2_after_min, ge=0, le=2880),
                       hour_tier2_markup: Decimal = Form(Weights.hour_tier2_markup, ge=0, le=100),
-                      carrier1_name: str = Form(Weights.carrier1_name, max_length=100),
+                      carrier1_name: str = Form(Weights.carrier1_name, max_length=50),
                       carrier1_markup: Decimal = Form(Weights.carrier1_markup, ge=-1000, le=1000),
-                      carrier2_name: str = Form(Weights.carrier2_name, max_length=100),
+                      carrier2_name: str = Form(Weights.carrier2_name, max_length=50),
                       carrier2_markup: Decimal = Form(Weights.carrier2_markup, ge=-1000, le=1000),
-                      carrier3_name: str = Form(Weights.carrier3_name, max_length=100),
+                      carrier3_name: str = Form(Weights.carrier3_name, max_length=50),
                       carrier3_markup: Decimal = Form(Weights.carrier3_markup, ge=-1000, le=1000),
                       session: Session = Depends(get_session)) -> RedirectResponse:
     """Store the present weights of the trip page as a named profile (#229); the same ranges as `trip_page`."""
@@ -1098,9 +1098,9 @@ def form_weights(form) -> tuple[Weights, str | None]:
         raw = (form.get(f.name) or "").strip()
         if not raw:
             continue
-        if isinstance(f.default, str):  # a carrier name (#1530): any text up to 100 characters
-            if len(raw) > 100:
-                return Weights(), f"{f.name}: the name is longer than 100 characters; nothing changed."
+        if isinstance(f.default, str):  # a carrier name (#1530, #1531): any text up to 50 characters
+            if len(raw) > 50:
+                return Weights(), f"{f.name}: the name is longer than 50 characters; nothing changed."
             values[f.name] = raw
             continue
         bounds = WEIGHT_RANGES[f.name]
