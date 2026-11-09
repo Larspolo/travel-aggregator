@@ -7,6 +7,18 @@
   {% set src = "source=" ~ (source | urlencode) if source else "" %}
   {% if failed %}<a class="btn" href="{{ base }}{% if src %}?{{ src }}{% endif %}">Show all captures</a>{% else %}<a class="btn" href="{{ base }}?{% if src %}{{ src }}&amp;{% endif %}failed=1">Only failed captures</a>{% endif %}
 {% endcall %}
+{% if trip and upload_sources %}
+<section class="card" id="upload-payload"><h2>Upload a payload</h2>
+{% if upload_error %}<ul class="errors"><li>{{ upload_error }}</li></ul>{% endif %}
+<form method="post" action="/trips/{{ trip.id }}/captures/upload" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <label>Source <select name="source">{% for s in upload_sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select></label>
+    <label>JSON file <input type="file" name="file" accept=".json,application/json"></label>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Upload</button></div>
+</form></section>
+{% endif %}
 {% if source %}<p>Source: {{ source }} · <a href="{{ base }}{% if failed %}?failed=1{% endif %}">All sources</a></p>{% endif %}
 {% for entry in failed_sources %}{% set source = entry.source %}
 <p id="reparse-source-{{ loop.index }}"><button name="source" value="{{ source }}" hx-post="/captures/reparse-failed"
