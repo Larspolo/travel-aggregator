@@ -238,6 +238,17 @@ class Setting(Base):
     value: Mapped[str] = mapped_column(Text)
 
 
+class LoginEvent(Base):
+    """One attempt at the login page or the second step (#1353). result: ok, failed, code, code-failed, recovery."""
+    __tablename__ = "login_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    at: Mapped[datetime] = mapped_column(_tz())
+    address: Mapped[str] = mapped_column(String(64))
+    user_agent: Mapped[str] = mapped_column(String(300))
+    result: Mapped[str] = mapped_column(String(20))
+
+
 class PushSubscription(Base):
     """One browser that gets the price-drop messages by Web Push (#514). The keys encrypt the message (RFC 8291)."""
     __tablename__ = "push_subscriptions"
