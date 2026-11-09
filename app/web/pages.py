@@ -146,6 +146,53 @@ def login_form(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request, "login.html", {"error": None})
 
 
+TOTP_PENDING = "totp_pending"  # the login session key: the time of a correct password before the code (#1315)
+TOTP_PENDING_MAX = 300
+
+
+def _log_in(request: Request, session: Session) -> None:
+    request.session.clear()
+    request.session[SESSION_KEY] = True
+    request.session[EPOCH_KEY] = session_epoch(session)
+    csrf_token(request)  # a new token after the login
+
+
+def _pending(request: Request) -> bool:
+    started = request.session.get(TOTP_PENDING)
+    return isinstance(started, (int, float)) and 0 <= clock.time() - started <= TOTP_PENDING_MAX
+
+
+@router.get("/login/code", response_class=HTMLResponse)
+def login_code_form(request: Request) -> Response:
+    if not _pending(request):
+        return RedirectResponse("/login", status_code=303)
+    return templates.TemplateResponse(request, "login_code.html", {})
+
+
+@router.post("/login/code", response_class=HTMLResponse, dependencies=[Depends(verify_csrf)])
+def login_code(request: Request, code: str = Form(""), session: Session = Depends(get_session)) -> Response:
+    address = request.client.host if request.client else "unknown"
+    wait = login_limiter.retry_after(address)
+    if wait:
+        minutes = math.ceil(wait / 60)
+        return HTMLResponse(f"Too many attempts. Try again in {minutes} minutes.", status_code=429,
+                            headers={"Retry-After": str(wait)})
+    secret = session.get(Setting, TOTP_SECRET)
+    if not _pending(request) or secret is None:
+        request.session.pop(TOTP_PENDING, None)
+        return RedirectResponse("/login", status_code=303)
+    last = session.get(Setting, TOTP_STEP)
+    step = totp.check(secret.value, code, clock.time(), int(last.value) if last else -1)
+    if step is None:
+        login_limiter.failure(address)
+        return templates.TemplateResponse(request, "login_code.html", {"error": "Wrong code."}, status_code=401)
+    session.merge(Setting(key=TOTP_STEP, value=str(step)))
+    session.commit()
+    login_limiter.success(address)
+    _log_in(request, session)
+    return RedirectResponse("/", status_code=303)
+
+
 @router.post("/login", response_class=HTMLResponse, dependencies=[Depends(verify_csrf)])
 def login(request: Request, password: str = Form(""), session: Session = Depends(get_session)) -> HTMLResponse:
     address = request.client.host if request.client else "unknown"
@@ -155,11 +202,14 @@ def login(request: Request, password: str = Form(""), session: Session = Depends
         return HTMLResponse(f"Too many attempts. Try again in {minutes} minutes.", status_code=429,
                             headers={"Retry-After": str(wait)})
     if check_password(password, get_settings().owner_password_hash):
-        login_limiter.success(address)
         request.session.clear()
-        request.session[SESSION_KEY] = True
-        request.session[EPOCH_KEY] = session_epoch(session)
-        csrf_token(request)  # a new token after the login
+        if session.get(Setting, TOTP_SECRET) is not None:
+            # The second step (#1315): the password alone does not log in.
+            request.session[TOTP_PENDING] = clock.time()
+            csrf_token(request)
+            return RedirectResponse("/login/code", status_code=303)
+        login_limiter.success(address)
+        _log_in(request, session)
         return RedirectResponse("/", status_code=303)
     login_limiter.failure(address)
     return templates.TemplateResponse(request, "login.html", {"error": "Wrong password."}, status_code=401)

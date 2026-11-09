@@ -13,6 +13,8 @@ from app.main import app
 PUBLIC = {
     ("GET", "/login"): "the login form",
     ("POST", "/login"): "the login itself (CSRF token)",
+    ("GET", "/login/code"): "the code form of the second login step; it needs a correct password first (#1315)",
+    ("POST", "/login/code"): "the code of the second login step (CSRF token, pending mark of the password, #1315)",
     ("GET", "/logout"): "ends the session",
     ("POST", "/logout"): "ends the session",
     ("GET", "/sw.js"): "the service worker script of the installed app, no data",
