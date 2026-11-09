@@ -28,7 +28,7 @@ from app.backup import BACKUP_MAX_AGE, newest_backup
 import segno
 from markupsafe import Markup
 
-from app import recovery, totp
+from app import login_log, recovery, totp
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
@@ -187,12 +187,16 @@ def login_code(request: Request, code: str = Form(""), session: Session = Depend
     last = session.get(Setting, TOTP_STEP)
     step = totp.check(secret.value, code, clock.time(), int(last.value) if last else -1)
     if step is None and recovery.use(session, code):  # a recovery code of the lost phone (#1316)
+        login_log.record(session, request, "recovery")
         session.commit()
     elif step is None:
         login_limiter.failure(address)
+        login_log.record(session, request, "code-failed")
+        session.commit()
         return templates.TemplateResponse(request, "login_code.html", {"error": "Wrong code."}, status_code=401)
     else:
         session.merge(Setting(key=TOTP_STEP, value=str(step)))
+        login_log.record(session, request, "code")
         session.commit()
     login_limiter.success(address)
     _log_in(request, session)
@@ -215,9 +219,13 @@ def login(request: Request, password: str = Form(""), session: Session = Depends
             csrf_token(request)
             return RedirectResponse("/login/code", status_code=303)
         login_limiter.success(address)
+        login_log.record(session, request, "ok")
+        session.commit()
         _log_in(request, session)
         return RedirectResponse("/", status_code=303)
     login_limiter.failure(address)
+    login_log.record(session, request, "failed")
+    session.commit()
     return templates.TemplateResponse(request, "login.html", {"error": "Wrong password."}, status_code=401)
 
 
