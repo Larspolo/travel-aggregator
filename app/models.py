@@ -82,6 +82,9 @@ class Itinerary(Base):
     booked_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)
     booked_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     booked_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
+    # The cancel of a booked journey and its refund (#1685); the paid fields stay.
+    cancelled_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
+    refund_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)
     travel_day_sent_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the travel-day message (#1648)
 
     trip: Mapped[Trip] = relationship(back_populates="itineraries")

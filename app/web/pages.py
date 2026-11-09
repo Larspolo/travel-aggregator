@@ -1323,6 +1323,7 @@ def toggle_booked(request: Request, trip_id: int, itinerary_id: int, session: Se
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
     it.booked = not it.booked
     it.booked_fare_id = it.booked_price = it.booked_currency = it.booked_at = None
+    it.cancelled_at = it.refund_price = None
     if it.booked and it.fares:  # keep the paid fare: the main fare with the weights of the trip (#1146)
         now = datetime.now(timezone.utc)
         weights, _ = resolve_weights(session, it.trip, {}, None)
@@ -1370,6 +1371,29 @@ def save_paid(trip_id: int, itinerary_id: int, fare_id: int = Form(...), price: 
     if fare is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"fare {fare_id} is not a fare of this itinerary")
     it.booked_fare_id, it.booked_price, it.booked_currency = fare.id, value, fare.currency
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/cancel",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def cancel_booking(trip_id: int, itinerary_id: int, refund: str = Form(""),
+                   session: Session = Depends(get_session)) -> RedirectResponse:
+    """The owner cancels a booked journey with a refund (#1685): 0 to the paid price (0 with no paid price), at most
+    2 decimals, blank = 0. The paid fields stay; a bad refund is 422 and stores nothing."""
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    if not it.booked:
+        raise HTTPException(status.HTTP_409_CONFLICT, "the itinerary is not booked")
+    try:
+        value = Decimal(refund.strip() or "0")
+    except InvalidOperation:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the refund is not a number") from None
+    limit = it.booked_price if it.booked_price is not None else Decimal("0")
+    if not value.is_finite() or value < 0 or value > limit or value.as_tuple().exponent < -2:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"the refund needs 0 to {limit} with 2 decimals")
+    it.booked, it.cancelled_at, it.refund_price = False, datetime.now(timezone.utc), value
     session.commit()
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
