@@ -82,6 +82,7 @@ class Itinerary(Base):
     booked_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)
     booked_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     booked_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
+    travel_day_sent_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the travel-day message (#1648)
 
     trip: Mapped[Trip] = relationship(back_populates="itineraries")
     legs: Mapped[list["Leg"]] = relationship(back_populates="itinerary", cascade="all, delete-orphan", order_by="Leg.seq")
