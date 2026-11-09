@@ -14,7 +14,7 @@ TOKENS = [
 ]
 
 
-def test_a_page_links_app_css_and_the_file_is_served():
+def test_a_page_links_app_css_and_the_file_is_served(sessions):  # /login reads the passkeys (#1559)
     c = TestClient(app)
     page = c.get("/login").text
     assert 'href="/static/app.css"' in page and "<style" not in page
