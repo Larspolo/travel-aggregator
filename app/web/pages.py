@@ -468,9 +468,37 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  carrier2_name: str | None = Query(None, max_length=50),
                  carrier2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  carrier3_name: str | None = Query(None, max_length=50),
-                 carrier3_markup: Decimal | None = Query(None, ge=-1000, le=1000)) -> dict:
-    """The weights of the URL; None = not in the URL, the profile gives the value (#230)."""
-    return dict(locals())
+                 carrier3_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 train_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
+                 bus_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
+                 flight_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
+                 ferry_hour_markup: str | None = Query(None, max_length=20)) -> dict:  # (#1568)
+    """The weights of the URL; None = not in the URL, the profile gives the value (#230). An hour value per mode
+    (#1568) that is sent blank is `MODE_HOUR_BLANK`: the hour markup, also when the profile has a value."""
+    values = dict(locals())
+    for name in MODE_HOUR_FIELDS:
+        values[name] = _mode_hour(name, values[name])
+    return values
+
+
+MODE_HOUR_FIELDS = ("train_hour_markup", "bus_hour_markup", "flight_hour_markup", "ferry_hour_markup")
+MODE_HOUR_BLANK = ""  # a blank field of the live re-ranking (#1568): None in the weights, not the profile value
+
+
+def _mode_hour(name: str, raw: str | None) -> Decimal | str | None:
+    """The hour value of a mode in the URL (#1568): None (not sent), MODE_HOUR_BLANK, or a Decimal in 0..100."""
+    if raw is None:
+        return None
+    raw = raw.strip()
+    if not raw:
+        return MODE_HOUR_BLANK
+    try:
+        value = Decimal(raw)
+    except InvalidOperation:
+        value = None
+    if value is None or not value.is_finite() or not 0 <= value <= 100:
+        raise HTTPException(422, f"{name}: {raw!r} is not in 0 to 100")
+    return value
 
 
 def resolve_weights(session: Session, trip: Trip, overrides: dict, profile: int | None):
@@ -481,7 +509,9 @@ def resolve_weights(session: Session, trip: Trip, overrides: dict, profile: int 
     else:
         chosen = session.get(ScoreProfile, trip.profile_id) if trip.profile_id is not None else None
     base = from_config(chosen.config_json) if chosen is not None else default_weights(session)
-    return active_weights(base, overrides), chosen  # the score is computed here and never stored
+    blank = {k: None for k, v in overrides.items() if v == MODE_HOUR_BLANK and k in MODE_HOUR_FIELDS}  # (#1568)
+    weights = active_weights(base, {k: v for k, v in overrides.items() if k not in blank})
+    return dataclasses.replace(weights, **blank), chosen  # the score is computed here and never stored
 
 
 def fare_travelers(session: Session, itineraries) -> dict[int, int]:
@@ -793,7 +823,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale}
     # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
-    query = {**{k: v for k, v in to_config(weights).items() if v is not None}, "mode": mode, "source": source,
+    query = {**{k: v for k, v in to_config(weights).items() if v is not None},
+             **{k: MODE_HOUR_BLANK for k in MODE_HOUR_FIELDS if getattr(weights, k) is None},  # (#1568)
+             "mode": mode, "source": source,
              **({"max_transfers": limit_transfers} if limit_transfers is not None else {}),
              **({"max_duration_min": limit_duration} if limit_duration is not None else {}),
              **({"earliest_depart": earliest_depart} if limit_depart is not None else {}),

@@ -42,6 +42,14 @@
         <input type="number" name="night_hour_markup" min="0" max="100" step="0.01" value="{% if weights.night_hour_markup is not none %}{{ weights.night_hour_markup }}{% elif not night_blank %}{{ weights.hour_markup }}{% endif %}"{% if night_blank %} placeholder="the hour markup"{% endif %}></label>
     </fieldset>
     <fieldset><legend>Modes</legend>
+      <label>Train hour €
+        <input type="number" name="train_hour_markup" min="0" max="100" step="0.01" value="{% if weights.train_hour_markup is not none %}{{ weights.train_hour_markup }}{% endif %}" placeholder="the hour markup"></label>
+      <label>Bus hour €
+        <input type="number" name="bus_hour_markup" min="0" max="100" step="0.01" value="{% if weights.bus_hour_markup is not none %}{{ weights.bus_hour_markup }}{% endif %}" placeholder="the hour markup"></label>
+      <label>Flight hour €
+        <input type="number" name="flight_hour_markup" min="0" max="100" step="0.01" value="{% if weights.flight_hour_markup is not none %}{{ weights.flight_hour_markup }}{% endif %}" placeholder="the hour markup"></label>
+      <label>Ferry hour €
+        <input type="number" name="ferry_hour_markup" min="0" max="100" step="0.01" value="{% if weights.ferry_hour_markup is not none %}{{ weights.ferry_hour_markup }}{% endif %}" placeholder="the hour markup"></label>
       <label>Train markup € (negative = discount)
         <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
       <label>Bus markup €
