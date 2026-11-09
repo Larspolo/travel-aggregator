@@ -33,7 +33,8 @@ This is a scheduled, unattended run. Other runs can work at the same time. The p
    workflow `pacer.yml` starts new runs (`framework/tools/pacer.py`).
 3. Do not run more runs than the quota target: run `python3 framework/tools/usage.py --fire`. Its stderr line shows "target N"
    and "claims M". If the tool fails, N = 8 and M = the open tickets with the label `in-progress` that changed in the
-   last 30 minutes. a) At your start (not with an adopted brief: the pacer counted the target) (after step 1 of the autopilot skill): if N is 0, stop. If M is N or more, only
+   last 30 minutes. a) At your start (not with an adopted brief: the pacer counted the target; not in a deep run with the section `Deep work`
+   of `cycle_start.py`: it has the numbers, #1377) (after step 1 of the autopilot skill): if N is 0, stop. If M is N or more, only
    finish stalled PRs of other runs (autopilot step 2), then stop without a new ticket. b) After each PR that you
    open: run it again; if M is more than N, stop instead of taking a new ticket.
 
