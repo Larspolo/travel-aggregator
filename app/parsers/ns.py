@@ -37,6 +37,8 @@ def local_time(station: dict, kind: str) -> datetime:
 class NsParser:
     source = "nsinternational.com"
     version = "1.2.0"
+    hosts = ("www.nsinternational.com",)
+    paths = ("/api/v2/sales/traveloffers/search",)
     group_price = True  # the price is for all travelers of the request (#767; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:

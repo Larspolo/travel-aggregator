@@ -44,6 +44,17 @@ def fare_name(type_name: str, class_name: str) -> str:
 class TrainlineParser:
     source = "thetrainline.com"
     version = "1.0.0"
+    hosts = ("www.thetrainline.com",)
+    paths = ("/api/journey-search/",)
+
+    @staticmethod
+    def har_raw(url, method, request, response):
+        """The raw form of the userscript: the request body with no date of birth (P5)."""
+        body = dict(request) if isinstance(request, dict) else None
+        if body and isinstance(body.get("passengers"), list):
+            body["passengers"] = [{k: v for k, v in p.items() if k != "dateOfBirth"} if isinstance(p, dict) else p
+                                  for p in body["passengers"]]
+        return {"url": url, "method": method, "request": body and {"method": method, "body": body}, "response": response}
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"url", "request", "response"} or of the response body only."""

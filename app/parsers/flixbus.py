@@ -54,6 +54,8 @@ def external_id(uid: Any) -> str | None:
 class FlixbusParser:
     source = "flixbus.com"
     version = "1.0.0"
+    hosts = ("global.api.flixbus.com",)
+    paths = ("/search/service/v4/search",)
     group_price = True  # the price is for all travelers of the search: `total` (#1026; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:

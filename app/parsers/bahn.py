@@ -71,6 +71,8 @@ def travelers(request: dict | None) -> int | None:
 class BahnParser:
     source = "bahn.de"
     version = "1.2.0"
+    hosts = ("www.bahn.de", "int.bahn.de")
+    paths = ("/web/api/angebote/fahrplan", "/web/api/angebote/recon", "/web/api/angebote/tagesbestpreis")
     group_price = True  # the price is for all travelers of the request (#767; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:

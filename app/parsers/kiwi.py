@@ -67,6 +67,28 @@ def _bags(info: Any) -> tuple[int | None, Decimal | None]:
 class KiwiParser:
     source = "kiwi.com"
     version = "1.3.0"
+    hosts = ("api.skypicker.com",)
+    paths = ("/umbrella/v2/graphql",)
+    features = ("SearchOneWayItinerariesQuery", "SearchReturnItinerariesQuery")
+
+    @classmethod
+    def har_raw(cls, url, method, request, response):
+        """The raw form of the userscript: currency, passengers and response; None for other queries."""
+        from urllib.parse import parse_qs, urlsplit
+        if parse_qs(urlsplit(url).query).get("featureName", [""])[0] not in cls.features:
+            return None
+        variables = request.get("variables") if isinstance(request, dict) else None
+        variables = variables if isinstance(variables, dict) else {}
+        options = variables.get("options") if isinstance(variables.get("options"), dict) else {}
+        currency = options.get("currency")
+        if not isinstance(currency, str) or not currency:
+            return None
+        raw = {"currency": currency.lower(), "response": response}
+        search = variables.get("search") if isinstance(variables.get("search"), dict) else {}
+        people = search.get("passengers")
+        if isinstance(people, dict):
+            raw["passengers"] = {k: people.get(k) for k in ("adults", "children", "infants")}
+        return raw
     group_price = True  # the price is for all travelers of the request (#1027; the fixture README)
 
     def parse(self, raw: Any) -> ParseResult:

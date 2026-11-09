@@ -47,6 +47,14 @@ def service_no(transporter: dict) -> str | None:
 class SncfParser:
     source = "sncf-connect.com"
     version = "1.0.0"
+    hosts = ("www.sncf-connect.com",)
+    paths = ("/bff/api/v1/itineraries",)
+
+    @staticmethod
+    def har_raw(url, method, request, response):
+        """The raw form of the userscript: only the search keys of the request body."""
+        keep = {k: request[k] for k in ("schedule", "mainJourney") if k in request} if isinstance(request, dict) else None
+        return {"url": url, "method": method, "request": keep, "response": response}
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"url", "request", "response"} or of the response body only."""
