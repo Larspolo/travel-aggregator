@@ -5,6 +5,7 @@ The agent writes here what it learned the hard way. Each line must save time in 
 ## Environment and libraries
 
 - Verify level 3 by hand (`alembic`, `uvicorn` on an own `initdb` cluster): the data directory must be in `mktemp -d /tmp/...` (user `postgres` cannot open the scratchpad), set `PYTHONPATH=$PWD`, and add `?client_encoding=utf8` to `DATABASE_URL` (else psycopg gets bytes from the SQL_ASCII cluster: "cannot use a string pattern on a bytes-like object").
+- Level 3 with the trip page: a token and a trip with `tokens.create(make_sessionmaker(make_engine())(), "v3")` (`app.db`, no `SessionLocal`); set `SECRET_KEY` and `export OWNER_PASSWORD_HASH="$(python3 app/auth.py PW)"` in a second `export` after `PYTHONPATH` (one `export` runs the `$(...)` before `PYTHONPATH` is set); log in with `curl -c jar` GET `/login`, then POST `csrf_token` and `password` (#1404).
 
 ## Code
 - A test file name must not repeat a name in `framework/tests/` (rootdir import mode): pytest stops with "import file mismatch". Check `ls framework/tests` first.

@@ -31,6 +31,8 @@ def _fare(s, trip, hour, price, seen=C1):
 def _capture(s, trip, at, fares):
     s.flush()
     c = Capture(trip_id=trip.id, source="bahn.de", captured_at=at)
+    departs = [f.itinerary.depart_at for f in fares]  # the span of the offers of the capture (#1404)
+    c.depart_from, c.depart_to = (min(departs), max(departs)) if departs else (None, None)
     s.add(c)
     s.flush()
     for f in fares:
