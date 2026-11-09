@@ -125,6 +125,16 @@
 {% endwith %}
 </section>
 {% endif %}
+{% if route_history %}
+<section class="route-history card" id="route-history">
+<h2>Earlier trips on this route</h2>
+<ul>
+{% for r in route_history %}
+<li><a href="/trips/{{ r.trip_id }}">{{ r.month.strftime("%Y-%m") }}</a> · cheapest {% if r.cheapest_eur is not none %}{{ r.cheapest_eur | money("EUR") }}{% else %}-{% endif %}{% if r.paid_eur is not none %} · paid {{ r.paid_eur | money("EUR") }}{% endif %}</li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
 {% if at_target %}
 <section class="drops card" id="at-target">
 <h2>At your target price</h2>
