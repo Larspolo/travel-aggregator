@@ -1,5 +1,7 @@
 """The trip page counts the offers that each filter hides (#1452)."""
 
+import re
+
 from app.filtered import hidden_counts
 from tests.test_trip_filters_whole import PASS, itinerary
 from tests.test_trip_page import ingest, trip  # noqa: F401  (trip is a fixture)
@@ -28,10 +30,11 @@ def test_the_page_shows_the_line_only_when_a_filter_hides_rows(trip):  # noqa: F
     client, auth, trip_id = trip
     ingest(client, auth, trip_id, [itinerary("PASS 1", "90.00", PASS), itinerary("TWO 1", "80.00", TWO),
                                    itinerary("TWO 2", "70.00", TWO)])
-    page = client.get(f"/trips/{trip_id}?max_transfers=0").text
+    page = re.sub(r"</?a[^>]*>", "", client.get(f"/trips/{trip_id}?max_transfers=0").text)  # the links of #1453
     assert "Filters hide 2 of 3 offers: max transfers 0 hides 2" in page
     assert "Filters hide" not in client.get(f"/trips/{trip_id}").text
     part = client.get(f"/trips/{trip_id}?max_transfers=0", headers={"HX-Request": "true"}).text
+    part = re.sub(r"</?a[^>]*>", "", part)
     assert 'id="trip-filtered" class="filtered muted" hx-swap-oob="true"' in part
     assert "max transfers 0 hides 2" in part
 
@@ -40,5 +43,5 @@ def test_each_excluded_value_is_its_own_filter(trip):  # noqa: F811
     client, auth, trip_id = trip
     ingest(client, auth, trip_id, [itinerary("PASS 1", "90.00", PASS),
                                    itinerary("BUS 1", "80.00", PASS, mode="bus", carrier="FlixBus")])
-    page = client.get(f"/trips/{trip_id}?exclude_mode=bus&exclude_carrier=FlixBus").text
+    page = re.sub(r"</?a[^>]*>", "", client.get(f"/trips/{trip_id}?exclude_mode=bus&exclude_carrier=FlixBus").text)
     assert "Filters hide 1 of 2 offers: excluded mode bus hides 1 · excluded carrier FlixBus hides 1" in page
