@@ -3,9 +3,10 @@ parser version again on the stored raw data of a capture."""
 
 import gzip
 import json
+import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -137,6 +138,17 @@ def capture_raw_page(request: Request, capture_id: int, session: Session = Depen
     return templates.TemplateResponse(request, "capture_raw.html",
                                       {"capture": capture, "text": text[:RAW_LIMIT] if truncated else text,
                                        "truncated": truncated, "size_kb": size_kb})
+
+
+@router.get("/captures/{capture_id}/raw.json", dependencies=[Depends(require_login)])
+def capture_raw_download(capture_id: int, session: Session = Depends(get_session)) -> Response:
+    """The full raw payload of one capture as a JSON file (#1291), to attach it to a parser issue."""
+    capture = session.get(Capture, capture_id)
+    if capture is None or capture.raw_gz is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no raw payload for capture {capture_id}")
+    safe_source = re.sub(r"[^A-Za-z0-9.-]", "", capture.source)
+    return Response(gzip.decompress(capture.raw_gz), media_type="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="{safe_source}-{capture.id}.json"'})
 
 
 @router.post("/captures/{capture_id}/move", response_class=HTMLResponse,
