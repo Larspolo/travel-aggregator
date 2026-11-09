@@ -36,6 +36,7 @@ from app.fees import load_fees
 from app.days import day_summary, return_grid, with_day_prices
 from app.timeline import timeline
 from app.filtered import hidden_counts
+from app.split_suggest import split_skip, via_places
 from app.db import get_session
 from app.target import at_target
 from app.drops import drops_by_trip, mark_seen, trip_drops
@@ -790,6 +791,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         f"depart after {earliest_depart}", f"arrive by {latest_arrive}",
         *(f"excluded mode {m}" for m in exclude_mode), *(f"excluded carrier {c}" for c in exclude_carrier),
         "hide stale", f"day {day}"])
+    # the transfer places of the offers of the page (#1460): only for a trip that is no part of a split
+    context["via_places"] = [] if trip.split_of_id else via_places(itineraries, split_skip(trip))
     context["best_hidden"] = hidden_best(best_hidden, best_direct, query, sort, dir, trip_id)  # #1454
     # the link of each filter (#1453): the page with no such filter; the sort, the weights and the profile stay
     base = {**query, "sort": sort, "dir": dir}
