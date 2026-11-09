@@ -3,7 +3,7 @@ of source `manual`. The Pydantic models of the ingest validate it (P4)."""
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app import ingest
 from app.auth import require_login, verify_csrf
 from app.db import get_session
+from app.models import Fare
 from app.schemas import IngestIn, OfferIn
 from app.web.pages import _get_trip, templates
 
@@ -75,4 +76,38 @@ async def manual_offer(request: Request, trip_id: int, session: Session = Depend
     if errors:
         return _page(request, trip_id, values, errors, 422)
     ingest.store(session, body)
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+def _manual_fare(session: Session, trip_id: int, fare_id: int) -> Fare:
+    """The fare of the trip, 404 when it is not in the trip and 400 when it is not a manual offer (#1252)."""
+    _get_trip(session, trip_id)
+    fare = session.get(Fare, fare_id)
+    if fare is None or fare.itinerary.trip_id != trip_id:
+        raise HTTPException(404, "Offer not found")
+    if fare.source != "manual":
+        raise HTTPException(400, "Only a manual offer can be deleted")
+    return fare
+
+
+@router.get("/trips/{trip_id}/fares/{fare_id}/delete", response_class=HTMLResponse,
+            dependencies=[Depends(require_login)])
+def manual_delete_form(request: Request, trip_id: int, fare_id: int,
+                       session: Session = Depends(get_session)) -> HTMLResponse:
+    fare = _manual_fare(session, trip_id, fare_id)
+    return templates.TemplateResponse(request, "manual_delete.html",
+                                      {"trip_id": trip_id, "fare": fare, "it": fare.itinerary})
+
+
+@router.post("/trips/{trip_id}/fares/{fare_id}/delete",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def manual_delete(trip_id: int, fare_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    # The fare cascade deletes its prices; the capture stays. An itinerary with no fare left goes too (its legs cascade).
+    fare = _manual_fare(session, trip_id, fare_id)
+    it = fare.itinerary
+    it.fares.remove(fare)
+    session.flush()
+    if not it.fares:
+        session.delete(it)
+    session.commit()
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
