@@ -8,6 +8,7 @@ from app.auth import require_login
 from app.currency import load_rates
 from app.db import get_session
 from app.models import Itinerary
+from app.profiles import default_weights
 from app.spend import year_summary
 from app.web.pages import templates
 
@@ -18,4 +19,4 @@ router = APIRouter()
 def years(request: Request, session: Session = Depends(get_session)):
     itineraries = session.scalars(
         select(Itinerary).where(Itinerary.booked.is_(True)).options(selectinload(Itinerary.legs))).all()
-    return templates.TemplateResponse(request, "spend.html", {"years": year_summary(itineraries, load_rates(session))})
+    return templates.TemplateResponse(request, "spend.html", {"years": year_summary(itineraries, load_rates(session), default_weights(session))})
