@@ -41,7 +41,7 @@ from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
-from app.co2 import co2_extras
+from app.co2 import co2_extras, co2_kg
 from app.tradeoff import break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
@@ -731,6 +731,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
                "rates": rates, "tradeoff": tradeoff, "gone_fares": gone,
+               "co2": {it.id: kg for it, *_ in rows if (kg := co2_kg(it, weights)) > 0},  # #1418
                "new_since": trip.viewed_at}  # the rows after the last full view are "new" (#1090)
     if len(profiles) > 1:  # the best offer of each profile (#1211); one profile only: no section
         from app.profile_compare import best_by_profile
