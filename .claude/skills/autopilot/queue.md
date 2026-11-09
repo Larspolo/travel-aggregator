@@ -20,9 +20,12 @@ effort for the work where the thinking matters more than the typing (`ticket` sk
 names `lane deep`, run `python3 framework/tools/cycle_start.py --lane deep` first: it sets `git config travel-aggregator.lane deep` (the
 claims and the report then name the lane). Pick from its section `Candidates`. With no candidate, it prints the section `Deep work` (#1377): the target, the
 claims and the reason of the pacer for this run, with the lock of each kind of work. Do that work (no second
-`usage.py --fire`, no lock of another kind); "no deep work": go to step 8. A deep run does the epic check and the queue refill of step 5, the roadmap
+`usage.py --fire`, no lock of another kind); "no deep work": go to step 8. A deep run does the close check of an epic
+with `lane:deep`, the split of a `size:L` ticket, the queue refill of step 5, the roadmap
 review and the process review: while `reserved` in `[pacing]` of `steering/system/system.toml` names `deep`, `claim.py` gives those
-locks (`--review`, `--roadmap`, `--refill`) only to deep runs, and the other runs skip them. Stop when no `lane:deep`
+locks (`--review`, `--roadmap`, `--refill`) only to deep runs, and the other runs skip them. The epic check of an epic
+without `lane:deep` is main work (#1595): `claim.py E --refill` gives its lock to a main run, and a main run with no
+candidate gets the section `Epic check` of `cycle_start.py` with the lock of each epic. Stop when no `lane:deep`
 ticket is ready and the refill is done, or at 120k context (`more.md`): the main runs take the other tickets for less.
 
 ## Large tickets (step 4)
@@ -30,7 +33,7 @@ ticket is ready and the refill is done, or at 120k context (`more.md`): the main
 If the size is L, split it into S or M sub-issues with the `ticket` skill. Give the parent label `epic`.
 If the top candidate of step 5 has `size:L`, split it now (`ticket` skill), then pick again.
 While `reserved` in `agent.toml` names `deep`, only a deep run splits (`claim.py E --refill` exits 1 in the other
-runs): give the ticket `lane:deep` and pick the next one.
+runs for a ticket that is not an epic): give the ticket `lane:deep` and pick the next one.
 
 ## Epics and refill (step 5)
 
@@ -46,11 +49,17 @@ whole goal is covered (owner rule, #820: never only "All sub-issues are closed")
 an L ticket"). Check that criterion against the full scope (for "all X": the full list, for example a wiki of the original) and
 name each missing item. When `steering/project/PRINCIPLES.md` has the section "Try a feature", do what it says first
 (for example a `needs-human` test ticket, or a build); the epic waits for it. Close the epic with a comment only when all criteria are met
-(name the evidence for each, then the label `close`: `owner.md`, "Close an issue", #1740). When the epic waits only for open agent
+(name the evidence for each, then the label `close`: `owner.md`, "Close an issue", #1740).
+The close check is deep work (owner, #1513, #1595: a missed gap comes back at the next check, but a wrong close is
+silent). A main run that finds all criteria met does not close: it comments the evidence for each criterion and adds
+`lane:deep` to the epic; the pacer then starts a deep run for it. A deep run with an epic with `lane:deep` reads the
+criteria and the evidence again: all met, it closes the epic as above (the label `close`); a gap, it removes `lane:deep`,
+names the gap in a comment and makes its sub-issues. The epics that `close.yml` closes by itself (below) get no
+`lane:deep` and no deep check. When the epic waits only for open agent
 tickets (all other criteria met), end the check comment with the line `Close this epic when #N merges.` (more tickets:
 `Close this epic when #N and #M merge.`, #617): when each closes as completed by a merged PR, `close.yml` adds the evidence comment and the label `close`
 (`framework/tools/epic_autoclose.py`; an open owner check with `needs-human` does not stop it, #922), and the pacer starts no epic check for it. When an open criterion waits only for
-an open ticket of another epic, add a line "Part of #E" to the body of that ticket: else the pacer starts a deep run
+an open ticket of another epic, add a line "Part of #E" to the body of that ticket: else the pacer starts a run
 for the epic check of E in each cycle (`usage.refill_need`). The lock of the check (above) covers the close and the new sub-issues of the epic: do not lock it a second time
 in the same run (#371). Then make one sub-issue (same priority)
 for the criteria that an agent can do. A criterion that needs the owner stays on the epic. Then pick again (#176, #155 waited while P3 tickets ran).

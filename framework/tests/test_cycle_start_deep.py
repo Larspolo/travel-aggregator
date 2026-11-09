@@ -18,10 +18,12 @@ def test_a_due_review_names_its_lock():
     assert "--review" in got[1] and "--roadmap" in got[2]
 
 
-def test_an_epic_check_names_the_lock_of_each_epic():
-    got = work("refill 2 (epic check #1348, #1352; roadmap review waits for the idle stretch)")
+def test_a_close_check_names_the_lock_of_each_epic():
+    """The deep lane does only the close checks (`lane:deep` on the epic); the main runs do the epic checks (#1595)."""
+    got = work("refill 2 (epic check #1340; close check #1348, #1352; roadmap review waits for the idle stretch)")
     assert [x.split("`")[1] for x in got[1:]] == ["python3 framework/tools/claim.py 1348 --refill",
                                                    "python3 framework/tools/claim.py 1352 --refill"]
+    assert work("refill 1 (epic check #1340)")[1] == "no deep work: go to step 8 (report)"
 
 
 def test_the_whole_refill_takes_the_refill_lock():

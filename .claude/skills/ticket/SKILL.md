@@ -179,7 +179,9 @@ does not say?
   screenshot or a real game still needs main). Spend at most one `grep` per ticket on it; when it does not find the
   place, give no Haiku label. In the queue refill, also give `lane:haiku` to the ready tickets with no lane whose
   body already meets the Haiku row (read the bodies only, not the code).
-- Deep is for about 10 to 20 % of the tickets. Never both lane labels. Decision tickets and epics get no lane label.
+- Deep is for about 10 to 20 % of the tickets. Never both lane labels. Decision tickets and epics get no lane label,
+  except the close check (#1595): a main run whose epic check finds all criteria met adds `lane:deep` to the epic,
+  and the deep run of the close check removes it when it finds a gap (`queue.md`, "Epics and refill").
 - While `reserved` in `[pacing]` of `steering/system/system.toml` names a lane, the main runs never take its tickets (#1994).
 
 ## Rules

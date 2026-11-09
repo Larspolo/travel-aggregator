@@ -149,12 +149,16 @@ def new_ticket(issues, now, minutes=60):
         i["created_at"].replace("Z", "+00:00")).timestamp() < minutes * 60 for i in issues)
 
 
-def refill_live(lines, now, minutes=REFILL_MINUTES):
+def refill_live(lines, now, minutes=REFILL_MINUTES, lane=None):
     """The runs that hold a refill lock (`claim/refill-*`) younger than `minutes`: they still make tickets, and the
-    queue does not show them yet. lines: `health.claim_refs()`; now: Unix seconds."""
+    queue does not show them yet. lines: `health.claim_refs()`; now: Unix seconds. lane: only the locks of that lane
+    (` lane NAME` at the end of the lock, none: "main", #1595), else all."""
     runs = set()
     for line in lines or ():
         k, t, subject = (line.split(" ", 2) + ["", ""])[:3]
+        tag = re.search(r" lane (\w+)$", subject)
+        if lane and (tag[1] if tag else "main") != lane:
+            continue
         if k.startswith("refill-") and t.isdigit() and int(t) >= now - minutes * 60:
             by = re.search(r" by (\S+)", subject)
             runs.add(re.sub(r"-\d+$", "", by[1]) if by else k)
@@ -205,12 +209,28 @@ def pending(started, lines, now, minutes=PENDING, refill_lane="deep"):
             old.add(run)
         elif subject.startswith("Claim "):
             lane = re.search(r" lane (\w+)$", subject)
-            new[run] = lane[1] if lane else "main" if subject.startswith("Claim #") or not refill_lane else refill_lane
+            main = subject.startswith(("Claim #", "Claim refill "))   # a refill lock with no lane: an epic check (#1595)
+            new[run] = lane[1] if lane else "main" if main or not refill_lane else refill_lane
     made = {}
     for run, lane in new.items():
         if run not in old:
             made[lane] = made.get(lane, 0) + 1
     return {task: n - made.get(task, 0) for task, n in started.items() if n - made.get(task, 0) > 0}
+
+
+def refill_split(ready, target, issues, refs, now, refill_lane="deep", due=lambda: [], free=lambda: [],
+                 closing=lambda e: False):
+    """(refill, main_refill): the refill runs of `refill_lane` and the main runs of the epic checks (#1595). The main
+    lane checks the epics without `lane:deep` (`epic_lanes`); the deep lane does the close checks, the whole refill and
+    the reviews. Each part counts only the live refill locks of its own lane (`refill_live`). With no `refill_lane`,
+    `refill` has all of it, as before. refs: `health.claim_refs()`; now: Unix seconds; the rest as `refill_need`."""
+    epics, whole = refill_sources(ready, target, issues, due, free=free, now=now, closing=closing)
+    new = new_ticket(issues, now)
+    if not refill_lane:
+        return refill_count(ready, target, refill_live(refs, now), epics, new, whole=whole), 0
+    main, deep = epic_lanes(issues, [n for n in epic_checks(issues, now) if not closing(n)])
+    return (refill_count(ready, target, refill_live(refs, now, lane=refill_lane), len(deep), new, whole=whole),
+            refill_count(ready, target, refill_live(refs, now, lane="main"), len(main), new, whole=False))
 
 
 def refill_need(ready, target, issues, due=lambda: [], reviews=lambda: [], free=lambda: [], now=None, closing=lambda e: False):
@@ -227,7 +247,9 @@ def refill_need(ready, target, issues, due=lambda: [], reviews=lambda: [], free=
     import dashboard
     epics = [n for n in epic_checks(issues, now) if not closing(n)]
     if epics:
-        return "epic check " + ", ".join(f"#{n}" for n in epics)
+        main, deep = epic_lanes(issues, epics)
+        return "; ".join([f"epic check {', '.join(f'#{n}' for n in main)}"] * bool(main)
+                         + [f"close check {', '.join(f'#{n}' for n in deep)}"] * bool(deep))
     if rank := sum(dashboard.RANK in dashboard.labels(i) for i in issues if "pull_request" not in i):
         return f"rank {rank} tickets after the release"                  # and the next release epic (`roadmap` skill)
     if checks := due():
@@ -235,6 +257,16 @@ def refill_need(ready, target, issues, due=lambda: [], reviews=lambda: [], free=
     if kinds := reviews():
         return " and ".join(kinds) + " due"
     return f"ready {ready} < target {target}: " + ", ".join(sources) if ready < target and (sources := free()) else ""
+
+
+def epic_lanes(issues, epics):
+    """(main, deep): the epics of `epics` (numbers) for the epic check of a main run, and those with `lane:deep` for the
+    close check of a deep run (#1595). A main run that finds all criteria met adds `lane:deep` and does not close: a
+    wrong close is silent, so the high effort goes to the one step that a later run cannot repair (`queue.md`)."""
+    import dashboard
+    by = {i["number"]: i for i in issues}
+    deep = [n for n in epics if dashboard.LANE + "deep" in dashboard.labels(by.get(n, {}))]
+    return [n for n in epics if n not in deep], deep
 
 
 def epic_checks(issues, now=None):
@@ -360,12 +392,13 @@ def free_sources(root=None, epics=None, holds=held):
     return [f"{len(free)} roadmap features with no epic"] * bool(free) + [f"{fallbacks} fallbacks"] * bool(fallbacks)
 
 
-def plan(target, claims, ready, lanes, paused, hi=MAX_FIRE, refill=1, refill_lane=None):
+def plan(target, claims, ready, lanes, paused, hi=MAX_FIRE, refill=1, refill_lane=None, main_refill=0):
     """(K, {lane: runs}): the runs that the pacer starts now and the runs of each lane among them (#1715, #1727).
     lanes: [(name, ready tickets of the lane, weight)] in the order of their start. The target and the claims are in Opus
     runs, and a lane run counts its weight. Each lane gets runs for its ready tickets while the room lasts;
     `refill_lane` (the deep lane, 2026-10-28) also gets the `refill` runs: the queue refill is its work. The Opus runs
-    take the rest of the target: at most the other ready tickets, and the `refill` runs when no lane refills (#609).
+    take the rest of the target: at most the other ready tickets, and the `refill` runs when no lane refills (#609),
+    and the `main_refill` runs: the epic checks of the main lane (#1595).
     A lane run that counts more than one Opus run (deep: 4) starts also when the room holds only one: else the main
     runs fill each small room first, and its tickets wait for ever. Its claim then counts its weight."""
     if paused or not target:
@@ -376,7 +409,7 @@ def plan(target, claims, ready, lanes, paused, hi=MAX_FIRE, refill=1, refill_lan
         fit = math.floor(room / w + 1e-9) or int(room >= 1)
         k = max(0, min(want, left, fit)) if room > 0 else 0
         out[name], room, left, rest = k, room - k * w, left - k, rest - min(k, n)
-    o = max(0, min(math.floor(room + 1e-9), rest + (0 if refill_lane else refill), left))
+    o = max(0, min(math.floor(room + 1e-9), rest + main_refill + (0 if refill_lane else refill), left))
     return o + sum(out.values()), out
 
 
@@ -542,25 +575,27 @@ def fire(usage, now, burn=BURN, burn7=None, skip=(), status=None, started=None, 
                                                   and not free()))
     stamp = now.timestamp() if hasattr(now, "timestamp") else now
     need = refill_need(ready, target, open_all, due, free=free, reviews=reviews, now=stamp, closing=closing)   # reviews after checks
-    live = refill_live(refs, stamp)
-    if need:                                                # #3547: no work, no run; #378: no run for a source with no work
-        epics, whole = refill_sources(ready, target, open_all, due, free=free, now=stamp, closing=closing)
-        refill = refill_count(ready, target, live, epics, new_ticket(open_all, stamp), whole=whole)
-    else:
-        refill = 0
-    if need and not refill:
+    live, refill_lane = refill_live(refs, stamp), "deep" if "deep" in dashboard.RESERVED else None
+    refill, main_refill = refill_split(ready, target, open_all, refs, stamp, refill_lane, due, free, closing) if need \
+        else (0, 0)                                         # #3547: no work, no run; #378: no run for a source with no work
+    if need and not refill and (refill_lane or not main_refill):
         # The live refill runs make the tickets. A due review has its own lock (owner, 2026-10-29): one run takes it,
-        # and `pending` counts the started run until it claims.
-        kinds = reviews()
-        need, refill = (" and ".join(kinds) + " due", 1) if kinds else (f"{live} refill runs live", 0)
-    refill_lane = "deep" if "deep" in dashboard.RESERVED else None
+        # and `pending` counts the started run until it claims. The main runs do the epic checks (#1595): the deep
+        # lane is free for a review while they run.
+        if kinds := reviews():
+            need, refill = ((need + "; ") * bool(main_refill) + " and ".join(kinds) + " due", 1)
+        elif not main_refill:
+            need = f"{live} refill runs live"
     wait = pending(started or {}, refs, now, refill_lane=refill_lane)
     eq += sum(n * weights.get(t, 1) for t, n in wait.items())
     lanes = [(n, 0 if n in skip else len(dashboard.candidates(open_all, lane=n)), weights[n]) for n in weights]   # agent.toml order
     extra = wait.get(refill_lane or "main", 0) - next((c for n, c, _ in lanes if n == refill_lane), 0) if refill_lane else 0
     refill = max(0, refill - max(0, extra))             # a pending run beyond the ready tickets of its lane refills
+    extra = wait.get("main", 0) - max(0, ready - sum(c for _, c, _ in lanes)) if refill_lane else 0
+    main_refill = max(0, main_refill - max(0, extra))   # the same for a pending main run of an epic check
     lanes = [(n, max(0, c - wait.get(n, 0)), w) for n, c, w in lanes]
-    k, runs = plan(target, eq, max(0, ready - sum(wait.values())), lanes, paused, refill=refill, refill_lane=refill_lane)
+    k, runs = plan(target, eq, max(0, ready - sum(wait.values())), lanes, paused, refill=refill, refill_lane=refill_lane,
+                   main_refill=main_refill)
     cap, flow = read_flow(now)
     if out is not None:
         out["flow"], out["flow_reason"] = cap, flow
@@ -568,7 +603,7 @@ def fire(usage, now, burn=BURN, burn7=None, skip=(), status=None, started=None, 
         k, runs = min(k, cap), dict.fromkeys(runs, 0)
     line = (f"{describe(usage, now, burn, burn7)} · claims {claims} ({eq:.2f} Opus runs) · ready {ready} · "
             + (f"pending {json.dumps(wait)} · " if wait else "")
-            + f"refill {refill} ({need or f'ready {ready}, target {target}: no refill source'}{stretch_note()}) · "
+            + f"refill {refill + main_refill} ({need or f'ready {ready}, target {target}: no refill source'}{stretch_note()}) · "
             f"paused {paused} · {flow} · max_fire {MAX_FIRE} · weights "
             + ", ".join(f"{n} {w:.2f} ({source[n]})" for n, w in weights.items()) + note)
     return k, runs, line
