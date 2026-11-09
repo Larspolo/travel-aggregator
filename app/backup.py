@@ -100,6 +100,21 @@ def dump(url: str, backup_dir: Path, label: str) -> Path:
     return target
 
 
+def check_dump(path: Path) -> int:
+    """Read a dump with `pg_restore --list`. Return the count of its table-data entries. Raise BackupError if it does not read."""
+    try:
+        result = subprocess.run(
+            ["pg_restore", "--list", str(path)],
+            capture_output=True, text=True,
+        )
+    except OSError as exc:
+        raise BackupError(f"backup check failed: cannot run pg_restore: {exc}") from exc
+    if result.returncode != 0:
+        first = (result.stderr.strip().splitlines() or ["no error text"])[0]
+        raise BackupError(f"backup check failed: {first}")
+    return sum(" TABLE DATA " in line for line in result.stdout.splitlines())
+
+
 def backup_if_needed(url: str, backup_dir: Path, cfg: Config | None = None) -> Path | None:
     """Write a dump when a pending revision changes data. Return its path, or None. Raise BackupError on failure."""
     cfg = cfg or Config("alembic.ini")
