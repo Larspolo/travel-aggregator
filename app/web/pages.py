@@ -775,6 +775,19 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         *(f"excluded mode {m}" for m in exclude_mode), *(f"excluded carrier {c}" for c in exclude_carrier),
         "hide stale", f"day {day}"])
     context["best_hidden"] = hidden_best(best_hidden, best_direct, query, sort, dir, trip_id)  # #1454
+    # the link of each filter (#1453): the page with no such filter; the sort, the weights and the profile stay
+    base = {**query, "sort": sort, "dir": dir}
+    without = {f"mode {mode}": {"mode": ""}, f"source {source}": {"source": ""},
+               f"max transfers {limit_transfers}": {"max_transfers": None},
+               f"max duration {limit_duration} min": {"max_duration_min": None},
+               f"depart after {earliest_depart}": {"earliest_depart": None},
+               f"arrive by {latest_arrive}": {"latest_arrive": ""},  # empty: no arrive-by limit (#1296)
+               "hide stale": {"hide_stale": None}, f"day {day}": {"day": None},
+               **{f"excluded mode {m}": {"exclude_mode": [x for x in exclude_mode if x != m]} for m in exclude_mode},
+               **{f"excluded carrier {c}": {"exclude_carrier": [x for x in exclude_carrier if x != c]}
+                  for c in exclude_carrier}}
+    context["filtered_qs"] = {label: urlencode({k: v for k, v in {**base, **change}.items() if v is not None},
+                                               doseq=True) for label, change in without.items()}
     context["splits"] = split_sections(session, trip, weights, places, now, best_direct)  # #1179
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
