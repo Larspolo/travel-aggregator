@@ -951,6 +951,20 @@ capture id and the raw payload as text. A capture with no raw data shows "No raw
 A long payload shows only its start, with the note "The payload is N KB; download it to see all of it."
 The button "Download JSON" on that page downloads the whole raw payload as a JSON file named `<source>-<id>.json`.
 
+### Upload a payload file
+
+Use the form "Upload a payload" on `/trips/{id}/captures` to store a saved JSON file as a capture of the trip. The app
+parses it and stores its offers, as if a userscript had sent it. Use it for a payload that you saved from a capture
+with "Download JSON".
+
+- Choose the source in the select, or choose "From the file name". With "From the file name", the source is the part of
+  the file name before `-<number>.json`: `bahn.de-1234.json` gives the source `bahn.de`.
+- The source must have a parser. A file name with no source, or with a source that has no parser, gives the message
+  "Choose the source: the file name does not name one". Nothing is stored.
+- The file must be JSON. Otherwise the page shows "The file is not JSON.", or "Select a payload file." when no file is
+  chosen, or "The file is larger than N bytes." when it is too large. Nothing is stored.
+- The upload does not send a request to the travel site.
+
 ### Status of the sources
 
 The page `/captures` shows the status of each source above the list of captures, in a table with the columns "Source",
