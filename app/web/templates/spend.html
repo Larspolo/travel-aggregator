@@ -4,15 +4,16 @@
 {% block content %}
 {% call ui.page_header("Travel per year") %}{% endcall %}
   <p><a href="/upcoming">Upcoming</a></p>
+  {% if years %}<p class="muted co2-note">CO₂ per traveler, estimated with the kg per hour of the profile {{ co2_profile }}.</p>{% endif %}
   {% if not years %}
   <p class="muted">No booked journeys. Mark an offer as booked on its trip page.</p>
   {% endif %}
   {% for y in years %}
   <section class="card year-summary"><h2>{{ y.year }}</h2>
-    <p><strong>{{ y.journeys }} journey{% if y.journeys != 1 %}s{% endif %} · {{ (y.paid_eur if y.paid_eur is not none else 0) | money("EUR") }} paid · {{ y.hours }} h</strong>{% for code, n in y.missing | dictsort %}
+    <p><strong>{{ y.journeys }} journey{% if y.journeys != 1 %}s{% endif %} · {{ (y.paid_eur if y.paid_eur is not none else 0) | money("EUR") }} paid · {{ y.hours }} h{% if y.co2_kg %} · about {{ y.co2_kg }} kg CO₂{% endif %}</strong>{% for code, n in y.missing | dictsort %}
       <span class="muted">({{ n }} price{% if n > 1 %}s{% endif %} in {{ code }} {% if n > 1 %}have{% else %}has{% endif %} no rate)</span>{% endfor %}</p>
     <ul>{% for m in y.modes %}
-      <li class="mode-line">{{ m.mode | capitalize }}: {{ m.journeys }} journey{% if m.journeys != 1 %}s{% endif %} · {{ (m.paid_eur if m.paid_eur is not none else 0) | money("EUR") }} paid · {{ m.hours }} h</li>{% endfor %}
+      <li class="mode-line">{{ m.mode | capitalize }}: {{ m.journeys }} journey{% if m.journeys != 1 %}s{% endif %} · {{ (m.paid_eur if m.paid_eur is not none else 0) | money("EUR") }} paid · {{ m.hours }} h{% if m.co2_kg %} · about {{ m.co2_kg }} kg CO₂{% endif %}</li>{% endfor %}
     </ul>
   </section>
   {% endfor %}
