@@ -21,7 +21,8 @@ from sqlalchemy.orm import Session, subqueryload
 
 from app.storage import human_bytes, storage_use
 from app.web.userscripts import bundle_info, userscript_list
-from app.auth import SESSION_KEY, check_password, csrf_token, login_limiter, require_login, verify_csrf
+from app.auth import (EPOCH_KEY, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter, require_login,
+                      session_epoch, verify_csrf)
 from app.backup import BACKUP_MAX_AGE, newest_backup
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
@@ -143,7 +144,7 @@ def login_form(request: Request) -> HTMLResponse:
 
 
 @router.post("/login", response_class=HTMLResponse, dependencies=[Depends(verify_csrf)])
-def login(request: Request, password: str = Form("")) -> HTMLResponse:
+def login(request: Request, password: str = Form(""), session: Session = Depends(get_session)) -> HTMLResponse:
     address = request.client.host if request.client else "unknown"
     wait = login_limiter.retry_after(address)
     if wait:
@@ -154,6 +155,7 @@ def login(request: Request, password: str = Form("")) -> HTMLResponse:
         login_limiter.success(address)
         request.session.clear()
         request.session[SESSION_KEY] = True
+        request.session[EPOCH_KEY] = session_epoch(session)
         csrf_token(request)  # a new token after the login
         return RedirectResponse("/", status_code=303)
     login_limiter.failure(address)
@@ -1182,7 +1184,19 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  datetime.now(timezone.utc) - newest[0] > BACKUP_MAX_AGE,
                                                                  "retention_days": days,
                                                                  "storage": storage_use(session, days, datetime.now(timezone.utc)),
-                                                                 "max_days": MAX_RETENTION_DAYS})
+                                                                 "max_days": MAX_RETENTION_DAYS,
+                                                                 "flash": request.session.pop("flash", None)})
+
+
+@router.post("/settings/sessions/end-others", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def end_other_sessions(request: Request, session: Session = Depends(get_session)) -> RedirectResponse:
+    """Make the session cookies of all other browsers invalid: +1 on the epoch (#1266)."""
+    epoch = session_epoch(session) + 1
+    session.merge(Setting(key=SESSION_EPOCH, value=str(epoch)))
+    session.commit()
+    request.session[EPOCH_KEY] = epoch
+    request.session["flash"] = "All other devices are logged out."
+    return RedirectResponse("/settings", status_code=303)
 
 
 @router.post("/settings", dependencies=[Depends(require_login), Depends(verify_csrf)])

@@ -22,13 +22,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_session
-from app.models import ApiToken
+from app.models import ApiToken, Setting
 
 ALGORITHM = "pbkdf2_sha256"
 ITERATIONS = 600_000
 SESSION_KEY = "owner"
 CSRF_KEY = "csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
+EPOCH_KEY = "epoch"
+SESSION_EPOCH = "session_epoch"  # the Setting key: +1 ends the sessions of the other browsers (#1266)
 
 log = logging.getLogger(__name__)
 
@@ -129,8 +131,28 @@ class TokenLimiter(LoginLimiter):
 token_limiter = TokenLimiter()
 
 
+def session_epoch(session: Session | None = None, request: Request | None = None) -> int:
+    """The current login epoch; 0 when the row is missing (#1266).
+
+    With no SESSION it opens its own, by the override of get_session of the app (the tests) if there is one.
+    """
+    if session is None:
+        factory = request.app.dependency_overrides.get(get_session, get_session) if request else get_session
+        db = factory()
+        try:
+            return session_epoch(next(db))
+        finally:
+            db.close()
+    row = session.get(Setting, SESSION_EPOCH)
+    return int(row.value) if row is not None else 0
+
+
 def require_login(request: Request) -> None:
     if not request.session.get(SESSION_KEY):
+        raise LoginRequired()  # no database access for a request with no login
+    # A session from before #1266 has no epoch: it counts as epoch 0.
+    if request.session.get(EPOCH_KEY, 0) != session_epoch(request=request):
+        request.session.clear()
         raise LoginRequired()
 
 
