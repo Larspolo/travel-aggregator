@@ -26,6 +26,9 @@ class Weights:
     night_end: time = time(6, 0)
     night_min: int = 240
     night_adjust: Decimal = Decimal("0")
+    # The overnight stop (#1256): a transfer with at least overnight_min night minutes adds overnight_cost.
+    overnight_min: int = 240
+    overnight_cost: Decimal = Decimal("0")
     # The hour markup inside the night window (#143); None = the same as hour_markup.
     night_hour_markup: Decimal | None = None
     # The short-transfer penalty (#173): a transfer shorter than the minimum; a penalty of 0 disables it.

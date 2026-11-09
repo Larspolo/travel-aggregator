@@ -54,7 +54,7 @@ from app.schemas import TripForm
 from app.parsers import group_price
 from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group, format_breakdown, format_total, in_eur,
                          per_traveler)
-from app.timeofday import night_extras, night_time_extras, time_extras
+from app.timeofday import night_extras, night_time_extras, overnight_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trips import archived_journeys, chain, find_journeys, list_trips
 
@@ -375,7 +375,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     rates, counts, fees = rates or {}, counts or {}, fees or {}
     travelers = it.trip.travelers if fees else 1  # the trip is read only when a fee can add a part
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
-            + night_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
+            + night_extras(it, weights) + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
             + transfer_extras(it, weights) + stale_extras(it, weights, stale_before))
     def cost(f):
         eur, n = to_eur(f.latest_price, f.currency, rates), counts.get(f.id)
