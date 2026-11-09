@@ -651,3 +651,5 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 .split-pairs li { margin: 0.5rem 0; overflow-wrap: anywhere; }
 .split-pairs li > span { display: block; }
 .split-diff.good { color: var(--good, inherit); font-weight: 600; }
+/* A QR code needs dark modules on light in each theme, so that a camera reads it (#1317). */
+.totp-qr svg { display: block; max-width: 100%; height: auto; background: white; padding: var(--space-2, 8px); }

@@ -7,4 +7,5 @@ jinja2
 pydantic
 itsdangerous
 python-multipart
+segno==1.6.6  # the QR code of the second login step (#1317): pure Python, BSD
 pywebpush  # Web Push (#514): the message encryption of RFC 8291 (ECDH and AES-GCM) has no standard-library way
