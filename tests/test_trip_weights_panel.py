@@ -23,7 +23,7 @@ def _form(html):
 def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  # noqa: F811
     client, trip_id = trip
     html = client.get(f"/trips/{trip_id}").text
-    assert html.index('<aside class="panel card">') < html.index('<form class="weights"') < html.index('id="table"')
+    assert html.index('<aside class="panel card"') < html.index('<form class="weights"') < html.index('id="table"')
     form = _form(html)
     assert form.index('name="hour_markup"') < form.index("<details")
     assert form.index('name="transfer_markup"') < form.index("<details")
