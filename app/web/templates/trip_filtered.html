@@ -1,4 +1,4 @@
 {# The offers that the filters hide (#1452): one line above the table. An htmx request swaps it out of band (as trip_days). #}
 <p id="trip-filtered" class="filtered muted"{% if oob %} hx-swap-oob="true"{% endif %}{% if not filtered or not filtered.total %} hidden{% endif %}>
-{%- if filtered and filtered.total %}Filters hide {{ filtered.total }} of {{ filtered.shown_of }} offers: {% for label, n in filtered.counts %}{{ label }} hides {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}{% endif -%}
+{%- if filtered and filtered.total %}Filters hide {{ filtered.total }} of {{ filtered.shown_of }} offers: {% for label, n in filtered.counts %}<a href="/trips/{{ trip.id }}?{{ filtered_qs[label] }}">{{ label }}</a> hides {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}{% endif -%}
 </p>
