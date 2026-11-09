@@ -535,6 +535,14 @@ The page also shows "Total paid: €..." above the list, the sum in EUR of the p
 values use the exchange rates of `/rates`. A paid price in a currency with no rate is not in the total. The page then
 shows "(N price(s) in XXX has/have no rate)" after the total. With no paid price, the total line is not shown.
 
+A journey with a conflict shows a warning under it, on this page and on the trip page of the journey, with the link
+"Open the other trip". There are two kinds:
+- "This journey overlaps another booked journey": the journey is in time at the same moment as another booked journey,
+  of the same trip or of another trip.
+- "This journey departs before the journey before it arrives": a booked journey of a trip departs before a booked
+  journey of the trip before it arrives, for example a return journey that leaves before the outbound journey has arrived.
+  The warning shows on the later journey only.
+
 With no booked journey, the page shows the text "No booked journeys. Mark an offer as booked on its trip page."
 
 The page also works with no network, after one online visit:
