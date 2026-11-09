@@ -55,7 +55,8 @@ silent). A main run that finds all criteria met does not close: it comments the 
 `lane:deep` to the epic; the pacer then starts a deep run for it. A deep run with an epic with `lane:deep` reads the
 criteria and the evidence again: all met, it closes the epic as above (the label `close`); a gap, it removes `lane:deep`,
 names the gap in a comment and makes its sub-issues. The epics that `close.yml` closes by itself (below) get no
-`lane:deep` and no deep check. When the epic waits only for open agent
+`lane:deep` and no deep check. The pacer starts no run for a single epic check (#1596): it waits for a second epic,
+for other refill or review work, for `epic_hold_hours` with no change of the epic, or for R = 0. When the epic waits only for open agent
 tickets (all other criteria met), end the check comment with the line `Close this epic when #N merges.` (more tickets:
 `Close this epic when #N and #M merge.`, #617): when each closes as completed by a merged PR, `close.yml` adds the evidence comment and the label `close`
 (`framework/tools/epic_autoclose.py`; an open owner check with `needs-human` does not stop it, #922), and the pacer starts no epic check for it. When an open criterion waits only for

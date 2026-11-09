@@ -56,6 +56,7 @@ MAX_FIRE = CONFIG.get("pacing", {}).get("max_fire", 8)   # runs that the pacer s
 REFILL = CONFIG.get("pacing", {}).get("refill_runs", 3)   # the most refill runs at one time (`refill_count`, #609, #650)
 REFILL_TICKETS = CONFIG.get("pacing", {}).get("refill_tickets", 4)   # ready tickets that one refill run adds (`refill_count`)
 REFILL_MINUTES = CONFIG.get("pacing", {}).get("refill_minutes", 20)  # a refill lock this young: its run still makes tickets
+EPIC_HOLD = CONFIG.get("pacing", {}).get("epic_hold_hours", 3) * 3600   # seconds: a single epic check waits this long for a second one (#1596)
 PENDING = 12                # minutes: a run that the pacer started and that has no claim yet counts as a claim
 CALL = ["claude", "-p", "Reply with OK.", "--model", "claude-haiku-5-5", "--output-format", "stream-json", "--verbose"]
 
@@ -233,7 +234,8 @@ def refill_split(ready, target, issues, refs, now, refill_lane="deep", due=lambd
             refill_count(ready, target, refill_live(refs, now, lane="main"), len(main), new, whole=False))
 
 
-def refill_need(ready, target, issues, due=lambda: [], reviews=lambda: [], free=lambda: [], now=None, closing=lambda e: False):
+def refill_need(ready, target, issues, due=lambda: [], reviews=lambda: [], free=lambda: [], now=None, closing=lambda e: False,
+                hold=True):
     """The reason of the refill runs, or "" when they have no work (#3547): an open epic with no open sub-issue and no
     open "Part of #E" ticket (the epic check; a release epic with an open ticket in its milestone has work), the tickets with
     `rank` after a release (release.yml gives it to the next release epic too: the `roadmap` skill, "Release cycle"),
@@ -243,20 +245,40 @@ def refill_need(ready, target, issues, due=lambda: [], reviews=lambda: [], free=
     issues and PRs; due, reviews, free: the release checks with no ticket, the due reviews and the other sources
     (free_sources), read only when needed. An epic made less than 10 minutes ago gets no epic check: its run splits it
     itself (#328). now: Unix seconds (default: the time now). closing(E): True when close.yml closes the epic E by
-    itself (`epic_autoclose.ready`, #835): its check run would only add the label `close`."""
+    itself (`epic_autoclose.ready`, #835): its check run would only add the label `close`. hold: a single epic check
+    gets no run of its own (`epic_hold`, #1596); False: it counts as a refill source (`claim.refill_starved`)."""
     import dashboard
     epics = [n for n in epic_checks(issues, now) if not closing(n)]
+    rank = sum(dashboard.RANK in dashboard.labels(i) for i in issues if "pull_request" not in i)
+    if epics and hold and epic_hold(ready, epics, issues, now) and not (
+            rank or due() or reviews() or (target is not None and ready < target and free())):
+        epics = []                                          # the check waits for a second epic or for other work
     if epics:
         main, deep = epic_lanes(issues, epics)
         return "; ".join([f"epic check {', '.join(f'#{n}' for n in main)}"] * bool(main)
                          + [f"close check {', '.join(f'#{n}' for n in deep)}"] * bool(deep))
-    if rank := sum(dashboard.RANK in dashboard.labels(i) for i in issues if "pull_request" not in i):
+    if rank:
         return f"rank {rank} tickets after the release"                  # and the next release epic (`roadmap` skill)
     if checks := due():
         return f"{len(checks)} release checks"
     if kinds := reviews():
         return " and ".join(kinds) + " due"
     return f"ready {ready} < target {target}: " + ", ".join(sources) if ready < target and (sources := free()) else ""
+
+
+def epic_hold(ready, epics, issues, now=None):
+    """True when the epic check of `epics` waits (owner, option B of #1513, #1596): only 1 epic, ready tickets for the
+    runs (R > 0), and its last change (`updated_at`, else `created_at`) is less than EPIC_HOLD ago. Each run pays the base
+    context again: 12 deep runs of epic checks cost $14.0 in the last 100 merged PRs (2026-11-09). The caller starts
+    the run when it has other refill or review work too (`refill_need`). now: Unix seconds (default: the time now)."""
+    if len(epics) != 1 or ready <= 0:
+        return False
+    by = {i["number"]: i for i in issues}
+    stamp = (by.get(epics[0]) or {}).get("updated_at") or (by.get(epics[0]) or {}).get("created_at")
+    if not stamp:                                           # no time (a partial record): an old epic
+        return False
+    since = datetime.datetime.fromisoformat(stamp.replace("Z", "+00:00")).timestamp()
+    return (time.time() if now is None else now) - since < EPIC_HOLD
 
 
 def epic_lanes(issues, epics):
