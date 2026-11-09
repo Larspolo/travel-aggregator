@@ -6,8 +6,8 @@ import json
 import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile, status
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,7 +17,8 @@ from app.sourcehealth import failed_clause, source_health
 from app.auth import require_login, verify_csrf
 from app.db import get_session
 from app.models import Capture, Trip
-from app.parsers import get_parser
+from app.parsers import get_parser, parser_classes
+from app.schemas import MAX_BODY_BYTES, IngestIn
 from app.web.pages import _get_trip, templates
 
 router = APIRouter()
@@ -28,6 +29,42 @@ REPARSE_LIMIT = 500
 @router.get("/trips/{trip_id}/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def captures_page(request: Request, trip_id: int, failed: bool = False,
                   session: Session = Depends(get_session)) -> HTMLResponse:
+    return _trip_captures(request, session, trip_id, failed)
+
+
+def _upload_sources() -> list[str]:
+    return [s for s in parser_classes() if s != "manual"]
+
+
+@router.post("/trips/{trip_id}/captures/upload", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def upload_capture(request: Request, trip_id: int, file: UploadFile | None = File(None),
+                         source: str = Form(""), session: Session = Depends(get_session)):
+    """Store an uploaded payload file as a capture of the trip and parse it (#1338), as a capture of a userscript."""
+    _get_trip(session, trip_id)
+    raw = await file.read(MAX_BODY_BYTES + 1) if file is not None else b""
+    error = None
+    if source not in _upload_sources():
+        error = "Select a source that has a parser."
+    elif not raw:
+        error = "Select a payload file."
+    elif len(raw) > MAX_BODY_BYTES:
+        error = f"The file is larger than {MAX_BODY_BYTES} bytes."
+    else:
+        try:
+            data = json.loads(raw)
+        except (ValueError, UnicodeDecodeError):
+            error = "The file is not JSON."
+    if error:
+        return _trip_captures(request, session, trip_id, False, error, 400)
+    body = IngestIn(trip_id=trip_id, source=source, parser_version=parser_classes()[source].version,
+                    captured_at=datetime.now(timezone.utc), raw=data)
+    ingest.store(session, body)
+    return RedirectResponse(f"/trips/{trip_id}/captures", status_code=303)
+
+
+def _trip_captures(request: Request, session: Session, trip_id: int, failed: bool, upload_error: str | None = None,
+                   code: int = 200) -> HTMLResponse:
     trip = _get_trip(session, trip_id)
     query = select(Capture).where(Capture.trip_id == trip_id)
     if failed:
@@ -37,7 +74,9 @@ def captures_page(request: Request, trip_id: int, failed: bool = False,
                                       {"trip": trip, "captures": captures, "failed": failed, "now": datetime.now(timezone.utc),
                                        "trip_travelers": {trip.id: trip.travelers},
                                        "move_trips": _move_trips(session),
-                                       "failed_sources": _failed_sources(session) if failed else []})
+                                       "failed_sources": _failed_sources(session) if failed else [],
+                                       "upload_sources": _upload_sources(), "upload_error": upload_error},
+                                      status_code=code)
 
 
 @router.get("/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
