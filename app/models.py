@@ -27,6 +27,8 @@ class Trip(Base):
     title: Mapped[str] = mapped_column(String(200))
     origin_text: Mapped[str | None] = mapped_column(String(200))
     destination_text: Mapped[str | None] = mapped_column(String(200))
+    origin_alt_text: Mapped[str | None] = mapped_column(String(200))  # other origins, comma-separated (#1422)
+    destination_alt_text: Mapped[str | None] = mapped_column(String(200))
     date_from: Mapped[date | None] = mapped_column(Date)
     date_to: Mapped[date | None] = mapped_column(Date)
     travelers: Mapped[int] = mapped_column(Integer, default=1, server_default="1")

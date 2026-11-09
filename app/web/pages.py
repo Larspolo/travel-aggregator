@@ -64,11 +64,12 @@ from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group,
 from app.timeofday import arrive_by_extras, night_extras, night_time_extras, overnight_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trip_merge import is_linked, merge_choices
-from app.trips import archived_journeys, chain, find_journeys, list_trips
+from app.trips import archived_journeys, chain, find_journeys, list_trips, route_text
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 templates.env.globals["csrf_token"] = csrf_token
+templates.env.globals["route_text"] = route_text
 # All settings pages, in groups: the settings navigation of each settings page and the "Settings" link of the
 # app bar use this one list (#925, DESIGN.md section 5, "Settings").
 SETTINGS_NAV = [
@@ -805,7 +806,8 @@ def make_return_trip(trip_id: int, session: Session = Depends(get_session)) -> R
     ret = session.scalar(select(Trip).where(Trip.return_of_id == trip.id))
     if ret is None:
         ret = Trip(title=f"{trip.title[:191]} (return)", origin_text=trip.destination_text,
-                   destination_text=trip.origin_text, travelers=trip.travelers, profile_id=trip.profile_id,
+                   destination_text=trip.origin_text, origin_alt_text=trip.destination_alt_text,
+                   destination_alt_text=trip.origin_alt_text, travelers=trip.travelers, profile_id=trip.profile_id,
                    return_of_id=trip.id)
         session.add(ret)
         session.commit()
@@ -848,7 +850,8 @@ def _copy_of(trip: Trip, return_of_id: int | None = None) -> Trip:
     """A copy of a trip (#801): the places, travelers, profile, note and target price; no dates, offers or link
     (unless given)."""
     return Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
-                destination_text=trip.destination_text, travelers=trip.travelers, profile_id=trip.profile_id,
+                destination_text=trip.destination_text, origin_alt_text=trip.origin_alt_text,
+                destination_alt_text=trip.destination_alt_text, travelers=trip.travelers, profile_id=trip.profile_id,
                 notes=trip.notes, target_price=trip.target_price, arrive_by=trip.arrive_by,
                 return_of_id=return_of_id)
 

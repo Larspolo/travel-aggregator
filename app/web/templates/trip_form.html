@@ -10,6 +10,8 @@
     <div class="field wide"><label for="f-title">Title</label><input id="f-title" name="title" required maxlength="200" value="{{ values.title or '' }}"></div>
     <div class="field"><label for="f-origin">Origin</label><input id="f-origin" name="origin_text" maxlength="200" value="{{ values.origin_text or '' }}"></div>
     <div class="field"><label for="f-destination">Destination</label><input id="f-destination" name="destination_text" maxlength="200" value="{{ values.destination_text or '' }}"></div>
+    <div class="field"><label for="f-origin-alt">Other origins (comma-separated)</label><input id="f-origin-alt" name="origin_alt_text" maxlength="200" value="{{ values.origin_alt_text or '' }}"></div>
+    <div class="field"><label for="f-destination-alt">Other destinations (comma-separated)</label><input id="f-destination-alt" name="destination_alt_text" maxlength="200" value="{{ values.destination_alt_text or '' }}"></div>
     <div class="field"><label for="f-date-from">From</label><input id="f-date-from" type="date" name="date_from" value="{{ values.date_from or '' }}"></div>
     <div class="field"><label for="f-date-to">To</label><input id="f-date-to" type="date" name="date_to" value="{{ values.date_to or '' }}"></div>
     <div class="field"><label for="f-travelers">Travelers</label><input id="f-travelers" type="number" name="travelers" min="1" max="9" value="{{ values.travelers or 1 }}"></div>

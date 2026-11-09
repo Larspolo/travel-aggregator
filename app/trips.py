@@ -13,6 +13,20 @@ from app.gone import gone_fares
 from app.models import CurrencyRate, Fare, Itinerary, Trip
 
 
+def alt_places(text: str | None) -> list[str]:
+    """The places of a comma-separated text of other origins or destinations (#1422), stripped, with no blank one."""
+    return [p.strip() for p in (text or "").split(",") if p.strip()]
+
+
+def route_text(trip: Trip) -> str | None:
+    """The route of a trip with its other places (#1422): "Amsterdam → Zürich or Basel"; None with no place."""
+    if not (trip.origin_text or trip.destination_text):
+        return None
+    origin = " or ".join([trip.origin_text or "?", *alt_places(trip.origin_alt_text)])
+    destination = " or ".join([trip.destination_text or "?", *alt_places(trip.destination_alt_text)])
+    return f"{origin} → {destination}"
+
+
 @dataclass(frozen=True)
 class TripRow:
     id: int

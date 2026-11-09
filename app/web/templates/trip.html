@@ -2,7 +2,7 @@
 {% import "ui.html" as ui %}
 {% block title %}{{ trip.title }} · travel-aggregator{% endblock %}
 {% block content %}
-{% call ui.page_header(trip.title, subtitle=((trip.origin_text or "?") ~ " → " ~ (trip.destination_text or "?")) if (trip.origin_text or trip.destination_text) else none, back=("/", "Trips")) %}
+{% call ui.page_header(trip.title, subtitle=route_text(trip), back=("/", "Trips")) %}
   <a class="btn btn-primary" href="/trips/{{ trip.id }}/offers/new">{{ ui.icon("plus") }}Add an offer by hand</a>
   <a class="btn" href="/trips/{{ trip.id }}/captures">{{ ui.icon("upload") }}Captures</a>
   <details class="more">
