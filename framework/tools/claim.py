@@ -22,7 +22,8 @@ a second push of another claim commit is never a fast-forward. Later claims of t
                                           # or a union merge brought back LEARNINGS lines that main removed (#563)
     python3 framework/tools/claim.py N --guard --pr-branch B   # the same, but the open PR of branch B (taken over) is allowed
     python3 framework/tools/claim.py ID --comment   # lock owner comment ID (autopilot step 3); exit 1: another run handles it
-    python3 framework/tools/claim.py E --refill     # lock the sub-issues of epic E (0: the whole queue refill, autopilot step 5)
+    python3 framework/tools/claim.py E --refill     # lock the sub-issues of epic E (0: the whole queue refill, autopilot step 5;
+                                              # a main run: only an epic without `lane:deep`, #1595)
     python3 framework/tools/claim.py 0 --fixmain --state SHA   # lock the "Fix main" ticket of the break in commit SHA (step 2)
     python3 framework/tools/claim.py 0 --review     # lock the process review after its gap of merged PRs (`improve` skill,
                                           # `[review]` of `steering/system/system.toml`; it prints the owner work since the last review)
@@ -209,6 +210,20 @@ def deep_lane():
     return "deep" not in CONFIG.get("pacing", {}).get("reserved", ()) or lane() == " lane deep"
 
 
+def main_check(issue):
+    """True when a main run may lock the refill of `issue` (#1595): an epic (label `epic`) without `lane:deep`. The
+    main lane does the epic check and its new sub-issues; a deep run does the close check (`lane:deep` on the epic: a
+    main run found all criteria met), the split of a `size:L` ticket and the whole refill (E = 0). A wrong close is
+    silent (no run checks a closed epic again), a missed gap is found at the next check."""
+    names = {x["name"] if isinstance(x, dict) else x for x in (issue or {}).get("labels", [])}
+    return "epic" in names and "lane:deep" not in names
+
+
+def main_may_refill(epic, remote="origin"):
+    """`main_check` of epic `epic` on GitHub; False for E = 0 (the whole refill) and with no GitHub remote."""
+    return bool(epic) and on_github(remote) and main_check(api(f"issues/{epic}"))
+
+
 def push(sha, ref, remote="origin"):
     """True: the remote took the push. False: the ref exists (another run). Exit 2 on any other error."""
     r = git("push", "--porcelain", remote, f"{sha}:refs/heads/{ref}", check=False)
@@ -269,7 +284,7 @@ def claim_refill(epic, state, remote="origin"):
     first new sub-issue turned the state into N (#3454: #3431 and #3432 were the same ticket)."""
     if epic and "-" not in state and git("ls-remote", remote, f"refs/heads/claim/refill-{epic}-{state}-*").stdout.strip():
         return False
-    msg = f"Claim refill {epic}-{state} by {who()} ({uuid.uuid4().hex})"
+    msg = f"Claim refill {epic}-{state} by {who()} ({uuid.uuid4().hex}){account()}{lane()}"   # `usage.refill_live`
     return push(git("commit-tree", EMPTY_TREE, "-m", msg).stdout.strip(), f"claim/refill-{epic}-{state}", remote)
 
 
@@ -779,9 +794,10 @@ def main(argv=None):
             return 0
         print(f"fixmain {sha}: another run makes the ticket")
         return 1
-    if (a.review or a.roadmap or a.refill) and not deep_lane():
-        print(f"the deep lane does the {'process review' if a.review else 'roadmap review' if a.roadmap else 'queue refill'}"
-              " (`reserved` in agent.toml names `deep`): skip it")
+    if not deep_lane() and (a.review or a.roadmap or a.refill and not main_may_refill(a.number, a.remote)):
+        kind = ("process review" if a.review else "roadmap review" if a.roadmap
+                else "queue refill" if not a.number else "close check or split")
+        print(f"the deep lane does the {kind} (`reserved` in agent.toml names `deep`): skip it")
         return 1
     if a.review or a.roadmap:
         kind = "review" if a.review else "roadmap"
