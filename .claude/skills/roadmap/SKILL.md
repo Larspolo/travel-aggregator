@@ -31,7 +31,8 @@ open epics have no goal left that an agent can do.
 
 When `python3 framework/tools/claim.py 0 --roadmap` exits 0, after step 8 of the autopilot skill:
 
-1. Mark a feature done (`[x]`, with the epic number) when its epic is closed.
+1. Mark a feature done (`[x]`, with the epic number) when its epic is closed: `python3 framework/tools/roadmap_status.py`
+   prints the features to mark ("mark done"), with no epic ("no epic") and `[x]` with no number ("no number").
 2. Compare each goal with the code and the principles: what must a user do that the project cannot do yet? Add at
    most 5 missing features, each with a new key, one line and its sub-items.
 3. Keep the order: the features that the next features need come first.
