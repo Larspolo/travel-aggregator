@@ -14,7 +14,7 @@ import pytest
 from sqlalchemy import create_engine, text
 
 from app.db import sqlalchemy_url
-from tests import shard
+from tests import gh_annotations, shard
 
 PG_BIN = Path("/usr/lib/postgresql/16/bin")
 
@@ -37,6 +37,15 @@ def pytest_collection_modifyitems(config, items):
     if dropped:
         config.hook.pytest_deselected(items=dropped)
     items[:] = kept
+
+
+def pytest_terminal_summary(terminalreporter):
+    """In GitHub Actions, the failed tests as annotations: ship_pr.py prints them for a red CI (#1443)."""
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        return
+    stats = terminalreporter.stats
+    for line in gh_annotations.lines(stats.get("failed", []) + stats.get("error", [])):
+        terminalreporter.write_line(line)
 
 
 def _free_port() -> int:
