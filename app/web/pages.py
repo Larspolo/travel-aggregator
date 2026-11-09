@@ -274,10 +274,26 @@ def _form_page(request: Request, values: dict, errors: list[str], trip_id: int |
     if trip_id is not None:
         trip = _get_trip(session, trip_id)
         merge = {"linked": is_linked(session, trip), "choices": merge_choices(session, trip)}
+    via = _split_places(session, _get_trip(session, trip_id)) if splittable else []
     return templates.TemplateResponse(request, "trip_form.html",
                                       {"values": values, "errors": errors, "trip_id": trip_id, "journey": journey,
                                        "splittable": splittable, "split_error": split_error, "merge": merge,
+                                       "via_places": via,
                                        "profiles": list_profiles(session)}, status_code=code)
+
+
+def _split_places(session: Session, trip: Trip) -> list[tuple[str, int]]:
+    """The transfer places of the shown offers of a trip, for the buttons "Split via" (#1459)."""
+    from app.split_suggest import via_places
+    skip = [trip.origin_text or "", trip.destination_text or ""]
+    for alt in (trip.origin_alt_text, trip.destination_alt_text):
+        skip += (alt or "").split(",")
+    # a split part that starts at the origin ends at the place of that split
+    skip += [part.destination_text or "" for part in trip.split_trips
+             if (part.origin_text or "").casefold() == (trip.origin_text or "").casefold()]
+    itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
+                                  .options(subqueryload(Itinerary.legs))).all()
+    return via_places(itineraries, [x for x in skip if x.strip()])
 
 
 async def _save(request: Request, session: Session, trip: Trip | None):
@@ -664,6 +680,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
     gone = _gone(session, itineraries) if itineraries else {}  # the fares of an older search (#1386)
     rows, all_rows, modes, sources, carriers, tests = [], [], set(), set(), set(), []
+    best_hidden = None  # (fare, cost, itinerary, labels) of the lowest cost that a filter hides (#1454)
     for it in itineraries:
         if not it.fares:
             continue  # an itinerary with no fare has no cost: it is not a row
@@ -691,6 +708,14 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         hides |= {f"excluded mode {m}" for m in exclude_mode if any(leg.mode == m for leg in it.legs)}
         hides |= {f"excluded carrier {c}" for c in exclude_carrier if any(leg.carrier == c for leg in it.legs)}
         tests.append(hides)
+        if hides:
+            # a candidate for the best hidden offer (#1454): never a "Hide", departed or all-gone row
+            now_fares = [f for f in it.fares if f.id not in gone]
+            if now_fares and not it.hidden and not departed.is_departed(it, departed_now):
+                cand = (*row_cost(it, now_fares, places, weights, stale_before, rates, counts, fees), it, hides)
+                if best_hidden is None or (cand[1].total, it.depart_at) < (best_hidden[1].total,
+                                                                           best_hidden[2].depart_at):
+                    best_hidden = cand
         if hides - {f"day {day}"}:
             continue  # a filter hides this row
         fare, cost = row_cost(it, fares, places, weights, stale_before, rates, counts, fees)
@@ -768,6 +793,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         "hide stale", f"day {day}"])
     # the transfer places of the offers of the page (#1460): only for a trip that is no part of a split
     context["via_places"] = [] if trip.split_of_id else via_places(itineraries, split_skip(trip))
+    context["best_hidden"] = hidden_best(best_hidden, best_direct, query, sort, dir, trip_id)  # #1454
     # the link of each filter (#1453): the page with no such filter; the sort, the weights and the profile stay
     base = {**query, "sort": sort, "dir": dir}
     without = {f"mode {mode}": {"mode": ""}, f"source {source}": {"source": ""},
@@ -797,6 +823,49 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["flash"] = request.session.pop("flash", None)
     context["share_link"] = request.session.pop("share_link", None)  # once after "Share" (#903)  # a message of the last action, for example an import
     return templates.TemplateResponse(request, "trip.html", context)
+
+
+def unfilter(query: dict, labels) -> dict:
+    """The query without each filter of `labels` (the labels of `trip_page`, #1454)."""
+    q = dict(query)
+    for label in labels:
+        if label.startswith("excluded mode "):
+            q["exclude_mode"] = [m for m in q.get("exclude_mode", []) if m != label[14:]]
+        elif label.startswith("excluded carrier "):
+            q["exclude_carrier"] = [c for c in q.get("exclude_carrier", []) if c != label[17:]]
+        elif label == "hide stale":
+            q.pop("hide_stale", None)
+        elif label.startswith("arrive by "):
+            q["latest_arrive"] = ""  # an empty value is no limit; no value is the arrive-by time of the trip (#1296)
+        else:
+            key = {"mode": "mode", "source": "source", "max transfers": "max_transfers", "max duration": "max_duration_min",
+                   "depart after": "earliest_depart", "day": "day"}
+            for prefix, k in key.items():
+                if label.startswith(prefix + " "):
+                    q.pop(k, None)
+                    if k in ("mode", "source"):
+                        q[k] = ""
+    return q
+
+
+def hidden_best(best, best_direct, query, sort, dir, trip_id):
+    """The text parts and the "Show it" link of the best offer that the filters hide (#1454), or None."""
+    if best is None:
+        return None
+    fare, cost, it, labels = best
+    leg0, leg1 = it.legs[0] if it.legs else None, it.legs[-1] if it.legs else None
+    when = (leg0.depart_at + timedelta(minutes=leg0.depart_offset_min)).strftime("%H:%M") if leg0 else ""
+    route = f"{leg0.from_name} → {leg1.to_name}" if leg0 else ""
+    diff = None
+    if best_direct is not None and cost.total != best_direct:
+        d = best_direct - cost.total
+        diff = f"€{abs(d):.2f} {'less' if d > 0 else 'more'} than the best shown offer"
+    order = ["mode", "source", "max transfers", "max duration", "depart after", "arrive by", "excluded mode",
+             "excluded carrier", "hide stale", "day"]
+    by = sorted(labels, key=lambda l: next((i for i, p in enumerate(order) if l.startswith(p)), 99))
+    link = f"/trips/{trip_id}?" + urlencode({**unfilter(query, labels), "sort": sort, "dir": dir}, doseq=True)
+    return {"total": f"€{cost.total:.2f}", "when": when, "route": route, "source": fare.source,
+            "by": ", ".join(by), "diff": diff, "link": f"{link}#it-{it.id}"}
 
 
 def trip_view(**params) -> dict:
