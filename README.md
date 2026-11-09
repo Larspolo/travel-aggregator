@@ -689,6 +689,18 @@ A journey can have three or more linked trips (multi-city). Each trip after the 
 
 Each direction is a normal trip. The userscripts capture offers into it when you choose the trip in the dropdown of the panel.
 
+### Other origins and destinations
+
+A trip can have more than one origin or destination. On the form to make or change a trip, type the other places in
+"Other origins" and "Other destinations", separated by commas (for example "Basel, Zürich"). The main place stays in
+"Origin" and "Destination".
+- The trips list and the trip page show the route with the other places, for example "Amsterdam → Zürich or Basel".
+- A capture to any of these places goes to the trip, when its route matches the trip.
+- The search links of the reminder messages and of the split tickets section cover each pair of an origin and a
+  destination, with no pair twice. The trip page shows the search links of the main places only.
+- The access and egress places of `/places` match the stations of each offer, as they do for any trip. An offer from an
+  other origin or to an other destination uses the same rule.
+
 ### Split a trip via a place
 
 To travel via a place, split the trip there. Use the form "Split via" on the edit page of a trip, and type the place (for example "Köln").
