@@ -1,5 +1,6 @@
 """The FastAPI app of travel-aggregator."""
 
+import re
 import secrets
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.api import health, ingest, trips
 from app.config import get_settings
-from app.schemas import MAX_BODY_BYTES
+from app.schemas import MAX_BODY_BYTES, MAX_HAR_BYTES
 from app.web import calendar, export, manual, pages, pinned, reparse, settings_export, share, sources, spend, trip_import, trip_merge, upcoming, userscripts
 
 app = FastAPI(title="travel-aggregator")
@@ -22,6 +23,12 @@ app.add_middleware(
 )
 
 
+# The upload of the captures page also takes a HAR file (#1563): its route checks the file size; the margin is the
+# multipart form around the file.
+UPLOAD_PATH = re.compile(r"/trips/\d+/captures/upload")
+UPLOAD_MARGIN = 100_000
+
+
 @app.middleware("http")
 async def limit_body(request: Request, call_next):
     """A body with a method that sends one needs a Content-Length of at most MAX_BODY_BYTES (P5). The check comes
@@ -30,8 +37,9 @@ async def limit_body(request: Request, call_next):
         size = request.headers.get("content-length")
         if size is None:
             return JSONResponse({"detail": "Content-Length is required"}, status_code=411)
-        if not size.isdigit() or int(size) > MAX_BODY_BYTES:
-            return JSONResponse({"detail": f"the body is larger than {MAX_BODY_BYTES} bytes"}, status_code=413)
+        limit = MAX_HAR_BYTES + UPLOAD_MARGIN if UPLOAD_PATH.fullmatch(request.url.path) else MAX_BODY_BYTES
+        if not size.isdigit() or int(size) > limit:
+            return JSONResponse({"detail": f"the body is larger than {limit} bytes"}, status_code=413)
     return await call_next(request)
 
 
