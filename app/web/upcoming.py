@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -19,17 +19,20 @@ router = APIRouter()
 
 
 @router.get("/upcoming", dependencies=[Depends(require_login)])
-def upcoming(request: Request, session: Session = Depends(get_session)):
+def upcoming(request: Request, only: int | None = None, session: Session = Depends(get_session)):
+    query = select(Itinerary).where(Itinerary.booked.is_(True), Itinerary.arrive_at >= datetime.now(timezone.utc))
+    if only is not None:  # one journey to print (#1350)
+        query = query.where(Itinerary.id == only)
     itineraries = session.scalars(
-        select(Itinerary)
-        .where(Itinerary.booked.is_(True), Itinerary.arrive_at >= datetime.now(timezone.utc))
-        .options(selectinload(Itinerary.legs), selectinload(Itinerary.trip))
+        query.options(selectinload(Itinerary.legs), selectinload(Itinerary.trip))
         .order_by(Itinerary.depart_at, Itinerary.id)
     ).all()
+    if only is not None and not itineraries:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
     total, missing = _paid_total(itineraries, load_rates(session))
     since = session.get(Setting, SINCE) if session.get(Setting, KEY) is not None else None
     return templates.TemplateResponse(request, "upcoming.html", {
-        "itineraries": itineraries, "now": datetime.now(timezone.utc),
+        "itineraries": itineraries, "now": datetime.now(timezone.utc), "only": only,
         "paid_total": total, "paid_missing": missing,
         # the link shows once after "Subscribe" (#1113); the offline copy is a later GET with no link
         "feed_link": request.session.pop("calendar_feed_link", None),
