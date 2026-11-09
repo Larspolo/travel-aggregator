@@ -57,7 +57,7 @@ def test_the_score_and_the_trip_page_do_not_change(trip):  # noqa: F811
     before = client.get(f"/trips/{trip_id}").text
     post(client, auth, trip_id, [reserved("required", "required", "required")])
     after = client.get(f"/trips/{trip_id}").text
-    assert "reservation" not in after.lower()
+    assert "reservation required" in after and "reservation required" not in before   # the mark of #1624
     assert before.count("= €") == after.count("= €") and [x for x in before.split() if x.startswith("€")] == \
         [x for x in after.split() if x.startswith("€")]
 
