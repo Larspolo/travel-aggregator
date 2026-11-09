@@ -22,6 +22,7 @@ from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
 from app.notify import PriceDrop
 from app.currency import load_rates, to_eur
+from app.flexibility import tier
 
 log = logging.getLogger(__name__)
 
@@ -105,6 +106,11 @@ def _crosses_target(session: Session, trip_id: int, old: tuple | None, offer: Of
     return old_eur is not None and old_eur > trip.target_price
 
 
+def _service(it: Itinerary) -> str:
+    """The carrier and the number of each leg, as `carriers` of trip_rows.html."""
+    return ", ".join(f"{leg.carrier or '?'}{' ' + leg.service_no if leg.service_no else ''}" for leg in it.legs)
+
+
 def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: OfferIn, source: str,
                 captured_at: datetime, drops: list | None = None) -> str:
     """Store one offer. Returns "created" (new itinerary), "updated" (known itinerary with a new fare or a changed
@@ -136,7 +142,17 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         pinned_drop = (drops is not None and it.pinned and not it.hidden and old is not None
                        and offer.price_currency == fare.currency and offer.price_amount < fare.latest_price)
         target = drops is not None and not it.hidden and _crosses_target(session, trip_id, old, offer)
-        if pinned_drop or target:
+        booked_drop = (drops is not None and it.booked and it.booked_fare_id is not None
+                       and it.booked_fare_id == fare.id and it.booked_price is not None
+                       and offer.price_currency == it.booked_currency and offer.price_amount < it.booked_price
+                       and offer.price_amount < fare.latest_price
+                       and tier(offer.flexibility) in {"flexible", "partly_refundable"})
+        if booked_drop:  # one drop per fare: the booked line replaces the pinned line (#1429)
+            drops.append(PriceDrop(trip_id=trip_id, fare_name=fare.fare_name, source=source,
+                                   currency=offer.price_currency, new_price=offer.price_amount, target=target,
+                                   old_price=old[0] if old[1] == offer.price_currency else None,
+                                   paid=it.booked_price, service=_service(it), tier=tier(offer.flexibility)))
+        elif pinned_drop or target:
             drops.append(PriceDrop(trip_id=trip_id, fare_name=fare.fare_name, source=source,
                                    currency=offer.price_currency, new_price=offer.price_amount, target=target,
                                    old_price=old[0] if old is not None and old[1] == offer.price_currency else None))

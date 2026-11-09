@@ -49,6 +49,9 @@ class PriceDrop:
     old_price: Decimal | None  # None: a new fare, or the old price was in another currency
     new_price: Decimal
     target: bool = False  # the new price crosses the target price of the trip (#848)
+    paid: Decimal | None = None  # the paid price of a booked fare (#1429)
+    service: str | None = None  # the carrier and the number of the legs, "DB ICE 105, SBB IC 61"
+    tier: str | None = None  # the flexibility tier of the booked fare
 
 
 @dataclass(frozen=True)
@@ -72,6 +75,10 @@ def _money(amount: Decimal) -> str:
 
 
 def _line(d: PriceDrop) -> str:
+    if d.paid is not None:
+        from app.flexibility import LABELS
+        return (f"Booked {d.service or '-'}: now {d.currency} {_money(d.new_price)}, paid {d.currency} "
+                f"{_money(d.paid)} (−{d.currency} {_money(d.paid - d.new_price)}), {LABELS.get(d.tier, d.tier)} fare")
     if d.old_price is None:
         return f"{d.fare_name or '-'} ({d.source}): {d.currency} {_money(d.new_price)}"
     return (f"{d.fare_name or '-'} ({d.source}): {d.currency} {_money(d.old_price)} → "
@@ -105,7 +112,7 @@ def messages(session: Session, drops: list[PriceDrop], base_url: str) -> list[Me
         title = trip.title if trip is not None else f"trip {trip_id}"
         mine = [d for d in drops if d.trip_id == trip_id]
         text = "\n".join(_line(d) for d in mine)
-        kind = "Target price" if any(d.target for d in mine) else "Price drop"
+        kind = "Booked fare cheaper" if any(d.paid is not None for d in mine) else "Target price" if any(d.target for d in mine) else "Price drop"
         msgs = alert_messages(session, f"{kind}: {title}", text, f"{base_url.rstrip('/')}/trips/{trip_id}")
         if not msgs:
             break
