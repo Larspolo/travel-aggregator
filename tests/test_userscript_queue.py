@@ -45,7 +45,9 @@ def payload(i, n=2):
 
 
 def test_menu_entries(page):
-    assert page.evaluate("window.__menu") == ["Set server URL", "Set API token", "Add this website"]
+    assert page.evaluate("window.__menu") == [
+        "Send now", "Discard the queue", "Set server URL", "Set API token", "Add this website",
+    ]
 
 
 def test_200_shows_sent(page):
