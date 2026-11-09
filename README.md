@@ -601,6 +601,12 @@ of an ingest. A failed send is logged and does not change the answer to the user
 A fare that comes to or below the target price of its trip (see "Target price of a trip") gives the title
 "Target price: " and the trip title instead.
 
+A booked journey with a "flexible" or "partly refundable" fare gives a message with the title "Booked fare cheaper: "
+and the trip title when the price of that fare goes below the paid price. The message has one line:
+`Booked <service>: now EUR new price, paid EUR paid price (−EUR difference), <tier> fare`. It uses the same channel as
+the other price-drop messages, and it replaces the price-drop line of that fare. A non-refundable fare gives no
+"Booked fare cheaper" message.
+
 A "Search again" reminder asks you to search a trip again when its offers are old. It has the title "Search again: "
 and the trip title, the search links of the trip, and the link of the trip page. It uses the channel that you chose
 above. The reminder fetches nothing: the app only sends the message, and no travel site is contacted.
