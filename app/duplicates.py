@@ -18,6 +18,8 @@ def _span(trip: Trip) -> tuple[date, date] | None:
 
 def duplicate_trips(session: Session, trip: Trip) -> list[Trip]:
     """The other trips in planning on the same route whose dates share a day with the trip, by id."""
+    if trip.status != "planning" or trip.split_of_id is not None:
+        return []
     span = _span(trip)
     if span is None:
         return []
