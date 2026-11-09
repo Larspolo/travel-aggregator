@@ -82,12 +82,12 @@ def test_a_post_with_no_csrf_token_gives_403(setup):
 class _Request:
     def __init__(self, data):
         self.session = data
+        self.app = app
 
 
 def test_a_session_with_no_epoch_works_at_epoch_0(sessions):
-    with sessions() as s:
-        require_login(_Request({"owner": True}), s)
-        data = {"owner": True, "epoch": 1}
-        with pytest.raises(LoginRequired):
-            require_login(_Request(data), s)
-        assert data == {}
+    require_login(_Request({"owner": True}))
+    data = {"owner": True, "epoch": 1}
+    with pytest.raises(LoginRequired):
+        require_login(_Request(data))
+    assert data == {}
