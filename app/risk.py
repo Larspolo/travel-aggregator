@@ -140,3 +140,13 @@ def self_transfer_extras(fare, weights: Weights) -> tuple[tuple[str, Decimal], .
     if penalty == 0 or count == 0:
         return ()
     return (("self-transfer", penalty * count),)
+
+
+def reservation_extras(fare, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the fee for each leg of the fare with a mandatory reservation that its price does not include (#1623): one
+    part with the sum. A fee of 0 or no such leg adds no part. The count is on the fare (#1620), as `self_transfers`."""
+    count = getattr(fare, "reservation_legs", 0) or 0
+    fee = Decimal(weights.reservation_fee)
+    if fee == 0 or count == 0:
+        return ()
+    return (("reservation", fee * count),)

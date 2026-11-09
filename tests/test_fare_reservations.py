@@ -1,4 +1,6 @@
 """The mandatory seat reservations of a fare at ingest (#1620): the `reservation` of each leg, the count on the fare."""
+import re
+
 import pytest
 from alembic import command
 from sqlalchemy import create_engine, inspect, select
@@ -57,7 +59,7 @@ def test_the_score_and_the_trip_page_do_not_change(trip):  # noqa: F811
     before = client.get(f"/trips/{trip_id}").text
     post(client, auth, trip_id, [reserved("required", "required", "required")])
     after = client.get(f"/trips/{trip_id}").text
-    assert "reservation" not in after.lower()
+    assert not re.search(r"€[\d.,]+ reservation", after)                   # no part (#1623: the fee is €0)
     assert before.count("= €") == after.count("= €") and [x for x in before.split() if x.startswith("€")] == \
         [x for x in after.split() if x.startswith("€")]
 
