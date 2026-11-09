@@ -131,12 +131,14 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
     old = None if fare is None else (fare.latest_price, fare.currency)
     if fare is None:
         fare = Fare(source=source, fare_name=offer.fare_name, latest_price=offer.price_amount,
-                    currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers)
+                    currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers,
+                    reservation_legs=offer.reservation_legs)
         it.fares.append(fare)
     elif fare.latest_price == offer.price_amount and fare.currency == offer.price_currency:
         fare.latest_captured_at = max(fare.latest_captured_at, captured_at)  # a capture of the same price (#1404)
         fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
                                                           offer.self_transfers)
+        fare.reservation_legs = offer.reservation_legs
         fare.travel_class = offer.travel_class
         fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
         return result
@@ -167,6 +169,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
                                                                       captured_at)
     fare.flexibility, fare.booking_url, fare.self_transfers = (offer.flexibility, offer.booking_url,
                                                           offer.self_transfers)
+    fare.reservation_legs = offer.reservation_legs
     fare.travel_class = offer.travel_class
     fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
     fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=captured_at,

@@ -30,6 +30,9 @@ class LegIn(BaseModel):
     # The ticket of the leg in a self-transfer offer (#176): a change of the number between two legs is a
     # self-transfer. A leg with no number is on the ticket of the leg before it.
     ticket: int | None = Field(None, ge=1, le=MAX_LEGS)
+    # The seat reservation of the leg (#1620): "required" is mandatory and not in the price, "included" is mandatory
+    # and in the price, None is optional or not known.
+    reservation: Literal["required", "included"] | None = None
 
     @model_validator(mode="after")
     def _arrives_after_departure(self) -> "LegIn":
@@ -69,6 +72,13 @@ class OfferIn(BaseModel):
                 count += 1
             current = leg.ticket if leg.ticket is not None else current
         return count
+
+
+    @property
+    def reservation_legs(self) -> int:
+        """The count of legs with a mandatory reservation that the price does not include (#1620). The ingest stores
+        it on the fare: the status is per source, as `self_transfers`."""
+        return sum(leg.reservation == "required" for leg in self.legs)
 
 
 class IngestIn(BaseModel):
