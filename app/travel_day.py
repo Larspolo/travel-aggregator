@@ -14,6 +14,7 @@ from app.models import Itinerary, Trip
 from app.notify import _money, alert_messages, deliver, setting
 
 TRAVEL_DAY_HOURS_KEY = "travel_day_hours"
+MAX_TRAVEL_DAY_HOURS = 72  # the setting on the messages settings page (#1650)
 
 
 def _hours(session: Session) -> int:

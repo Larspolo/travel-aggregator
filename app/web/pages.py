@@ -65,6 +65,7 @@ from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTF
                         webpush_ready)
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
+from app.travel_day import MAX_TRAVEL_DAY_HOURS, TRAVEL_DAY_HOURS_KEY
 from app.parsers import group_price
 from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group, format_breakdown, format_total, in_eur,
                          per_traveler)
@@ -1730,6 +1731,7 @@ def messages_page(request: Request, session: Session = Depends(get_session)) -> 
         "ntfy_url": setting(session, NTFY_URL_KEY), "notify_email": setting(session, EMAIL_KEY),
         "reminder_days": setting(session, REMINDER_DAYS_KEY, "0"),
         "reminder_before_days": setting(session, REMINDER_BEFORE_KEY, "14"), "max_reminder_days": MAX_REMINDER_DAYS,
+        "travel_day_hours": setting(session, TRAVEL_DAY_HOURS_KEY, "0"), "max_travel_day_hours": MAX_TRAVEL_DAY_HOURS,
         "source_alert": setting(session, SOURCE_ALERT_KEY, "1"),
         "smtp_ready": bool(get_settings().smtp_host),
         "vapid_public_key": get_settings().vapid_public_key if webpush_ready() else "",
@@ -1751,10 +1753,16 @@ def test_message(request: Request, session: Session = Depends(get_session)) -> R
     return RedirectResponse("/settings/messages", status_code=303)
 
 
-@router.post("/settings/messages", dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def _travel_day_field(request: Request) -> str:
+    """The raw field travel_day_hours (#1650): a blank value stays "" (422), a field that the form did not send is kept."""
+    return str((await request.form()).get("travel_day_hours", REMINDER_NOT_SENT))
+
+
+@router.post("/settings/messages",dependencies=[Depends(require_login), Depends(verify_csrf)])
 def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), notify_email: str = Form(""),
                   reminder_days: str = Form(REMINDER_NOT_SENT), reminder_before_days: str = Form(REMINDER_NOT_SENT),
-                  source_alert: str = Form(REMINDER_NOT_SENT), session: Session = Depends(get_session)) -> RedirectResponse:
+                  source_alert: str = Form(REMINDER_NOT_SENT), travel_day_hours: str = Depends(_travel_day_field),
+                  session: Session = Depends(get_session)) -> RedirectResponse:
     url = ntfy_url.strip()
     # #1117: a field that the form did not send is kept; a value that is not a whole number gives 422 and stores nothing.
     for label, value in (("the reminder age", reminder_days), ("the reminder before departure", reminder_before_days)):
@@ -1762,6 +1770,11 @@ def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), 
                                                and int(value.strip()) <= MAX_REMINDER_DAYS):
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
                                 f"{label} must be a whole number from 0 to {MAX_REMINDER_DAYS} days")
+    if travel_day_hours != REMINDER_NOT_SENT and not (travel_day_hours.strip().isascii()
+                                                      and travel_day_hours.strip().isdigit()
+                                                      and int(travel_day_hours.strip()) <= MAX_TRAVEL_DAY_HOURS):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            f"the travel-day message must be a whole number from 0 to {MAX_TRAVEL_DAY_HOURS} hours")
     if notify_channel not in CHANNELS:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"the channel must be one of {', '.join(CHANNELS)}")
     if url and (not url.startswith("https://") or len(url) > 500):
@@ -1787,6 +1800,8 @@ def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), 
         session.merge(Setting(key=REMINDER_BEFORE_KEY, value=str(int(reminder_before_days.strip()))))
     if source_alert != REMINDER_NOT_SENT:  # #1174: the hidden field 0 comes before the checkbox 1
         session.merge(Setting(key=SOURCE_ALERT_KEY, value="1" if source_alert == "1" else "0"))
+    if travel_day_hours != REMINDER_NOT_SENT:
+        session.merge(Setting(key=TRAVEL_DAY_HOURS_KEY, value=str(int(travel_day_hours.strip()))))
     session.commit()
     return RedirectResponse("/settings/messages", status_code=303)
 
