@@ -69,6 +69,14 @@ class Weights:
     hour_tier1_markup: Decimal = Decimal("0")
     hour_tier2_after_min: int = 0
     hour_tier2_markup: Decimal = Decimal("0")
+    # The carrier markups (#1530): a leg whose carrier is the name of a slot adds the markup once per itinerary.
+    # A markup of 0 or an empty name disables the slot.
+    carrier1_name: str = ""
+    carrier1_markup: Decimal = Decimal("0")
+    carrier2_name: str = ""
+    carrier2_markup: Decimal = Decimal("0")
+    carrier3_name: str = ""
+    carrier3_markup: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)

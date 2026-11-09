@@ -20,6 +20,20 @@ def mode_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     return tuple(parts)
 
 
+def carrier_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """One part ("carrier <name>", amount) for each carrier slot whose name a leg of the itinerary has (#1530). The name
+    matches without case and outer spaces. A slot with an empty name or a markup of 0 adds no part. A negative amount
+    is a discount. Each slot adds at most one part per itinerary."""
+    carriers = {(leg.carrier or "").strip().casefold() for leg in itinerary.legs}
+    parts = []
+    for n in (1, 2, 3):
+        name = getattr(weights, f"carrier{n}_name").strip()
+        amount = Decimal(getattr(weights, f"carrier{n}_markup"))
+        if name and amount != 0 and name.casefold() in carriers:
+            parts.append((f"carrier {name}", amount))
+    return tuple(parts)
+
+
 def transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """Add one part "short transfer" for the short transfers: the penalty times their count.
 

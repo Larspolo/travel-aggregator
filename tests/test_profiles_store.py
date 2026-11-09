@@ -25,7 +25,9 @@ CHANGED = {"hour_markup": "22.5", "transfer_markup": "7", "airport_before_min": 
            "first_class_hour": "-3",
            "self_transfer_penalty": "15", "stale_hours": "48", "stale_penalty": "9",
            "hour_tier1_after_min": "240", "hour_tier1_markup": "8", "hour_tier2_after_min": "480",
-           "hour_tier2_markup": "15"}
+           "hour_tier2_markup": "15",
+           "carrier1_name": "Ryanair", "carrier1_markup": "15", "carrier2_name": "KLM", "carrier2_markup": "-5",
+           "carrier3_name": "Flixbus", "carrier3_markup": "8"}
 
 
 def _expected(name, raw):
@@ -34,6 +36,8 @@ def _expected(name, raw):
         return time.fromisoformat(raw)
     if isinstance(default, int):
         return int(raw)
+    if isinstance(default, str):  # a carrier name (#1530)
+        return raw
     return Decimal(raw)
 
 
