@@ -1050,7 +1050,11 @@ The page `/captures` shows the status of each source above the list of captures,
 
 - "Last good capture" is the time of the newest capture that the parser read with no rejected offer. "never" means that
   no capture of the source is good yet.
-- "Parser" is the version of the parser that read the newest good capture.
+- "Parser" is the version of the parser that read the newest good capture. When the newest capture of the source came
+  from an older userscript (version A) and the app serves a newer version B, the cell also shows "old userscript A:
+  update to B". The warning is a link to `/tokens`: open the install link of the userscript there. Tampermonkey
+  checks for a new version about once a day, so the warning can show for some hours after an update. A capture with
+  no userscript version (an upload, a manual offer) shows no warning.
 - "Failed after it" is the number of failed captures of the source after the last good capture. A failed capture is
   a capture that the parser could not read, or that it read with at least one rejected offer.
 
