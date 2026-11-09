@@ -710,6 +710,8 @@ To travel via a place, split the trip there. Use the form "Split via" on the edi
 - The trip page has one section "Split tickets via <place>" for each place. The section lists the two split trips, with "No offers yet." for a part with no offers. It shows the best pairs of offers, cheapest first: a connection of the first part, a wait at the place and a connection of the second part. Each pair shows its times, its transfer (the wait), its sum of effective costs and the difference to the best direct offer of the trip ("less than" or "more than").
 - A pair needs a wait of at least the short-transfer minutes of the score profile (10 minutes by default) and at most 6 hours. A pair with a shorter wait does not show.
 - The pairs follow the score profile of the trip, so a change of the profile changes their order.
+- The edit page of a trip shows "Transfer places of your offers": the places where your captured offers change, most frequent first, with at most 5 places. Each place has a button "Split via <place>" that makes the split trips for that place. The button shows the number of offers with that place.
+- The trip page shows the same places in one line, "Transfer places of these offers", with a link "Split the trip" to the edit page.
 
 ### Copy a trip
 
