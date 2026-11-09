@@ -947,6 +947,10 @@ when the offers reached your server, or an error message.
 - **Server busy.** When the app answers `429` (too many requests, or too many bad tokens from your address), the panel
   shows `Server busy: kept in the queue`. The offers stay in the queue and the userscript sends them again later.
   See "API" for the limits.
+- **Queue.** The queue keeps up to 20 captures. The panel shows `N captures wait (oldest M min)`. A 21st capture drops
+  the oldest one, and the next panel status starts with `1 old capture dropped.`
+- **Queue commands.** The Tampermonkey menu has `Send now`, which sends the queue at once, oldest first. It also has
+  `Discard the queue`, which empties the queue and shows `Discarded N captures`. It sends no request to the server.
 
 ### bahn.de userscript
 
