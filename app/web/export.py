@@ -83,6 +83,8 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                 "booked_price": str(it.booked_price) if it.booked_price is not None else None,
                 "booked_currency": it.booked_currency, "booked_at": _iso(it.booked_at),
                 "booked_fare": _paid_index(it),
+                "cancelled_at": _iso(it.cancelled_at),
+                "refund_price": str(it.refund_price) if it.refund_price is not None else None,
                 "legs": [
                     {
                         "seq": leg.seq, "mode": leg.mode, "carrier": leg.carrier, "service_no": leg.service_no,

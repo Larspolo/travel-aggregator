@@ -53,6 +53,8 @@ def _join(session: Session, it: Itinerary, into: Itinerary) -> None:
     into.note = into.note or it.note
     if into.booked_price is None and it.booked_price is not None:
         into.booked_price, into.booked_currency, into.booked_at = it.booked_price, it.booked_currency, it.booked_at
+    if into.cancelled_at is None and it.cancelled_at is not None:
+        into.cancelled_at, into.refund_price = it.cancelled_at, it.refund_price  # the cancel with its refund (#1688)
     into.first_seen_at = min(into.first_seen_at, it.first_seen_at)
     into.last_seen_at = max(into.last_seen_at, it.last_seen_at)
     session.flush()  # the moved rows leave `it` before its delete

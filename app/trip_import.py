@@ -82,6 +82,9 @@ class ItineraryData(_Model):
     booked_currency: str | None = Field(None, pattern=r"^[A-Z]{3}$")
     booked_at: AwareDatetime | None = None
     booked_fare: int | None = Field(None, ge=0)  # the index in `fares`
+    # The cancel of the booking and its refund (#1688): missing in an older export, so None.
+    cancelled_at: AwareDatetime | None = None
+    refund_price: Decimal | None = Field(None, ge=0, max_digits=10, decimal_places=2)
     legs: list[LegData] = Field(min_length=1, max_length=MAX_LEGS)
     fares: list[FareData] = Field(default_factory=list)
 
@@ -155,6 +158,8 @@ def _restore_paid(it: Itinerary, d: ItineraryData, fare_objs: list[Fare]) -> Non
         it.booked_at = d.booked_at.astimezone(UTC) if d.booked_at is not None else None
     if it.booked_fare_id is None and d.booked_fare is not None:
         it.booked_fare_id = fare_objs[d.booked_fare].id
+    if it.cancelled_at is None and d.cancelled_at is not None:
+        it.cancelled_at, it.refund_price = d.cancelled_at.astimezone(UTC), d.refund_price
 
 
 def import_trip(session: Session, data: dict, trip_id: int | None = None) -> ImportResult:
