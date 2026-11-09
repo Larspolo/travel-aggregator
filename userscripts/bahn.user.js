@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: bahn.de
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.2.0
+// @version      1.2.1
 // @description  Send the bahn.de search results (fahrplan and recon responses) to travel-aggregator.
 // @match        https://www.bahn.de/*
 // @match        https://int.bahn.de/*
@@ -26,7 +26,18 @@
   const countRaw = (raw) => {
     const r = raw && raw.response;
     if (!r) return 0;
-    if (Array.isArray(r.verbindungen)) return r.verbindungen.length;
+    // A recon response (#1678) counts its fares as the parser does: no "Probe " trial, one per name and class,
+    // only with a price. A connection with no such fare counts as one.
+    const fares = (c) => {
+      const seen = new Set();
+      for (const a of (c && c.reiseAngebote) || []) {
+        const name = String((a && a.name) || "").trim();
+        if (name.startsWith("Probe ") || !a.preis || a.preis.betrag == null) continue;
+        seen.add(name + "\u0000" + a.klasse);
+      }
+      return seen.size || 1;
+    };
+    if (Array.isArray(r.verbindungen)) return r.verbindungen.reduce((n, c) => n + fares(c), 0);
     // A day price response (#1196) counts its intervals that have a price.
     return Array.isArray(r.intervalle) ? r.intervalle.filter((iv) => iv && iv.preis).length : 0;
   };
