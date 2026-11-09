@@ -34,6 +34,8 @@ SESSION_EPOCH = "session_epoch"  # the Setting key: +1 ends the sessions of the 
 TOTP_SECRET = "totp_secret"  # the Setting key: the base32 secret; the second login step is on when it exists (#1314)
 TOTP_STEP = "totp_step"  # the Setting key: the last used 30-second step of a code (#1314)
 NEW_TOTP_KEY = "new_totp"  # the login session key: the secret of "Turn on" before a correct code (#1314)
+TOTP_RECOVERY = "totp_recovery"  # the Setting key: the JSON list of the sha256 digests of the unused recovery codes (#1316)
+RECOVERY_SHOWN_KEY = "recovery_codes"  # the login session key: the new recovery codes, shown on one settings page (#1316)
 
 log = logging.getLogger(__name__)
 
