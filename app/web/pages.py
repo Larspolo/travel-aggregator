@@ -6,6 +6,7 @@ import inspect
 import math
 import os
 import re
+import time as clock
 from datetime import datetime, time, timedelta, timezone
 from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal, InvalidOperation
 from pathlib import Path
@@ -21,9 +22,10 @@ from sqlalchemy.orm import Session, subqueryload
 
 from app.storage import human_bytes, storage_use
 from app.web.userscripts import bundle_info, userscript_list
-from app.auth import (EPOCH_KEY, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter, require_login,
+from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter, require_login,
                       session_epoch, verify_csrf)
 from app.backup import BACKUP_MAX_AGE, newest_backup
+from app import totp
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
@@ -1203,16 +1205,68 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  "retention_days": days,
                                                                  "storage": storage_use(session, days, datetime.now(timezone.utc)),
                                                                  "max_days": MAX_RETENTION_DAYS,
-                                                                 "flash": request.session.pop("flash", None)})
+                                                                 "flash": request.session.pop("flash", None),
+                                                                 "totp": totp_state(request, session)})
+
+
+def totp_state(request: Request, session: Session) -> dict:
+    """The state of the card "Second login step" (#1314)."""
+    new = request.session.get(NEW_TOTP_KEY)
+    return {"on": session.get(Setting, TOTP_SECRET) is not None, "new": new,
+            "groups": " ".join(new[i:i + 4] for i in range(0, len(new), 4)) if new else "",
+            "uri": totp.uri(new) if new else "", "error": request.session.pop("totp_error", None)}
+
+
+def _new_epoch(request: Request, session: Session) -> None:
+    epoch = session_epoch(session) + 1
+    session.merge(Setting(key=SESSION_EPOCH, value=str(epoch)))
+    session.commit()
+    request.session[EPOCH_KEY] = epoch
+
+
+@router.post("/settings/totp/start", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def totp_start(request: Request) -> RedirectResponse:
+    """Make a new secret and keep it only in the login session until a correct code (#1314)."""
+    request.session[NEW_TOTP_KEY] = totp.new_secret()
+    return RedirectResponse("/settings#totp", status_code=303)
+
+
+@router.post("/settings/totp/on", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def totp_on(request: Request, code: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+    """A correct code of the new secret saves it: the step is on, the other devices log in again (#1314)."""
+    secret = request.session.get(NEW_TOTP_KEY)
+    step = totp.check(secret, code, clock.time(), -1) if secret else None
+    if step is None:
+        request.session["totp_error"] = "Wrong code."
+        return RedirectResponse("/settings#totp", status_code=303)
+    session.merge(Setting(key=TOTP_SECRET, value=secret))
+    session.merge(Setting(key=TOTP_STEP, value=str(step)))
+    request.session.pop(NEW_TOTP_KEY, None)
+    _new_epoch(request, session)
+    request.session["flash"] = "The second login step is on. All other devices are logged out."
+    return RedirectResponse("/settings#totp", status_code=303)
+
+
+@router.post("/settings/totp/off", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def totp_off(request: Request, code: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+    """A correct current code deletes the secret: the step is off, the other devices log in again (#1314)."""
+    secret, last = session.get(Setting, TOTP_SECRET), session.get(Setting, TOTP_STEP)
+    step = totp.check(secret.value, code, clock.time(), int(last.value) if last else -1) if secret else None
+    if step is None:
+        request.session["totp_error"] = "Wrong code."
+        return RedirectResponse("/settings#totp", status_code=303)
+    session.delete(secret)
+    if last is not None:
+        session.delete(last)
+    _new_epoch(request, session)
+    request.session["flash"] = "The second login step is off. All other devices are logged out."
+    return RedirectResponse("/settings#totp", status_code=303)
 
 
 @router.post("/settings/sessions/end-others", dependencies=[Depends(require_login), Depends(verify_csrf)])
 def end_other_sessions(request: Request, session: Session = Depends(get_session)) -> RedirectResponse:
     """Make the session cookies of all other browsers invalid: +1 on the epoch (#1266)."""
-    epoch = session_epoch(session) + 1
-    session.merge(Setting(key=SESSION_EPOCH, value=str(epoch)))
-    session.commit()
-    request.session[EPOCH_KEY] = epoch
+    _new_epoch(request, session)
     request.session["flash"] = "All other devices are logged out."
     return RedirectResponse("/settings", status_code=303)
 
