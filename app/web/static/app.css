@@ -663,3 +663,7 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
   html, body, main, .card, .journey-part { background: white !important; color: black !important; box-shadow: none !important; }
   .journey-part { break-inside: avoid; }
 }
+/* #1495: the source table fits at 390 px, also with the "old userscript" chip */
+#source-health th { white-space: normal; }
+#source-health th, #source-health td { padding: var(--space-2); }
+#source-health .chip.warn { height: auto; padding: 4px 9px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; margin-top: var(--space-1); }
