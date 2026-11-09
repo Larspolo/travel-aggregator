@@ -695,9 +695,10 @@ def next_effect(comments):
 
 def given_back(comments):
     """{result: count} of the `Metrics:` lines whose ticket the run gave back with no PR (`none`, `blocked`,
-    `needs-human`; `report.md`): the lost tickets of the runs (#5649)."""
+    `needs-human`; `report.md`): the lost tickets of the runs (#5649). `ticket #0` is a deep run with no ticket (an
+    epic check, a refill, a review): no lost ticket."""
     return dict(Counter(m[1] for c in comments for line in (c.get("body") or "").splitlines()
-                        if line.startswith("Metrics:") and (m := re.match(r"Metrics: ticket #\d+ · [^·]+ · (none|blocked|needs-human) ·", line))))
+                        if (m := re.match(r"Metrics: ticket #[1-9]\d* · [^·]+ · (none|blocked|needs-human) ·", line))))
 
 
 def back_causes(comments):
@@ -708,7 +709,7 @@ def back_causes(comments):
     checks = 0
     for c in comments:
         for line in (c.get("body") or "").splitlines():
-            if m := re.match(r"Metrics: ticket #(\d+) · [^·]+ · (none|blocked|needs-human|checked) ·", line):
+            if m := re.match(r"Metrics: ticket #([1-9]\d*) · [^·]+ · (none|blocked|needs-human|checked) ·", line):
                 runs[int(m[1])] += 1
                 checks += m[2] == "checked"
     return checks, {n: k for n, k in sorted(runs.items(), key=lambda x: (-x[1], x[0])) if k > 1}
