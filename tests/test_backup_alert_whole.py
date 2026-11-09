@@ -39,6 +39,8 @@ def sent(monkeypatch, sessions, tmp_path):
 def _pg_dump(monkeypatch, code, stderr=""):
     """A double of pg_dump: a good dump writes its file; a failed one gives the exit code and the stderr."""
     def run(args, **kw):
+        if args[0] == "pg_restore":
+            return subprocess.CompletedProcess(args, 0, "", "")
         if code == 0:
             Path(args[args.index("--file") + 1]).write_bytes(b"dump")
         return subprocess.CompletedProcess(args, code, "", stderr)

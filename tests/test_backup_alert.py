@@ -30,7 +30,8 @@ def _fail(monkeypatch, url):
 
 
 def _work(monkeypatch):
-    monkeypatch.setattr(backup, "dump", lambda u, d, kind: None)
+    monkeypatch.setattr(backup, "dump", lambda u, d, kind: d / "x-daily.dump")
+    monkeypatch.setattr(backup, "_check_step", lambda u, path, now: None)
 
 
 def test_failures_send_one_message_a_day(migrated_url, sent, monkeypatch, tmp_path):
