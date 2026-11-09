@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, object_session
 from app import departed
 from app.currency import EUR, to_eur
 from app.gone import gone_fares
+from app.suspect import suspect_fares
 from app.models import CurrencyRate, Fare, Itinerary, Trip
 
 
@@ -49,7 +50,7 @@ class TripRow:
 
 def list_trips(session: Session) -> list[TripRow]:
     """All trips with their offer count and best offer by its EUR value: 1 SQL statement (#386) and the 2 of
-    `gone_fares` (#1387).
+    `gone_fares` (#1387) and the 2 of `suspect_fares` (#1606).
 
     The rates come with the same statement (a join of `currency_rates`), so the page stays one query.
     A fare with no rate does not count; a trip with only such fares shows its lowest price with `no_rate`."""
@@ -76,7 +77,7 @@ def list_trips(session: Session) -> list[TripRow]:
             info["itineraries"].add(r.itinerary_id)
         if r.latest_price is not None:
             info["fares"].append((r.latest_price, r.currency, r.fare_id))
-    gone = gone_fares(session, trips)
+    gone = set(gone_fares(session, trips)) | set(suspect_fares(session, trips))  # suspect as gone (#1606)
     for info in trips.values():  # a gone fare counts only when the trip has no current fare (#1387)
         current = [f for f in info["fares"] if f[2] not in gone]
         info["fares"] = [f[:2] for f in (current or info["fares"])]

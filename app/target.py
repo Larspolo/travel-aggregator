@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app import departed
 from app.currency import load_rates, to_eur
 from app.gone import gone_fares
+from app.suspect import suspect_fares
 from app.models import Fare, Itinerary, Leg, Trip
 
 
@@ -42,6 +43,7 @@ def at_target(session: Session, trip: Trip) -> list[TargetFare]:
                     departed.not_departed(departed.clock()))  # a departed fare is not at target (#1393)
         .order_by(Fare.id)).all()
     gone = gone_fares(session, [trip.id])  # a gone fare is never at target (#1387)
+    gone = set(gone) | set(suspect_fares(session, [trip.id]))  # a suspect fare is never at target (#1606)
     result = []
     for f, d, m, o in rows:
         if f.id in gone:
