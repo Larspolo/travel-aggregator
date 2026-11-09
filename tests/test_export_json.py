@@ -59,7 +59,8 @@ def test_the_export_is_a_json_attachment_with_all_data(client, trip_id):
     assert data["format"] == "travel-aggregator-trip-export" and data["version"] == 1
     assert datetime.fromisoformat(data["exported_at"]).tzinfo is not None
     assert data["trip"] == {"id": trip_id, "title": "Amsterdam – Zürich", "origin": "Amsterdam",
-                            "destination": "Zürich", "date_from": "2026-12-01", "date_to": None,
+                            "destination": "Zürich", "origin_alt": None, "destination_alt": None,
+                            "date_from": "2026-12-01", "date_to": None,
                             "travelers": 2, "status": "planning", "notes": "ski", "target_price": None,
                             "arrive_by": None}
     a, b = data["itineraries"]

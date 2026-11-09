@@ -67,6 +67,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
         "exported_at": (now or datetime.now(timezone.utc)).isoformat(),
         "trip": {
             "id": trip.id, "title": trip.title, "origin": trip.origin_text, "destination": trip.destination_text,
+            "origin_alt": trip.origin_alt_text, "destination_alt": trip.destination_alt_text,
             "date_from": trip.date_from.isoformat() if trip.date_from else None,
             "date_to": trip.date_to.isoformat() if trip.date_to else None,
             "travelers": trip.travelers, "status": trip.status, "notes": trip.notes,
