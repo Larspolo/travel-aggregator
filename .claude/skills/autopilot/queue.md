@@ -18,7 +18,9 @@ the claim, remove `lane:haiku`, comment why in one line, and take the next one. 
 The main runs work at low effort (owner, 2026-10-28). The scheduled task "travel-aggregator autopilot deep" runs at high
 effort for the work where the thinking matters more than the typing (`ticket` skill, "Model lanes"). When the argument
 names `lane deep`, run `python3 framework/tools/cycle_start.py --lane deep` first: it sets `git config travel-aggregator.lane deep` (the
-claims and the report then name the lane). Pick from its section `Candidates`. A deep run does the epic check and the queue refill of step 5, the roadmap
+claims and the report then name the lane). Pick from its section `Candidates`. With no candidate, it prints the section `Deep work` (#1377): the target, the
+claims and the reason of the pacer for this run, with the lock of each kind of work. Do that work (no second
+`usage.py --fire`, no lock of another kind); "no deep work": go to step 8. A deep run does the epic check and the queue refill of step 5, the roadmap
 review and the process review: while `reserved` in `[pacing]` of `steering/system/system.toml` names `deep`, `claim.py` gives those
 locks (`--review`, `--roadmap`, `--refill`) only to deep runs, and the other runs skip them. Stop when no `lane:deep`
 ticket is ready and the refill is done, or at 120k context (`more.md`): the main runs take the other tickets for less.

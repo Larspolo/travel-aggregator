@@ -17,7 +17,9 @@ a conflict, a closed ticket, green and not merged after 10 minutes, a `hold` or 
 tickets that wait for nothing, #4553), `Triage` (open issues without a priority label), `Candidates` (the pick order of
 `dashboard.py --next`, without the tickets that a run holds; the first 8 of the top priority group turned by the
 branch name, so that parallel runs try other first picks, #3832; and the `claim.py N --or M ...` command of the first 5) and `Release checks` (only when a check can start and has
-no ticket, `release.due()`). The skill says what to do with each line.
+no ticket, `release.due()`), and `Deep work` (only for `--lane deep` with no candidate: the target, the claims and the
+refill reason of `usage.py --fire` with the lock command of each kind of work, `deep_work`, #1377). The skill says
+what to do with each line.
 """
 import argparse
 import datetime
@@ -237,6 +239,30 @@ def claim_lines(picks):
             + (" --or " + " ".join(str(i["number"]) for i in picks[1:SHOW]) if len(picks) > 1 else "")] if picks else []
 
 
+def deep_work(text):
+    """The lines of the section `Deep work` from the stderr line of `usage.py --fire` (#1377). A refill run gets no brief
+    of the pacer, so each deep run tried the locks one by one (`--refill`, a list of the epics, `--review`, `--roadmap`):
+    28 of 133 runs were deep runs, and their phase `read` was about half of their tokens (2026-11-09). The pacer
+    started the run for the reason of `usage.refill_need`; this names it and the lock of each kind of work."""
+    m = re.search(r"target (\d+) runs · claims (\d+)", text)
+    r = re.search(r" · refill (\d+) \((.*)\) · paused ", text)
+    if not (m and r):
+        return [f"- (no refill line in `usage.py --fire`: {text[-200:]})"]
+    reason, out = r[2], [f"target {m[1]} · claims {m[2]} · refill {r[1]}: {r[2]}"]
+    if e := re.match(r"epic check ((?:#\d+(?:, )?)+)", reason):
+        out += [f"epic check: `python3 framework/tools/claim.py {n} --refill`, then `queue.md`, \"Epics and refill\""
+                for n in re.findall(r"#(\d+)", e[1])]
+    if re.search(r"process review (?:and roadmap review )?due", reason):
+        out.append("process review: `python3 framework/tools/claim.py 0 --review`, then the `improve` skill")
+    if "roadmap review due" in reason:
+        out.append("roadmap review: `python3 framework/tools/claim.py 0 --roadmap`, then the `roadmap` skill")
+    if re.match(r"rank |\d+ release checks|ready \d+ < target", reason):
+        out.append("refill: `python3 framework/tools/claim.py 0 --refill`, then `queue.md`, \"Epics and refill\"")
+    if len(out) == 1:
+        out.append("no deep work: go to step 8 (report)")
+    return out
+
+
 def section(title, lines):
     print(f"{title}: " + ("none" if not lines else lines[0] if len(lines) == 1 else "\n  " + "\n  ".join(lines)))
 
@@ -359,6 +385,8 @@ def main(argv=None):
         + claim_lines(picks))
     if checks := due_checks():
         section("Release checks (no ticket, make them in the refill)", checks)
+    if a.lane == "deep" and not picks:                  # the work of a refill run in one call (#1377)
+        section("Deep work (act on it; no second `usage.py --fire`)", deep_work(tool("usage.py", "--fire")[1]))
     return 0
 
 
