@@ -108,7 +108,8 @@
 
 {% call ui.card("Recent logins") %}
 {% set labels = {"ok": ("login", ""), "code": ("login with code", ""), "recovery": ("recovery code", ""),
-                 "failed": ("failed", "warn"), "code-failed": ("failed (code)", "warn")} %}
+                 "passkey": ("login with passkey", ""), "failed": ("failed", "warn"),
+                 "code-failed": ("failed (code)", "warn"), "passkey-failed": ("failed (passkey)", "warn")} %}
 {% if logins %}
 <ul class="login-log">
 {% for row in logins %}{% set label = labels.get(row.result, (row.result, "")) %}

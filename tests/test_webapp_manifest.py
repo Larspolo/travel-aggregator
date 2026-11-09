@@ -37,7 +37,7 @@ def test_each_icon_of_the_manifest_answers_200(client):
         assert client.get(icon["src"]).status_code == 200
 
 
-def test_login_page_links_the_manifest_and_theme_colour(client):
+def test_login_page_links_the_manifest_and_theme_colour(client, sessions):  # /login reads the passkeys (#1559)
     html = client.get("/login").text
     assert '<link rel="manifest" href="/manifest.webmanifest">' in html
     assert '<meta name="theme-color" content="#5145d6">' in html

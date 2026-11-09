@@ -16,6 +16,11 @@
       </div>
       <button type="submit" class="btn btn-primary login-submit">Log in</button>
     </form>
+    {% if passkeys %}<div id="passkey-login" data-csrf="{{ csrf_token(request) }}">
+      <button type="button" class="btn login-submit" id="passkey-login-button">Log in with a passkey</button>
+      <p class="login-error" id="passkey-login-status" role="alert" hidden></p>
+    </div>
+    <script src="/static/passkey_login.js" defer></script>{% endif %}
   </section>
 </div>
 <script>

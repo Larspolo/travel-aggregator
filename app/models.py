@@ -247,7 +247,8 @@ class Setting(Base):
 
 
 class LoginEvent(Base):
-    """One attempt at the login page or the second step (#1353). result: ok, failed, code, code-failed, recovery."""
+    """One attempt at the login page or the second step (#1353). result: ok, failed, code, code-failed, recovery,
+    passkey, passkey-failed (#1559)."""
     __tablename__ = "login_events"
 
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -17,6 +17,8 @@ PUBLIC = {
     ("POST", "/login"): "the login itself (CSRF token)",
     ("GET", "/login/code"): "the code form of the second login step; it needs a correct password first (#1315)",
     ("POST", "/login/code"): "the code of the second login step (CSRF token, pending mark of the password, #1315)",
+    ("POST", "/login/passkey/options"): "the challenge of the passkey login (CSRF token, rate limit, #1559)",
+    ("POST", "/login/passkey"): "the passkey login itself (CSRF token, rate limit, signed challenge, #1559)",
     ("GET", "/logout"): "ends the session",
     ("POST", "/logout"): "ends the session",
     ("GET", "/sw.js"): "the service worker script of the installed app, no data",
