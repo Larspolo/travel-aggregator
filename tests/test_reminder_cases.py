@@ -105,6 +105,7 @@ def setup(monkeypatch, sessions, tmp_path):
     monkeypatch.setattr(notify, "send_email", lambda m: posts.append(("email", m)))
     monkeypatch.setattr(notify, "push", lambda m: posts.append(("push", m)))
     monkeypatch.setattr(backup, "dump", lambda u, d, kind: None)
+    monkeypatch.setattr(backup, "_check_step", lambda u, path, now: None)
     connects = []
 
     def refuse(*args, **kwargs):

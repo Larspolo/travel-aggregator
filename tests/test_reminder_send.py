@@ -31,6 +31,7 @@ def setup(monkeypatch, sessions, tmp_path):
     monkeypatch.setattr(notify, "push", lambda m: calls.append(m))
     dumps = []
     monkeypatch.setattr(backup, "dump", lambda u, d, kind: dumps.append(kind))
+    monkeypatch.setattr(backup, "_check_step", lambda u, path, now: None)
     return calls, dumps, trip_id
 
 
