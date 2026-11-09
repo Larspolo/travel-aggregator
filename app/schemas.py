@@ -10,6 +10,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationErro
 MAX_OFFERS = 500           # offers per batch
 MAX_LEGS = 20              # legs per offer
 MAX_BODY_BYTES = 5_000_000  # the whole request body, also the raw payload
+MAX_HAR_BYTES = 30_000_000  # an uploaded HAR file on the captures page (#1563)
 
 Mode = Literal["train", "bus", "flight", "ferry", "car", "other"]
 

@@ -10,11 +10,13 @@
 {% if trip and upload_sources %}
 <section class="card" id="upload-payload"><h2>Upload a payload</h2>
 {% if upload_error %}<ul class="errors"><li>{{ upload_error }}</li></ul>{% endif %}
+{% if har_count is not none %}<p class="upload-result">{{ har_count }} capture{{ "" if har_count == 1 else "s" }} from the HAR file.</p>{% endif %}
+<p class="hint">A JSON payload file of one source, or a HAR file of the browser (each search entry of a supported source becomes a capture).</p>
 <form method="post" action="/trips/{{ trip.id }}/captures/upload" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <div class="form-grid">
     <div class="field wide"><label for="u-source">Source</label><select id="u-source" name="source"><option value="">From the file name</option>{% for s in upload_sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select></div>
-    <div class="field wide"><label for="u-file">JSON file</label><input id="u-file" type="file" name="file" accept=".json,application/json"></div>
+    <div class="field wide"><label for="u-file">JSON or HAR file</label><input id="u-file" type="file" name="file" accept=".json,.har,application/json"></div>
   </div>
   <div class="form-actions"><button class="btn btn-primary" type="submit">Upload</button></div>
 </form></section>

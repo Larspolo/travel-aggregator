@@ -18,7 +18,8 @@ from app.auth import require_login, verify_csrf
 from app.db import get_session
 from app.models import Capture, Trip
 from app.parsers import get_parser, parser_classes
-from app.schemas import MAX_BODY_BYTES, IngestIn
+from app.har import HarError, read_har
+from app.schemas import MAX_BODY_BYTES, MAX_HAR_BYTES, IngestIn
 from app.web.pages import _get_trip, templates
 
 router = APIRouter()
@@ -27,9 +28,9 @@ REPARSE_LIMIT = 500
 
 
 @router.get("/trips/{trip_id}/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def captures_page(request: Request, trip_id: int, failed: bool = False,
+def captures_page(request: Request, trip_id: int, failed: bool = False, har: int | None = Query(None, ge=0),
                   session: Session = Depends(get_session)) -> HTMLResponse:
-    return _trip_captures(request, session, trip_id, failed)
+    return _trip_captures(request, session, trip_id, failed, har_count=har)
 
 
 def _upload_sources() -> list[str]:
@@ -52,7 +53,11 @@ async def upload_capture(request: Request, trip_id: int, file: UploadFile | None
     """Store an uploaded payload file as a capture of the trip and parse it (#1338), as a capture of a userscript.
     With no source the source comes from the file name (#1339)."""
     _get_trip(session, trip_id)
-    raw = await file.read(MAX_BODY_BYTES + 1) if file is not None else b""
+    raw = await file.read(MAX_HAR_BYTES + 1) if file is not None else b""
+    if file is not None and (file.filename or "").lower().endswith(".har"):
+        return _upload_har(request, session, trip_id, raw)
+    if _is_har(raw):
+        return _upload_har(request, session, trip_id, raw)
     error = None
     from_name = source == ""
     if from_name:
@@ -76,8 +81,40 @@ async def upload_capture(request: Request, trip_id: int, file: UploadFile | None
     return RedirectResponse(f"/trips/{trip_id}/captures", status_code=303)
 
 
+def _is_har(raw: bytes) -> bool:
+    """A JSON file with a `log.entries` list is a HAR file, also with another file name (#1563)."""
+    try:
+        data = json.loads(raw)
+    except (ValueError, UnicodeDecodeError):
+        return False
+    log = data.get("log") if isinstance(data, dict) else None
+    return isinstance(log, dict) and isinstance(log.get("entries"), list)
+
+
+def _upload_har(request: Request, session: Session, trip_id: int, raw: bytes) -> HTMLResponse | RedirectResponse:
+    """Store each search entry of a supported source in a HAR file as a capture of the trip (#1563)."""
+    if not raw:
+        return _trip_captures(request, session, trip_id, False, "Select a payload file.", 400)
+    if len(raw) > MAX_HAR_BYTES:
+        return _trip_captures(request, session, trip_id, False, f"The HAR file is larger than {MAX_HAR_BYTES} bytes.", 400)
+    try:
+        result = read_har(raw)
+    except (HarError, UnicodeDecodeError) as e:
+        return _trip_captures(request, session, trip_id, False, f"The HAR file cannot be read: {e}"[:300], 400)
+    items = [(src, data) for src, data in result.items
+             if len(json.dumps(data, ensure_ascii=False).encode("utf-8")) <= MAX_BODY_BYTES]
+    if not items:
+        return _trip_captures(request, session, trip_id, False,
+                              "The HAR file has no search entry of a supported source.", 400)
+    for src, data in items:
+        body = IngestIn(trip_id=trip_id, source=src, parser_version=parser_classes()[src].version,
+                        captured_at=datetime.now(timezone.utc), raw=data)
+        ingest.store(session, body)
+    return RedirectResponse(f"/trips/{trip_id}/captures?har={len(items)}", status_code=303)
+
+
 def _trip_captures(request: Request, session: Session, trip_id: int, failed: bool, upload_error: str | None = None,
-                   code: int = 200) -> HTMLResponse:
+                   code: int = 200, har_count: int | None = None) -> HTMLResponse:
     trip = _get_trip(session, trip_id)
     query = select(Capture).where(Capture.trip_id == trip_id)
     if failed:
@@ -88,7 +125,8 @@ def _trip_captures(request: Request, session: Session, trip_id: int, failed: boo
                                        "trip_travelers": {trip.id: trip.travelers},
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session) if failed else [],
-                                       "upload_sources": _upload_sources(), "upload_error": upload_error},
+                                       "upload_sources": _upload_sources(), "upload_error": upload_error,
+                                       "har_count": har_count},
                                       status_code=code)
 
 
