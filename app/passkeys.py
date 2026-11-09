@@ -1,4 +1,5 @@
-"""The passkeys of the owner (#1558): the registration of a WebAuthn credential on the settings page.
+"""The passkeys of the owner: the registration of a WebAuthn credential on the settings page (#1558) and the login
+with a stored passkey (#1559).
 
 The challenge stays in the login session until the browser sends the new credential. The relying party id and the
 origin come from the request (the reverse proxy sends X-Forwarded-Proto and Host), or from PASSKEY_ORIGIN.
@@ -6,6 +7,7 @@ origin come from the request (the reverse proxy sends X-Forwarded-Proto and Host
 
 import json
 import time
+from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 import webauthn
@@ -21,13 +23,14 @@ from app.config import get_settings
 from app.models import Passkey
 
 CHALLENGE_KEY = "passkey_challenge"  # the login session key: the challenge and its time
+LOGIN_CHALLENGE_KEY = "passkey_login_challenge"  # the same for the login page
 CHALLENGE_MAX = 300  # seconds
 USER_ID = b"travel-aggregator-owner"  # the app has one user
 MAX_NAME = 100
 
 
 class PasskeyError(ValueError):
-    """The registration is not correct: the message is for the owner."""
+    """The registration or the login is not correct: the message is for the owner."""
 
 
 def origin(request: Request) -> str:
@@ -54,9 +57,9 @@ def registration_options(request: Request, session: Session) -> str:
     return webauthn.options_to_json(options)
 
 
-def _challenge(request: Request) -> bytes:
+def _challenge(request: Request, key: str = CHALLENGE_KEY) -> bytes:
     """The challenge of the last options, one time only."""
-    saved = request.session.pop(CHALLENGE_KEY, None)
+    saved = request.session.pop(key, None)
     if not isinstance(saved, list) or len(saved) != 2 or not 0 <= time.time() - saved[1] <= CHALLENGE_MAX:
         raise PasskeyError("The request is too old. Try again.")
     return webauthn.base64url_to_bytes(saved[0])
@@ -80,4 +83,34 @@ def register(request: Request, session: Session, name: str, credential: dict) ->
                   sign_count=verified.sign_count, name=name)
     session.add(row)
     session.commit()
+    return row
+
+
+def authentication_options(request: Request) -> str:
+    """The options of navigator.credentials.get() as JSON: no list of credentials, the device offers its passkey."""
+    options = webauthn.generate_authentication_options(
+        rp_id=rp_id(request), user_verification=UserVerificationRequirement.PREFERRED)
+    request.session[LOGIN_CHALLENGE_KEY] = [bytes_to_base64url(options.challenge), time.time()]
+    return webauthn.options_to_json(options)
+
+
+def authenticate(request: Request, session: Session, credential: dict) -> Passkey:
+    """Check a login with a stored passkey; a good one gets the new sign count and the time of its last use."""
+    challenge = _challenge(request, LOGIN_CHALLENGE_KEY)
+    try:
+        raw_id = webauthn.base64url_to_bytes(str(credential.get("rawId") or credential.get("id") or ""))
+    except (ValueError, TypeError) as e:
+        raise PasskeyError("The passkey is not correct.") from e
+    row = session.scalar(select(Passkey).where(Passkey.credential_id == raw_id)) if raw_id else None
+    if row is None:
+        raise PasskeyError("This passkey is not known here. It was removed, or it is for another server.")
+    try:
+        verified = webauthn.verify_authentication_response(
+            credential=json.dumps(credential), expected_challenge=challenge, expected_rp_id=rp_id(request),
+            expected_origin=origin(request), credential_public_key=row.public_key,
+            credential_current_sign_count=row.sign_count)
+    except (WebAuthnException, ValueError, TypeError, KeyError) as e:
+        raise PasskeyError(f"The passkey is not correct: {e}") from e
+    row.sign_count = verified.new_sign_count
+    row.last_used_at = datetime.now(timezone.utc)
     return row

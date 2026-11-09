@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Annotated
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
@@ -153,9 +153,15 @@ templates.env.filters["human_bytes"] = human_bytes
 templates.env.filters["browser"] = login_log.browser_name
 
 
+def _login_page(request: Request, session: Session, error: str | None = None, status_code: int = 200) -> HTMLResponse:
+    has_passkey = session.scalar(select(func.count()).select_from(Passkey)) > 0
+    return templates.TemplateResponse(request, "login.html", {"error": error, "passkeys": has_passkey},
+                                      status_code=status_code)
+
+
 @router.get("/login", response_class=HTMLResponse)
-def login_form(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "login.html", {"error": None})
+def login_form(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return _login_page(request, session)
 
 
 TOTP_PENDING = "totp_pending"  # the login session key: the time of a correct password before the code (#1315)
@@ -235,7 +241,43 @@ def login(request: Request, password: str = Form(""), session: Session = Depends
     login_limiter.failure(address)
     login_log.record(session, request, "failed")
     session.commit()
-    return templates.TemplateResponse(request, "login.html", {"error": "Wrong password."}, status_code=401)
+    return _login_page(request, session, "Wrong password.", 401)
+
+
+def _too_many(address: str) -> JSONResponse | None:
+    wait = login_limiter.retry_after(address)
+    if not wait:
+        return None
+    return JSONResponse({"error": f"Too many attempts. Try again in {math.ceil(wait / 60)} minutes."}, status_code=429,
+                        headers={"Retry-After": str(wait)})
+
+
+@router.post("/login/passkey/options", dependencies=[Depends(verify_csrf)])
+def login_passkey_options(request: Request) -> Response:
+    """The options of navigator.credentials.get() for "Log in with a passkey" (#1559)."""
+    address = request.client.host if request.client else "unknown"
+    return _too_many(address) or Response(passkeys.authentication_options(request), media_type="application/json")
+
+
+@router.post("/login/passkey", dependencies=[Depends(verify_csrf)])
+def login_passkey(request: Request, credential: dict = Body(...), session: Session = Depends(get_session)) -> JSONResponse:
+    """A good stored passkey logs in with no password and no one-time code; a bad one counts as a failed login (#1559)."""
+    address = request.client.host if request.client else "unknown"
+    if (busy := _too_many(address)) is not None:
+        return busy
+    try:
+        passkeys.authenticate(request, session, credential)
+    except passkeys.PasskeyError as e:
+        session.rollback()
+        login_limiter.failure(address)
+        login_log.record(session, request, "passkey-failed")
+        session.commit()
+        return JSONResponse({"error": str(e)}, status_code=401)
+    login_log.record(session, request, "passkey")
+    session.commit()
+    login_limiter.success(address)
+    _log_in(request, session)
+    return JSONResponse({"next": "/"})
 
 
 @router.api_route("/logout", methods=["GET", "POST"])
