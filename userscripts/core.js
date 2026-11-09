@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 16;
+const CORE_VERSION = 17;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -20,6 +20,8 @@ const CORE_VERSION = 16;
     },
   };
   const RETRY_MS = 60000;
+  const QUEUE_MAX = 20;  // #1665: a 21st capture drops the oldest one (storage of Tampermonkey, P3)
+  let droppedOld = 0;    // dropped captures not yet shown; the next panel status starts with their count
 
   // The design tokens of app.css (#621, #1067), copied: the panel loads no CSS or font from a server (P1, P5).
   const STYLE = `
@@ -125,8 +127,10 @@ const CORE_VERSION = 16;
       serverButton: controls.querySelector(".set-server"),
       tokenButton: controls.querySelector(".set-token"),
       setStatus(text, kind) {
+        const note = droppedOld ? `${droppedOld} old capture${droppedOld === 1 ? "" : "s"} dropped. ` : "";
+        droppedOld = 0;
         box.className = "panel " + (["ok", "error", "info", "warn"].includes(kind) ? kind : "info");
-        box.textContent = String(text);
+        box.textContent = note + String(text);
       },
       // Show the form; resolve with the text at "Save" or Enter, with null at "Cancel" or Escape.
       ask(label, value, type) {
@@ -464,7 +468,10 @@ const CORE_VERSION = 16;
     send(payload) {
       const id = tripId();
       const item = Object.assign({}, payload, id ? { trip_id: id } : {}, autoTrip() ? { auto_trip: true } : {});
-      gm.setValue("queue", loadQueue().concat([item]));
+      const queue = loadQueue().concat([item]);
+      const extra = Math.max(0, queue.length - QUEUE_MAX);
+      droppedOld += extra;
+      gm.setValue("queue", queue.slice(extra));
       if (!autoSend()) {
         panel.setStatus(`Captured ${count(item)} offers: ${queueText()}, press Send`, "info");
         return Promise.resolve();
