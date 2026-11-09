@@ -805,6 +805,25 @@ The app saves the offer with the source `manual`. Save returns you to the trip p
 
 A manual fare on `/trips/{id}` has the links "Change price" and "Delete" under its price. "Change price" opens a form with the price and the currency; "Save price" adds a point to the price history of the fare. "Delete" opens a page with the button "Delete offer", and removes the manual fare. The offer goes too when it has no other fare. A captured fare has no such links: use "Hide" to remove it from the table (see "Pin, hide, book and note an offer").
 
+### Travel per year
+
+The page "Travel per year" (`/upcoming/years`) shows the booked journeys of each year, newest year first. The link
+"Travel per year" is on the Upcoming page. Only the journeys that you marked as booked are counted.
+
+For each year the page shows:
+
+- the number of booked journeys and the sum of their paid prices in EUR;
+- the hours of travel, rounded to the nearest hour;
+- one line for each mode (train, bus, flight, and so on) with its journeys, its paid sum and its hours.
+
+The rules:
+
+- The year is the year of the local departure of the first leg of the journey.
+- A journey with more than one mode counts for the mode with the most minutes of legs. A tie goes to the mode of the first such leg.
+- A price in another currency is changed to EUR with the rate that the app has. A price with no rate is not in the sum. The page
+  says how many prices of each currency have no rate.
+- A journey with no paid price counts as a journey, but adds nothing to the sum.
+
 ## Userscript panel
 
 Each userscript shows a small panel at the bottom right of the travel site. The panel shows `Captured N offers → sent ✓`
