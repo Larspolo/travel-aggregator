@@ -46,6 +46,15 @@
 <div id="totp">
 {% if totp.error %}<p role="alert" class="chip warn">{{ totp.error }}</p>{% endif %}
 {% if totp.on %}<p><span class="chip good totp-state">On</span> The login asks for a code of your authenticator app.</p>
+{% if totp.codes %}<p>Save these codes: each one logs in one time.</p>
+<ul class="totp-recovery">{% for c in totp.codes %}<li><code>{{ c }}</code></li>{% endfor %}</ul>{% endif %}
+<p>Recovery codes left: {{ totp.left }}</p>
+<form method="post" action="/settings/totp/recovery">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="field"><label for="totp-recovery-code">Code from the app</label>
+    <input id="totp-recovery-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" required></div>
+  <div class="form-actions"><button class="btn" type="submit">New recovery codes</button></div>
+</form>
 <form method="post" action="/settings/totp/off">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <div class="field"><label for="totp-off-code">Code from the app</label>

@@ -22,13 +22,13 @@ from sqlalchemy.orm import Session, subqueryload
 
 from app.storage import human_bytes, storage_use
 from app.web.userscripts import bundle_info, userscript_list
-from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter, require_login,
-                      session_epoch, verify_csrf)
+from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter,
+                      require_login, session_epoch, verify_csrf)
 from app.backup import BACKUP_MAX_AGE, newest_backup
 import segno
 from markupsafe import Markup
 
-from app import totp
+from app import recovery, totp
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
@@ -186,11 +186,14 @@ def login_code(request: Request, code: str = Form(""), session: Session = Depend
         return RedirectResponse("/login", status_code=303)
     last = session.get(Setting, TOTP_STEP)
     step = totp.check(secret.value, code, clock.time(), int(last.value) if last else -1)
-    if step is None:
+    if step is None and recovery.use(session, code):  # a recovery code of the lost phone (#1316)
+        session.commit()
+    elif step is None:
         login_limiter.failure(address)
         return templates.TemplateResponse(request, "login_code.html", {"error": "Wrong code."}, status_code=401)
-    session.merge(Setting(key=TOTP_STEP, value=str(step)))
-    session.commit()
+    else:
+        session.merge(Setting(key=TOTP_STEP, value=str(step)))
+        session.commit()
     login_limiter.success(address)
     _log_in(request, session)
     return RedirectResponse("/", status_code=303)
@@ -1269,7 +1272,15 @@ def totp_state(request: Request, session: Session) -> dict:
             "groups": " ".join(new[i:i + 4] for i in range(0, len(new), 4)) if new else "",
             "uri": totp.uri(new) if new else "",
             "qr": Markup(segno.make(totp.uri(new), error="m").svg_inline(scale=4)) if new else "",
-            "error": request.session.pop("totp_error", None)}
+            "error": request.session.pop("totp_error", None),
+            "codes": request.session.pop(RECOVERY_SHOWN_KEY, None), "left": recovery.left(session)}
+
+
+def _show_codes(request: Request, session: Session) -> None:
+    """Make ten recovery codes, keep their digests, and show the codes on the next settings page once (#1316)."""
+    codes = recovery.new_codes()
+    recovery.save(session, codes)
+    request.session[RECOVERY_SHOWN_KEY] = [recovery.shown(c) for c in codes]
 
 
 def _new_epoch(request: Request, session: Session) -> None:
@@ -1297,6 +1308,7 @@ def totp_on(request: Request, code: str = Form(""), session: Session = Depends(g
     session.merge(Setting(key=TOTP_SECRET, value=secret))
     session.merge(Setting(key=TOTP_STEP, value=str(step)))
     request.session.pop(NEW_TOTP_KEY, None)
+    _show_codes(request, session)
     _new_epoch(request, session)
     request.session["flash"] = "The second login step is on. All other devices are logged out."
     return RedirectResponse("/settings#totp", status_code=303)
@@ -1313,8 +1325,23 @@ def totp_off(request: Request, code: str = Form(""), session: Session = Depends(
     session.delete(secret)
     if last is not None:
         session.delete(last)
+    recovery.delete(session)
     _new_epoch(request, session)
     request.session["flash"] = "The second login step is off. All other devices are logged out."
+    return RedirectResponse("/settings#totp", status_code=303)
+
+
+@router.post("/settings/totp/recovery", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def totp_recovery_new(request: Request, code: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+    """A correct current app code makes ten new recovery codes; the old ones stop working (#1316)."""
+    secret, last = session.get(Setting, TOTP_SECRET), session.get(Setting, TOTP_STEP)
+    step = totp.check(secret.value, code, clock.time(), int(last.value) if last else -1) if secret else None
+    if step is None:
+        request.session["totp_error"] = "Wrong code."
+        return RedirectResponse("/settings#totp", status_code=303)
+    session.merge(Setting(key=TOTP_STEP, value=str(step)))
+    _show_codes(request, session)
+    session.commit()
     return RedirectResponse("/settings#totp", status_code=303)
 
 
