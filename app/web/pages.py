@@ -41,6 +41,7 @@ from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
+from app.co2 import co2_extras
 from app.tradeoff import break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
@@ -454,6 +455,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     travelers = it.trip.travelers if fees else 1  # the trip is read only when a fee can add a part
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
             + night_extras(it, weights) + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
+            + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
             + transfer_extras(it, weights) + stale_extras(it, weights, stale_before))
     def cost(f):
