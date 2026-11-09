@@ -76,3 +76,21 @@ def night_time_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal],
     if minutes == 0:
         return ()
     return (("night hours", Decimal(minutes) * diff / 60),)
+
+
+def overnight_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the hotel cost for each transfer with at least overnight_min night minutes (#1256).
+
+    The transfer starts at the arrival of leg i and ends at the departure of leg i+1, in the local time of the
+    transfer place. A cost of 0 adds no part.
+    """
+    cost = Decimal(weights.overnight_cost)
+    if cost == 0:
+        return ()
+    extras: list[tuple[str, Decimal]] = []
+    for a, b in zip(itinerary.legs, itinerary.legs[1:]):
+        start = (a.arrive_at + timedelta(minutes=a.arrive_offset_min)).replace(tzinfo=None)
+        end = (b.depart_at + timedelta(minutes=a.arrive_offset_min)).replace(tzinfo=None)
+        if _night_minutes(start, end, weights) >= weights.overnight_min:
+            extras.append((f"overnight stop in {a.to_name}", cost))
+    return tuple(extras)
