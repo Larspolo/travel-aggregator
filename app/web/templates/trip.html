@@ -44,7 +44,7 @@
 {% include "journey.html" %}
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <div class="trip-layout">
-<aside class="panel card"><details class="panel-toggle"><summary>Weights and filters</summary>
+<aside class="panel card" tabindex="0" aria-label="Weights and filters"><details class="panel-toggle"><summary>Weights and filters</summary>
 {% if profiles %}
 <form class="profile" method="get" action="/trips/{{ trip.id }}">
   <label>Profile <select name="profile">
@@ -61,6 +61,7 @@
     <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
   <details class="filters" open><summary>Filters</summary>
     <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
+    <label><input type="checkbox" name="show_departed" value="true"{% if view.show_departed %} checked{% endif %}> show departed</label>
     <label><input type="checkbox" name="hide_stale" value="true"{% if view.hide_stale %} checked{% endif %}> hide stale</label>
     <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
     <input type="hidden" id="view-day" name="day" value="{{ view.day }}">

@@ -171,3 +171,13 @@ def _reset_limiters():
     yield
     for obj in state:
         obj.reset()
+
+
+@pytest.fixture(autouse=True)
+def _departed_clock(monkeypatch):
+    """The fixtures have fixed dates: with the real time they depart and the trip page hides them (#1391).
+    A test of the departed offers sets its own clock."""
+    from datetime import datetime, timezone
+
+    import app.departed
+    monkeypatch.setattr(app.departed, "clock", lambda: datetime(2000, 1, 1, tzinfo=timezone.utc))
