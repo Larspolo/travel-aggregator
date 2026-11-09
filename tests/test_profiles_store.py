@@ -23,7 +23,7 @@ CHANGED = {"hour_markup": "22.5", "transfer_markup": "7", "airport_before_min": 
            "co2_price_kg": "0.10", "co2_train_kg_h": "4", "co2_bus_kg_h": "1", "co2_flight_kg_h": "70", "co2_ferry_kg_h": "5",
            "flex_non_refundable": "8", "flex_partly_refundable": "4", "flex_flexible": "-6",
            "first_class_hour": "-3",
-           "self_transfer_penalty": "15", "stale_hours": "48", "stale_penalty": "9",
+           "self_transfer_penalty": "15", "reservation_fee": "6", "stale_hours": "48", "stale_penalty": "9",
            "hour_tier1_after_min": "240", "hour_tier1_markup": "8", "hour_tier2_after_min": "480",
            "hour_tier2_markup": "15",
            "carrier1_name": "Ryanair", "carrier1_markup": "15", "carrier2_name": "KLM", "carrier2_markup": "-5",
