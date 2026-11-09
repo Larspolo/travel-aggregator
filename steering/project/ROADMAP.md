@@ -66,6 +66,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Raw" on a failed bahn.de capture shows its JSON, and "Download JSON" gives the file bahn.de-<id>.json
 - [x] `capture:upload` (#1337) Upload a saved payload file of a supported source on the captures page: the server stores it as a capture of a trip and parses it, as a capture of the userscript (P3: a capture when the userscript fails or the site is open in another browser; P1: the owner saved the file, the app fetches nothing)
   - Upload of the file bahn.de-<id>.json (`capture:raw-view`) into the trip Amsterdam → Zürich shows its offers on the trip page, and a file of an unknown source or with no valid JSON gives a clear error and stores nothing
+- [ ] `capture:gone` A fare that a newer search of the same source did not return gets the mark "not in the last search": the server compares the itineraries of a capture with the older ones of the same source, trip and day in the departure span of the new capture (a sold-out fare stays on the page with its old price until it is stale, `rank:stale`)
+  - A bahn.de search at 10:00 that shows the ICE 105 again but not the Sparpreis of €39 marks that fare "not in the last bahn.de search (10:00)", and the best offer of the trip does not use it; a connection out of the departure span of the new search keeps no mark
 
 ## 2. Rank offers by effective cost
 
@@ -175,6 +177,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The print preview of the Upcoming page of a journey with 3 legs fits one A4 page and shows each leg with its times and number
 - [x] `trip:spend` (#1362) A summary of the booked journeys per year (`trip:booked-fare`): the count of journeys, the sum of the paid prices in EUR and the hours of travel, per mode
   - The summary for 2026 shows "7 journeys · €642.50 paid · 61 h" and one line each for train, bus and flight
+- [ ] `trip:departed` The offers that departed before now do not rank: the trip page, the days (`trip:days`), the trips list, the panel (`capture:panel-best`) and the messages (`trip:target`) use only the offers that did not depart yet; "show departed" shows the others, greyed; a booked offer stays
+  - At 10:00 on 20 December, the trip page of Amsterdam → Zürich does not show the ICE of 07:34 as the best offer, and the trips list shows the best of the later offers
 
 ## 4. Run it on my home server
 
