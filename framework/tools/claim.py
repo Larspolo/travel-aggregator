@@ -82,6 +82,7 @@ EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 REVIEW_CONFIG = CONFIG.get("review", {})
 REVIEW = REVIEW_CONFIG.get("gap", 80)            # the first gap, and the reset when the result of the reviews turns
 REVIEW_MIN, REVIEW_MAX = REVIEW_CONFIG.get("min_gap", 10), REVIEW_CONFIG.get("max_gap", 640)   # halve, double between
+REVIEW_MAX_MIN = REVIEW_CONFIG.get("max_min_gap", 40)   # the highest floor: the count of ready tickets, capped (#1597)
 OWNER_GAP = REVIEW_CONFIG.get("owner_gap", 20)   # the gap when an owner session merged a PR since the last review
 ROADMAP = 100               # merged PRs between two reviews of steering/project/ROADMAP.md (#2039)
 ROADMAP_EARLY = 30          # the same while the refill has no source: R < N, each roadmap feature has an epic (#3741)
@@ -342,32 +343,42 @@ def with_state(body, state):
     return body.replace(old[0], new) if old else new + "\n" + (body or "")
 
 
-def next_gap(gap, changed):
+def review_floor(ready):
+    """The least gap after a review with a change (#1597, P9): the count of ready tickets of all lanes, between REVIEW_MIN
+    and REVIEW_MAX_MIN. Many ready tickets: a review takes quota from them, so it comes later. Few: a review costs no
+    ticket. ready None (GitHub cannot be read) counts as 0."""
+    return min(max(REVIEW_MIN, ready or 0), REVIEW_MAX_MIN)
+
+
+def next_gap(gap, changed, ready=0):
     """The gap after a review (owner, 2026-10-29). A change resets a gap above REVIEW to REVIEW and halves the others
-    (at least REVIEW_MIN merged PRs), so a review that finds work comes sooner. No change resets a gap below REVIEW to
-    REVIEW and doubles the others (at most REVIEW_MAX). With 80, 10 and 640: a change each time gives 80, 40, 20, 10,
-    10 ...; no change each time gives 80, 160, 320, 640, 640 ..."""
+    (at least review_floor(ready) merged PRs), so a review that finds work comes sooner. No change resets a gap below
+    REVIEW to REVIEW and doubles the others (at most REVIEW_MAX). With 80, 10 and 640 and few ready tickets: a change
+    each time gives 80, 40, 20, 10, 10 ...; no change each time gives 80, 160, 320, 640, 640 ... With 25 ready tickets
+    a change gives 80, 40, 25, 25 ... The floor is read at `--reviewed`, not at the slot: the lock key holds the gap, and
+    a gap that moves with the queue gives two keys and two reviews (#898)."""
     if changed:
-        return REVIEW if gap > REVIEW else max(REVIEW_MIN, gap // 2)
+        return REVIEW if gap > REVIEW else max(review_floor(ready), gap // 2)
     return REVIEW if gap < REVIEW else min(2 * gap, REVIEW_MAX)
 
 
 def review_gap(state):
     """The gap of merged PRs before the next process review: `review_prs` of the state comment. A gap that next_gap
-    cannot reach from REVIEW (the state of an earlier rule, for example 200) counts as REVIEW."""
+    cannot reach from REVIEW with any floor (the state of an earlier rule, for example 200) counts as REVIEW."""
     seen, todo = set(), [REVIEW]
     while todo:
         if (gap := todo.pop()) not in seen:
             seen.add(gap)
-            todo += [next_gap(gap, True), next_gap(gap, False)]
+            todo += [next_gap(gap, True, r) for r in range(REVIEW_MIN, REVIEW_MAX_MIN + 1)] + [next_gap(gap, False)]
     return state["review_prs"] if state.get("review_prs") in seen else REVIEW
 
 
-def reviewed(body, changed, now=None):
-    """The body of the status issue after a review: `review_prs` is the next gap (next_gap). The other keys of the
-    state comment stay; `review_minutes` (the time slot before #2039) goes."""
+def reviewed(body, changed, now=None, ready=0):
+    """The body of the status issue after a review: `review_prs` is the next gap (next_gap; ready: the count of ready
+    tickets). The other keys of the state comment stay; `review_minutes` (the time slot before #2039) goes."""
     state = {k: v for k, v in agent_state(body).items() if k != "review_minutes"}
-    return with_state(body, {**state, "last_review": utc(now), "review_prs": next_gap(review_gap(state), changed)})
+    return with_state(body, {**state, "last_review": utc(now),
+                             "review_prs": next_gap(review_gap(state), changed, ready)})
 
 
 def last_lock(kind, remote="origin"):
@@ -802,7 +813,7 @@ def main(argv=None):
         return 1
     if a.reviewed:
         from dashboard import api as call
-        body = reviewed(api(f"issues/{STATUS}")["body"], a.reviewed == "change")
+        body = reviewed(api(f"issues/{STATUS}")["body"], a.reviewed == "change", ready=ready_tickets(a.remote))
         call(f"issues/{STATUS}", "PATCH", {"body": body})
         print(agent_state(body))
         return 0
