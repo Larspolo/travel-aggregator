@@ -35,6 +35,7 @@ from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
 from app.days import day_summary, return_grid, with_day_prices
 from app.timeline import timeline
+from app.filtered import hidden_counts
 from app.db import get_session
 from app.target import at_target
 from app.drops import drops_by_trip, mark_seen, trip_drops
@@ -661,7 +662,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     now = datetime.now(timezone.utc)
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
     gone = _gone(session, itineraries) if itineraries else {}  # the fares of an older search (#1386)
-    rows, all_rows, modes, sources, carriers = [], [], set(), set(), set()
+    rows, all_rows, modes, sources, carriers, tests = [], [], set(), set(), set(), []
     for it in itineraries:
         if not it.fares:
             continue  # an itinerary with no fare has no cost: it is not a row
@@ -670,21 +671,31 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         sources |= {f.source for f in it.fares}
         carriers |= {leg.carrier for leg in it.legs if leg.carrier}
         fares = current_fares([f for f in it.fares if not source or f.source == source], gone)
-        if not fares or (mode and mode not in it_modes):
-            continue  # the filter hides this row (#112)
-        if (limit_transfers is not None and it.transfers > limit_transfers) or (
-                limit_duration is not None and it.duration_min > limit_duration):
-            continue  # the limits of transfers and duration hide this row
-        if any(leg.mode in exclude_mode or leg.carrier in exclude_carrier for leg in it.legs):
-            continue  # an excluded mode or carrier hides each offer with one of its legs
-        if it.legs and not in_time_window(it, limit_depart, limit_arrive):
-            continue  # the time limits hide this row (#181)
-        if hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before:
-            continue  # "hide stale" hides a row whose newest capture is stale (#277)
+        # each filter test once per row (#1452): the same tests hide the row and count it
+        hides = {label for label, hit in (
+            (f"mode {mode}", mode and mode not in it_modes),  # #112
+            (f"source {source}", not fares),
+            (f"max transfers {limit_transfers}", limit_transfers is not None and it.transfers > limit_transfers),
+            (f"max duration {limit_duration} min", limit_duration is not None and it.duration_min > limit_duration),
+            (f"depart after {earliest_depart}",  # the time limits (#181)
+             limit_depart is not None and it.legs and not in_time_window(it, limit_depart, None)),
+            (f"arrive by {latest_arrive}",
+             limit_arrive is not None and it.legs and not in_time_window(it, None, limit_arrive)),
+            # "hide stale" hides a row whose newest capture is stale (#277)
+            ("hide stale", hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before),
+            # the day filter shows only the offers that depart on that local day (#709)
+            (f"day {day}", day and it.legs and depart_day(it) != day),
+        ) if hit}
+        # an excluded mode or carrier hides each offer with one of its legs: each value is its own filter
+        hides |= {f"excluded mode {m}" for m in exclude_mode if any(leg.mode == m for leg in it.legs)}
+        hides |= {f"excluded carrier {c}" for c in exclude_carrier if any(leg.carrier == c for leg in it.legs)}
+        tests.append(hides)
+        if hides - {f"day {day}"}:
+            continue  # a filter hides this row
         fare, cost = row_cost(it, fares, places, weights, stale_before, rates, counts, fees)
         all_rows.append((it, fare, cost))  # before the day filter: the days show all offers (#710)
-        if day and it.legs and depart_day(it) != day:
-            continue  # the day filter shows only the offers that depart on that local day (#709)
+        if hides:
+            continue  # the day filter hides this row
         rows.append((it, fare, cost))
     def all_gone(r):
         return r[1].id in gone  # the main fare is gone only when all fares of the row are gone
@@ -749,6 +760,11 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     # the seen price of each shown fare before mark_seen() changes it: the price changes of the rows (#1092)
     context["seen"] = {f.id: f.seen_price for r in rows for f in r[0].fares}
     best_direct = min((r[2].total for r in shown), default=None)
+    context["filtered"] = hidden_counts(tests, [  # the offers that each filter hides, in the order of the form (#1452)
+        f"mode {mode}", f"source {source}", f"max transfers {limit_transfers}", f"max duration {limit_duration} min",
+        f"depart after {earliest_depart}", f"arrive by {latest_arrive}",
+        *(f"excluded mode {m}" for m in exclude_mode), *(f"excluded carrier {c}" for c in exclude_carrier),
+        "hide stale", f"day {day}"])
     context["splits"] = split_sections(session, trip, weights, places, now, best_direct)  # #1179
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
