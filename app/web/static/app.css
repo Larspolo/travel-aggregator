@@ -655,3 +655,9 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 .split-diff.good { color: var(--good, inherit); font-weight: 600; }
 /* A QR code needs dark modules on light in each theme, so that a camera reads it (#1317). */
 .totp-qr svg { display: block; max-width: 100%; height: auto; background: white; padding: var(--space-2, 8px); }
+/* The browser print of a page shows only its content: no app bar, form or button (#1349). */
+@media print {
+  nav.topbar, form, button, .btn, a.icon, .calendar-feed, .offline-note { display: none !important; }
+  html, body, main, .card, .journey-part { background: white !important; color: black !important; box-shadow: none !important; }
+  .journey-part { break-inside: avoid; }
+}
