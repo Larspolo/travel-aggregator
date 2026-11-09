@@ -13,7 +13,7 @@
 <form method="post" action="/trips/{{ trip.id }}/captures/upload" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <div class="form-grid">
-    <div class="field wide"><label for="u-source">Source</label><select id="u-source" name="source">{% for s in upload_sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select></div>
+    <div class="field wide"><label for="u-source">Source</label><select id="u-source" name="source"><option value="">From the file name</option>{% for s in upload_sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select></div>
     <div class="field wide"><label for="u-file">JSON file</label><input id="u-file" type="file" name="file" accept=".json,application/json"></div>
   </div>
   <div class="form-actions"><button class="btn btn-primary" type="submit">Upload</button></div>

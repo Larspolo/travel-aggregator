@@ -36,16 +36,29 @@ def _upload_sources() -> list[str]:
     return [s for s in parser_classes() if s != "manual"]
 
 
+FILE_NAME_ERROR = "Choose the source: the file name does not name one"
+
+
+def _source_from_name(filename: str | None) -> str | None:
+    """The source of a downloaded file `<source>-<id>.json`, as in #1291 (#1339)."""
+    match = re.fullmatch(r"(.+)-\d+\.json", filename or "")
+    return match.group(1) if match else None
+
+
 @router.post("/trips/{trip_id}/captures/upload", response_class=HTMLResponse,
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 async def upload_capture(request: Request, trip_id: int, file: UploadFile | None = File(None),
                          source: str = Form(""), session: Session = Depends(get_session)):
-    """Store an uploaded payload file as a capture of the trip and parse it (#1338), as a capture of a userscript."""
+    """Store an uploaded payload file as a capture of the trip and parse it (#1338), as a capture of a userscript.
+    With no source the source comes from the file name (#1339)."""
     _get_trip(session, trip_id)
     raw = await file.read(MAX_BODY_BYTES + 1) if file is not None else b""
     error = None
+    from_name = source == ""
+    if from_name:
+        source = _source_from_name(file.filename if file is not None else None) or ""
     if source not in _upload_sources():
-        error = "Select a source that has a parser."
+        error = FILE_NAME_ERROR if from_name else "Select a source that has a parser."
     elif not raw:
         error = "Select a payload file."
     elif len(raw) > MAX_BODY_BYTES:
