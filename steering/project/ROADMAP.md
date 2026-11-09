@@ -68,6 +68,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - Upload of the file bahn.de-<id>.json (`capture:raw-view`) into the trip Amsterdam → Zürich shows its offers on the trip page, and a file of an unknown source or with no valid JSON gives a clear error and stores nothing
 - [ ] `capture:gone` (#1384) A fare that a newer search of the same source did not return gets the mark "not in the last search": the server compares the itineraries of a capture with the older ones of the same source, trip and day in the departure span of the new capture (a sold-out fare stays on the page with its old price until it is stale, `rank:stale`)
   - A bahn.de search at 10:00 that shows the ICE 105 again but not the Sparpreis of €39 marks that fare "not in the last bahn.de search (10:00)", and the best offer of the trip does not use it; a connection out of the departure span of the new search keeps no mark
+- [ ] `capture:script-version` The status per source (`capture:health`) shows the version of the userscript that sent the last capture, and "update the userscript" when it is older than the version that the app serves (`capture:install`), so that a parser change that needs a new userscript does not fail with no message (P3)
+  - A capture from an older userscript gives a warning on the captures page and the source status, with the install link; a capture from the served version gives no warning
 
 ## 2. Rank offers by effective cost
 
@@ -108,8 +110,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With "arrive by" 14:00 and €5 per hour, an ICE that arrives at 10:30 shows "wait 3 h 30 min before 14:00 €17.50" in the breakdown
 - [x] `rank:co2` (#1415) The CO₂ of each offer in the effective cost: an estimate per traveler from the mode and the hours of each leg (kg per hour for train, bus and flight in "Advanced"), and a price per kg with the default €0, so that the score does not change until the owner sets it (P2)
   - With €0.10 per kg and 90 kg per flight hour, a flight of 2 h shows "CO₂ 180 kg €18.00" in the breakdown, and the expanded row of each offer shows its CO₂
-- [ ] `rank:filtered` The trip page shows how many offers the hard filters (`rank:filters`) and the table filters hide, for each filter, and the best hidden offer, so that a forgotten filter does not hide the best offer (P2: the ranking stays explainable)
+- [x] `rank:filtered` (#1451) The trip page shows how many offers the hard filters (`rank:filters`) and the table filters hide, for each filter, and the best hidden offer, so that a forgotten filter does not hide the best offer (P2: the ranking stays explainable)
   - With "max transfers 1", the trip page shows "3 offers hidden by the filters: 2 by max transfers, 1 by excluded carrier", and "best hidden: €84 effective, below the best shown €97"; "show them" shows the 3 rows greyed with the filter that hides each
+- [ ] `rank:station-change` A transfer to another station of the same city (for example Paris Nord to Paris Gare de Lyon) has its own minimum transfer time and penalty in "Advanced" (default €0), and the row shows "change of station", also in split tickets (`trip:split`)
+  - An itinerary whose leg arrives at one station and whose next leg departs from another station gets the mark and the penalty in its breakdown; a transfer at the same station gets neither
 
 ## 3. Plan a trip in one place
 
@@ -187,9 +191,9 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The trip Amsterdam → Zürich with the alternative destination Basel shows the ICE to Basel next to the trains to Zürich, with the egress of Basel in its breakdown, and a bahn.de search to Basel gives no "These offers do not match the trip" warning
 - [ ] `trip:booked-drop` A message by the channel of `trip:notify` when a capture shows a booked fare (`trip:booked-fare`) of the tier "flexible" or "partly refundable" (`rank:risk`) at a lower price than the paid price, so that the owner can change the booking
   - A flexible fare booked at €89 and captured again at €69 sends one message "Booked ICE 105: now €69, paid €89 (−€20), flexible fare"; a non-refundable fare sends no message
-- [ ] `trip:split-suggest` Via places for split tickets (`trip:split`) from the captures: the transfer places of the captured itineraries of a trip, in the order of their count, so that the owner knows which split trip to search (the app fetches nothing, P1)
+- [x] `trip:split-suggest` (#1457) Via places for split tickets (`trip:split`) from the captures: the transfer places of the captured itineraries of a trip, in the order of their count, so that the owner knows which split trip to search (the app fetches nothing, P1)
   - On the trip Amsterdam → Zürich with captured connections that change in Köln and Basel SBB, the edit page shows "Köln (12 offers)" and "Basel SBB (5 offers)" next to "Split via", and a click on one fills the field
-- [ ] `trip:spend-co2` The CO₂ estimate of the booked journeys (`rank:co2`) in the summary per year (`trip:spend`): the kg per traveler in total and per mode, with the kg per hour of the default profile
+- [x] `trip:spend-co2` (#1463) The CO₂ estimate of the booked journeys (`rank:co2`) in the summary per year (`trip:spend`): the kg per traveler in total and per mode, with the kg per hour of the default profile
   - The summary for 2026 shows "7 journeys · €642.50 paid · 61 h · CO₂ about 410 kg" and the kg on the line of each mode
 
 ## 4. Run it on my home server
@@ -229,3 +233,5 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With the second step on, the login asks for the 6-digit code of the phone app after the password; a wrong or used code does not log in, and a recovery code works once
 - [x] `host:login-log` (#1352) The recent logins on the settings page: the time, the address and the browser of the last 20 logins and failed logins, with or without the second step (P5: the owner sees a stolen password)
   - After a failed login from the phone and a good login from the computer, the settings page lists both, newest first, with "failed" on the first
+- [ ] `host:backup-check` Each daily backup (`host:backup-daily`) is read again after the dump (`pg_restore --list`): a file that does not read counts as a failed backup for the message of `host:backup-alert`, and the settings page shows the result of the check of the newest backup (P5: the owner keeps the data)
+  - A cut-off backup file gives "check failed" on the settings page and one message; a good file gives "checked" with its table count
