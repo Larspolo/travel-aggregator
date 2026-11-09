@@ -68,7 +68,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - Upload of the file bahn.de-<id>.json (`capture:raw-view`) into the trip Amsterdam → Zürich shows its offers on the trip page, and a file of an unknown source or with no valid JSON gives a clear error and stores nothing
 - [ ] `capture:gone` (#1384) A fare that a newer search of the same source did not return gets the mark "not in the last search": the server compares the itineraries of a capture with the older ones of the same source, trip and day in the departure span of the new capture (a sold-out fare stays on the page with its old price until it is stale, `rank:stale`)
   - A bahn.de search at 10:00 that shows the ICE 105 again but not the Sparpreis of €39 marks that fare "not in the last bahn.de search (10:00)", and the best offer of the trip does not use it; a connection out of the departure span of the new search keeps no mark
-- [ ] `capture:script-version` The status per source (`capture:health`) shows the version of the userscript that sent the last capture, and "update the userscript" when it is older than the version that the app serves (`capture:install`), so that a parser change that needs a new userscript does not fail with no message (P3)
+- [x] `capture:script-version` (#1493) The status per source (`capture:health`) shows the version of the userscript that sent the last capture, and "update the userscript" when it is older than the version that the app serves (`capture:install`), so that a parser change that needs a new userscript does not fail with no message (P3)
   - A capture from an older userscript gives a warning on the captures page and the source status, with the install link; a capture from the served version gives no warning
 
 ## 2. Rank offers by effective cost
@@ -112,8 +112,12 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With €0.10 per kg and 90 kg per flight hour, a flight of 2 h shows "CO₂ 180 kg €18.00" in the breakdown, and the expanded row of each offer shows its CO₂
 - [x] `rank:filtered` (#1451) The trip page shows how many offers the hard filters (`rank:filters`) and the table filters hide, for each filter, and the best hidden offer, so that a forgotten filter does not hide the best offer (P2: the ranking stays explainable)
   - With "max transfers 1", the trip page shows "3 offers hidden by the filters: 2 by max transfers, 1 by excluded carrier", and "best hidden: €84 effective, below the best shown €97"; "show them" shows the 3 rows greyed with the filter that hides each
-- [ ] `rank:station-change` A transfer to another station of the same city (for example Paris Nord to Paris Gare de Lyon) has its own minimum transfer time and penalty in "Advanced" (default €0), and the row shows "change of station", also in split tickets (`trip:split`)
+- [x] `rank:station-change` (#1499) A transfer to another station of the same city (for example Paris Nord to Paris Gare de Lyon) has its own minimum transfer time and penalty in "Advanced" (default €0), and the row shows "change of station", also in split tickets (`trip:split`)
   - An itinerary whose leg arrives at one station and whose next leg departs from another station gets the mark and the penalty in its breakdown; a transfer at the same station gets neither
+- [ ] `rank:bags` The bags of each flight fare in the baggage fee (`rank:door`): the parsers store the checked bags that a fare includes and the price of its first checked bag (kiwi.com `bagsInfo`); a fare with an included bag gets no baggage fee, a fare with a known bag price gets that price, and the other flights keep the flat fee of "Advanced"
+  - A kiwi.com flight with `includedCheckedBags` 1 shows "bag included" and no baggage cost in its breakdown; a flight with a first bag tier of €25.06 shows "baggage €25.06"; a manual flight offer keeps the flat fee
+- [ ] `rank:carrier` A markup or discount per carrier in "Advanced" (default none, P2), next to the exclusion of `rank:filters`: an itinerary with one or more legs of that carrier adds the amount once, and the breakdown shows it
+  - With "Ryanair +€15", a Ryanair flight shows "carrier €15" in its breakdown and ranks lower; the other offers do not change
 
 ## 3. Plan a trip in one place
 
@@ -195,6 +199,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - On the trip Amsterdam → Zürich with captured connections that change in Köln and Basel SBB, the edit page shows "Köln (12 offers)" and "Basel SBB (5 offers)" next to "Split via", and a click on one fills the field
 - [x] `trip:spend-co2` (#1463) The CO₂ estimate of the booked journeys (`rank:co2`) in the summary per year (`trip:spend`): the kg per traveler in total and per mode, with the kg per hour of the default profile
   - The summary for 2026 shows "7 journeys · €642.50 paid · 61 h · CO₂ about 410 kg" and the kg on the line of each mode
+- [ ] `trip:route-history` The prices of the older trips on the same route (`trip:archive`) on the trip page: the cheapest seen price and the paid price (`trip:booked-fare`) of each older trip with the same places, so that the owner sees if a price is good for that route (history only, no price prediction: `docs/SPEC.md`, section 12)
+  - A new trip Amsterdam → Zürich shows "Earlier trips on this route: 2025-12 cheapest €49, paid €59; 2026-03 cheapest €62", with a link to each trip; a trip on a new route shows nothing
 
 ## 4. Run it on my home server
 
@@ -233,5 +239,5 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With the second step on, the login asks for the 6-digit code of the phone app after the password; a wrong or used code does not log in, and a recovery code works once
 - [x] `host:login-log` (#1352) The recent logins on the settings page: the time, the address and the browser of the last 20 logins and failed logins, with or without the second step (P5: the owner sees a stolen password)
   - After a failed login from the phone and a good login from the computer, the settings page lists both, newest first, with "failed" on the first
-- [ ] `host:backup-check` Each daily backup (`host:backup-daily`) is read again after the dump (`pg_restore --list`): a file that does not read counts as a failed backup for the message of `host:backup-alert`, and the settings page shows the result of the check of the newest backup (P5: the owner keeps the data)
+- [x] `host:backup-check` (#1488) Each daily backup (`host:backup-daily`) is read again after the dump (`pg_restore --list`): a file that does not read counts as a failed backup for the message of `host:backup-alert`, and the settings page shows the result of the check of the newest backup (P5: the owner keeps the data)
   - A cut-off backup file gives "check failed" on the settings page and one message; a good file gives "checked" with its table count
