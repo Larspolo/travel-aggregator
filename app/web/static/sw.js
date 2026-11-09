@@ -35,8 +35,10 @@ const OFFLINE = "<!doctype html><meta charset=utf-8><meta name=viewport content=
   "<link rel=stylesheet href=/static/app.css><title>Offline – travel-aggregator</title>" +
   "<main><h1>Upcoming</h1><p class=muted>No saved journeys: open Upcoming once with a network.</p></main>";
 
-// only a 200 that is not a redirect (for example to /login) goes into the cache
-const keep = (response) => response.status === 200 && !response.redirected && response.type === "basic";
+// only a 200 that is not a redirect (for example to /login) goes into the cache; a page with "no-store" (the one
+// view of the calendar link, #1407) never does
+const keep = (response) => response.status === 200 && !response.redirected && response.type === "basic" &&
+  !(response.headers.get("Cache-Control") || "").includes("no-store");
 
 const savePage = (response) => caches.open(CACHE).then((cache) => cache.put(PAGE, response));
 
