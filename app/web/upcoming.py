@@ -31,12 +31,15 @@ def upcoming(request: Request, only: int | None = None, session: Session = Depen
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     total, missing = _paid_total(itineraries, load_rates(session))
     since = session.get(Setting, SINCE) if session.get(Setting, KEY) is not None else None
-    return templates.TemplateResponse(request, "upcoming.html", {
+    # the link shows once after "Subscribe" (#1113); the offline copy is a later GET with no link
+    feed_link = request.session.pop("calendar_feed_link", None)
+    response = templates.TemplateResponse(request, "upcoming.html", {
         "itineraries": itineraries, "now": datetime.now(timezone.utc), "only": only,
-        "paid_total": total, "paid_missing": missing,
-        # the link shows once after "Subscribe" (#1113); the offline copy is a later GET with no link
-        "feed_link": request.session.pop("calendar_feed_link", None),
+        "paid_total": total, "paid_missing": missing, "feed_link": feed_link,
         "feed_since": datetime.fromisoformat(since.value) if since is not None else None})
+    if feed_link:  # the service worker and the browser cache keep no copy of the private link (#1407)
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 def _paid_total(itineraries, rates: dict[str, Decimal]) -> tuple[Decimal | None, dict[str, int]]:
