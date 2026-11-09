@@ -60,8 +60,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - After a bahn.de search with the day prices on, a trip from 18 to 22 December shows "from €39 (bahn.de day price)" for each day that has no captured connection
 - [ ] `capture:flight-2` (#1182) A second flight source, by the decision #1182
   - A search on the chosen flight site shows its flights on the trip page; the same flight from Kiwi.com and that site shows as one row (`capture:merge`)
-- [ ] `capture:manual-edit` (#1251) Correct or delete a manual offer (`capture:manual`): delete it, or change its price; a captured fare has no such action (use "Hide")
+- [x] `capture:manual-edit` (#1251) Correct or delete a manual offer (`capture:manual`): delete it, or change its price; a captured fare has no such action (use "Hide")
   - "Change price" from €90 to €85 on a manual fare shows €85 on the trip page and 2 points in its price history; "Delete" removes the manual offer from the trip page
+- [ ] `capture:raw-view` (#1289) Show the raw payload of a capture: the formatted JSON on its own page and a download, so that the owner gives the payload of a failed capture to a parser fix (P3)
+  - "Raw" on a failed bahn.de capture shows its JSON, and "Download JSON" gives the file bahn.de-<id>.json
 
 ## 2. Rank offers by effective cost
 
@@ -96,8 +98,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With a Trainline fee of €1.50, the same ICE from bahn.de at €90 and from Trainline at €89 ranks the bahn.de fare first
 - [x] `rank:profile-compare` (#1205) The best offer of a trip for each profile on the trip page, with a link that selects the profile
   - With the profiles Cheap (€2 per hour) and Comfort (€30 per hour), the trip page shows "Best by profile": Cheap gives the slow Flixbus at effective €97 and Comfort the ICE at effective €121
-- [ ] `rank:overnight` (#1255) A transfer in the night costs a hotel night: an amount and a minimum of night minutes in "Advanced"
+- [x] `rank:overnight` (#1255) A transfer in the night costs a hotel night: an amount and a minimum of night minutes in "Advanced"
   - With a hotel cost of €80, a transfer in Köln from 23:40 to 06:10 shows "overnight stop in Köln €80" in the breakdown, and a direct night train ranks above it
+- [ ] `rank:arrive-by` (#1293) An "arrive by" time per trip: the hours of wait before it cost a wait value per hour, and the later offers do not show
+  - With "arrive by" 14:00 and €5 per hour, an ICE that arrives at 10:30 shows "wait 3 h 30 min before 14:00 €17.50" in the breakdown
 
 ## 3. Plan a trip in one place
 
@@ -161,8 +165,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A trip Amsterdam → Zürich split via Köln shows "Split tickets via Köln": the best pairs of a connection to Köln and a connection from Köln, with at least the transfer time of the profile between them, their sum in effective cost with the self-transfer penalty, and the difference to the best direct offer
 - [x] `trip:find` (#1219) A search field on the trips list and the archive: it finds the trips by their title, places and note, also with no accents
   - On a list of 40 trips, the text "zur" shows only the trips with Zürich in the title or a place, also the archived trip "Zürich Christmas"
-- [ ] `trip:merge` (#1260) Merge two trips of the same journey: the offers, prices, captures, day prices and marks go to one trip, and the other trip is deleted
+- [x] `trip:merge` (#1260) Merge two trips of the same journey: the offers, prices, captures, day prices and marks go to one trip, and the other trip is deleted
   - "Merge into" on the edit page of a second Amsterdam → Zürich moves all its offers into the first trip, with one row for the same journey, and the second trip is not in the trips list
+- [ ] `trip:pinned-page` (#1298) A "Pinned" page: the pinned offers of all trips in planning, with the current price, the lowest price and the drop since the last view
+  - With pins in 3 trips, one page lists the 3 offers in the order of the departure, each with "lowest €78, now €12 above" and a link to its row
 
 ## 4. Run it on my home server
 
@@ -195,5 +201,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A trip and the settings exported from one instance and imported into an empty instance show the same order and the same effective costs on the trip page
 - [x] `host:storage` (#1234) The size of the data on the settings page: the database size, the size and count of the raw captures per source, and what the next retention cleanup removes (`host:retention`)
   - The settings page shows "Database 412 MB · raw captures 318 MB in 9,204 captures · the next cleanup removes 1,120 captures (88 MB)"
-- [ ] `host:sessions` (#1265) Log out on all other devices: one button on the settings page ends the other login sessions (P5)
+- [x] `host:sessions` (#1265) Log out on all other devices: one button on the settings page ends the other login sessions (P5)
   - After "Log out on all other devices" on the computer, the next page on the phone goes to the login page; the computer stays logged in, and the API tokens still work
+- [ ] `host:totp` A second login step with a one-time code of an authenticator app (TOTP, RFC 6238) and one-time recovery codes (P5)
+  - With the second step on, the login asks for the 6-digit code of the phone app after the password; a wrong or used code does not log in, and a recovery code works once
