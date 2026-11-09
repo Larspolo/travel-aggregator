@@ -10,6 +10,8 @@ from app.parsers import get_parser
 from app.tripmatch import mismatch
 from tests.test_tripmatch import offer
 
+GUARDS = ("tests/fixtures/*",)   # ship_pr runs this file for these changes, also with --tested: no import leads to it (#730, #1328)
+
 FIXTURES = Path(__file__).parent / "fixtures"
 
 # (source, file, English origin of the first offer, English destination of the last leg of that offer)

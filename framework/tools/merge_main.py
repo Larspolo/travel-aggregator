@@ -65,13 +65,17 @@ def guards(text):
     return re.findall(r"[\"']([^\"']+)[\"']", m.group(1)) if m else []
 
 
+def guarded(paths, tests):
+    """The test files whose `GUARDS` patterns match one of `paths` (the changed files), sorted."""
+    return sorted(f for f, text in tests.items() if any(fnmatch.fnmatchcase(p, g) for g in guards(text) for p in paths))
+
+
 def test_files(conflicted, changed, tests):
     """(test files to run, test files left to CI). `tests`: {path: text} of the test files of the repository.
     A test file whose `GUARDS` patterns match a changed file always runs: no import leads from a `.js` or `.json`
     file to its test (5 of 9 red fast-test runs of 100 PRs: the userscript lock test, 2026-11-07)."""
     paths = changed + conflicted
-    own = sorted({f for f in paths if f in tests}
-                 | {f for f, text in tests.items() if any(fnmatch.fnmatchcase(p, g) for g in guards(text) for p in paths)})
+    own = sorted({f for f in paths if f in tests} | set(guarded(paths, tests)))
     mods = set().union(*map(modules, conflicted)) if conflicted else set()
     users = sorted(f for f, text in tests.items() if f not in own and mods & imports(text))
     return (own + users, []) if len(own) + len(users) <= MAX_TESTS else (own, users)

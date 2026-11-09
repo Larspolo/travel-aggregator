@@ -9,6 +9,8 @@ from fastapi.routing import APIRoute
 from app.auth import require_login
 from app.main import app
 
+GUARDS = ("app/web/*.py", "app/api/*.py", "app/main.py", "app/auth.py")   # ship_pr runs this file for these changes, also with --tested: no import leads to it (#730, #1328)
+
 # The routes that work with no login, and why. Add a route here only with a reason.
 PUBLIC = {
     ("GET", "/login"): "the login form",

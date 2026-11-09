@@ -10,6 +10,8 @@ from app.auth import make_password_hash
 from app.backup import STAMP_FORMAT
 from app.main import app
 
+GUARDS = ("app/web/templates/settings*.html", "app/web/pages.py")   # ship_pr runs this file for these changes, also with --tested: no import leads to it (#730, #1328)
+
 PASSWORD = "pw"
 
 

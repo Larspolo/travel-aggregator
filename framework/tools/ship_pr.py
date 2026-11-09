@@ -10,7 +10,8 @@ The first push of a ticket took 2 to 6 tool calls in each run on 2026-10-28, and
 
 Steps: `git commit -F MSG.txt` of the staged files (without `--message`: the commits that are there), the lint command of `agent.toml` (also with `--tested`),
 the tests (the test files of the branch and the test files that import its changed modules, never the full
-suite: the quick CI runs it, owner #4187; `--tested`: you ran them on this tree), `claim.py N --guard` and the push (`merge_main.push`), the PR (a new
+suite: the quick CI runs it, owner #4187; `--tested`: you ran them on this tree, and only the test files whose
+`GUARDS` match a changed file run, #1328), `claim.py N --guard` and the push (`merge_main.push`), the PR (a new
 one with `Closes #N` in its body; or the open PR of the branch), and `mergeable_state` (`dirty`: run
 `python3 framework/tools/merge_main.py --push N`). Then it waits for the quick CI of the pushed commit, up to `WAIT`
 minutes after its start (#4784): a red quick CI after the end of its run cost a takeover and a cold run 30 to 40
@@ -82,11 +83,24 @@ def lint():
     return True
 
 
+def branch_tests():
+    """(the changed files of the branch, {path: text} of the test files of the repository)."""
+    changed = git("diff", "--name-only", f"origin/{CONFIG['branch']}...HEAD").stdout.split()
+    return changed, {f: open(f, encoding="utf-8").read() for f in glob.glob("tests/test_*.py") + glob.glob("framework/tests/test_*.py")}
+
+
+def guard_checks():
+    """`--tested`: only the test files whose `GUARDS` match a changed file. True when they pass (#1328: the run ran the
+    tests of its topic, and 6 of 16 red quick CI runs of 100 merged PRs were whole-app tests, for example a new route
+    that missed `tests/test_pages_need_login.py`; these files take about 10 s)."""
+    changed, tests = branch_tests()
+    return run_tests(merge_main.guarded(changed, tests), "")
+
+
 def checks():
     """The test files of the branch and of its changed modules (more than `MAX_TESTS`: only the branch's).
     Never the full fast suite: the quick CI runs it on each push (owner, #4187). True when all pass."""
-    changed = git("diff", "--name-only", f"origin/{CONFIG['branch']}...HEAD").stdout.split()
-    tests = {f: open(f, encoding="utf-8").read() for f in glob.glob("tests/test_*.py") + glob.glob("framework/tests/test_*.py")}
+    changed, tests = branch_tests()
     run = merge_main.test_files(changed, changed, tests)[0]
     texts = [f for f in merge_main.text_tests(changed, tests) if f not in run]   # no import leads to them (#682)
     if texts:
@@ -94,9 +108,16 @@ def checks():
         run = sorted(set(run) | set(texts))
     if any(f.endswith(".jsonl") or f.startswith(DATA_CHECKS) for f in changed):   # no import finds their tests (#4614)
         run = sorted(set(run) | {f for f in DATA_TESTS if f in tests})
+    return run_tests(run, "no test file of the branch: the quick CI runs the fast suite")
+
+
+def run_tests(run, none):
+    """True when the pytest run of the test files `run` passes (none: print `none`, True)."""
     if not run:
-        print("no test file of the branch: the quick CI runs the fast suite")
+        if none:
+            print(none)
         return True
+    print("tests: " + " ".join(run))
     par = ["-n", "auto"] if len(run) > 8 else []           # a few files start faster without xdist (verify)
     r = subprocess.run([sys.executable, "-m", "pytest", "-q", *par, *run], capture_output=True, text=True)
     print("\n".join((r.stdout + r.stderr).strip().splitlines()[-15:]))
@@ -297,7 +318,7 @@ def main(argv=None):
     if bad := data_only_tests(changed):                  # also with --tested
         print(f"a change of data files only must not add or change tests: remove {' '.join(bad)} (docs/extend.md)")
         return 2
-    if not lint() or (not a.tested and not checks()):
+    if not lint() or not (guard_checks() if a.tested else checks()):   # --tested: the GUARDS files still run (#1328)
         return 2
     if not push(a.number):
         return 3
