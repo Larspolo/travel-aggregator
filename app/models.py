@@ -86,6 +86,8 @@ class Itinerary(Base):
     cancelled_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
     refund_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)
     travel_day_sent_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the travel-day message (#1648)
+    delay_min: Mapped[int | None] = mapped_column(Integer, nullable=True)  # the arrival delay (#1691)
+    claim_paid_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the claim was paid (#1691)
 
     trip: Mapped[Trip] = relationship(back_populates="itineraries")
     legs: Mapped[list["Leg"]] = relationship(back_populates="itinerary", cascade="all, delete-orphan", order_by="Leg.seq")
