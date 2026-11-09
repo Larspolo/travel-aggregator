@@ -7,6 +7,7 @@ from datetime import date
 
 from app.models import Trip
 from app.schemas import OfferIn
+from app.trips import alt_places
 
 MIN_WORD = 3  # shorter words ("a", "NL") are too common to tell two places apart
 
@@ -66,6 +67,14 @@ def _place_matches(trip_text: str | None, name: str, code: str | None) -> bool:
     return bool(_groups(trip_text) & _groups(name))
 
 
+def _end_matches(trip_text: str | None, alt_text: str | None, name: str, code: str | None) -> bool:
+    """True when the offer's place matches the trip's place or one of its other places (#1422, #1423). A blank
+    trip place matches each offer."""
+    if not trip_text or not trip_text.strip():
+        return True
+    return any(_place_matches(text, name, code) for text in (trip_text, *alt_places(alt_text)))
+
+
 def _date_matches(trip: Trip, day: date) -> bool:
     if trip.date_from is None:
         return True
@@ -78,8 +87,10 @@ def mismatch(trip: Trip, offers: list[OfferIn], travelers: int | None = None) ->
     for another number of travelers than the trip, #765; no count gives no warning)."""
     if not offers:
         return None
-    by_place = [o for o in offers if _place_matches(trip.origin_text, o.legs[0].from_name, o.legs[0].from_code)
-                and _place_matches(trip.destination_text, o.legs[-1].to_name, o.legs[-1].to_code)]
+    by_place = [o for o in offers
+                if _end_matches(trip.origin_text, trip.origin_alt_text, o.legs[0].from_name, o.legs[0].from_code)
+                and _end_matches(trip.destination_text, trip.destination_alt_text, o.legs[-1].to_name,
+                                 o.legs[-1].to_code)]
     if not by_place:
         return "places"
     if not any(_date_matches(trip, o.legs[0].depart_at.date()) for o in by_place):
@@ -107,7 +118,9 @@ def suggest_trip(offers: list[OfferIn]) -> dict | None:
 
 
 def _has_place(trip: Trip) -> bool:
-    return any(text and text.strip() for text in (trip.origin_text, trip.destination_text))
+    places = (trip.origin_text, trip.destination_text, *alt_places(trip.origin_alt_text),
+              *alt_places(trip.destination_alt_text))
+    return any(text and text.strip() for text in places)
 
 
 def best_trip(trips: list[Trip], offers: list[OfferIn], selected: Trip) -> Trip:
