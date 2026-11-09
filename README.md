@@ -505,6 +505,7 @@ Each row of the trip table has buttons at its left side:
 - "Pin" keeps the offer at the top of the table, in every sort order. "Unpin" removes the pin.
 - "Hide" removes the offer from the table and marks it "hidden". "Unhide" shows it again.
   The table does not show hidden offers, unless you tick "show hidden" above the table.
+  An offer whose departure has passed is also left out, unless it is booked. Tick "show departed" above the table to see these offers, greyed, after the other rows. The best offer of the panel and of the journey does not use a departed offer either.
 - "Mark as booked" adds a "booked" badge to the row. "Not booked" removes it.
   "Mark as booked" also stores the paid fare and the paid price: the main fare of the row (the fare with the lowest
   effective cost), its latest price and its currency, and the time of the booking. "Not booked" clears all four.
