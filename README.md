@@ -673,6 +673,16 @@ departs today or within D days; its newest offers are older than N days, or it h
 older than N days, or it has none. So a trip gets at most one reminder in N days. The reminders are sent by the
 service `backup` (see "Backups"), so that service must run. All times are UTC.
 
+A travel-day message gives the legs of a booked journey before it departs. Its title is the day and the departure time,
+for example "Tomorrow 09:15", and its text lists the legs with their local times. It uses the channel that you chose
+above.
+
+To turn it on, set "Travel-day message: hours before the departure" on the messages settings page
+(`/settings/messages`) to the number of hours H, from 0 to 72. The default is `0`, which turns the messages off. With
+H = 24, each booked journey gets its message at most 24 hours before it departs, once. The app checks the due messages
+every 15 minutes, so a message comes at most 15 minutes after the set time. The messages are sent by the service
+`backup` (see "Backups"), so that service must run. All times are UTC.
+
 The app can send a message when the captures of a source fail. The checkbox "Send a message when the captures of a
 source fail" on the messages settings page (`/settings/messages`) turns these messages on or off. It is on by default.
 When the newest two or more captures of a source failed after its last good capture, the app sends a message with the
