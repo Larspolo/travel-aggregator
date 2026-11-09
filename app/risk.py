@@ -30,11 +30,28 @@ def transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], .
     if penalty == 0 or len(itinerary.legs) < 2:
         return ()
     minimum = timedelta(minutes=weights.short_transfer_min)
-    short = sum(1 for before, after in zip(itinerary.legs, itinerary.legs[1:])
-                if after.depart_at - before.arrive_at < minimum)
+    # A change of station uses its own minimum (#1501); None keeps the short-transfer minimum for it too.
+    changes = set(station_changes(itinerary)) if weights.station_change_min is not None else set()
+    change_minimum = timedelta(minutes=int(weights.station_change_min)) if changes else minimum
+    short = sum(1 for i, (before, after) in enumerate(zip(itinerary.legs, itinerary.legs[1:]))
+                if after.depart_at - before.arrive_at < (change_minimum if i in changes else minimum))
     if short == 0:
         return ()
     return (("short transfer", penalty * short),)
+
+
+def station_change_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add one part "change of station": the penalty times the count of changes of station (#1501).
+
+    A penalty of 0 adds no part.
+    """
+    penalty = Decimal(weights.station_change_penalty)
+    if penalty == 0 or len(itinerary.legs) < 2:
+        return ()
+    count = len(station_changes(itinerary))
+    if count == 0:
+        return ()
+    return (("change of station", penalty * count),)
 
 
 def station_changes(itinerary) -> list[int]:
