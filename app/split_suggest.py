@@ -30,3 +30,16 @@ def via_places(itineraries: Iterable, skip: Iterable[str], limit: int = 5) -> li
 
     ranked = sorted(counts.items(), key=lambda item: (-item[1], spelling[item[0]]))
     return [(spelling[key], count) for key, count in ranked[:limit]]
+
+
+def split_skip(trip) -> set[str]:
+    """The names that are no transfer place to suggest for `trip` (#1459, #1460).
+
+    The origin, the destination, their alternative places (comma-separated) and the via place of each split trip
+    (the `destination_text` of a part that starts at the origin).
+    """
+    names = [trip.origin_text, trip.destination_text]
+    for alt in (trip.origin_alt_text, trip.destination_alt_text):
+        names += (alt or "").split(",")
+    names += [part.destination_text for part in trip.split_trips if part.origin_text == trip.origin_text]
+    return {name.strip() for name in names if name and name.strip()}

@@ -1,5 +1,6 @@
 {# The split tickets of the trip (#1179): one section per via place; the weights form swaps it out of band. #}
 <div id="trip-split"{% if oob %} hx-swap-oob="true"{% endif %}>
+{% if via_places %}<p class="via-places">Transfer places of these offers: {% for name, n in via_places %}{{ name }} ({{ n }}) · {% endfor %}<a href="/trips/{{ trip.id }}/edit#f-via">Split the trip</a></p>{% endif %}{# #1460 #}
 {% for sec in splits %}
 <section class="card split-section" aria-labelledby="split-{{ loop.index }}">
   <h2 id="split-{{ loop.index }}">Split tickets via {{ sec.via }}</h2>
