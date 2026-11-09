@@ -51,7 +51,7 @@ from app.trend import trip_trend
 from app.money import money
 from app.coverage import trip_coverage
 from app.sourcehealth import failing_sources
-from app.risk import mode_extras, self_transfer_extras, stale_extras, transfer_extras
+from app.risk import mode_extras, self_transfer_extras, stale_extras, station_changes, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -74,6 +74,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 templates.env.globals["csrf_token"] = csrf_token
 templates.env.globals["route_text"] = route_text
+templates.env.globals["station_changes"] = station_changes
 # All settings pages, in groups: the settings navigation of each settings page and the "Settings" link of the
 # app bar use this one list (#925, DESIGN.md section 5, "Settings").
 SETTINGS_NAV = [
