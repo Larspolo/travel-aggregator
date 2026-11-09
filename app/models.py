@@ -1,10 +1,10 @@
 """The database models (docs/SPEC.md section 6). Times are timestamptz; money is Numeric(10, 2)."""
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 
 from sqlalchemy import (
-    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint,
+    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, String, Text, Time, UniqueConstraint,
     func, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -37,6 +37,7 @@ class Trip(Base):
     shared_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
     viewed_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the last full view (#1090)
     reminded_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the last reminder (#1118)
+    arrive_by: Mapped[time | None] = mapped_column(Time, nullable=True)  # local time at the arrival place (#1294)
     profile_id: Mapped[int | None] = mapped_column(ForeignKey("score_profiles.id", ondelete="SET NULL"))  # #232
     # The outbound trip of a return trip, and its return trip (#340): one-to-one.
     return_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL"), unique=True)

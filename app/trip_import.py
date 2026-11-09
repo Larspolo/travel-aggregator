@@ -2,7 +2,7 @@
 instance. The keys are those of the ingest: a second import of the same data adds no row. The caller commits."""
 
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time
 from decimal import Decimal
 from typing import Any
 
@@ -35,6 +35,7 @@ class TripData(_Model):
     status: str = Field("planning", min_length=1, max_length=20)
     notes: str | None = None
     target_price: Decimal | None = Field(None, gt=0, le=100000)  # missing in an older export: None (#846)
+    arrive_by: time | None = None  # missing in an older export: None (#1294)
 
 
 class LegData(_Model):
@@ -161,7 +162,7 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
         t = export.trip
         trip = Trip(title=t.title, origin_text=t.origin, destination_text=t.destination, date_from=t.date_from,
                     date_to=t.date_to, travelers=t.travelers, status=t.status, notes=t.notes,
-                    target_price=t.target_price)
+                    target_price=t.target_price, arrive_by=t.arrive_by)
         session.add(trip)
         session.flush()
     else:
