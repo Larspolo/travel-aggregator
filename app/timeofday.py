@@ -94,3 +94,23 @@ def overnight_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], 
         if _night_minutes(start, end, weights) >= weights.overnight_min:
             extras.append((f"overnight stop in {a.to_name}", cost))
     return tuple(extras)
+
+
+def arrive_by_extras(itinerary, arrive_by, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the cost of the wait from the local arrival of the last leg to `arrive_by` on the same local date (#1295).
+
+    No part when the markup is 0, the trip has no `arrive_by`, or the offer arrives at or after the time.
+    """
+    markup = Decimal(weights.wait_hour_markup)
+    if markup == 0 or arrive_by is None or not itinerary.legs:
+        return ()
+    last = itinerary.legs[-1]
+    arrival = (last.arrive_at + timedelta(minutes=last.arrive_offset_min)).replace(tzinfo=None)
+    target = datetime.combine(arrival.date(), arrive_by.replace(tzinfo=None))
+    minutes = int((target - arrival).total_seconds() // 60)
+    if minutes <= 0:
+        return ()
+    cost = (Decimal(minutes) / 60 * markup).quantize(Decimal("0.01"))
+    hours, rest = divmod(minutes, 60)
+    span = " ".join(p for p in (f"{hours} h" if hours else "", f"{rest} min" if rest else "") if p)
+    return ((f"wait {span} before {arrive_by.strftime('%H:%M')}", cost),)
