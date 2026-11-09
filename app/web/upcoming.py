@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.auth import require_login, verify_csrf
+from app.booked_overlap import conflicts
 from app.calendar_feed import KEY, new_feed_token, revoke_feed
 from app.currency import load_rates, to_eur
 from app.db import get_session
@@ -29,12 +30,15 @@ def upcoming(request: Request, only: int | None = None, session: Session = Depen
     ).all()
     if only is not None and not itineraries:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
+    now = datetime.now(timezone.utc)
+    # the warnings of the booked journeys in conflict (#1654); the print of one journey shows none
+    overlaps = conflicts(session, now) if only is None else {}
     total, missing = _paid_total(itineraries, load_rates(session))
     since = session.get(Setting, SINCE) if session.get(Setting, KEY) is not None else None
     # the link shows once after "Subscribe" (#1113); the offline copy is a later GET with no link
     feed_link = request.session.pop("calendar_feed_link", None)
     response = templates.TemplateResponse(request, "upcoming.html", {
-        "itineraries": itineraries, "now": datetime.now(timezone.utc), "only": only,
+        "itineraries": itineraries, "now": now, "only": only, "overlaps": overlaps,
         "paid_total": total, "paid_missing": missing, "feed_link": feed_link,
         "feed_since": datetime.fromisoformat(since.value) if since is not None else None})
     if feed_link:  # the service worker and the browser cache keep no copy of the private link (#1407)
