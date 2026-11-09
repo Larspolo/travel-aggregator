@@ -465,6 +465,22 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, fc[1].price))
 
 
+def current_fares(fares, gone):
+    """The fares that are not gone (#1386), or all fares when all are gone: a gone fare does not rank."""
+    now = [f for f in fares if f.id not in gone]
+    return now or list(fares)
+
+
+def current_rows(rows, gone):
+    """The (itinerary, fare, cost) rows whose main fare is not gone, or all rows when none is current (#1386)."""
+    return [r for r in rows if r[1].id not in gone] or rows
+
+
+def _gone(session: Session, its) -> dict:
+    from app.gone import gone_fares
+    return gone_fares(session, {it.trip_id for it in its})
+
+
 def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: datetime):
     """The chosen offer of one direction (#342): booked, else pinned, else any; the lowest effective cost in the group.
     Hidden offers never count. None when the direction has no visible offer with a fare."""
@@ -472,8 +488,10 @@ def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: d
     its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     rates = load_rates(session)
-    counts, fees = fare_travelers(session, its), load_fees(session)
-    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts, fees)) for it in its if it.fares]
+    counts, fees, gone = fare_travelers(session, its), load_fees(session), _gone(session, its)
+    rows = [(it, *row_cost(it, current_fares(it.fares, gone), places, weights, stale_before, rates, counts, fees))
+            for it in its if it.fares]
+    rows = current_rows(rows, gone)
     if not rows:
         return None
     return min(rows, key=lambda r: (not r[0].booked, not r[0].pinned, r[2].total, r[0].depart_at))
@@ -495,8 +513,10 @@ def best_for_weights(session: Session, trip: Trip, weights: Weights, now: dateti
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()
     rates = load_rates(session)
-    counts, fees = fare_travelers(session, its), load_fees(session)
-    rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts, fees)) for it in its if it.fares]
+    counts, fees, gone = fare_travelers(session, its), load_fees(session), _gone(session, its)
+    rows = [(it, *row_cost(it, current_fares(it.fares, gone), places, weights, stale_before, rates, counts, fees))
+            for it in its if it.fares]
+    rows = current_rows(rows, gone)
     if not rows:
         return None
     return min(rows, key=lambda r: (r[2].total, r[0].depart_at))
@@ -539,7 +559,10 @@ def round_trip_grid(session: Session, trip: Trip, days, places, now: datetime):
     its = session.scalars(select(Itinerary).where(Itinerary.trip_id == other.id, Itinerary.hidden.is_(False))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     rates, counts, fees = load_rates(session), fare_travelers(session, its), load_fees(session)
-    rows = [(it, *row_cost(it, it.fares, places, w, stale_before, rates, counts, fees)) for it in its if it.fares]
+    gone = _gone(session, its)
+    rows = [(it, *row_cost(it, current_fares(it.fares, gone), places, w, stale_before, rates, counts, fees))
+            for it in its if it.fares]
+    rows = current_rows(rows, gone)
     other_days = day_summary(rows, other.date_from, other.date_to, lambda it: depart_day(it) if it.legs else None)
     present = 0 if parts[0].id == trip.id else 1
     outbound, back = (days, other_days) if present == 0 else (other_days, days)
@@ -624,6 +647,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     fees = load_fees(session)  # once per request (#1143)
     now = datetime.now(timezone.utc)
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
+    gone = _gone(session, itineraries) if itineraries else {}  # the fares of an older search (#1386)
     rows, all_rows, modes, sources, carriers = [], [], set(), set(), set()
     for it in itineraries:
         if not it.fares:
@@ -632,7 +656,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         modes |= it_modes
         sources |= {f.source for f in it.fares}
         carriers |= {leg.carrier for leg in it.legs if leg.carrier}
-        fares = [f for f in it.fares if not source or f.source == source]
+        fares = current_fares([f for f in it.fares if not source or f.source == source], gone)
         if not fares or (mode and mode not in it_modes):
             continue  # the filter hides this row (#112)
         if (limit_transfers is not None and it.transfers > limit_transfers) or (
@@ -649,16 +673,20 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         if day and it.legs and depart_day(it) != day:
             continue  # the day filter shows only the offers that depart on that local day (#709)
         rows.append((it, fare, cost))
-    rows.sort(key=lambda r: (r[2].total, r[0].depart_at))  # the default order and the tie order
+    def all_gone(r):
+        return r[1].id in gone  # the main fare is gone only when all fares of the row are gone
+    rows.sort(key=lambda r: (all_gone(r), r[2].total, r[0].depart_at))  # the default order and the tie order
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
     # a hidden or departed row gets no highlight (#200, #1391)
-    shown = [r for r in rows if not r[0].hidden and not departed.is_departed(r[0], departed_now)]
+    shown = [r for r in rows if not r[0].hidden and not departed.is_departed(r[0], departed_now)
+             and not all_gone(r)]  # a row with only gone fares gets no highlight (#1386)
     if shown:
         for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[2].price),
                           ("fastest", lambda r: r[0].duration_min)):
             badges.setdefault(min(shown, key=key)[0].id, []).append(name)
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
+    rows.sort(key=all_gone)  # stable: the rows with only gone fares after the current rows (#1386)
     rows.sort(key=lambda r: departed.is_departed(r[0], departed_now))  # the departed rows last (#1391)
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
     view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "show_hidden": show_hidden,
@@ -689,12 +717,13 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
-               "rates": rates, "tradeoff": tradeoff,
+               "rates": rates, "tradeoff": tradeoff, "gone_fares": gone,
                "new_since": trip.viewed_at}  # the rows after the last full view are "new" (#1090)
     if len(profiles) > 1:  # the best offer of each profile (#1211); one profile only: no section
         from app.profile_compare import best_by_profile
         context["profile_best"] = best_by_profile(session, trip)
-    context["days"] = day_summary(all_rows, trip.date_from, trip.date_to,
+    current = [r for r in all_rows if not all_gone(r)] or all_rows  # gone fares count only with no current one (#1386)
+    context["days"] = day_summary(current, trip.date_from, trip.date_to,
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     context["days"] = with_day_prices(context["days"], session.scalars(  # the day prices of bahn.de (#1198)
         select(DayPrice).where(DayPrice.trip_id == trip.id)).all())

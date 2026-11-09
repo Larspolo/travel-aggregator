@@ -5,7 +5,7 @@
     {% set days = arr | day_gap(dep) %}
     {% set newest = it.fares | map(attribute="latest_captured_at") | max %}
     {% set carriers %}{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
-    {% set fare_line %}{% if fare.fare_name %}{{ fare.fare_name }} · {% endif %}{{ fare.source }}, {{ newest | ago(now) }}{% endset %}
+    {% set fare_line %}{% if fare.fare_name %}{{ fare.fare_name }} · {% endif %}{{ fare.source }}, {{ newest | ago(now) }}{% if fare.id in gone_fares %} · not in the last {{ gone_fares[fare.id].source }} search, {{ gone_fares[fare.id].captured_at | ago(now) }}{% endif %}{% endset %}
     {% set gone = it.depart_at and view.departed_now and it.depart_at < view.departed_now and not it.booked %}
     <tr id="it-{{ it.id }}"{% if gone %} class="departed muted"{% endif %}>
       <td class="route">
@@ -58,7 +58,7 @@
         </div>
         <div class="fares">
         {% for f in it.fares | by_eur(rates) %}
-          <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}{{ ui.class_badge(f) }}</span> <strong>{{ ui.price_change(f, seen) }}</strong>
+          <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}{{ ui.class_badge(f) }}</span> <strong>{{ ui.price_change(f, seen) }}</strong>{% if f.id in gone_fares %} <span class="muted gone">not in the last {{ gone_fares[f.id].source }} search, {{ gone_fares[f.id].captured_at | ago(now) }}</span>{% endif %}
             {% if f.booking_url %}<a class="btn" href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">{{ ui.icon("arrow-right") }}Book</a>{% endif %}
             {% if f.source == "manual" %}<a class="btn btn-ghost" href="/trips/{{ trip.id }}/fares/{{ f.id }}/price">Change price</a> <a class="btn btn-ghost" href="/trips/{{ trip.id }}/fares/{{ f.id }}/delete">Delete</a>{% endif %}</div>
         {% endfor %}
