@@ -66,7 +66,7 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Raw" on a failed bahn.de capture shows its JSON, and "Download JSON" gives the file bahn.de-<id>.json
 - [x] `capture:upload` (#1337) Upload a saved payload file of a supported source on the captures page: the server stores it as a capture of a trip and parses it, as a capture of the userscript (P3: a capture when the userscript fails or the site is open in another browser; P1: the owner saved the file, the app fetches nothing)
   - Upload of the file bahn.de-<id>.json (`capture:raw-view`) into the trip Amsterdam → Zürich shows its offers on the trip page, and a file of an unknown source or with no valid JSON gives a clear error and stores nothing
-- [ ] `capture:gone` A fare that a newer search of the same source did not return gets the mark "not in the last search": the server compares the itineraries of a capture with the older ones of the same source, trip and day in the departure span of the new capture (a sold-out fare stays on the page with its old price until it is stale, `rank:stale`)
+- [ ] `capture:gone` (#1384) A fare that a newer search of the same source did not return gets the mark "not in the last search": the server compares the itineraries of a capture with the older ones of the same source, trip and day in the departure span of the new capture (a sold-out fare stays on the page with its old price until it is stale, `rank:stale`)
   - A bahn.de search at 10:00 that shows the ICE 105 again but not the Sparpreis of €39 marks that fare "not in the last bahn.de search (10:00)", and the best offer of the trip does not use it; a connection out of the departure span of the new search keeps no mark
 
 ## 2. Rank offers by effective cost
@@ -106,6 +106,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With a hotel cost of €80, a transfer in Köln from 23:40 to 06:10 shows "overnight stop in Köln €80" in the breakdown, and a direct night train ranks above it
 - [x] `rank:arrive-by` (#1293) An "arrive by" time per trip: the hours of wait before it cost a wait value per hour, and the later offers do not show
   - With "arrive by" 14:00 and €5 per hour, an ICE that arrives at 10:30 shows "wait 3 h 30 min before 14:00 €17.50" in the breakdown
+- [ ] `rank:co2` The CO₂ of each offer in the effective cost: an estimate per traveler from the mode and the hours of each leg (kg per hour for train, bus and flight in "Advanced"), and a price per kg with the default €0, so that the score does not change until the owner sets it (P2)
+  - With €0.10 per kg and 90 kg per flight hour, a flight of 2 h shows "CO₂ 180 kg €18.00" in the breakdown, and the expanded row of each offer shows its CO₂
 
 ## 3. Plan a trip in one place
 
@@ -177,8 +179,12 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The print preview of the Upcoming page of a journey with 3 legs fits one A4 page and shows each leg with its times and number
 - [x] `trip:spend` (#1362) A summary of the booked journeys per year (`trip:booked-fare`): the count of journeys, the sum of the paid prices in EUR and the hours of travel, per mode
   - The summary for 2026 shows "7 journeys · €642.50 paid · 61 h" and one line each for train, bus and flight
-- [ ] `trip:departed` The offers that departed before now do not rank: the trip page, the days (`trip:days`), the trips list, the panel (`capture:panel-best`) and the messages (`trip:target`) use only the offers that did not depart yet; "show departed" shows the others, greyed; a booked offer stays
+- [x] `trip:departed` (#1390) The offers that departed before now do not rank: the trip page, the days (`trip:days`), the trips list, the panel (`capture:panel-best`) and the messages (`trip:target`) use only the offers that did not depart yet; "show departed" shows the others, greyed; a booked offer stays
   - At 10:00 on 20 December, the trip page of Amsterdam → Zürich does not show the ICE of 07:34 as the best offer, and the trips list shows the best of the later offers
+- [ ] `trip:alternatives` Alternative places of a trip: a trip has more than one origin or destination (for example Zürich or Basel); the captures for each of these places go to the trip (`capture:match-trip`, `capture:auto-trip`), and the access and egress places count in the score as for one place (`rank:door`)
+  - The trip Amsterdam → Zürich with the alternative destination Basel shows the ICE to Basel next to the trains to Zürich, with the egress of Basel in its breakdown, and a bahn.de search to Basel gives no "These offers do not match the trip" warning
+- [ ] `trip:booked-drop` A message by the channel of `trip:notify` when a capture shows a booked fare (`trip:booked-fare`) of the tier "flexible" or "partly refundable" (`rank:risk`) at a lower price than the paid price, so that the owner can change the booking
+  - A flexible fare booked at €89 and captured again at €69 sends one message "Booked ICE 105: now €69, paid €89 (−€20), flexible fare"; a non-refundable fare sends no message
 
 ## 4. Run it on my home server
 
