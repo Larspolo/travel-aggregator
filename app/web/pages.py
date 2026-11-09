@@ -467,9 +467,10 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
 
 def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: datetime):
     """The chosen offer of one direction (#342): booked, else pinned, else any; the lowest effective cost in the group.
-    Hidden offers never count. None when the direction has no visible offer with a fare."""
+    Hidden and departed offers never count (#1391). None when the direction has no visible offer with a fare."""
     stale_before = now - timedelta(hours=weights.stale_hours)
-    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
+    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False),
+                                                  departed.not_departed(now))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     rates = load_rates(session)
     counts, fees = fare_travelers(session, its), load_fees(session)
@@ -489,9 +490,11 @@ def best_offer(session: Session, trip: Trip):
 
 def best_for_weights(session: Session, trip: Trip, weights: Weights, now: datetime | None = None):
     """The first row of the ranked table with `weights` and no page filters (#1210): the lowest effective cost of the
-    visible itineraries with fares; a tie goes to the lowest departure. Returns (itinerary, fare, cost) or None."""
-    stale_before = (now or datetime.now(timezone.utc)) - timedelta(hours=weights.stale_hours)
-    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
+    visible, not departed (#1391) itineraries with fares; a tie goes to the lowest departure. Returns (itinerary, fare, cost) or None."""
+    now = now or datetime.now(timezone.utc)
+    stale_before = now - timedelta(hours=weights.stale_hours)
+    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False),
+                                                  departed.not_departed(now))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     places = session.scalars(select(AccessTime)).all()
     rates = load_rates(session)
@@ -536,7 +539,8 @@ def round_trip_grid(session: Session, trip: Trip, days, places, now: datetime):
     other = parts[1] if parts[0].id == trip.id else parts[0]
     w = resolve_weights(session, other, {}, None)[0]
     stale_before = now - timedelta(hours=w.stale_hours)
-    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == other.id, Itinerary.hidden.is_(False))
+    its = session.scalars(select(Itinerary).where(Itinerary.trip_id == other.id, Itinerary.hidden.is_(False),
+                                                  departed.not_departed(now))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
     rates, counts, fees = load_rates(session), fare_travelers(session, its), load_fees(session)
     rows = [(it, *row_cost(it, it.fares, places, w, stale_before, rates, counts, fees)) for it in its if it.fares]
@@ -559,7 +563,8 @@ def split_sections(session: Session, trip: Trip, weights: Weights, places, now: 
     rates, fees = load_rates(session), load_fees(session)
 
     def ranked(t: Trip):
-        its = session.scalars(select(Itinerary).where(Itinerary.trip_id == t.id, Itinerary.hidden.is_(False))
+        its = session.scalars(select(Itinerary).where(Itinerary.trip_id == t.id, Itinerary.hidden.is_(False),
+                                                      departed.not_departed(now))
                               .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
         counts = fare_travelers(session, its)
         return [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts, fees))
