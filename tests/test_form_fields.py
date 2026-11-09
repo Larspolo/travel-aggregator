@@ -11,6 +11,8 @@ from app.auth import make_password_hash
 from app.main import app
 from app.models import Trip
 
+GUARDS = ("app/web/templates/*.html",)   # ship_pr runs this file for these changes, also with --tested: no import leads to it (#730, #1328)
+
 PASSWORD = "pw"
 
 
