@@ -41,5 +41,6 @@ def split_skip(trip) -> set[str]:
     names = [trip.origin_text, trip.destination_text]
     for alt in (trip.origin_alt_text, trip.destination_alt_text):
         names += (alt or "").split(",")
-    names += [part.destination_text for part in trip.split_trips if part.origin_text == trip.origin_text]
+    origin = (trip.origin_text or "").casefold()
+    names += [part.destination_text for part in trip.split_trips if (part.origin_text or "").casefold() == origin]
     return {name.strip() for name in names if name and name.strip()}
