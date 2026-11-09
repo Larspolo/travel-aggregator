@@ -42,4 +42,30 @@
   <div class="form-actions"><button class="btn" type="submit">Log out on all other devices</button></div>
 </form>
 {% endcall %}
+{% call ui.card("Second login step") %}
+<div id="totp">
+{% if totp.error %}<p role="alert" class="chip warn">{{ totp.error }}</p>{% endif %}
+{% if totp.on %}<p><span class="chip good totp-state">On</span> The login asks for a code of your authenticator app.</p>
+<form method="post" action="/settings/totp/off">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="field"><label for="totp-off-code">Code from the app</label>
+    <input id="totp-off-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" required></div>
+  <div class="form-actions"><button class="btn" type="submit">Turn off</button></div>
+</form>
+{% else %}<p><span class="chip totp-state">Off</span> The login asks only for the password.</p>
+{% if totp.new %}<p>Add this key to your authenticator app: <code class="totp-key">{{ totp.groups }}</code></p>
+<p><a href="{{ totp.uri }}">Open in the authenticator app</a></p>
+<form method="post" action="/settings/totp/on">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="field"><label for="totp-code">Code from the app</label>
+    <input id="totp-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" required></div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Confirm</button></div>
+</form>
+{% else %}<form method="post" action="/settings/totp/start">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-actions"><button class="btn" type="submit">Turn on</button></div>
+</form>{% endif %}
+{% endif %}
+</div>
+{% endcall %}
 {% endblock %}

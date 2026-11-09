@@ -7,7 +7,7 @@
   <p class="muted">No pinned offers. Pin an offer on its trip page.</p>
   {% else %}
   <ol class="journey-parts pinned">
-  {% for it, fare in rows %}{% set trip = it.trip %}
+  {% for it, fare, low, drop in rows %}{% set trip = it.trip %}
     <li class="journey-part">
       <div class="journey-what">
         <strong><a href="/trips/{{ trip.id }}">{{ trip.title }}</a></strong>
@@ -18,7 +18,9 @@
         {% endfor %}
         </ul>
       </div>
-      <div class="journey-cost">{% if fare %}<span class="price">{{ fare.latest_price | money(fare.currency) }}</span> <span class="muted">{{ fare.source }}</span>{% else %}<span class="muted">No fare</span>{% endif %}
+      <div class="journey-cost">{% if fare %}<span class="price">{{ fare.latest_price | money(fare.currency) }}</span> <span class="muted">{{ fare.source }}</span>
+          {% if low is not none %}<span class="muted">{% if fare.latest_price > low %}lowest {{ low | money(fare.currency) }}, now {{ (fare.latest_price - low) | money(fare.currency) }} above{% else %}at its lowest{% endif %}</span>{% endif %}
+          {% if drop is not none %}<span class="drop">price dropped {{ drop | money(fare.currency) }}</span>{% endif %}{% else %}<span class="muted">No fare</span>{% endif %}
         <a href="/trips/{{ trip.id }}#it-{{ it.id }}">Open in trip</a></div>
     </li>
   {% endfor %}

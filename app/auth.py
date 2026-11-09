@@ -31,6 +31,9 @@ CSRF_KEY = "csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
 EPOCH_KEY = "epoch"
 SESSION_EPOCH = "session_epoch"  # the Setting key: +1 ends the sessions of the other browsers (#1266)
+TOTP_SECRET = "totp_secret"  # the Setting key: the base32 secret; the second login step is on when it exists (#1314)
+TOTP_STEP = "totp_step"  # the Setting key: the last used 30-second step of a code (#1314)
+NEW_TOTP_KEY = "new_totp"  # the login session key: the secret of "Turn on" before a correct code (#1314)
 
 log = logging.getLogger(__name__)
 
