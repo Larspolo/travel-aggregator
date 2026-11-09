@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 16;
+const CORE_VERSION = 17;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -20,6 +20,11 @@ const CORE_VERSION = 16;
     },
   };
   const RETRY_MS = 60000;
+  // At most this many captures wait in the queue (#1665): a longer failure of the server drops the oldest ones, so
+  // the storage of the script stays small (P3). The count of the dropped ones shows in the panel until the queue is sent.
+  const QUEUE_MAX = 20;
+  let dropped = 0;
+  const droppedText = () => (dropped === 1 ? "1 old capture dropped. " : dropped > 1 ? `${dropped} old captures dropped. ` : "");
 
   // The design tokens of app.css (#621, #1067), copied: the panel loads no CSS or font from a server (P1, P5).
   const STYLE = `
@@ -228,7 +233,7 @@ const CORE_VERSION = 16;
       return Promise.resolve("retry");
     }
     return new Promise((resolve) => {
-      const fail = () => { panel.setStatus(`Send failed: ${queueText()}, kept in the queue`, "error"); resolve("retry"); };
+      const fail = () => { panel.setStatus(`${droppedText()}Send failed: ${queueText()}, kept in the queue`, "error"); resolve("retry"); };
       gm.request({
         method: "POST",
         url: server + "/api/ingest",
@@ -259,6 +264,7 @@ const CORE_VERSION = 16;
         q = loadQueue().slice(1);
         gm.setValue("queue", q);
       }
+      if (!q.length) dropped = 0;
     } finally {
       busy = false;
     }
@@ -464,11 +470,18 @@ const CORE_VERSION = 16;
     send(payload) {
       const id = tripId();
       const item = Object.assign({}, payload, id ? { trip_id: id } : {}, autoTrip() ? { auto_trip: true } : {});
-      gm.setValue("queue", loadQueue().concat([item]));
+      let q = loadQueue().concat([item]);
+      if (q.length > QUEUE_MAX) {
+        const extra = q.length - QUEUE_MAX;
+        dropped += extra;
+        q = q.slice(extra);
+      }
+      gm.setValue("queue", q);
       if (!autoSend()) {
-        panel.setStatus(`Captured ${count(item)} offers: ${queueText()}, press Send`, "info");
+        panel.setStatus(`${droppedText()}Captured ${count(item)} offers: ${queueText()}, press Send`, "info");
         return Promise.resolve();
       }
+      if (dropped) panel.setStatus(`${droppedText()}${queueText()}`, "warn");
       return flush();
     },
   };
