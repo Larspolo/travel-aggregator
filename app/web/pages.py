@@ -518,7 +518,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               max_transfers: str = Query("", max_length=5),
               max_duration_min: str = Query("", max_length=6),
               earliest_depart: str = Query("", pattern=CLOCK_PATTERN),
-              latest_arrive: str = Query("", pattern=CLOCK_PATTERN),
+              latest_arrive: str | None = Query(None, pattern=CLOCK_PATTERN),
               day: str = Query("", pattern=r"^(\d{4}-\d{2}-\d{2})?$"),
               exclude_mode: list[Annotated[str, Field(max_length=50)]] = Query([]),
               exclude_carrier: list[Annotated[str, Field(max_length=50)]] = Query([]),
@@ -536,6 +536,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     limit_duration = min(int(max_duration_min), 10080) if max_duration_min.isdigit() else None
     # an empty box is no limit (#181); the pattern admits only HH:MM
     limit_depart = time.fromisoformat(earliest_depart) if earliest_depart else None
+    # without a latest_arrive in the query, the arrive-by time of the trip is the limit (#1296); an empty one is no limit
+    if latest_arrive is None:
+        latest_arrive = trip.arrive_by.strftime("%H:%M") if trip.arrive_by else ""
     limit_arrive = time.fromisoformat(latest_arrive) if latest_arrive else None
     # subqueryload: one statement per relation; selectinload adds one per 500 offers (#115)
     hidden_filter = [] if show_hidden else [Itinerary.hidden.is_(False)]  # "show hidden" (#200)
