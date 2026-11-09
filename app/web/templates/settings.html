@@ -3,6 +3,7 @@
 {% block title %}Settings – travel-aggregator{% endblock %}
 {% block header %}{{ ui.page_header("General", subtitle="The settings of the app and the state of its server.") }}{% endblock %}
 {% block settings %}
+{% if flash %}<p class="card" role="status">{{ flash }}</p>{% endif %}
 {% call ui.card("Captures") %}
 <form method="post" action="/settings">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
@@ -33,5 +34,12 @@
 {% call ui.card("Export") %}
 <p><a class="btn" href="/settings/export.json" download>Export the settings</a> <a class="btn" href="/settings/import">Import settings</a></p>
 <p class="help">One JSON file with the profiles, places, exchange rates, source fees and settings. It has no tokens, passwords or message addresses.</p>
+{% endcall %}
+{% call ui.card("Sessions") %}
+<form method="post" action="/settings/sessions/end-others">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p class="help">End the login on all other browsers and devices. This browser stays logged in.</p>
+  <div class="form-actions"><button class="btn" type="submit">Log out on all other devices</button></div>
+</form>
 {% endcall %}
 {% endblock %}

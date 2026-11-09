@@ -22,13 +22,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_session
-from app.models import ApiToken
+from app.models import ApiToken, Setting
 
 ALGORITHM = "pbkdf2_sha256"
 ITERATIONS = 600_000
 SESSION_KEY = "owner"
 CSRF_KEY = "csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
+EPOCH_KEY = "epoch"
+SESSION_EPOCH = "session_epoch"  # the Setting key: +1 ends the sessions of the other browsers (#1266)
 
 log = logging.getLogger(__name__)
 
@@ -129,8 +131,18 @@ class TokenLimiter(LoginLimiter):
 token_limiter = TokenLimiter()
 
 
-def require_login(request: Request) -> None:
+def session_epoch(session: Session) -> int:
+    """The current login epoch; 0 when the row is missing (#1266)."""
+    row = session.get(Setting, SESSION_EPOCH)
+    return int(row.value) if row is not None else 0
+
+
+def require_login(request: Request, session: Session = Depends(get_session)) -> None:
     if not request.session.get(SESSION_KEY):
+        raise LoginRequired()
+    # A session from before #1266 has no epoch: it counts as epoch 0.
+    if request.session.get(EPOCH_KEY, 0) != session_epoch(session):
+        request.session.clear()
         raise LoginRequired()
 
 
