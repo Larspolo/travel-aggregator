@@ -466,6 +466,12 @@ Each point is one day. Its title shows the date and the value, for example "2026
 The value of a day follows this rule: for each fare, the app takes its newest price at the end of the day (UTC). It then takes the lowest EUR value of these prices. A day with no capture keeps the value of the day before. A price with no exchange rate does not count, and a hidden offer does not count.
 The chart shows only when the trip has captures on 2 or more days.
 
+### Earlier trips on the same route
+
+The trip page shows an "Earlier trips on this route" card below the price trend. It lists the older trips with the same origin and destination. A split part of a trip does not count, and a trip on a later date does not count.
+Each line shows the month of the older trip as a link to that trip, its cheapest seen price per traveler in EUR, and the price you paid for it per traveler, when you booked an offer of that trip. The cheapest price shows "-" when that trip has no price. The list shows at most 5 trips, the newest first.
+The card shows only when the route has an older trip.
+
 ### What is new since your last view
 
 A trip page counts as viewed when you open it in full. The app then remembers the time of the view. The next time you look, it shows what changed since then:
