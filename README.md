@@ -240,6 +240,7 @@ Check: `curl https://<host>/api/health` shows the commit of the new release.
 | `PASSKEY_ORIGIN` | The origin of the passkeys, for example `https://travel.example.com`. Empty: the origin of the request (the reverse proxy must send `X-Forwarded-Proto` and `Host`) |
 | `BACKUP_INTERVAL_HOURS` | The hours between two daily backups of the service `backup` (default `24`) |
 | `BACKUP_KEEP` | The number of daily dumps that stay; the older ones are deleted (default `14`, at least `1`) |
+| `PASSKEY_ORIGIN` | The origin of the passkeys, for example `https://travel.example.com` (see "Passkeys"). Empty: the origin of the request. Set it when the reverse proxy does not send `X-Forwarded-Proto` and `Host` |
 
 To turn on Web Push, run `python3 -m app.notify` once. It prints `VAPID_PUBLIC_KEY=...` and `VAPID_PRIVATE_KEY=...`.
 Put both lines and a `VAPID_SUBJECT` in the `.env` file, then restart the app. The settings page then shows the
@@ -349,7 +350,9 @@ Each row shows the date and time (UTC), the IP address, the browser, and the res
 - "login": a login with the password.
 - "login with code": a login with the password and a code of the authenticator app.
 - "recovery code": a login with a recovery code.
-- "failed" and "failed (code)": a wrong password, or a wrong code. These rows are marked in orange.
+- "login with passkey": a login with a passkey (see "Passkeys").
+- "failed", "failed (code)" and "failed (passkey)": a wrong password, a wrong code, or a passkey that is not correct
+  or not known. These rows are marked in orange.
 
 Check this card often. If you see a login or a failed login that you did not make, act at once:
 
@@ -385,6 +388,33 @@ docker compose exec app python3 -m app.totp off
 ```
 
 The command prints "The second login step is off." The API tokens need no code: they work as before.
+
+### Passkeys
+
+A passkey logs you in with the lock of your device (a fingerprint, the face or the PIN), with no password and no code
+of the authenticator app. The password login stays: the page "Log in" always shows the password field.
+
+To add a passkey:
+
+1. Open the card "Passkeys" on the settings page (`/settings`).
+2. Type a name in "Name of the device", for example "Laptop", and click "Add a passkey".
+3. Confirm with the lock of your device. The page shows the new passkey in the list.
+
+Each row of the list shows the name, the date it was added, and the date of the last use ("never used" before the first
+login). Add one passkey on each device that you use.
+
+When one or more passkeys are stored, the page "Log in" shows the button "Log in with a passkey". Click it and
+confirm with the lock of your device. A passkey login does not ask for the code of the second login step. A passkey
+that is not correct counts as a failed login: the card "Recent logins" shows "failed (passkey)".
+
+To remove a passkey, click "Remove" in its row. It stops working at once. Remove the passkey of a lost device, and then
+click "Log out on all other devices" (see above).
+
+A passkey works only on the address where you added it. The browser accepts passkeys only on `https://` or on
+`localhost`. The app takes the address from the request: behind a reverse proxy, the proxy must send `X-Forwarded-Proto`
+and `Host`. If it does not, set `PASSKEY_ORIGIN` in `.env` to the address of the app, for example
+`PASSKEY_ORIGIN=https://travel.example.com`, and restart the app. If you change the address of the app later, add
+the passkeys again.
 
 ### Use a phone
 
@@ -1263,6 +1293,14 @@ The trip form has the field **Arrive by**: the local time at the destination. An
 
 - The trip page hides each offer whose last leg arrives after this time, on the day of its departure. A `latest_arrive` value in the query replaces this time. An empty `latest_arrive` shows all offers.
 - **Wait before the arrival time, € per hour**, in "Advanced", default `0`. An offer that arrives before the time costs the waiting hours at this rate. The breakdown shows the part "wait 3 h 30 min before 14:00". An arrival at or after the time adds no part. A value of 0 removes the part.
+
+### Hour value per mode
+
+The **Advanced** section under the sliders has four fields, one for each mode: **Train hour €**, **Bus hour €**,
+**Flight hour €** and **Ferry hour €**. Each field is empty by default, and an empty field means the hour markup. A value
+gives the legs of that mode their own hour value. The breakdown shows the difference to the hour markup as the part
+`<mode> hours` (for example `train hours`), for the minutes of the legs of that mode. A value equal to the hour markup
+adds no part. The part `airport time` of a flight uses the **Flight hour €** value too, when it is set.
 
 ### Risk
 
