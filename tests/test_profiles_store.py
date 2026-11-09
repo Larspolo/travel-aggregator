@@ -19,6 +19,7 @@ CHANGED = {"hour_markup": "22.5", "transfer_markup": "7", "airport_before_min": 
            "night_start": "22:30", "night_end": "05:45", "night_min": "180", "night_adjust": "-20", "overnight_min": "300", "overnight_cost": "70", "wait_hour_markup": "4",
            "night_hour_markup": "4", "short_transfer_min": "12", "short_transfer_penalty": "30",
            "train_markup": "-5", "bus_markup": "3", "flight_markup": "40", "ferry_markup": "2",
+           "co2_price_kg": "0.10", "co2_train_kg_h": "4", "co2_bus_kg_h": "1", "co2_flight_kg_h": "70", "co2_ferry_kg_h": "5",
            "flex_non_refundable": "8", "flex_partly_refundable": "4", "flex_flexible": "-6",
            "first_class_hour": "-3",
            "self_transfer_penalty": "15", "stale_hours": "48", "stale_penalty": "9",
