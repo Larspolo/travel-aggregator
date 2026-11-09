@@ -93,7 +93,7 @@ def test_search_response_is_sent_as_raw_capture(page, kind):
     sent = page.evaluate("window.__ingest")[0]
     assert sent["url"] == "https://ta.example/api/ingest"
     b = sent["body"]
-    assert (b["source"], b["trip_id"], b["parser_version"]) == ("thetrainline.com", 5, "1.0.0")
+    assert (b["source"], b["trip_id"], b["parser_version"]) == ("thetrainline.com", 5, "1.1.0")
     raw = b["raw"]
     assert raw["url"] == SEARCH_URL
     assert raw["method"] == "POST"

@@ -43,7 +43,7 @@ def fare_name(type_name: str, class_name: str) -> str:
 
 class TrainlineParser:
     source = "thetrainline.com"
-    version = "1.0.0"
+    version = "1.1.0"
     hosts = ("www.thetrainline.com",)
     paths = ("/api/journey-search/",)
 
@@ -98,6 +98,8 @@ class TrainlineParser:
                 to_code=None,
                 depart_at=aware(leg["departAt"]),
                 arrive_at=aware(leg["arriveAt"]),
+                # Trainline books the mandatory reservation with the ticket: the price is the full price (#1622)
+                reservation="included" if leg.get("isReservationMandatory") is True else None,
             ))
         best: dict[str, tuple[Decimal, str, str | None]] = {}
         for section_id in journey.get("sections") or []:
