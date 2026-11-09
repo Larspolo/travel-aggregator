@@ -3,6 +3,7 @@ untrusted (P5)."""
 
 import dataclasses
 import inspect
+import json
 import math
 import os
 import re
@@ -25,7 +26,7 @@ from app.web.userscripts import bundle_info, userscript_list
 from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter,
                       require_login, session_epoch, verify_csrf)
 from app import departed
-from app.backup import BACKUP_MAX_AGE, newest_backup
+from app.backup import BACKUP_MAX_AGE, STAMP_FORMAT, newest_backup
 import segno
 from markupsafe import Markup
 
@@ -1417,12 +1418,34 @@ def save_fee(request: Request, source: str = Form(""), amount: str = Form(""),
     return RedirectResponse("/fees", status_code=303)
 
 
+def _backup_check(session: Session, newest: tuple[datetime, int] | None) -> dict | None:
+    """The result of the check of the newest backup (#1491). The daily loop writes the setting `backup_check` (#1490).
+
+    The stamp at the start of the file name gives its time: a check of another file gives "none". A broken value gives "none".
+    """
+    if newest is None:
+        return None
+    try:
+        data = json.loads(setting(session, "backup_check"))
+        checked = datetime.strptime(str(data["file"]).split("-", 1)[0], STAMP_FORMAT).replace(tzinfo=timezone.utc)
+    except (ValueError, TypeError, KeyError, AttributeError):
+        return {"state": "none"}
+    if checked != newest[0]:
+        return {"state": "none"}
+    if "error" in data:
+        return {"state": "failed", "at": str(data.get("at", "")), "error": str(data["error"])}
+    if isinstance(data.get("tables"), int):
+        return {"state": "ok", "tables": data["tables"]}
+    return {"state": "none"}
+
+
 @router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def settings_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     """General: the capture retention period and the state of the backups (#925)."""
     newest = newest_backup(Path(os.environ.get("BACKUP_DIR", "/backups")))
     days = retention_days(session)
     return templates.TemplateResponse(request, "settings.html", {"backup": newest,
+                                                                     "backup_check": _backup_check(session, newest),
                                                                  "backup_old": newest is not None and
                                                                  datetime.now(timezone.utc) - newest[0] > BACKUP_MAX_AGE,
                                                                  "retention_days": days,

@@ -27,6 +27,9 @@
 {% endcall %}
 {% call ui.card("Backups") %}
 {% if backup %}<p>Newest backup: {{ backup[0].strftime("%Y-%m-%d %H:%M") }} UTC, {{ "%.1f"|format(backup[1] / 1048576) }} MB ({{ backup[1] }} bytes).</p>
+{% if backup_check and backup_check.state == "ok" %}<p class="chip good backup-check">Checked: {{ backup_check.tables }} tables</p>
+{% elif backup_check and backup_check.state == "failed" %}<p role="alert" class="chip warn backup-check">Check failed at {{ backup_check.at }} UTC: {{ backup_check.error }}</p>
+{% else %}<p class="chip backup-check">Not checked yet</p>{% endif %}
 {% if backup_old %}<p role="alert" class="chip warn backup-state">The newest backup is older than 48 hours.</p>
 {% else %}<p class="chip good backup-state">Recent backup</p>{% endif %}
 {% else %}<p role="alert" class="chip warn backup-state">No backup yet.</p>{% endif %}
