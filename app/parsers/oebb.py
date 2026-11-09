@@ -86,6 +86,8 @@ def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None]]:
 class OebbParser:
     source = "oebbtickets.at"
     version = "1.0.0"
+    hosts = ("shop.oebbtickets.at",)
+    paths = ("/api/hafas/v4/timetable", "/api/offer/v1/prices", "/api/offer/v6/offers")
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"response", "prices"} or of the response body only."""

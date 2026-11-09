@@ -34,6 +34,16 @@ def money(value: Any) -> Decimal:
 class EurostarParser:
     source = "eurostar.com"
     version = "1.0.0"
+    hosts = ("site-api.eurostar.com",)
+    paths = ("/gateway",)
+
+    @staticmethod
+    def har_raw(url, method, request, response):
+        """The raw form of the userscript: the operation and its variables, not the query text; None for other operations."""
+        if not isinstance(request, dict) or request.get("operationName") != "NewBookingSearch":
+            return None
+        body = {"operationName": request["operationName"], "variables": request.get("variables")}
+        return {"url": url, "method": method, "request": {"method": method, "body": body}, "response": response}
 
     def parse(self, raw: Any) -> ParseResult:
         """Offers of a capture {"url", "request", "response"}, of the response body only, or of its JSON text."""
