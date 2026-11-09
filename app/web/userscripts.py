@@ -23,6 +23,8 @@ REQUIRE_CORE = re.compile(r"^// @require[ \t]+\S*core\.js[ \t]*$", re.MULTILINE)
 UPDATE_LINES = re.compile(r"^// @(?:updateURL|downloadURL)[ \t].*\n?", re.MULTILINE)
 VERSION_LINE = re.compile(r"^// @version[ \t]+(\S+)[ \t]*$", re.MULTILINE)
 CORE_VERSION_LINE = re.compile(r"^const CORE_VERSION = (\d+);", re.MULTILINE)
+SOURCE_LINE = re.compile(r'^\s*const SOURCE = "([^"]+)";', re.MULTILINE)
+PARSER_VERSION_LINE = re.compile(r'^\s*const PARSER_VERSION = "([^"]+)";', re.MULTILINE)
 END_HEADER = "// ==/UserScript=="
 BUNDLE = "travel-aggregator.user.js"
 BUNDLE_NAME = "travel-aggregator: all sites"
@@ -59,6 +61,23 @@ def allowed_names() -> set[str]:
 def site_files() -> list[Path]:
     """The site userscripts of the directory (the bundle name is never a file of it)."""
     return [p for p in sorted(USERSCRIPTS_DIR.glob("*.user.js")) if p.name != BUNDLE]
+
+
+def served_versions() -> dict[str, str]:
+    """The PARSER_VERSION of each site script, by its SOURCE (#1494): "bahn.de" -> "1.2.0".
+
+    Raise PARSER_VERSION of a site script when a change of the script changes what it sends to the server. The
+    captures page then warns about the old installed scripts (epic #1493). A file with no SOURCE or no
+    PARSER_VERSION line is not in the map.
+    """
+    result = {}
+    for path in site_files():
+        text = path.read_text(encoding="utf-8")
+        source = SOURCE_LINE.search(text)
+        parser_version = PARSER_VERSION_LINE.search(text)
+        if source and parser_version:
+            result[source.group(1)] = parser_version.group(1)
+    return result
 
 
 def _weight(version: str) -> int:
