@@ -25,6 +25,9 @@ from app.web.userscripts import bundle_info, userscript_list
 from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter, require_login,
                       session_epoch, verify_csrf)
 from app.backup import BACKUP_MAX_AGE, newest_backup
+import segno
+from markupsafe import Markup
+
 from app import totp
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
@@ -1264,7 +1267,9 @@ def totp_state(request: Request, session: Session) -> dict:
     new = request.session.get(NEW_TOTP_KEY)
     return {"on": session.get(Setting, TOTP_SECRET) is not None, "new": new,
             "groups": " ".join(new[i:i + 4] for i in range(0, len(new), 4)) if new else "",
-            "uri": totp.uri(new) if new else "", "error": request.session.pop("totp_error", None)}
+            "uri": totp.uri(new) if new else "",
+            "qr": Markup(segno.make(totp.uri(new), error="m").svg_inline(scale=4)) if new else "",
+            "error": request.session.pop("totp_error", None)}
 
 
 def _new_epoch(request: Request, session: Session) -> None:

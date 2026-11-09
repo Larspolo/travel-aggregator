@@ -53,7 +53,8 @@
   <div class="form-actions"><button class="btn" type="submit">Turn off</button></div>
 </form>
 {% else %}<p><span class="chip totp-state">Off</span> The login asks only for the password.</p>
-{% if totp.new %}<p>Add this key to your authenticator app: <code class="totp-key">{{ totp.groups }}</code></p>
+{% if totp.new %}<div class="totp-qr">{{ totp.qr }}</div>
+<p>Add this key to your authenticator app: <code class="totp-key">{{ totp.groups }}</code></p>
 <p><a href="{{ totp.uri }}">Open in the authenticator app</a></p>
 <form method="post" action="/settings/totp/on">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">

@@ -651,3 +651,4 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 .split-pairs li { margin: 0.5rem 0; overflow-wrap: anywhere; }
 .split-pairs li > span { display: block; }
 .split-diff.good { color: var(--good, inherit); font-weight: 600; }
+.totp-qr svg { display: block; max-width: 100%; height: auto; background: #fff; }
