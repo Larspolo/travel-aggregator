@@ -56,10 +56,12 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A search on Trainline shows its offers on the trip page; the offers can repeat those of bahn.de (`capture:merge`)
 - [x] `capture:health-alert` (#1171) A message to the owner by the channel of `trip:notify` when the captures of a source fail (`capture:health`)
   - When the newest 2 captures of bahn.de fail, the owner gets one message "bahn.de: the last 2 captures failed" with the link to the failed captures; after the next good capture, "bahn.de works again"
-- [ ] `capture:day-prices` (#1183) The day prices of bahn.de ("Bestpreise"): the cheapest price per day of a search, in the days of `trip:days`
+- [x] `capture:day-prices` (#1195) The day prices of bahn.de ("Bestpreise"): the cheapest price per day of a search, in the days of `trip:days`
   - After a bahn.de search with the day prices on, a trip from 18 to 22 December shows "from €39 (bahn.de day price)" for each day that has no captured connection
 - [ ] `capture:flight-2` (#1182) A second flight source, by the decision #1182
   - A search on the chosen flight site shows its flights on the trip page; the same flight from Kiwi.com and that site shows as one row (`capture:merge`)
+- [ ] `capture:manual-edit` (#1251) Correct or delete a manual offer (`capture:manual`): delete it, or change its price; a captured fare has no such action (use "Hide")
+  - "Change price" from €90 to €85 on a manual fare shows €85 on the trip page and 2 points in its price history; "Delete" removes the manual offer from the trip page
 
 ## 2. Rank offers by effective cost
 
@@ -92,8 +94,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The owner sees on one page if a return flight or the best two single-way offers (train, bus or flight) cost less in effective cost
 - [x] `rank:source-fee` (#1141) The booking fee of each source in the effective cost
   - With a Trainline fee of €1.50, the same ICE from bahn.de at €90 and from Trainline at €89 ranks the bahn.de fare first
-- [ ] `rank:profile-compare` (#1205) The best offer of a trip for each profile on the trip page, with a link that selects the profile
+- [x] `rank:profile-compare` (#1205) The best offer of a trip for each profile on the trip page, with a link that selects the profile
   - With the profiles Cheap (€2 per hour) and Comfort (€30 per hour), the trip page shows "Best by profile": Cheap gives the slow Flixbus at effective €97 and Comfort the ICE at effective €121
+- [ ] `rank:overnight` (#1255) A transfer in the night costs a hotel night: an amount and a minimum of night minutes in "Advanced"
+  - With a hotel cost of €80, a transfer in Köln from 23:40 to 06:10 shows "overnight stop in Köln €80" in the breakdown, and a direct night train ranks above it
 
 ## 3. Plan a trip in one place
 
@@ -155,8 +159,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A row booked at €59.80 shows "Paid €59.80" and, after a capture at €89, "now €89.00 (+€29.20)"; Upcoming shows the total paid
 - [x] `trip:split` (#1176) Split tickets: a trip A → B with a via place X combines the captured connections A → X and X → B into rows with one sum
   - A trip Amsterdam → Zürich split via Köln shows "Split tickets via Köln": the best pairs of a connection to Köln and a connection from Köln, with at least the transfer time of the profile between them, their sum in effective cost with the self-transfer penalty, and the difference to the best direct offer
-- [ ] `trip:find` A search field on the trips list and the archive: it finds the trips by their title, places and note, also with no accents
+- [x] `trip:find` (#1219) A search field on the trips list and the archive: it finds the trips by their title, places and note, also with no accents
   - On a list of 40 trips, the text "zur" shows only the trips with Zürich in the title or a place, also the archived trip "Zürich Christmas"
+- [ ] `trip:merge` (#1260) Merge two trips of the same journey: the offers, prices, captures, day prices and marks go to one trip, and the other trip is deleted
+  - "Merge into" on the edit page of a second Amsterdam → Zürich moves all its offers into the first trip, with one row for the same journey, and the second trip is not in the trips list
 
 ## 4. Run it on my home server
 
@@ -185,7 +191,9 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - In flight mode, the app on the phone opens Upcoming with the journeys and "Offline: saved at 14:05"; after "Log out", it shows no journey
 - [x] `host:backup-alert` (#1085) A message to the owner by the channel of `trip:notify` when the daily backup fails or the newest backup is older than 48 hours
   - When the daily dump fails, the owner gets one message "Backup failed" on the phone; after the next good dump, "Backup works again"
-- [ ] `host:settings-export` (#1204) Export and import of the settings as one JSON file: the profiles, places, exchange rates, source fees and settings values, with no tokens, passwords or message addresses (P5), so that a new instance ranks as the old one (`host:import`)
+- [x] `host:settings-export` (#1204) Export and import of the settings as one JSON file: the profiles, places, exchange rates, source fees and settings values, with no tokens, passwords or message addresses (P5), so that a new instance ranks as the old one (`host:import`)
   - A trip and the settings exported from one instance and imported into an empty instance show the same order and the same effective costs on the trip page
-- [ ] `host:storage` The size of the data on the settings page: the database size, the size and count of the raw captures per source, and what the next retention cleanup removes (`host:retention`)
+- [x] `host:storage` (#1234) The size of the data on the settings page: the database size, the size and count of the raw captures per source, and what the next retention cleanup removes (`host:retention`)
   - The settings page shows "Database 412 MB · raw captures 318 MB in 9,204 captures · the next cleanup removes 1,120 captures (88 MB)"
+- [ ] `host:sessions` (#1265) Log out on all other devices: one button on the settings page ends the other login sessions (P5)
+  - After "Log out on all other devices" on the computer, the next page on the phone goes to the login page; the computer stays logged in, and the API tokens still work
