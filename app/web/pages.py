@@ -1349,6 +1349,33 @@ def save_note(trip_id: int, itinerary_id: int, note: str = Form("", max_length=2
 PAID_PRICE_MAX = Decimal("100000")  # the paid price is below this (#1148)
 
 
+DELAY_MAX_MIN = 1440  # the arrival delay is 0 to this number of minutes (#1691)
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/delay",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_delay(trip_id: int, itinerary_id: int, minutes: str = Form(""),
+               session: Session = Depends(get_session)) -> RedirectResponse:
+    """The owner stores the arrival delay of a booked journey that arrived (#1691): a whole number of 0 to 1440
+    minutes. A blank clears the delay; a bad value is 422 and stores nothing."""
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    if not it.booked:
+        raise HTTPException(status.HTTP_409_CONFLICT, "the itinerary is not booked")
+    if it.arrive_at > datetime.now(timezone.utc):
+        raise HTTPException(status.HTTP_409_CONFLICT, "the journey did not arrive yet")
+    text = minutes.strip()
+    if not text:
+        it.delay_min = None
+    elif not re.fullmatch(r"[0-9]{1,4}", text) or int(text) > DELAY_MAX_MIN:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the delay needs a whole number of 0 to 1440")
+    else:
+        it.delay_min = int(text)
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/paid",
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 def save_paid(trip_id: int, itinerary_id: int, fare_id: int = Form(...), price: str = Form(...),
