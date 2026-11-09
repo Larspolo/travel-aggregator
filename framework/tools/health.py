@@ -413,6 +413,13 @@ def run_costs(comments):
     return out
 
 
+def lane_shares(costs):
+    """{lane: ($ sum, share of the $ of all lanes)} of `run_costs` (#1508). The median cost of a run hides the count of
+    runs: the deep lane made 46 % of the cost of the runs in one period of 100 merged PRs, and 65 % in the next."""
+    total = sum(map(sum, costs.values()))
+    return {k: (sum(v), sum(v) / total if total else 0.0) for k, v in costs.items()}
+
+
 FORCE = re.compile(r"^Tokens: .*? · force (\d+) · sinks ", re.M)
 
 
@@ -865,9 +872,11 @@ def report(since, runs, jobs, status_comments, comments, prs, files, files_of=No
     spent = sum(map(sum, costs.values()))
     out.append(f"API list price of the runs (the `cost` of {sum(map(len, costs.values()))} Tokens lines): ${spent:.0f}"
                + (f" · per merged PR ${spent / len(ok):.2f}" if spent and ok else ""))
+    shares = lane_shares(costs)
     for name, (n, pr, mins, eq) in sorted(lanes(status_comments).items()):
         out.append(f"Lane {name}: {n} runs, {pr} PRs, median {fmt(med(mins))} min, median {fmt(med(eq))}M eq"
-                   + (f", median ${med(costs[name]):.2f} per run" if costs.get(name) else ""))
+                   + (f", median ${med(costs[name]):.2f} per run, sum ${shares[name][0]:.0f}"
+                      f" ({shares[name][1]:.0%} of the cost)" if costs.get(name) else ""))
     took, nfail, first, later = next_effect(status_comments)
     out.append(f"Next tickets (#5308): {took} runs took a next: ticket, {nfail} failed next: claims, M eq per ticket:"
                f" first {fmt(first)}, later {fmt(later)}")
