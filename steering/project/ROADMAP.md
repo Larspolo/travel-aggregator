@@ -106,8 +106,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With a hotel cost of €80, a transfer in Köln from 23:40 to 06:10 shows "overnight stop in Köln €80" in the breakdown, and a direct night train ranks above it
 - [x] `rank:arrive-by` (#1293) An "arrive by" time per trip: the hours of wait before it cost a wait value per hour, and the later offers do not show
   - With "arrive by" 14:00 and €5 per hour, an ICE that arrives at 10:30 shows "wait 3 h 30 min before 14:00 €17.50" in the breakdown
-- [ ] `rank:co2` The CO₂ of each offer in the effective cost: an estimate per traveler from the mode and the hours of each leg (kg per hour for train, bus and flight in "Advanced"), and a price per kg with the default €0, so that the score does not change until the owner sets it (P2)
+- [x] `rank:co2` (#1415) The CO₂ of each offer in the effective cost: an estimate per traveler from the mode and the hours of each leg (kg per hour for train, bus and flight in "Advanced"), and a price per kg with the default €0, so that the score does not change until the owner sets it (P2)
   - With €0.10 per kg and 90 kg per flight hour, a flight of 2 h shows "CO₂ 180 kg €18.00" in the breakdown, and the expanded row of each offer shows its CO₂
+- [ ] `rank:filtered` The trip page shows how many offers the hard filters (`rank:filters`) and the table filters hide, for each filter, and the best hidden offer, so that a forgotten filter does not hide the best offer (P2: the ranking stays explainable)
+  - With "max transfers 1", the trip page shows "3 offers hidden by the filters: 2 by max transfers, 1 by excluded carrier", and "best hidden: €84 effective, below the best shown €97"; "show them" shows the 3 rows greyed with the filter that hides each
 
 ## 3. Plan a trip in one place
 
@@ -181,10 +183,14 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - The summary for 2026 shows "7 journeys · €642.50 paid · 61 h" and one line each for train, bus and flight
 - [x] `trip:departed` (#1390) The offers that departed before now do not rank: the trip page, the days (`trip:days`), the trips list, the panel (`capture:panel-best`) and the messages (`trip:target`) use only the offers that did not depart yet; "show departed" shows the others, greyed; a booked offer stays
   - At 10:00 on 20 December, the trip page of Amsterdam → Zürich does not show the ICE of 07:34 as the best offer, and the trips list shows the best of the later offers
-- [ ] `trip:alternatives` Alternative places of a trip: a trip has more than one origin or destination (for example Zürich or Basel); the captures for each of these places go to the trip (`capture:match-trip`, `capture:auto-trip`), and the access and egress places count in the score as for one place (`rank:door`)
+- [x] `trip:alternatives` (#1421) Alternative places of a trip: a trip has more than one origin or destination (for example Zürich or Basel); the captures for each of these places go to the trip (`capture:match-trip`, `capture:auto-trip`), and the access and egress places count in the score as for one place (`rank:door`)
   - The trip Amsterdam → Zürich with the alternative destination Basel shows the ICE to Basel next to the trains to Zürich, with the egress of Basel in its breakdown, and a bahn.de search to Basel gives no "These offers do not match the trip" warning
 - [ ] `trip:booked-drop` A message by the channel of `trip:notify` when a capture shows a booked fare (`trip:booked-fare`) of the tier "flexible" or "partly refundable" (`rank:risk`) at a lower price than the paid price, so that the owner can change the booking
   - A flexible fare booked at €89 and captured again at €69 sends one message "Booked ICE 105: now €69, paid €89 (−€20), flexible fare"; a non-refundable fare sends no message
+- [ ] `trip:split-suggest` Via places for split tickets (`trip:split`) from the captures: the transfer places of the captured itineraries of a trip, in the order of their count, so that the owner knows which split trip to search (the app fetches nothing, P1)
+  - On the trip Amsterdam → Zürich with captured connections that change in Köln and Basel SBB, the edit page shows "Köln (12 offers)" and "Basel SBB (5 offers)" next to "Split via", and a click on one fills the field
+- [ ] `trip:spend-co2` The CO₂ estimate of the booked journeys (`rank:co2`) in the summary per year (`trip:spend`): the kg per traveler in total and per mode, with the kg per hour of the default profile
+  - The summary for 2026 shows "7 journeys · €642.50 paid · 61 h · CO₂ about 410 kg" and the kg on the line of each mode
 
 ## 4. Run it on my home server
 
