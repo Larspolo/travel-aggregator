@@ -268,6 +268,19 @@ class PushSubscription(Base):
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
 
 
+class Passkey(Base):
+    """One passkey of the owner (#1558): the public key of a WebAuthn credential. The private key stays on the device."""
+    __tablename__ = "passkeys"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    credential_id: Mapped[bytes] = mapped_column(LargeBinary, unique=True)
+    public_key: Mapped[bytes] = mapped_column(LargeBinary)  # COSE_Key
+    sign_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    name: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
+    last_used_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
+
+
 class DayPrice(Base):
     """The newest cheapest price of one local day of a trip, by source (#1197): from a day price response
     (`ParseResult.day_prices`). A later capture replaces the price; one row per source, trip and day."""
