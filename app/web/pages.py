@@ -1127,7 +1127,7 @@ WEIGHT_RANGES = {
     "hour_tier2_markup": (0, 100),
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
     "train_hour_markup": (0, 100), "bus_hour_markup": (0, 100), "flight_hour_markup": (0, 100),
-    "ferry_hour_markup": (0, 100),  # (#1568)
+    "ferry_hour_markup": (0, 100),  # (#1567)
 }
 
 
