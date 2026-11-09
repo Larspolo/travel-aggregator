@@ -7,6 +7,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import departed
 from app.currency import load_rates, to_eur
 from app.models import Fare, Itinerary, Leg, Trip
 
@@ -36,7 +37,8 @@ def at_target(session: Session, trip: Trip) -> list[TargetFare]:
     rows = session.execute(
         select(Fare, Itinerary.depart_at, Itinerary.mode_summary, first_offset.scalar_subquery().label("offset"))
         .join(Itinerary, Fare.itinerary_id == Itinerary.id)
-        .where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False), Fare.latest_price.is_not(None))
+        .where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False), Fare.latest_price.is_not(None),
+                    departed.not_departed(departed.clock()))  # a departed fare is not at target (#1393)
         .order_by(Fare.id)).all()
     result = []
     for f, d, m, o in rows:

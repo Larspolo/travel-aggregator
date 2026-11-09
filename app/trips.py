@@ -7,6 +7,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session, object_session
 
+from app import departed
 from app.currency import EUR, to_eur
 from app.models import CurrencyRate, Fare, Itinerary, Trip
 
@@ -36,6 +37,7 @@ def list_trips(session: Session) -> list[TripRow]:
 
     The rates come with the same statement (a join of `currency_rates`), so the page stays one query.
     A fare with no rate does not count; a trip with only such fares shows its lowest price with `no_rate`."""
+    departed_now = departed.clock()  # a departed offer counts for neither the count nor the best offer (#1393)
     stmt = (
         select(
             Trip.id, Trip.title, Trip.origin_text, Trip.destination_text, Trip.date_from, Trip.date_to,
@@ -43,7 +45,8 @@ def list_trips(session: Session) -> list[TripRow]:
             Itinerary.id.label("itinerary_id"),
             Fare.latest_price, Fare.currency, CurrencyRate.eur_per_unit,
         )
-        .outerjoin(Itinerary, (Itinerary.trip_id == Trip.id) & Itinerary.hidden.is_(False))
+        .outerjoin(Itinerary, (Itinerary.trip_id == Trip.id) & Itinerary.hidden.is_(False)
+                    & departed.not_departed(departed_now))
         .outerjoin(Fare, (Fare.itinerary_id == Itinerary.id) & Fare.latest_price.is_not(None))
         .outerjoin(CurrencyRate, CurrencyRate.code == Fare.currency)
         .order_by(Trip.date_from.asc().nulls_last(), Trip.id)
