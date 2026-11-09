@@ -898,6 +898,13 @@ The button does not send a request to the travel site.
 
 A reparse replaces the stored parse result with the new one. Reload the page to see it.
 
+### Raw payload of a capture
+
+The captures pages have a "Raw" link for each capture with raw data. The link opens `/captures/{id}/raw`: the source, the
+capture id and the raw payload as text. A capture with no raw data shows "No raw payload" instead of the link.
+A long payload shows only its start, with the note "The payload is N KB; download it to see all of it."
+The button "Download JSON" on that page downloads the whole raw payload as a JSON file named `<source>-<id>.json`.
+
 ### Status of the sources
 
 The page `/captures` shows the status of each source above the list of captures, in a table with the columns "Source",
