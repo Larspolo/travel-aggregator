@@ -63,6 +63,20 @@
       <label>Self-transfer €
         <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
     </fieldset>
+    <fieldset><legend>Carriers</legend>
+      <label>Carrier 1 name
+        <input type="text" name="carrier1_name" maxlength="100" value="{{ weights.carrier1_name }}"></label>
+      <label>Carrier 1 markup € (negative = discount)
+        <input type="number" name="carrier1_markup" min="-1000" max="1000" step="0.01" value="{{ weights.carrier1_markup }}"></label>
+      <label>Carrier 2 name
+        <input type="text" name="carrier2_name" maxlength="100" value="{{ weights.carrier2_name }}"></label>
+      <label>Carrier 2 markup € (negative = discount)
+        <input type="number" name="carrier2_markup" min="-1000" max="1000" step="0.01" value="{{ weights.carrier2_markup }}"></label>
+      <label>Carrier 3 name
+        <input type="text" name="carrier3_name" maxlength="100" value="{{ weights.carrier3_name }}"></label>
+      <label>Carrier 3 markup € (negative = discount)
+        <input type="number" name="carrier3_markup" min="-1000" max="1000" step="0.01" value="{{ weights.carrier3_markup }}"></label>
+    </fieldset>
     <fieldset><legend>CO₂</legend>
       <label>CO₂ price € per kg
         <input type="number" name="co2_price_kg" min="0" max="10" step="0.01" value="{{ weights.co2_price_kg }}"></label>

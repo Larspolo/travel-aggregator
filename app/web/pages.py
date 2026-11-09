@@ -51,7 +51,7 @@ from app.trend import trip_trend
 from app.money import money
 from app.coverage import trip_coverage
 from app.sourcehealth import failing_sources
-from app.risk import mode_extras, self_transfer_extras, stale_extras, station_change_extras, station_changes, transfer_extras
+from app.risk import carrier_extras, mode_extras, self_transfer_extras, stale_extras, station_change_extras, station_changes, transfer_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -419,7 +419,13 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  hour_tier1_after_min: int | None = Query(None, ge=0, le=2880),
                  hour_tier1_markup: Decimal | None = Query(None, ge=0, le=100),
                  hour_tier2_after_min: int | None = Query(None, ge=0, le=2880),
-                 hour_tier2_markup: Decimal | None = Query(None, ge=0, le=100)) -> dict:
+                 hour_tier2_markup: Decimal | None = Query(None, ge=0, le=100),
+                 carrier1_name: str | None = Query(None, max_length=100),
+                 carrier1_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 carrier2_name: str | None = Query(None, max_length=100),
+                 carrier2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 carrier3_name: str | None = Query(None, max_length=100),
+                 carrier3_markup: Decimal | None = Query(None, ge=-1000, le=1000)) -> dict:
     """The weights of the URL; None = not in the URL, the profile gives the value (#230)."""
     return dict(locals())
 
@@ -476,7 +482,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     travelers = it.trip.travelers if fees else 1  # the trip is read only when a fee can add a part
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
             + night_extras(it, weights) + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
-            + co2_extras(it, weights)
+            + carrier_extras(it, weights) + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
             + transfer_extras(it, weights) + station_change_extras(it, weights) + stale_extras(it, weights, stale_before))
     def cost(f):
@@ -1026,6 +1032,12 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       hour_tier1_markup: Decimal = Form(Weights.hour_tier1_markup, ge=0, le=100),
                       hour_tier2_after_min: int = Form(Weights.hour_tier2_after_min, ge=0, le=2880),
                       hour_tier2_markup: Decimal = Form(Weights.hour_tier2_markup, ge=0, le=100),
+                      carrier1_name: str = Form(Weights.carrier1_name, max_length=100),
+                      carrier1_markup: Decimal = Form(Weights.carrier1_markup, ge=-1000, le=1000),
+                      carrier2_name: str = Form(Weights.carrier2_name, max_length=100),
+                      carrier2_markup: Decimal = Form(Weights.carrier2_markup, ge=-1000, le=1000),
+                      carrier3_name: str = Form(Weights.carrier3_name, max_length=100),
+                      carrier3_markup: Decimal = Form(Weights.carrier3_markup, ge=-1000, le=1000),
                       session: Session = Depends(get_session)) -> RedirectResponse:
     """Store the present weights of the trip page as a named profile (#229); the same ranges as `trip_page`."""
     if session.get(Trip, trip_id) is None:
@@ -1047,7 +1059,10 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       self_transfer_penalty=self_transfer_penalty, stale_hours=stale_hours,
                       stale_penalty=stale_penalty, hour_tier1_after_min=hour_tier1_after_min,
                       hour_tier1_markup=hour_tier1_markup, hour_tier2_after_min=hour_tier2_after_min,
-                      hour_tier2_markup=hour_tier2_markup)
+                      hour_tier2_markup=hour_tier2_markup,
+                      carrier1_name=carrier1_name, carrier1_markup=carrier1_markup,
+                      carrier2_name=carrier2_name, carrier2_markup=carrier2_markup,
+                      carrier3_name=carrier3_name, carrier3_markup=carrier3_markup)
     save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
@@ -1069,6 +1084,7 @@ WEIGHT_RANGES = {
     "self_transfer_penalty": (0, 1000), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
     "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),
     "hour_tier2_markup": (0, 100),
+    "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
 }
 
 
@@ -1079,6 +1095,11 @@ def form_weights(form) -> tuple[Weights, str | None]:
     for f in dataclasses.fields(Weights):
         raw = (form.get(f.name) or "").strip()
         if not raw:
+            continue
+        if isinstance(f.default, str):  # a carrier name (#1530): any text up to 100 characters
+            if len(raw) > 100:
+                return Weights(), f"{f.name}: the name is longer than 100 characters; nothing changed."
+            values[f.name] = raw
             continue
         bounds = WEIGHT_RANGES[f.name]
         try:

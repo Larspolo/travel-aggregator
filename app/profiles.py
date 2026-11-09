@@ -36,6 +36,8 @@ def from_config(config: dict) -> Weights:
             values[f.name] = None
         elif isinstance(default, time):
             values[f.name] = time.fromisoformat(v)
+        elif isinstance(default, str):  # a carrier name (#1530)
+            values[f.name] = str(v)
         elif isinstance(default, int) and not isinstance(default, bool):
             values[f.name] = int(v)
         else:  # a Decimal, also the optional night_hour_markup (default None)
