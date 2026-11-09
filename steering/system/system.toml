@@ -2,6 +2,7 @@
 
 [pacing]
 max_runs = 16                   # the most runs at one time (framework/tools/usage.py)
+week_guard = false              # false: only the 5-hour window counts, not the weekly pace (owner, 2026-11-09)
 max_waiting_prs = 10            # flow brake: at this many old agent PRs the pacer starts only 1 repair run
 max_ci_queue = 5                # flow brake: at this many queued CI runs the pacer starts no run
 refill_runs = 3                 # the most refill runs at one time: one per 4 missing tickets (`usage.refill_count`)
