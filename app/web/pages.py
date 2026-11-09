@@ -284,16 +284,9 @@ def _form_page(request: Request, values: dict, errors: list[str], trip_id: int |
 
 def _split_places(session: Session, trip: Trip) -> list[tuple[str, int]]:
     """The transfer places of the shown offers of a trip, for the buttons "Split via" (#1459)."""
-    from app.split_suggest import via_places
-    skip = [trip.origin_text or "", trip.destination_text or ""]
-    for alt in (trip.origin_alt_text, trip.destination_alt_text):
-        skip += (alt or "").split(",")
-    # a split part that starts at the origin ends at the place of that split
-    skip += [part.destination_text or "" for part in trip.split_trips
-             if (part.origin_text or "").casefold() == (trip.origin_text or "").casefold()]
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
                                   .options(subqueryload(Itinerary.legs))).all()
-    return via_places(itineraries, [x for x in skip if x.strip()])
+    return via_places(itineraries, split_skip(trip))
 
 
 async def _save(request: Request, session: Session, trip: Trip | None):
