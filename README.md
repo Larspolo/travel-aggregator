@@ -1082,6 +1082,26 @@ with "Download JSON".
   chosen, or "The file is larger than N bytes." when it is too large. Nothing is stored.
 - The upload does not send a request to the travel site.
 
+### Upload a HAR file
+
+You can also upload a HAR file of a search on `/trips/{id}/captures`. The same form takes it: choose the HAR file, or a
+JSON file with a `log.entries` list. Use it when no userscript captured the search, for example when you saved the
+network log of a travel site yourself.
+
+1. In the browser, open the developer tools on the search page, and open the Network tab.
+2. Run the search, and wait until the results show.
+3. Save the network log as a HAR file. In Chrome, choose "Save all as HAR with content".
+
+The app reads each search entry of a supported source and stores it as a capture of the trip. The page then shows the
+line "N captures from the HAR file", and the captures list shows each one with its offer count. Other entries are skipped.
+
+- A HAR file with no search entry of a supported source gives the message "The HAR file has no search entry of a
+  supported source." Nothing is stored.
+- A file that is not JSON, or that has no `log.entries` list, gives "The HAR file cannot be read". Nothing is stored.
+- A HAR file larger than 30 MB gives "The HAR file is larger than 30000000 bytes." Nothing is stored.
+- The app reads only the address, the method, and the request and response bodies of each entry. It never keeps the
+  headers or the cookies of the file.
+
 ### Status of the sources
 
 The page `/captures` shows the status of each source above the list of captures, in a table with the columns "Source",
