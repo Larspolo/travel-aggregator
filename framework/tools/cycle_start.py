@@ -265,6 +265,30 @@ def checkout(remote="origin", branch=None):
     return f"Checkout: moved to {sha} ({behind} commits behind)", True
 
 
+OWNER_CHECK = re.compile(r"^\s*[-*]\s*After\s+((?:#\d+[,\s]*(?:and\s+)?)+):\s*(.+)$", re.I)
+
+
+def owner_check_missing(issues, sub_issues_of):
+    """Lines for the open epics with an `## Owner checks` line `- After #a, #b: ...` whose tickets are all closed
+    (not in `issues`, the open issues) and that have no sub-issue with `needs-human` (#1342: `report.md`)."""
+    out = []
+    for n, i in sorted(issues.items()):
+        if "epic" not in dashboard.labels(i):
+            continue
+        m = re.search(r"^##\s*Owner checks\s*$(.*?)(?=^##\s|\Z)", i.get("body") or "", re.M | re.S)
+        if not m:
+            continue
+        ready = []
+        for line in m[1].splitlines():
+            c = OWNER_CHECK.match(line)
+            if c and not any(int(t) in issues for t in re.findall(r"#(\d+)", c[1])):
+                ready.append(line.strip().lstrip("-* ").strip())
+        if not ready or any("needs-human" in dashboard.labels(s) for s in sub_issues_of(n) or []):
+            continue
+        out += [f"#{n} {i['title']}: no owner check ticket for \"{r}\": make it (`report.md`)" for r in ready]
+    return out
+
+
 def main(argv=None):
     if not os.environ.get("CYCLE_START_MOVED"):         # an old checkout runs old tools and skills (#105)
         line, moved = checkout()
@@ -317,7 +341,8 @@ def main(argv=None):
     code, text = tool("feedback.py")
     section("Feedback (lock each with `claim.py ID --comment`)", [t for t in text.splitlines() if re.match(r"\d+ #\d+ ", t)])
     section("Orphans (no run, workflow or owner list takes them up, #4553)",
-            [f"#{n} {issues[n]['title']}: {why}" for n, why in dashboard.orphans(open_all)])
+            [f"#{n} {issues[n]['title']}: {why}" for n, why in dashboard.orphans(open_all)]
+            + owner_check_missing(issues, lambda e: dashboard.pages(f"issues/{e}/sub_issues")))
     section("Triage (no priority label)", [f"#{n} {i['title']}" for n, i in sorted(issues.items())
                                            if not dashboard.labels(i) & (set(dashboard.PRIORITY) | {dashboard.STATUS})])
     pr_numbers = [i["number"] for i in open_all if "pull_request" in i]
