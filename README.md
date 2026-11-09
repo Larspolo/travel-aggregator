@@ -1075,6 +1075,13 @@ times of the stored offset.
   section "Advanced". A transfer with at least the minimum night minutes adds the hotel cost as the part
   `overnight stop in <place>`. A cost of 0 adds no part.
 
+### Arrive by
+
+The trip form has the field **Arrive by**: the local time at the destination. An empty field means no time. The trip page shows "Arrive by 14:00" under the title.
+
+- The trip page hides each offer whose last leg arrives after this time, on the day of its departure. A `latest_arrive` value in the query replaces this time. An empty `latest_arrive` shows all offers.
+- **Wait before the arrival time, € per hour**, in "Advanced", default `0`. An offer that arrives before the time costs the waiting hours at this rate. The breakdown shows the part "wait 3 h 30 min before 14:00". An arrival at or after the time adds no part. A value of 0 removes the part.
+
 ### Risk
 
 The **Advanced** section under the sliders also sets the risk extras. Each setting has a default. A value of 0 removes
