@@ -50,16 +50,6 @@
         <input type="number" name="flight_markup" min="-1000" max="1000" step="0.01" value="{{ weights.flight_markup }}"></label>
       <label>Ferry markup €
         <input type="number" name="ferry_markup" min="-1000" max="1000" step="0.01" value="{{ weights.ferry_markup }}"></label>
-      <label>CO₂ price € per kg (0 = off)
-        <input type="number" name="co2_price_kg" min="0" max="100" step="0.01" value="{{ weights.co2_price_kg }}"></label>
-      <label>CO₂ train kg per hour
-        <input type="number" name="co2_train_kg_h" min="0" max="1000" step="0.1" value="{{ weights.co2_train_kg_h }}"></label>
-      <label>CO₂ bus kg per hour
-        <input type="number" name="co2_bus_kg_h" min="0" max="1000" step="0.1" value="{{ weights.co2_bus_kg_h }}"></label>
-      <label>CO₂ flight kg per hour
-        <input type="number" name="co2_flight_kg_h" min="0" max="1000" step="0.1" value="{{ weights.co2_flight_kg_h }}"></label>
-      <label>CO₂ ferry kg per hour
-        <input type="number" name="co2_ferry_kg_h" min="0" max="1000" step="0.1" value="{{ weights.co2_ferry_kg_h }}"></label>
       <label>1st class €/hour
         <input type="number" name="first_class_hour" min="-1000" max="1000" step="0.01" value="{{ weights.first_class_hour }}"></label>
       <label>Short transfer minutes
@@ -68,6 +58,18 @@
         <input type="number" name="short_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.short_transfer_penalty }}"></label>
       <label>Self-transfer €
         <input type="number" name="self_transfer_penalty" min="0" max="1000" step="0.01" value="{{ weights.self_transfer_penalty }}"></label>
+    </fieldset>
+    <fieldset><legend>CO₂</legend>
+      <label>CO₂ price € per kg
+        <input type="number" name="co2_price_kg" min="0" max="10" step="0.01" value="{{ weights.co2_price_kg }}"></label>
+      <label>Train kg CO₂ per hour
+        <input type="number" name="co2_train_kg_h" min="0" max="1000" step="0.1" value="{{ weights.co2_train_kg_h }}"></label>
+      <label>Bus kg CO₂ per hour
+        <input type="number" name="co2_bus_kg_h" min="0" max="1000" step="0.1" value="{{ weights.co2_bus_kg_h }}"></label>
+      <label>Flight kg CO₂ per hour
+        <input type="number" name="co2_flight_kg_h" min="0" max="1000" step="0.1" value="{{ weights.co2_flight_kg_h }}"></label>
+      <label>Ferry kg CO₂ per hour
+        <input type="number" name="co2_ferry_kg_h" min="0" max="1000" step="0.1" value="{{ weights.co2_ferry_kg_h }}"></label>
     </fieldset>
     <fieldset><legend>Fares</legend>
       <label>Baggage fee €

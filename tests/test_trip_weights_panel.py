@@ -6,7 +6,7 @@ from tests.test_trip_hide import trip  # noqa: F401
 
 GUARDS = ("app/web/templates/trip*.html", "app/web/pages.py")   # ship_pr runs this file for these changes: no import leads to it (#730)
 
-GROUPS = ["Hour tiers", "Airport", "Time windows", "Night", "Modes", "Fares", "Staleness", "Profile"]
+GROUPS = ["Hour tiers", "Airport", "Time windows", "Night", "Modes", "CO₂", "Fares", "Staleness", "Profile"]
 NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide_stale", "sort", "dir", "mode", "earliest_depart",
          "latest_arrive", "day", "source", "max_transfers", "max_duration_min", "airport_before_min", "airport_after_min",
          "baggage_fee", "early_limit", "late_limit", "time_window_penalty", "night_start", "night_end", "night_min",
