@@ -772,6 +772,10 @@ To travel via a place, split the trip there. Use the form "Split via" on the edi
 
 To merge two trips, open the edit form of the trip that goes away, choose the target trip under "Merge into another trip" and click "Merge…". The offers, prices, captures, day prices and marks (pinned, booked, hidden and note) of the trip move to the target trip, and the merged trip is deleted. A trip that is linked to another trip (a return or a split) cannot be the trip that goes away.
 
+### Duplicate trip warning
+
+When another trip in planning has the same route and dates, the trip page shows the box "A trip on this route and date already exists:" above the route history. The box lists each such trip with a link to its page and a link "Merge" to `/trips/{id}/merge`, which merges the trip into the other one (see "Merge two trips"). A trip with no duplicate shows no box. The shared page does not show the box.
+
 ### Delete a trip
 
 - The edit form `/trips/{id}/edit` has the link "Delete trip". It opens the confirm page. The page shows the number of itineraries and captures of the trip.
