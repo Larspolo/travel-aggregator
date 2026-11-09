@@ -52,4 +52,4 @@ def test_the_userscript_sends_the_passengers_of_the_request(page):  # noqa: F811
     page.wait_for_function("window.__ingest.length === 1")
     raw = page.evaluate("window.__ingest")[0]["body"]["raw"]
     assert raw["passengers"]["adults"] == 2
-    assert page.evaluate("window.__ingest")[0]["body"]["parser_version"] == "1.3.0"
+    assert page.evaluate("window.__ingest")[0]["body"]["parser_version"] == "1.2.0"
