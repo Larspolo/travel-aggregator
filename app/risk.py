@@ -37,6 +37,25 @@ def transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], .
     return (("short transfer", penalty * short),)
 
 
+def station_changes(itinerary) -> list[int]:
+    """The indexes i of the transfers where legs[i] arrives at another station than legs[i + 1] departs from (#1500).
+
+    The codes are compared when both are set, else the names: case and spaces do not count. No score part is added.
+    """
+    return [i for i, (before, after) in enumerate(zip(itinerary.legs, itinerary.legs[1:]))
+            if not _same_station(before, after)]
+
+
+def _same_station(before, after) -> bool:
+    if before.to_code and after.from_code:
+        return before.to_code == after.from_code
+    return _name_key(before.to_name) == _name_key(after.from_name)
+
+
+def _name_key(name: str) -> str:
+    return " ".join(name.split()).casefold()
+
+
 def stale_extras(it, weights: Weights, stale_before) -> tuple[tuple[str, Decimal], ...]:
     """Add one part "stale" when the newest capture of the itinerary is older than `stale_before` (#276).
 
