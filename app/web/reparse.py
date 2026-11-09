@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app import ingest
 from app.failure_report import report_url
 from app.sourcehealth import add_old_script, failed_clause, source_health
+from app.suspect import suspect_counts
 from app.auth import require_login, verify_csrf
 from app.db import get_session
 from app.models import Capture, Trip
@@ -126,6 +127,7 @@ def _trip_captures(request: Request, session: Session, trip_id: int, failed: boo
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session) if failed else [],
                                        "upload_sources": _upload_sources(), "upload_error": upload_error,
+                                       "suspect_counts": suspect_counts(session, [trip_id]),  # #1607
                                        "har_count": har_count},
                                       status_code=code)
 
@@ -149,7 +151,8 @@ def all_captures_page(request: Request, failed: bool = False, source: str | None
                                        "trip_travelers": {t.id: t.travelers for t in trips},
                                        "source": source, "sources": [] if failed or source else add_old_script(source_health(session)), "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
-                                       "failed_sources": _failed_sources(session, source) if failed else []})
+                                       "failed_sources": _failed_sources(session, source) if failed else [],
+                                       "suspect_counts": suspect_counts(session, trip_ids)})  # #1607
 
 
 @router.post("/captures/reparse-failed", response_class=HTMLResponse,
