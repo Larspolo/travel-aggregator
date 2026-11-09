@@ -2,17 +2,33 @@
 
 from decimal import Decimal
 
+from app.currency import to_eur
 from app.ranking import Weights
 
 FLIGHT = "flight"  # app/schemas.py, Mode
 
 
 def flight_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
-    """Give the airport time and the baggage fee when a leg is a flight; no flight leg gives no extra (#99)."""
+    """Give the airport time when a leg is a flight; no flight leg gives no extra (#99). The bag: `baggage_extras()`."""
     if not any(leg.mode == FLIGHT for leg in itinerary.legs):
         return ()
     minutes = weights.airport_before_min + weights.airport_after_min
-    return (("airport time", Decimal(minutes) * weights.hour_markup / 60), ("baggage", Decimal(weights.baggage_fee)))
+    return (("airport time", Decimal(minutes) * weights.hour_markup / 60),)
+
+
+def baggage_extras(fare, itinerary, weights: Weights, rates=None) -> tuple[tuple[str, Decimal], ...]:
+    """Give the checked bag of a flight fare (#1527): an included bag is €0, a bag price of the fare is its EUR value
+    (per traveler), else the flat baggage fee. No flight leg or a baggage fee of 0 gives no extra."""
+    if not weights.baggage_fee or not any(leg.mode == FLIGHT for leg in itinerary.legs):
+        return ()
+    if (getattr(fare, "checked_bags_included", None) or 0) >= 1:
+        return (("baggage (included)", Decimal(0)),)
+    price = getattr(fare, "checked_bag_price", None)
+    if price is not None:
+        eur = to_eur(Decimal(price), fare.currency, rates or {})
+        if eur is not None:
+            return (("baggage", eur),)
+    return (("baggage", Decimal(weights.baggage_fee)),)
 
 
 def _key(text: str) -> str:

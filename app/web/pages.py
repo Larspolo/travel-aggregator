@@ -41,7 +41,7 @@ from app.split_suggest import split_skip, via_places
 from app.db import get_session
 from app.target import at_target
 from app.drops import drops_by_trip, mark_seen, trip_drops
-from app.door import door_extras, flight_extras
+from app.door import baggage_extras, door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
 from app.co2 import co2_extras, co2_kg
@@ -488,7 +488,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     def cost(f):
         eur, n = to_eur(f.latest_price, f.currency, rates), counts.get(f.id)
         b = effective_cost(per_traveler(eur, n) if eur is not None else Decimal(0), it.duration_min, it.transfers, weights,
-                           base + flexibility_extras(f, weights) + class_extras(f, it.duration_min, weights)
+                           base + flexibility_extras(f, weights) + baggage_extras(f, it, weights, rates) + class_extras(f, it.duration_min, weights)
                                + self_transfer_extras(f, weights) + fee_extras(f, fees, travelers))
         return for_group(in_eur(b, f.latest_price, f.currency, eur), f.latest_price, f.currency, n)
     return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, fc[1].price))

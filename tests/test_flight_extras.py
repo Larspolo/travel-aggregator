@@ -14,17 +14,16 @@ def _it(*modes):
 
 
 def test_flight_with_defaults():
-    assert flight_extras(_it("train", "flight"), Weights()) == (("airport time", Decimal("37.5")),
-                                                                 ("baggage", Decimal("0")))
+    assert flight_extras(_it("train", "flight"), Weights()) == (("airport time", Decimal("37.5")),)
 
 
 def test_train_has_no_airport_part():
     assert flight_extras(_it("train", "bus"), Weights()) == ()
 
 
-def test_zero_disables_and_baggage_fee_counts():
+def test_zero_disables_the_airport_time():
     w = Weights(airport_before_min=0, airport_after_min=0, baggage_fee=Decimal("35"))
-    assert flight_extras(_it("flight"), w) == (("airport time", Decimal("0")), ("baggage", Decimal("35")))
+    assert flight_extras(_it("flight"), w) == (("airport time", Decimal("0")),)
 
 
 def _flight(price):
