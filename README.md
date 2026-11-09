@@ -237,6 +237,7 @@ Check: `curl https://<host>/api/health` shows the commit of the new release.
 | `SMTP_HOST`, `SMTP_PORT` | The SMTP server of the e-mail channel. Port `587` uses STARTTLS, port `465` uses SSL (default port `587`) |
 | `SMTP_USER`, `SMTP_PASSWORD` | The login of the SMTP server. The password stays in the environment, never in the database |
 | `SMTP_FROM` | The sender address of the e-mail |
+| `PASSKEY_ORIGIN` | The origin of the passkeys, for example `https://travel.example.com`. Empty: the origin of the request (the reverse proxy must send `X-Forwarded-Proto` and `Host`) |
 | `BACKUP_INTERVAL_HOURS` | The hours between two daily backups of the service `backup` (default `24`) |
 | `BACKUP_KEEP` | The number of daily dumps that stay; the older ones are deleted (default `14`, at least `1`) |
 
@@ -1242,6 +1243,14 @@ The trip form has the field **Arrive by**: the local time at the destination. An
 
 - The trip page hides each offer whose last leg arrives after this time, on the day of its departure. A `latest_arrive` value in the query replaces this time. An empty `latest_arrive` shows all offers.
 - **Wait before the arrival time, € per hour**, in "Advanced", default `0`. An offer that arrives before the time costs the waiting hours at this rate. The breakdown shows the part "wait 3 h 30 min before 14:00". An arrival at or after the time adds no part. A value of 0 removes the part.
+
+### Hour value per mode
+
+The **Advanced** section under the sliders has four fields, one for each mode: **Train hour €**, **Bus hour €**,
+**Flight hour €** and **Ferry hour €**. Each field is empty by default, and an empty field means the hour markup. A value
+gives the legs of that mode their own hour value. The breakdown shows the difference to the hour markup as the part
+`<mode> hours` (for example `train hours`), for the minutes of the legs of that mode. A value equal to the hour markup
+adds no part. The part `airport time` of a flight uses the **Flight hour €** value too, when it is set.
 
 ### Risk
 
