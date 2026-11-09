@@ -328,6 +328,23 @@ the app. Until then, a device with no network can still show it. The API tokens 
 their own "Revoke": on `/tokens` for the API tokens, on the trip page for a share link, and on the Upcoming page for a calendar link.
 The button does not revoke them.
 
+### Recent logins
+
+The card "Recent logins" on the settings page (`/settings`) lists the last 20 logins and failed logins, newest first.
+Each row shows the date and time (UTC), the IP address, the browser, and the result:
+
+- "login": a login with the password.
+- "login with code": a login with the password and a code of the authenticator app.
+- "recovery code": a login with a recovery code.
+- "failed" and "failed (code)": a wrong password, or a wrong code. These rows are marked in orange.
+
+Check this card often. If you see a login or a failed login that you did not make, act at once:
+
+1. Make a new password hash with `python -m app.auth 'NEW_PASSWORD'` (the step 2 of "Run it on your computer" shows the Docker command).
+   Put the new hash in `.env` as `OWNER_PASSWORD_HASH`, in single quotes, and restart the app.
+2. Click "Log out on all other devices" in the card "Sessions" (see below). This ends every other login.
+3. Turn on the second login step (see below). Then a password alone is not enough to log in.
+
 ### Second login step
 
 The card "Second login step" on the settings page (`/settings`) turns on a code of your authenticator app. Its state
