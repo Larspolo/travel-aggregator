@@ -581,8 +581,16 @@ def current_rows(rows, gone):
 
 
 def _gone(session: Session, its) -> dict:
+    """The fares that do not rank: the gone fares (#1386) and the suspect fares (#1605)."""
+    gone, suspect = _gone_and_suspect(session, its)
+    return {**suspect, **gone}
+
+
+def _gone_and_suspect(session: Session, its) -> tuple[dict, dict]:
     from app.gone import gone_fares
-    return gone_fares(session, {it.trip_id for it in its})
+    from app.suspect import suspect_fares
+    trip_ids = {it.trip_id for it in its}
+    return gone_fares(session, trip_ids), suspect_fares(session, trip_ids)
 
 
 def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: datetime):
@@ -756,7 +764,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     fees = load_fees(session)  # once per request (#1143)
     now = datetime.now(timezone.utc)
     stale_before = now - timedelta(hours=weights.stale_hours)  # a row older than this is stale (#275)
-    gone = _gone(session, itineraries) if itineraries else {}  # the fares of an older search (#1386)
+    # the fares of an older search (#1386) and the fares with an implausible price (#1605) do not rank
+    gone_marks, suspect = _gone_and_suspect(session, itineraries) if itineraries else ({}, {})
+    gone = {**suspect, **gone_marks}
     rows, all_rows, modes, sources, carriers, tests = [], [], set(), set(), set(), []
     best_hidden = None  # (fare, cost, itinerary, labels) of the lowest cost that a filter hides (#1454)
     for it in itineraries:
@@ -847,7 +857,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
-               "rates": rates, "tradeoff": tradeoff, "gone_fares": gone,
+               "rates": rates, "tradeoff": tradeoff, "gone_fares": gone_marks, "suspect_fares": suspect,
                "co2": {it.id: kg for it, *_ in rows if (kg := co2_kg(it, weights)) > 0},  # #1418
                "new_since": trip.viewed_at}  # the rows after the last full view are "new" (#1090)
     if len(profiles) > 1:  # the best offer of each profile (#1211); one profile only: no section
