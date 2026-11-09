@@ -7,15 +7,29 @@ from sqlalchemy.orm import Session
 from app.models import Capture, DayPrice, Itinerary, Trip
 
 
+def is_linked(session: Session, trip: Trip) -> bool:
+    """True when the trip is a return, a split part, or has one (the rule of `_check`)."""
+    return (
+        trip.return_of_id is not None
+        or trip.split_of_id is not None
+        or session.scalar(select(Trip.id).where(or_(Trip.return_of_id == trip.id, Trip.split_of_id == trip.id)).limit(1))
+        is not None
+    )
+
+
+def merge_choices(session: Session, trip: Trip) -> list[Trip]:
+    """The trips that `trip` can merge into: not the trip itself; the trips that are not archived come first (#1262)."""
+    others = session.scalars(select(Trip).where(Trip.id != trip.id)).all()
+    return sorted(others, key=lambda t: (t.status == "archived", t.id))
+
+
 def _check(session: Session, source_id: int, target_id: int) -> tuple[Trip, Trip]:
     if source_id == target_id:
         raise ValueError("the source and the target are the same trip")
     source, target = session.get(Trip, source_id), session.get(Trip, target_id)
     if source is None or target is None:
         raise ValueError("a trip does not exist")
-    linked = source.return_of_id is not None or source.split_of_id is not None or session.scalar(
-        select(Trip.id).where(or_(Trip.return_of_id == source_id, Trip.split_of_id == source_id)).limit(1))
-    if linked:
+    if is_linked(session, source):
         raise ValueError("the source trip is linked to another trip")
     return source, target
 

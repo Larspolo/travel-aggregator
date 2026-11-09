@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Merge trip – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Merge trip", subtitle=source.title, back=("/trips/" ~ source.id ~ "/edit", "Edit trip")) }}
+<form class="card" method="post" action="/trips/{{ source.id }}/merge?into={{ target.id }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <input type="hidden" name="into" value="{{ target.id }}">
+  <p>Move {{ counts.itineraries }} itineraries and {{ counts.captures }} captures into {{ target.title }}, then delete this trip.</p>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Merge</button>
+    <a class="btn btn-ghost" href="/trips/{{ source.id }}/edit">Cancel</a>
+  </div>
+</form>
+{% endblock %}

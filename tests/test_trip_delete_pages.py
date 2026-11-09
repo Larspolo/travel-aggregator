@@ -22,6 +22,7 @@ TRIP_PAGES = [
     "/trips/{trip_id}",
     "/trips/{trip_id}/edit",
     "/trips/{trip_id}/delete",
+    "/trips/{trip_id}/merge",
     "/trips/{trip_id}/compare",
     "/trips/{trip_id}/itineraries/{itinerary_id}/history",
     "/trips/{trip_id}/offers/new",
