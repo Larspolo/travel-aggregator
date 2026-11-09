@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from typing import Any
 
 from app.ranking import Weights, _amount
-from app.risk import self_transfer_extras
+from app.risk import other_station, self_transfer_extras
 
 MAX_WAIT = timedelta(hours=6)  # the longest wait at the via place
 
@@ -30,13 +30,24 @@ class Pair:
         return f"{' + '.join(parts)} = {_amount(self.total)}"
 
 
+def _changes_station(a, b) -> bool:
+    """True when the first trip ends at another station than the one where the second trip starts (#1502)."""
+    legs_a = getattr(a, "legs", None)
+    legs_b = getattr(b, "legs", None)
+    return bool(legs_a and legs_b and other_station(legs_a[-1], legs_b[0]))
+
+
 def split_pairs(first: Sequence[tuple], second: Sequence[tuple], weights: Weights, limit: int = 5) -> list[Pair]:
     """The `limit` best pairs, sorted by the sum and then by the arrival. The rows are the ranked rows of the two
     trip pages (the hard filters of the profile are already applied). A pair needs a wait of at least
-    `short_transfer_min` minutes and at most `MAX_WAIT`."""
+    `short_transfer_min` minutes and at most `MAX_WAIT`. A pair that changes of station (#1502) needs
+    `station_change_min` (when set) and pays `station_change_penalty`, as a transfer of an itinerary does."""
     extras = self_transfer_extras(SimpleNamespace(self_transfers=1), weights)
     penalty = sum((v for _, v in extras), Decimal("0"))
     minimum = timedelta(minutes=weights.short_transfer_min)
+    change_minimum = (timedelta(minutes=int(weights.station_change_min))
+                      if weights.station_change_min is not None else minimum)
+    change_penalty = Decimal(weights.station_change_penalty)
     a_rows = sorted((r for r in first if r[2].total.is_finite()), key=lambda r: r[2].total)
     b_rows = sorted((r for r in second if r[2].total.is_finite()), key=lambda r: r[2].total)
     if not a_rows or not b_rows or limit <= 0:
@@ -48,17 +59,24 @@ def split_pairs(first: Sequence[tuple], second: Sequence[tuple], weights: Weight
         bound = a[2].total + b_min + penalty
         if len(heap) >= limit and bound > -heap[0][0]:
             break
-        earliest = a[0].arrive_at + minimum
         latest = a[0].arrive_at + MAX_WAIT
         for b in b_rows:
-            total = a[2].total + b[2].total + penalty
-            if len(heap) >= limit and total > -heap[0][0]:
+            # The rows are sorted by cost and a station change only adds to it: this is a lower bound of the total.
+            base = a[2].total + b[2].total + penalty
+            if len(heap) >= limit and base > -heap[0][0]:
                 break
+            changed = _changes_station(a[0], b[0])
+            earliest = a[0].arrive_at + (change_minimum if changed else minimum)
             if not earliest <= b[0].depart_at <= latest:
                 continue
+            pair_extras = extras
+            total = base
+            if changed and change_penalty != 0:
+                pair_extras = extras + (("change of station", change_penalty),)
+                total = base + change_penalty
             key = (-total, -b[0].arrive_at.timestamp(), count)
             count += 1
-            item = (*key, Pair(a, b, extras, total))
+            item = (*key, Pair(a, b, pair_extras, total))
             if len(heap) < limit:
                 heapq.heappush(heap, item)
             elif key > heap[0][:3]:
