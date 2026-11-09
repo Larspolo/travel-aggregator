@@ -142,6 +142,7 @@ templates.env.filters["day_gap"] = day_gap
 templates.env.filters["ago"] = ago
 templates.env.filters["by_eur"] = by_eur
 templates.env.filters["human_bytes"] = human_bytes
+templates.env.filters["browser"] = login_log.browser_name
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -1270,7 +1271,8 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  "storage": storage_use(session, days, datetime.now(timezone.utc)),
                                                                  "max_days": MAX_RETENTION_DAYS,
                                                                  "flash": request.session.pop("flash", None),
-                                                                 "totp": totp_state(request, session)})
+                                                                 "totp": totp_state(request, session),
+                                                                 "logins": login_log.recent(session)})
 
 
 def totp_state(request: Request, session: Session) -> dict:
