@@ -42,6 +42,9 @@ class Weights:
     # The short-transfer penalty (#173): a transfer shorter than the minimum; a penalty of 0 disables it.
     short_transfer_min: int = 10
     short_transfer_penalty: Decimal = Decimal("0")
+    # The change of station (#1501): its own minimum (None = short_transfer_min) and a penalty per change; 0 disables it.
+    station_change_min: int | None = None
+    station_change_penalty: Decimal = Decimal("0")
     # The mode markups (#174): a flat amount per itinerary that uses the mode; a negative amount is a discount.
     train_markup: Decimal = Decimal("0")
     bus_markup: Decimal = Decimal("0")
