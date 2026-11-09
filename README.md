@@ -279,6 +279,8 @@ Each leg of an offer can have the field `ticket`: a whole number from 1 to 20 fo
 changes between two legs, the fare counts one self-transfer. A leg with no `ticket` keeps the ticket of the leg before
 it. See "Risk" under "Ranking".
 
+An offer of a flight can have the fields `checked_bags_included` (a whole number from 0 to 9: the checked bags that the fare includes) and `checked_bag_price` (a money value: the price of the first checked bag, in the currency of the offer). A fare with `checked_bags_included` of at least 1 gets the part `baggage (included)`; a fare with `checked_bag_price` gets the part `baggage` at that price in EUR. See "Airport time and baggage (flights)" under "Ranking". A field with no value is not set.
+
 All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
 limited to 5 MB.
 
@@ -1206,9 +1208,13 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   with a matching access place adds the parts `access time` (minutes × hour markup) and `access cost`. An offer with a
   matching egress place adds `egress time` and `egress cost`. An offer with no matching place adds nothing.
 - **Airport time and baggage (flights).** An offer with a flight leg adds two parts. `airport time` is the minutes before
-  departure plus the minutes after landing, at the hour markup. `baggage` is the baggage fee.
-  The **Advanced** section under the sliders sets them. The defaults are 120 minutes before departure, 30 minutes after
-  landing and a baggage fee of €0. A value of 0 removes that part from the ranking.
+  departure plus the minutes after landing, at the hour markup. The part `baggage` (or `baggage (included)`) depends on the
+  fare: a fare with an included checked bag (field `checked_bags_included` of at least 1) gets `baggage (included)` at €0;
+  a fare with a known price for the first checked bag (field `checked_bag_price`, for example from kiwi.com) gets that
+  price in EUR; every other flight fare gets the baggage fee. A fare with a bag price in a currency with no exchange rate
+  gets the baggage fee. The **Advanced** section under the sliders sets the times and the baggage fee. The defaults are
+  120 minutes before departure, 30 minutes after landing and a baggage fee of €0. A baggage fee of 0 means no bag: it
+  removes the baggage part from the ranking, and a fare with an included bag gets no part too.
 
 ### Time of day and night
 
