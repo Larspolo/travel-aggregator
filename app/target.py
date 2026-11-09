@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.currency import load_rates, to_eur
+from app.gone import gone_fares
 from app.models import Fare, Itinerary, Leg, Trip
 
 
@@ -38,8 +39,11 @@ def at_target(session: Session, trip: Trip) -> list[TargetFare]:
         .join(Itinerary, Fare.itinerary_id == Itinerary.id)
         .where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False), Fare.latest_price.is_not(None))
         .order_by(Fare.id)).all()
+    gone = gone_fares(session, [trip.id])  # a gone fare is never at target (#1387)
     result = []
     for f, d, m, o in rows:
+        if f.id in gone:
+            continue
         eur = to_eur(f.latest_price, f.currency, rates)
         if eur is not None and eur <= trip.target_price:
             result.append(TargetFare(f.itinerary_id, f.id, f.source, f.fare_name, f.currency, f.latest_price, eur,
