@@ -28,6 +28,7 @@ from app.db import make_engine, make_sessionmaker, sqlalchemy_url
 
 log = logging.getLogger(__name__)
 ALERT_KEY = "backup_alert_at"
+CHECK_KEY = "backup_check"
 ALERT_REPEAT = timedelta(hours=24)
 BACKUP_MAX_AGE = timedelta(hours=48)  # older: the settings page warns and an ingest sends a message (#1088)
 
@@ -243,6 +244,41 @@ def daily_step(url: str, backup_dir: Path, interval: timedelta, now: datetime | 
     return wait
 
 
+def _store_check(url: str, value: dict) -> None:
+    """Store the result of the newest dump check in the setting CHECK_KEY. A failure only logs a warning."""
+    import json
+
+    from app.models import Setting
+
+    engine = make_engine(sqlalchemy_url(url))
+    try:
+        with make_sessionmaker(engine)() as session:
+            session.merge(Setting(key=CHECK_KEY, value=json.dumps(value)))
+            session.commit()
+    except Exception as e:  # noqa: BLE001 (the check result must not stop the backup loop)
+        log.warning("backup check not stored: %s", _redact(str(e), url))
+    finally:
+        engine.dispose()
+
+
+def _check_step(url: str, path: Path, now: datetime) -> None:
+    """Read a new daily dump again (#1490). A failed check renames it to `<name>.failed` and raises BackupError.
+
+    Only the newest `*.failed` file stays.
+    """
+    at = now.astimezone(UTC).isoformat()
+    try:
+        tables = check_dump(path)
+    except BackupError as exc:
+        failed = path.with_name(path.name + ".failed")
+        path.replace(failed)
+        for old in sorted(p for p in path.parent.glob("*.failed") if p != failed):
+            old.unlink(missing_ok=True)
+        _store_check(url, {"file": path.name, "error": _redact(str(exc), url), "at": at})
+        raise
+    _store_check(url, {"file": path.name, "tables": tables, "at": at})
+
+
 def _dump_step(url: str, backup_dir: Path, interval: timedelta, now: datetime) -> float:
     """One step of the daily loop: dump when due. Return the seconds until the next step.
 
@@ -253,7 +289,8 @@ def _dump_step(url: str, backup_dir: Path, interval: timedelta, now: datetime) -
     last = newest_daily(backup_dir)
     if last is None or now - last >= interval:
         try:
-            dump(url, backup_dir, "daily")
+            path = dump(url, backup_dir, "daily")
+            _check_step(url, path, now)
         except BackupError as exc:
             print(f"ERROR: daily backup failed: {exc}; retry in {DAILY_RETRY_SECONDS} s", file=sys.stderr)
             _alert(url, now, str(exc))
