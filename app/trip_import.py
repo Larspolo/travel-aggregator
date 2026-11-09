@@ -68,6 +68,7 @@ class FareData(_Model):
     latest_price: Decimal = Price
     currency: str = Currency
     latest_captured_at: AwareDatetime
+    reservation_legs: int = Field(0, ge=0, le=MAX_LEGS)  # missing in an older export: 0 (#1625)
     prices: list[PriceData] = Field(default_factory=list)
 
 
@@ -190,7 +191,8 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                 fare = Fare(source=fd.source, fare_name=fd.fare_name, travel_class=fd.travel_class,
                             flexibility=fd.flexibility, booking_url=fd.booking_url,
                             self_transfers=_self_transfers(d.legs), latest_price=fd.latest_price,
-                            currency=fd.currency, latest_captured_at=fd.latest_captured_at)
+                            currency=fd.currency, latest_captured_at=fd.latest_captured_at,
+                            reservation_legs=fd.reservation_legs)
                 it.fares.append(fare)
                 result.fares_added += 1
             else:
