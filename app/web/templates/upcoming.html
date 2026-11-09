@@ -20,6 +20,9 @@
             {{ dep.strftime("%H:%M") }}–{{ arr.strftime("%H:%M") }}{% if gap > 0 %} <span class="chip">+{{ gap }} day{% if gap > 1 %}s{% endif %}</span>{% endif %}</li>
         {% endfor %}
         </ul>
+        {% if not only %}{% for c in overlaps.get(it.id, []) %}
+        <p class="upcoming-conflict"><span class="chip warn">{% if c.kind == "order" %}This journey departs before the journey before it arrives{% else %}This journey overlaps another booked journey{% endif %}</span> · <a href="/trips/{{ c.other_trip_id }}">Open the other trip</a></p>
+        {% endfor %}{% endif %}
       </div>
       <div class="journey-cost">{% if it.booked_price is not none %}<span class="paid">Paid {{ it.booked_price | money(it.booked_currency or "EUR") }}</span>{% endif %}<a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
            aria-label="Add to calendar" title="Add to calendar">{{ ui.icon("calendar-plus") }}</a><a class="icon" href="/upcoming?only={{ it.id }}" aria-label="Print" title="Print">{{ ui.icon("printer") }}</a></div>
