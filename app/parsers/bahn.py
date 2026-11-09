@@ -70,7 +70,7 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.2.0"
+    version = "1.3.0"
     hosts = ("www.bahn.de", "int.bahn.de")
     paths = ("/web/api/angebote/fahrplan", "/web/api/angebote/recon", "/web/api/angebote/tagesbestpreis")
     group_price = True  # the price is for all travelers of the request (#767; the fixture README)
@@ -146,6 +146,10 @@ class BahnParser:
             if vm.get("typ") in SKIP_TYPES:
                 continue
             attrs = {z.get("key"): z.get("value") for z in vm.get("zugattribute") or []}
+            # RP: a mandatory reservation; GP: the price includes it (#1621). RE alone is only a recommendation.
+            reservation = None
+            if "RP" in attrs:
+                reservation = "included" if "GP" in attrs else "required"
             legs.append(LegIn(
                 mode=MODES.get(vm.get("produktGattung"), "train"),
                 carrier=attrs.get("BEF"),
@@ -156,6 +160,7 @@ class BahnParser:
                 to_code=a.get("ankunftsOrtExtId"),
                 depart_at=local_time(a["abfahrt"], a.get("abfahrtsOrtExtId")),
                 arrive_at=local_time(a["ankunft"], a.get("ankunftsOrtExtId")),
+                reservation=reservation,
             ))
         return [OfferIn(
             external_id=conn.get("tripId"),
