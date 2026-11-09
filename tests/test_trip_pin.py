@@ -83,12 +83,12 @@ def test_a_pinned_offer_is_the_first_row_and_unpinning_restores_the_order(trip, 
     client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
     page = client.get(f"/trips/{trip_id}").text
     assert page.index("€119.90") < page.index("€89.90")
-    assert "pinned" in page
+    assert '<span class="muted">pinned</span>' in page  # the row marker, not the nav link
 
     client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
     page = client.get(f"/trips/{trip_id}").text
     assert page.index("€89.90") < page.index("€119.90")
-    assert "pinned" not in page
+    assert '<span class="muted">pinned</span>' not in page
 
 
 def _pinned(sessions, itinerary):

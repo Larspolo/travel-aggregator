@@ -49,7 +49,7 @@ def test_each_settings_page_has_the_navigation_and_marks_itself(client, path):
 
 def test_the_app_bar_has_no_settings_sub_pages(client):
     bar = client.get("/").text.split('<div class="nav-links">')[1].split("</div>")[0]
-    assert re.findall(r'<a [^>]*href="([^"]+)"', bar) == ["/", "/upcoming", "/captures", "/settings", "/logout"]
+    assert re.findall(r'<a [^>]*href="([^"]+)"', bar) == ["/", "/upcoming", "/pinned", "/captures", "/settings", "/logout"]
 
 
 def test_each_card_saves_only_its_own_fields(client, monkeypatch):
