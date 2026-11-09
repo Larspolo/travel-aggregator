@@ -54,3 +54,49 @@ def uri(secret: str) -> str:
         f"otpauth://totp/travel-aggregator:owner?secret={secret}"
         "&issuer=travel-aggregator&algorithm=SHA1&digits=6&period=30"
     )
+
+
+USAGE = "usage: python3 -m app.totp off\n"
+OFF_LINE = "The second login step is off."
+
+
+def turn_off(session) -> bool:
+    """Turn the second login step off without a code: delete its rows and end the other sessions.
+
+    Returns False and changes nothing when the step is already off (no secret row).
+    """
+    from app.auth import SESSION_EPOCH, TOTP_SECRET, TOTP_STEP, session_epoch
+    from app.models import Setting
+
+    if session.get(Setting, TOTP_SECRET) is None:
+        return False
+    for key in (TOTP_SECRET, TOTP_STEP):
+        row = session.get(Setting, key)
+        if row is not None:
+            session.delete(row)
+    session.merge(Setting(key=SESSION_EPOCH, value=str(session_epoch(session) + 1)))
+    session.commit()
+    return True
+
+
+def main(argv: list[str] | None = None) -> int:
+    """`python3 -m app.totp off`: the emergency switch of the second login step (#1318). Exit 2 on a wrong argument."""
+    import sys
+
+    args = sys.argv[1:] if argv is None else argv
+    if args != ["off"]:
+        sys.stderr.write(USAGE)
+        return 2
+    from app.db import make_engine, make_sessionmaker
+
+    session = make_sessionmaker(make_engine())()
+    with session:
+        turn_off(session)
+    print(OFF_LINE)
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+
+    sys.exit(main())
