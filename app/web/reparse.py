@@ -1,6 +1,8 @@
 """The captures of a trip and the "reparse capture" action (#154): after a parser fix, the owner runs the current
 parser version again on the stored raw data of a capture."""
 
+import gzip
+import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
@@ -111,6 +113,30 @@ def reparse_capture(request: Request, capture_id: int, session: Session = Depend
         message = (f"Reparsed with {capture.source} {parser.version}: {counts['created']} created, "
                    f"{counts['updated']} updated, {counts['unchanged']} unchanged, {counts['rejected']} rejected.")
     return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
+
+
+RAW_LIMIT = 200_000
+
+
+@router.get("/captures/{capture_id}/raw", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def capture_raw_page(request: Request, capture_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+    """The stored raw payload of one capture as formatted JSON (#1290). Autoescape makes it text (P5)."""
+    capture = session.get(Capture, capture_id)
+    if capture is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no capture {capture_id}")
+    text = None
+    size_kb = 0
+    if capture.raw_gz is not None:
+        data = gzip.decompress(capture.raw_gz).decode("utf-8")
+        try:
+            text = json.dumps(json.loads(data), indent=2, ensure_ascii=False)
+        except ValueError:
+            text = data
+        size_kb = max(1, round(len(text.encode("utf-8")) / 1024))
+    truncated = text is not None and len(text) > RAW_LIMIT
+    return templates.TemplateResponse(request, "capture_raw.html",
+                                      {"capture": capture, "text": text[:RAW_LIMIT] if truncated else text,
+                                       "truncated": truncated, "size_kb": size_kb})
 
 
 @router.post("/captures/{capture_id}/move", response_class=HTMLResponse,

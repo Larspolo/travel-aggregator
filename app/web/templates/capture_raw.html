@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Raw payload of capture {{ capture.id }} · travel-aggregator{% endblock %}
+{% block content %}
+{% call ui.page_header("Raw payload of capture " ~ capture.id, back=("/trips/" ~ capture.trip_id ~ "/captures", "Back to the captures")) %}{% endcall %}
+<p>Source: {{ capture.source }}</p>
+{% if text is none %}
+{{ ui.empty_state("No raw payload") }}
+{% else %}
+<section class="card data-card"><pre class="raw-payload" tabindex="0">{{ text }}</pre></section>
+{% if truncated %}<p class="raw-size-note">The payload is {{ size_kb }} KB; download it to see all of it.</p>{% endif %}
+{% endif %}
+{% endblock %}
