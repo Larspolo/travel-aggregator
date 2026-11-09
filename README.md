@@ -299,6 +299,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/rates` | The exchange rates: store the value in EUR of a currency, or delete a rate (see "Exchange rates" below) |
 | `/fees` | The booking fees: store the fee in EUR of a source, or set it to 0 to remove it (see "Booking fees" below) |
 | `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile. `/profiles/new` makes a profile with no trip, and `/profiles/{id}` edits its weights |
+| `/pinned` | The pinned offers of the trips in planning, in the order of departure (see "Pinned offers" below) |
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
 | `/trips/{id}/captures` | The captures of a trip, with the parse result and the action "reparse capture" (see below). The link "Only failed captures" shows only the failed captures (`?failed=1`); "Show all captures" shows all again |
 | `/trips/{id}/itineraries/{id}/history` | The price history of an offer: a chart per fare, with a table of the prices, the newest first |
@@ -310,7 +311,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 All pages but `/login` need the login. Each form that changes data sends a CSRF token: a form without a correct token
 gets the answer 403.
 
-Each page has the same app bar at the top: the name "travel-aggregator" links to the trips list. The links Trips, Upcoming, Captures,
+Each page has the same app bar at the top: the name "travel-aggregator" links to the trips list. The links Trips, Upcoming, Pinned, Captures,
 Profiles, Places and Settings follow it, and "Log out" ends the login session. The current page is marked in the bar.
 Most pages start with a page header: the title, a subtitle, and a link such as "Back to the trip" where one applies. Its buttons
 sit at the right side. The content is in cards, each with an optional title. A list with no item shows an empty state:
@@ -467,6 +468,23 @@ Without JavaScript, each button sends the form and reloads the page.
 
 To write a note on an offer, open "Legs and fares" in its row, change the text in the box and click "Save note".
 A note has at most 2000 characters. The row shows the note under its route.
+
+### Pinned offers
+
+The "Pinned" link in the app bar opens `/pinned`. The link shows the number of pinned offers in brackets, for example "Pinned (3)".
+The count is not shown when it is 0. The page lists the offers that you pinned (see "Pin, hide, book and note an offer")
+when all of these are true: the offer is not hidden, and its trip is in planning (not booked and not archived).
+
+The offers are in the order of their departure. Each offer shows:
+- the title of its trip, with a link to the trip page,
+- each leg: the carrier and the service number, the place of departure and of arrival, and the departure and arrival times,
+- the latest price of its fare and the source of the fare. An offer with several fares shows the fare with the lowest latest price,
+- "lowest €X, now €Y above" when the latest price is above the lowest price that the app has seen for this fare, or "at its lowest"
+  when it is equal to it,
+- "price dropped €X" when the price went down since the last view of the trip page (see "Price drops of a pinned offer"),
+- the link "Open in trip", which opens the trip page at the offer.
+
+With no pinned offer, the page shows the text "No pinned offers. Pin an offer on its trip page."
 
 ### Add to calendar
 
