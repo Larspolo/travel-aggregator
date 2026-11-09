@@ -286,7 +286,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 
 | Path | Use |
 |---|---|
-| `/login` | The login form: the password of `OWNER_PASSWORD_HASH`. The session is signed with `SECRET_KEY` |
+| `/login` | The login form: the password of `OWNER_PASSWORD_HASH`. With the second login step on, a code page follows (see "Second login step" below). The session is signed with `SECRET_KEY` |
 | `/logout` | Ends the login session |
 | `/` | The list of your trips that are not archived, with a link to each trip. `/?archived=1` shows the archived trips |
 | `/trips/new` | The form to make a trip |
@@ -327,6 +327,34 @@ The saved copy of the Upcoming page (see "Upcoming journeys") goes from the othe
 the app. Until then, a device with no network can still show it. The API tokens and the share and calendar links have
 their own "Revoke": on `/tokens` for the API tokens, on the trip page for a share link, and on the Upcoming page for a calendar link.
 The button does not revoke them.
+
+### Second login step
+
+The card "Second login step" on the settings page (`/settings`) turns on a code of your authenticator app. Its state
+shows "On" or "Off". With the step off, the login asks only for the password.
+
+To turn it on:
+
+1. Click "Turn on". The page shows a QR code, the key as text and the link "Open in the authenticator app".
+2. Add the key to your authenticator app: scan the QR code or type the key.
+3. Type the code of the app in "Code from the app" and click "Confirm". The page shows "On" and the ten recovery codes.
+   Save these codes: each one logs in one time. The page shows them only once.
+
+With the step on, the login asks for the code after the password: the page "Log in" shows the field "Code from the app".
+A recovery code also works in this field. A used recovery code stops working. The count "Recovery codes left" on the settings page
+shows how many are left.
+
+To get ten new recovery codes, type a current code of the app in the field under "New recovery codes" and click the button.
+The old codes stop working. To turn the step off, type a current code of the app in the field under "Turn off" and click "Turn off".
+
+If you lost the app and no recovery code is left, turn the step off on the server with this command. It needs no code, and it
+ends the login on all other devices:
+
+```
+docker compose exec app python3 -m app.totp off
+```
+
+The command prints "The second login step is off." The API tokens need no code: they work as before.
 
 ### Use a phone
 
