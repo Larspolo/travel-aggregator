@@ -45,7 +45,7 @@ def test_query_one_statement(engine):
     event.listen(engine, "before_cursor_execute", lambda *a: statements.append(a[2]))
     with Session(engine) as s:
         rows = list_trips(s)
-    assert len(statements) == 1
+    assert len(statements) <= 3  # the list and the 2 statements of gone_fares (#1387), not one per trip
     by_title = {r.title: r for r in rows}
     berlin = by_title["Berlin"]
     assert berlin.offer_count == 2

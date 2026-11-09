@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, object_session
 
 from app import departed
 from app.currency import EUR, to_eur
+from app.gone import gone_fares
 from app.models import CurrencyRate, Fare, Itinerary, Trip
 
 
@@ -33,7 +34,8 @@ class TripRow:
 
 
 def list_trips(session: Session) -> list[TripRow]:
-    """All trips with their offer count and best offer by its EUR value, in one SQL statement (#386).
+    """All trips with their offer count and best offer by its EUR value: 1 SQL statement (#386) and the 2 of
+    `gone_fares` (#1387).
 
     The rates come with the same statement (a join of `currency_rates`), so the page stays one query.
     A fare with no rate does not count; a trip with only such fares shows its lowest price with `no_rate`."""
@@ -43,7 +45,7 @@ def list_trips(session: Session) -> list[TripRow]:
             Trip.id, Trip.title, Trip.origin_text, Trip.destination_text, Trip.date_from, Trip.date_to,
             Trip.status, Trip.return_of_id, Trip.split_of_id, Trip.target_price, Trip.share_hash, Trip.notes,
             Itinerary.id.label("itinerary_id"),
-            Fare.latest_price, Fare.currency, CurrencyRate.eur_per_unit,
+            Fare.id.label("fare_id"), Fare.latest_price, Fare.currency, CurrencyRate.eur_per_unit,
         )
         .outerjoin(Itinerary, (Itinerary.trip_id == Trip.id) & Itinerary.hidden.is_(False)
                     & departed.not_departed(departed_now))
@@ -59,7 +61,11 @@ def list_trips(session: Session) -> list[TripRow]:
         if r.itinerary_id is not None:
             info["itineraries"].add(r.itinerary_id)
         if r.latest_price is not None:
-            info["fares"].append((r.latest_price, r.currency))
+            info["fares"].append((r.latest_price, r.currency, r.fare_id))
+    gone = gone_fares(session, trips)
+    for info in trips.values():  # a gone fare counts only when the trip has no current fare (#1387)
+        current = [f for f in info["fares"] if f[2] not in gone]
+        info["fares"] = [f[:2] for f in (current or info["fares"])]
     return [_trip_row(info, rates) for info in trips.values()]
 
 
