@@ -651,6 +651,7 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 /* The split tickets of a trip (#1179) */
 .split-pairs { margin: 0; padding-left: 1.25rem; }
 .split-pairs li { margin: 0.5rem 0; overflow-wrap: anywhere; }
+.login-log li { overflow-wrap: anywhere; margin: 0.4rem 0; }
 .split-pairs li > span { display: block; }
 .split-diff.good { color: var(--good, inherit); font-weight: 600; }
 /* A QR code needs dark modules on light in each theme, so that a camera reads it (#1317). */
