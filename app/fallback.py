@@ -11,7 +11,8 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import select
-from sqlalchemy.orm import object_session, selectinload
+from sqlalchemy.orm import object_session
+from sqlalchemy.orm.attributes import set_committed_value
 
 from app.risk import _name_key
 
@@ -77,16 +78,23 @@ def no_fallback(it, index) -> list[int]:
 
 
 def fallback_index(session, trip_id: int, now: datetime):
-    """The index of the not-departed itineraries of the trip (also hidden ones), built once per request (#1773).
+    """The index of the not-departed itineraries of the trip (also hidden ones), with two queries, built once per request (#1773).
 
     The SQLAlchemy session dict (`session.info`) keeps it for the request (P4).
     """
-    from app.models import Itinerary
+    from app.models import Itinerary, Leg
 
     cache = session.info.setdefault("fallback_index", {})
     if trip_id not in cache:
-        pool = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.depart_at > now)
-                               .options(selectinload(Itinerary.legs))).all()
+        pool = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.depart_at > now)).all()
+        # One query for the legs of all of them: selectinload sends one query per 500 itineraries (#1774).
+        legs: dict[int, list] = {it.id: [] for it in pool}
+        for leg in session.scalars(select(Leg).join(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.depart_at > now)
+                                   .order_by(Leg.itinerary_id, Leg.seq)):
+            legs[leg.itinerary_id].append(leg)
+        for it in pool:
+            if "legs" not in it.__dict__:
+                set_committed_value(it, "legs", legs[it.id])
         cache[trip_id] = build_index(pool)
     return cache[trip_id]
 
@@ -104,3 +112,11 @@ def fallback_extras(it, weights) -> tuple[tuple[str, Decimal], ...]:
         return ()
     count = len(no_fallback(it, fallback_index(session, it.trip_id, datetime.now(timezone.utc))))
     return (("no later connection", penalty * count),) if count else ()
+
+
+def no_fallback_marks(it) -> list[int]:
+    """The transfers of `it` with no later captured connection, for the mark of the row (#1774); also with a penalty of 0."""
+    session = object_session(it)
+    if session is None or len(it.legs) < 2:
+        return []
+    return no_fallback(it, fallback_index(session, it.trip_id, datetime.now(timezone.utc)))

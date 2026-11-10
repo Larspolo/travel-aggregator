@@ -38,7 +38,7 @@ from app import login_log, passkeys, recovery, totp
 from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
-from app.fallback import fallback_extras
+from app.fallback import fallback_extras, no_fallback_marks
 from app.days import day_summary, return_grid, with_day_prices
 from app.timeline import timeline
 from app.filtered import hidden_counts
@@ -84,6 +84,7 @@ templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 templates.env.globals["csrf_token"] = csrf_token
 templates.env.globals["route_text"] = route_text
 templates.env.globals["station_changes"] = station_changes
+templates.env.globals["no_fallback_marks"] = no_fallback_marks
 templates.env.globals["delay_claim"] = delay_claim  # the claim of a delayed booked row (#1692)
 # All settings pages, in groups: the settings navigation of each settings page and the "Settings" link of the
 # app bar use this one list (#925, DESIGN.md section 5, "Settings").
