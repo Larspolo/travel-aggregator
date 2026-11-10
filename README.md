@@ -524,6 +524,7 @@ shown row have the same effective cost. For example, `1 h 20 min faster, €3.00
 X. "Better below €X/h" means that it is the better one when your hour markup is below X. The best row shows no line,
 and a row with no break-even value shows no line. A value from €0/h to €100/h is a link: a click opens the page with that hour markup, so the row is the better one after the click. The value is rounded up for "above" and down for "below". The other weights of the page stay. A value outside this range is text only.
 Under the best row (the row with the lowest effective cost of the shown rows) a line shows the hour values between which it stays the best, for example "best from €8/h to €15/h (yours: €10/h)". The line has one of three forms: "best from €L/h to €U/h" (both limits), "best from €L/h" (only the lower limit) or "best up to €U/h" (only the upper limit). Each value is a link: a click opens the page with that hour markup. A trip with one shown offer has no line.
+Each row other than the best shows the line "best at €N or less" under its break-even line. It is the EUR price per traveler at which the row has the same effective cost as the best row, with the other prices unchanged: the price less the difference of the effective costs. A row shows no such line when the value would be €0 or less, or when the fare has no exchange rate. The best row shows no such line.
 
 ### Seats left
 
