@@ -46,6 +46,25 @@
     <button class="btn" type="submit" formaction="/settings/messages/test">Send a test message</button></div>
 </form>
 {% endcall %}
+{% call ui.card("Last messages") %}
+{% if messages %}
+<table>
+  <thead><tr><th scope="col">Sent</th><th scope="col">Title</th><th scope="col">Channel</th><th scope="col">Result</th></tr></thead>
+  <tbody>
+  {% for m in messages %}
+    <tr>
+      <td><time datetime="{{ m.sent_at.isoformat() }}" title="{{ m.sent_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ m.sent_at | ago(now) }}</time></td>
+      <td>{% if m.click and m.click.startswith(base_url) %}<a href="{{ m.click }}">{{ m.title }}</a>{% else %}{{ m.title }}{% endif %}</td>
+      <td>{{ m.channel }}</td>
+      <td>{% if m.ok %}sent{% else %}<span class="chip warn">&#10007; failed: {{ m.reason or "unknown" }}</span>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No messages sent yet</p>
+{% endif %}
+{% endcall %}
 {% call ui.card("Web Push") %}
 <div id="push" data-key="{{ vapid_public_key }}" data-csrf="{{ csrf_token(request) }}">
   <p>The channel webpush sends the message to each device that has push on ({{ push_count }} now). The buttons change only this device, at once.</p>
