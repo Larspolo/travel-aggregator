@@ -25,6 +25,11 @@ def _later_from_basel(final="Zürich HB"):
     return o
 
 
+def _part(page):
+    """True when the breakdown has the part (the mark of #1774 is other text)."""
+    return re.search(r"€[0-9.]+ no later connection", page) is not None
+
+
 def _score(page):
     """The effective cost of the only row."""
     return float(re.search(r'<div class="total">€([0-9.,]+)<', page).group(1).replace(",", ""))
@@ -62,18 +67,18 @@ def test_two_transfers_with_no_later_connection_add_twice_the_penalty(trip):  # 
 def test_a_later_connection_removes_the_part(trip):  # noqa: F811
     client, auth, trip_id = trip
     ingest(client, auth, trip_id, [offer("89.90"), _later_from_basel()])
-    assert "no later connection" not in client.get(f"/trips/{trip_id}?no_fallback_penalty=30").text
+    assert not _part(client.get(f"/trips/{trip_id}?no_fallback_penalty=30").text)
 
 
-def test_the_default_adds_no_part_and_no_query(trip):  # noqa: F811
+def test_the_default_adds_no_part_and_the_penalty_adds_no_query(trip):  # noqa: F811
     client, auth, trip_id = trip
     ingest(client, auth, trip_id, [offer("89.90"), _later_from_basel("Bern")])
     page, default = _count(client, f"/trips/{trip_id}")
-    assert "no later connection" not in page and "€89.90" in page
+    assert not _part(page) and "€89.90" in page
     zero, zero_count = _count(client, f"/trips/{trip_id}?no_fallback_penalty=0")
-    assert "no later connection" not in zero and zero_count == default
+    assert not _part(zero) and zero_count == default
     on, on_count = _count(client, f"/trips/{trip_id}?no_fallback_penalty=30")
-    assert "no later connection" in on and on_count > default
+    assert _part(on) and on_count == default  # the mark of #1774 loads the index also at €0
 
 
 def test_advanced_has_the_field_and_the_url_checks_the_range(trip):  # noqa: F811
