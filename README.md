@@ -447,6 +447,8 @@ removed when it is fixed.
 The table of `/trips/{id}` has one row per journey. The same train from bahn.de and NS International shows once, with the fares of both sources in its "Legs and fares". Two offers are one journey when their modes and service numbers are the same, and their first departure and last arrival are at the same UTC time (the carrier and the times of the legs between do not count). The pin, hide, booked, note and price history are per journey.
 Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
 A fare of the 1st class shows the badge "1st" after its name. The badge shows in the fare list of each row and on the compare page.
+A fare that the site priced with a discount card shows the card name after its name, for example "BahnCard 50". No name shows when the capture does not tell the cards, or when the fare name already has the card name.
+When the current fares of a trip use different sets of discount cards, the trip page shows the warning "These fares use different discount cards: BahnCard 50, none", above the table. Each set shows once, joined with " + " when a fare uses more than one card, and "none" is the fare with no card. The warning counts only the fares that show as current: a hidden fare, a departed fare and a fare that a newer search did not show again do not count, and a fare with no known cards does not count.
 An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on).
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
 If the newest capture is older than the stale hours, the row also shows "stale, price may have changed". See "Stale offers".
