@@ -116,22 +116,6 @@
 </ul>
 </section>
 {% endif %}
-{% if view.price_hours %}
-<section class="price-hours card" id="price-hours">
-<h2>Price and door-to-door hours</h2>
-{% with chart = view.price_hours %}
-<svg class="price-chart" viewBox="0 0 {{ chart.width }} {{ chart.height + 14 }}" width="100%" role="group"
-     aria-label="Price against door-to-door hours; filled points: no faster offer for less">
-  {% if chart.line %}<polyline fill="none" stroke="currentColor" stroke-width="1.5" points="{{ chart.line }}"/>{% endif %}
-  {% for d in chart.dots %}
-  <a href="#it-{{ d.id }}" aria-label="{{ d.title }}"><circle class="{{ 'marked' if d.marked else 'other' }}" cx="{{ d.x }}" cy="{{ d.y }}" r="4"><title>{{ d.title }}</title></circle></a>
-  {% endfor %}
-  <text x="0" y="{{ chart.height + 12 }}" font-size="10">{{ chart.low_hours }} · {{ chart.low_price | money(chart.currency) }} to {{ chart.high_price | money(chart.currency) }}</text>
-  <text x="{{ chart.width }}" y="{{ chart.height + 12 }}" font-size="10" text-anchor="end">{{ chart.high_hours }}</text>
-</svg>
-{% endwith %}
-</section>
-{% endif %}
 {% if trend %}
 <section class="trend card" id="trend">
 <h2>Price trend</h2>
@@ -199,6 +183,22 @@
 {% with oob = false %}{% include "trip_filtered.html" %}{% endwith %}
 <div class="card table-card" id="table">
 {% include "trip_table.html" %}
+{% if view.price_hours %}
+<section class="price-hours card" id="price-hours">
+<h2>Price and door-to-door hours</h2>
+{% with chart = view.price_hours %}
+<svg class="price-chart" viewBox="0 0 {{ chart.width }} {{ chart.height + 14 }}" width="100%" role="group"
+     aria-label="Price against door-to-door hours; filled points: no faster offer for less">
+  {% if chart.line %}<polyline fill="none" stroke="currentColor" stroke-width="1.5" points="{{ chart.line }}"/>{% endif %}
+  {% for d in chart.dots %}
+  <a href="#it-{{ d.id }}" aria-label="{{ d.title }}"><circle class="{{ 'marked' if d.marked else 'other' }}" cx="{{ d.x }}" cy="{{ d.y }}" r="4"><title>{{ d.title }}</title></circle></a>
+  {% endfor %}
+  <text x="0" y="{{ chart.height + 12 }}" font-size="10">{{ chart.low_hours }} · {{ chart.low_price | money(chart.currency) }} to {{ chart.high_price | money(chart.currency) }}</text>
+  <text x="{{ chart.width }}" y="{{ chart.height + 12 }}" font-size="10" text-anchor="end">{{ chart.high_hours }}</text>
+</svg>
+{% endwith %}
+</section>
+{% endif %}
 </div>
 {# Shows only when a row is ticked (#664): CSS :has() and a counter, no JavaScript. Outside #compare, so the
    out-of-band swap of that form keeps it. #}
