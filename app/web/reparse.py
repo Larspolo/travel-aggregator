@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app import ingest
 from app.failure_report import report_url
+from app.field_health import field_health
 from app.sourcehealth import add_old_script, failed_clause, source_health
 from app.suspect import suspect_counts
 from app.search_links import load_sources
@@ -141,6 +142,15 @@ def _named_wins(session: Session) -> list[tuple[str, object]]:
     return [(names.get(w.source, w.source), w) for w in source_wins(session, datetime.now(timezone.utc))]
 
 
+def _named_fields(session: Session) -> list[tuple[str, bool]]:
+    """The (line, mark) of each source and field with an empty fare in the last 14 days, the marked ones first (#1969)."""
+    names = {s.get("source") or key: s.get("name") or key for key, s in load_sources().items()}
+    rows = [r for r in field_health(session, datetime.now(timezone.utc)) if r.empty]
+    rows.sort(key=lambda r: not r.mark)
+    return [(f"{names.get(r.source, r.source)}: {r.text} in {r.empty} of {r.total} fares "
+             f"(before: {r.empty_before} of {r.total_before})", r.mark) for r in rows]
+
+
 @router.get("/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def all_captures_page(request: Request, failed: bool = False, source: str | None = Query(None, max_length=50),
                       session: Session = Depends(get_session)) -> HTMLResponse:
@@ -162,7 +172,8 @@ def all_captures_page(request: Request, failed: bool = False, source: str | None
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session, source) if failed else [],
                                        "suspect_counts": suspect_counts(session, trip_ids),  # #1607
-                                       "wins": [] if failed or source else _named_wins(session)})  # #1941
+                                       "wins": [] if failed or source else _named_wins(session),  # #1941
+                                       "fields": [] if failed or source else _named_fields(session)})  # #1969
 
 
 @router.post("/captures/reparse-failed", response_class=HTMLResponse,
