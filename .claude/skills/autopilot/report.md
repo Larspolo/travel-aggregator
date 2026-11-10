@@ -41,6 +41,7 @@ and put its findings on the ticket (a comment, new bug tickets, `Depends on`) an
 Before you give back a ticket whose next step only the owner can do, add `needs-human` (`owner.md`): with `none` and
 a release only, the next run takes it again in minutes (#5676: 2 runs).
 When your PR closes the last ticket of a line `- After #a, #b: ...` in the section `## Owner checks` of its epic,
+lock it with `python3 framework/tools/claim.py E --ownercheck --state a` (exit 1: another run makes it, skip it; #1797: two runs made one check twice), then
 make that `needs-human` ticket now (`ticket` skill) with only the steps that no agent can do (do the other checks
 yourself first and link the evidence) with `parent: E` (a sub-issue of the epic: else the epic has no open sub-issue, and the pacer starts epic checks for it, #432), so the owner can check when the merge is live (owner, 2026-11-06). `framework/tools/health.py` counts the `pr #n` lines by the present PR state (#902).
 `framework/tools/report.py` puts the output of `python3 tools/release.py` (the release bar of each goal, #879) above the
