@@ -20,7 +20,7 @@ def test_pareto_ids():
 
 def marked(page):
     """The prices of the table rows with the mark."""
-    page = page[page.index('id="table"'):]
+    page = page[page.index('id="table"'):].split('id="price-hours"')[0]  # not the chart after the table (#1858)
     return sorted(p for p in ("€89.90", "€150.00", "€200.00")
                   for row in page.split("<tr")[1:] if p in row and MARK in row)
 
