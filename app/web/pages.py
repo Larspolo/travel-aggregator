@@ -26,6 +26,7 @@ from app.web.userscripts import bundle_info, userscript_list
 from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter,
                       require_login, session_epoch, verify_csrf)
 from app import departed
+from app.delay_claim import claim as delay_claim
 from app.backup import BACKUP_MAX_AGE, STAMP_FORMAT, newest_backup
 import segno
 from markupsafe import Markup
@@ -79,6 +80,7 @@ templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 templates.env.globals["csrf_token"] = csrf_token
 templates.env.globals["route_text"] = route_text
 templates.env.globals["station_changes"] = station_changes
+templates.env.globals["delay_claim"] = delay_claim  # the claim of a delayed booked row (#1692)
 # All settings pages, in groups: the settings navigation of each settings page and the "Settings" link of the
 # app bar use this one list (#925, DESIGN.md section 5, "Settings").
 SETTINGS_NAV = [
