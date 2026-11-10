@@ -988,6 +988,11 @@ partner can add a note of up to 200 characters with the mark; the note is shown 
 change it with "Save note" or remove the mark and its note with "Remove". The trip page shows the marks to the owner.
 "Revoke link" deletes the marks of the trip.
 
+The link can have an end date. On the trip page, under the link, enter a date in "End date" and click "Set end date";
+the page then shows "Ends on" with the date. The link works on that day and stops the day after it: the shared page
+returns "not found" (404), and so do the marks. The page then shows "Link ended on" with the date. Leave the field empty
+and click "Set end date" to clear the end date. "Revoke link" clears it too.
+
 To stop the link, click "Revoke link" on the trip page. The link then returns "not found" (404). "Share" shows again
 after "Revoke link", and it makes a new link: the old link stays stopped. Each address that sends too many wrong
 links gets HTTP 429 with a `Retry-After` header for a while.
