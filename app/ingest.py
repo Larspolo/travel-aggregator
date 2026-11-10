@@ -228,19 +228,19 @@ def store_day_prices(session: Session, trip_id: int, capture_id: int | None, day
     session.flush()
 
 
-def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None, int | None, list]:
+def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None, int | None, list, list[str] | None]:
     """The offers and the rejected connections of the raw payload, by the parser of the source (none when the source
     has no parser). The third value is the reason when the parser cannot read the payload as a whole (P3): the
     capture is stored anyway, with the offers of the body. The fourth value is the traveler count (#764), the fifth
-    the day prices (#1197)."""
+    the day prices (#1197), the sixth the discount cards (#1750; None = not known)."""
     parser = get_parser(body.source)
     if body.raw is None or parser is None:
-        return [], [], None, None, []
+        return [], [], None, None, [], None
     try:
         result = parser.parse(body.raw)
     except ValueError as e:
-        return [], [], str(e)[:200], None, []
-    return result.offers, result.errors, None, result.travelers, result.day_prices
+        return [], [], str(e)[:200], None, [], None
+    return result.offers, result.errors, None, result.travelers, result.day_prices, result.discounts
 
 
 def set_result(capture: Capture, counts: dict, errors: list[dict], unreadable: str | None) -> None:
@@ -275,6 +275,7 @@ def reparse(session: Session, capture: Capture) -> dict | None:
         set_span(capture, [])
         capture.mismatch = None
         capture.travelers = capture_travelers(capture, None)
+        capture.discounts = None
         session.commit()
         return {**counts, "rejected": 0, "unreadable": str(e)[:200]}
     counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
@@ -284,6 +285,7 @@ def reparse(session: Session, capture: Capture) -> dict | None:
     set_result(capture, counts, result.errors, None)
     set_span(capture, result.offers)
     capture.travelers = capture_travelers(capture, result.travelers)
+    capture.discounts = result.discounts
     capture.mismatch = _trip_mismatch(session, capture.trip_id, result.offers, capture.travelers)
     session.commit()
     return {**counts, "rejected": len(result.errors), "unreadable": None}
@@ -325,6 +327,7 @@ def move_capture(session: Session, capture: Capture, target_trip_id: int) -> dic
         set_result(capture, counts, result.errors, None)
         set_span(capture, result.offers)
         capture.travelers = capture_travelers(capture, result.travelers)
+        capture.discounts = result.discounts
         capture.mismatch = _trip_mismatch(session, target_trip_id, result.offers, capture.travelers)
         session.commit()
     except Exception:
@@ -381,7 +384,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors", "warning", "trip_id", "trip_title"}: the
     errors are the offers that the schema or the parser rejected, with their index (#54). Each failure is logged
     with the capture id (P3)."""
-    raw_offers, raw_errors, unreadable, travelers, day_prices = parse_raw(body)
+    raw_offers, raw_errors, unreadable, travelers, day_prices, discounts = parse_raw(body)
     trip_id = _choose_trip(session, body, list(body.offers) + raw_offers)
     before = _best(session, trip_id)
     capture = store_capture(session, trip_id, body)
@@ -400,6 +403,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     set_result(capture, counts, errors, unreadable)
     set_span(capture, offers)
     capture.travelers = capture_travelers(capture, travelers)
+    capture.discounts = discounts
     reason = _trip_mismatch(session, trip_id, offers, capture.travelers)
     capture.mismatch = reason
     # #720: an auto_trip capture that no trip matches suggests a new trip from its offers. Another number of

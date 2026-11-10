@@ -48,7 +48,14 @@ def local_time(t: dict, ext_id: Any) -> datetime:
     return naive.replace(tzinfo=station_tz(ext_id))
 
 
-def discounts(request: dict | None) -> list[str]:
+def discounts(request: dict | None) -> list[str] | None:
+    """The discount cards of the travelers (#1750); None when the request has no reisende list."""
+    if not isinstance(request, dict) or not isinstance(request.get("reisende"), list):
+        return None
+    return _cards(request)
+
+
+def _cards(request: dict | None) -> list[str]:
     out = []
     for r in (request or {}).get("reisende") or []:
         for e in r.get("ermaessigungen") or []:
@@ -86,8 +93,8 @@ class BahnParser:
         conns = response.get("verbindungen") if isinstance(response, dict) else None
         if not isinstance(conns, list):
             raise ValueError("the bahn.de payload has no verbindungen list")
-        extra = discounts(request)
-        result = ParseResult(travelers=travelers(request))
+        extra = _cards(request)
+        result = ParseResult(travelers=travelers(request), discounts=discounts(request))
         for i, conn in enumerate(conns):
             try:
                 result.offers.extend(self._offers(conn, extra))
