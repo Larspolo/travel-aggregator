@@ -30,11 +30,12 @@ def test_bag_price_of_the_fare():
 def test_bag_price_in_other_currency_and_no_rate():
     assert baggage_extras(_fare(None, Decimal("100"), "CZK"), _it("flight"), W30, {"CZK": Decimal("0.04")}) == (
         ("baggage", Decimal("4.00")),)
-    assert baggage_extras(_fare(None, Decimal("100"), "CZK"), _it("flight"), W30) == (("baggage", Decimal("30")),)
+    assert baggage_extras(_fare(None, Decimal("100"), "CZK"), _it("flight"), W30) == (
+        ("baggage (estimate)", Decimal("30")),)
 
 
 def test_no_bag_data_gives_the_flat_fee():
-    assert baggage_extras(_fare(), _it("flight"), W30) == (("baggage", Decimal("30")),)
+    assert baggage_extras(_fare(), _it("flight"), W30) == (("baggage (estimate)", Decimal("30")),)
 
 
 def test_train_and_fee_zero_give_no_part():

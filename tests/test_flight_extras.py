@@ -42,6 +42,6 @@ def test_advanced_inputs_change_the_order(trip):  # noqa: F811
     assert page.index("= €197.50") < page.index("= €240")
     page = client.get(f"/trips/{trip_id}?baggage_fee=50&airport_before_min=180").text
     # 100 + 60 + (180 + 30) × 15 / 60 = 52.50 + 50 = 262.50
-    assert "€52.50 airport time + €50 baggage = €262.50" in page
+    assert "€52.50 airport time + €50 baggage (estimate) = €262.50" in page
     assert page.index("= €240") < page.index("= €262.50")
     assert client.get(f"/trips/{trip_id}?baggage_fee=-1").status_code == 422

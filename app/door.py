@@ -29,7 +29,7 @@ def baggage_extras(fare, itinerary, weights: Weights, rates=None) -> tuple[tuple
         eur = to_eur(Decimal(price), fare.currency, rates or {})
         if eur is not None:
             return (("baggage", eur),)
-    return (("baggage", Decimal(weights.baggage_fee)),)
+    return (("baggage (estimate)", Decimal(weights.baggage_fee)),)
 
 
 def _key(text: str) -> str:
