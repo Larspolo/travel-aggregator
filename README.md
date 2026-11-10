@@ -584,6 +584,16 @@ Without JavaScript, each button sends the form and reloads the page.
 To write a note on an offer, open "Legs and fares" in its row, change the text in the box and click "Save note".
 A note has at most 2000 characters. The row shows the note under its route.
 
+### Cancel a booked journey
+
+A booked row of `/trips/{id}` has the form "Cancel booking" with the field "Refund" (the amount that you got back, in the paid currency). The refund is a number from 0 to the paid price with at most 2 decimals; a blank refund is 0. A bad refund shows an error (HTTP 422) and stores nothing.
+
+After the cancel:
+
+- The row is no longer booked. It leaves the Upcoming page, the calendar feed and the travel-day messages.
+- The row shows "Booking cancelled: paid €89.00, refund €60.00", with the paid price and the refund. The paid fields stay.
+- "Travel per year" counts the paid price less the refund for the year of the journey. It counts no journey, and no hours or CO₂, for it.
+
 ### Pinned offers
 
 The "Pinned" link in the app bar opens `/pinned`. The link shows the number of pinned offers in brackets, for example "Pinned (3)".
@@ -904,7 +914,7 @@ A manual fare on `/trips/{id}` has the links "Change price" and "Delete" under i
 ### Travel per year
 
 The page "Travel per year" (`/upcoming/years`) shows the booked journeys of each year, newest year first. The link
-"Travel per year" is on the Upcoming page. Only the journeys that you marked as booked are counted.
+"Travel per year" is on the Upcoming page. The journeys that you marked as booked are counted. A cancelled booking is no journey: it adds its paid price less its refund (see "Cancel a booked journey").
 
 For each year the page shows:
 
