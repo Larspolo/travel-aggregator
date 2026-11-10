@@ -8,6 +8,14 @@
   {% if not years %}
   <p class="muted">No booked journeys. Mark an offer as booked on its trip page.</p>
   {% endif %}
+  <section class="card open-claims"><h2>Open claims</h2>
+  {% if claims %}<ul>{% for it, c in claims %}
+    <li class="claim-line">{{ it.depart_at.date().isoformat() }} · <a href="/trips/{{ it.trip_id }}">{{ route_text(it.trip) or it.trip.title }}</a> · Claim {{ c.amount | money(c.currency) }} ({{ c.percent }} %)
+      <form method="post" action="/upcoming/years/claims/{{ it.id }}/paid" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <button class="btn" type="submit">Claim paid</button></form></li>{% endfor %}
+  </ul>{% else %}<p class="muted">No open claims</p>{% endif %}
+  </section>
   {% for y in years %}
   <section class="card year-summary"><h2>{{ y.year }}</h2>
     <p><strong>{{ y.journeys }} journey{% if y.journeys != 1 %}s{% endif %} · {{ (y.paid_eur if y.paid_eur is not none else 0) | money("EUR") }} paid · {{ y.hours }} h{% if y.co2_kg %} · about {{ y.co2_kg }} kg CO₂{% endif %}</strong>{% for code, n in y.missing | dictsort %}
