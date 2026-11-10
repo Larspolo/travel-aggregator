@@ -30,6 +30,7 @@ from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, 
 from app import departed
 from app.door import door_minutes
 from app.pareto import pareto_ids
+from app.pareto_chart import pareto_chart
 from app.discount_cards import card_label, cards_warning, fare_cards
 from app.delay_claim import claim as delay_claim
 from app.backup import BACKUP_MAX_AGE, STAMP_FORMAT, newest_backup
@@ -852,13 +853,17 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                           ("fastest", lambda r: r[0].duration_min)):
             badges.setdefault(min(shown, key=key)[0].id, []).append(name)
     # no other shown offer is cheaper and faster (#1856): the price and the door-to-door minutes, not the weights
-    pareto = pareto_ids([(r[0].id, r[2].price, door_minutes(r[0], places, weights)) for r in shown])
+    door = {r[0].id: door_minutes(r[0], places, weights) for r in shown}
+    pareto = pareto_ids([(r[0].id, r[2].price, door[r[0].id]) for r in shown])
+    # the price against the door-to-door hours (#1858)
+    price_hours = pareto_chart([(r[0].id, r[0].mode_summary or "offer", r[2].price, door[r[0].id])
+                                for r in shown], pareto)
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     rows.sort(key=all_gone)  # stable: the rows with only gone fares after the current rows (#1386)
     rows.sort(key=lambda r: departed.is_departed(r[0], departed_now))  # the departed rows last (#1391)
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
-    view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "pareto": pareto, "show_hidden": show_hidden,
+    view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "pareto": pareto, "price_hours": price_hours, "show_hidden": show_hidden,
             "show_departed": show_departed, "departed_now": departed_now,
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
