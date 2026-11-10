@@ -915,6 +915,17 @@ When another trip in planning has the same route and dates, the trip page shows 
 - The trips list `/` shows the tags of each trip under its title. A click on a tag filters the list: `/?tag=work` shows only the trips with that tag. The filter ignores upper and lower case and accents. The link "Show all trips" removes the filter.
 - The export and the import keep the tags. The JSON export (see "Export a trip") has the tags of the trip. The import (see "Import a trip") sets the tags of a new trip. An import into a trip that exists keeps the tags of that trip. The copy of a trip (see "Copy a trip") keeps its tags too.
 
+### Sort the trips list
+
+- The trips list `/` has the links "Sort:" above the trips. The active link has `aria-current`. There are 4 orders:
+  - "Date" (`/?sort=date`, the default): the first day of the trip, the earliest first. A trip with no start date is last.
+  - "Price" (`/?sort=price`): the lowest best price first. A trip with no offer, or with no exchange rate, is last.
+  - "Newest capture" (`/?sort=capture`): the newest capture first. A trip with no capture is last.
+  - "Title" (`/?sort=title`): A to Z. The order ignores upper and lower case and accents.
+- A journey stays whole: its trips stay together in the order of the sort.
+- The sort works with the search (`q`), the tag filter (`tag`) and the archived list (`archived=1`). Each sort link keeps these values, and the search form keeps the sort.
+- An unknown value of `sort` gives the default order, not an error.
+
 ### Export a trip
 
 - The trip page `/trips/{id}` has the links "Export CSV" and "Export JSON". They are in the "More" menu of the page.
