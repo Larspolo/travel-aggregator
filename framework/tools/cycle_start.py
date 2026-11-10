@@ -321,10 +321,11 @@ def owner_check_missing(issues, sub_issues_of):
         for line in m[1].splitlines():
             c = OWNER_CHECK.match(line)
             if c and not any(int(t) in issues for t in re.findall(r"#(\d+)", c[1])):
-                ready.append(line.strip().lstrip("-* ").strip())
+                ready.append((line.strip().lstrip("-* ").strip(), re.findall(r"#(\d+)", c[1])[0]))
         if not ready or any(_owner_check_sub(s) for s in sub_issues_of(n) or []):
             continue
-        out += [f"#{n} {i['title']}: no owner check ticket for \"{r}\": make it (`report.md`)" for r in ready]
+        out += [f"#{n} {i['title']}: no owner check ticket for \"{r}\": make it after `claim.py {n} --ownercheck "
+                f"--state {a}` (exit 1: another run makes it, #1797; `report.md`)" for r, a in ready]
     return out
 
 

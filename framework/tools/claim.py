@@ -24,6 +24,7 @@ a second push of another claim commit is never a fast-forward. Later claims of t
     python3 framework/tools/claim.py ID --comment   # lock owner comment ID (autopilot step 3); exit 1: another run handles it
     python3 framework/tools/claim.py E --refill     # lock the sub-issues of epic E (0: the whole queue refill, autopilot step 5;
                                               # a main run: only an epic without `lane:deep`, #1595)
+    python3 framework/tools/claim.py E --ownercheck --state A   # lock the owner check ticket of the line `- After #A, ...` of epic E
     python3 framework/tools/claim.py 0 --fixmain --state SHA   # lock the "Fix main" ticket of the break in commit SHA (step 2)
     python3 framework/tools/claim.py 0 --review     # lock the process review after its gap of merged PRs (`improve` skill,
                                           # `[review]` of `steering/system/system.toml`; it prints the owner work since the last review)
@@ -96,7 +97,7 @@ RECENT = 30 * 60            # seconds: a "Started by" comment of another branch 
 CONFLICT = 10 * 60          # seconds: the stale time of a ticket whose PR has the label `conflict` (#1773)
 
 
-LOCK_DAYS = {"comment": 1, "fixmain": 1, "review": 1, "roadmap": 1, "refill": 7}   # days that `--prune` keeps a lock
+LOCK_DAYS = {"comment": 1, "fixmain": 1, "ownercheck": 7, "review": 1, "roadmap": 1, "refill": 7}   # days that `--prune` keeps a lock
 NS = "refs/travel-aggregator-prune"    # the local copies of the claim refs of `--prune`
 
 
@@ -293,6 +294,14 @@ def claim_fixmain(sha, remote="origin"):
     """Lock the "Fix main" ticket of the break in commit `sha`: True when this run pushed `claim/fixmain-SHA` first."""
     msg = f"Claim fixmain {sha} by {who()} ({uuid.uuid4().hex})"
     return push(git("commit-tree", EMPTY_TREE, "-m", msg).stdout.strip(), f"claim/fixmain-{sha}", remote)
+
+
+def claim_ownercheck(epic, first, remote="origin"):
+    """Lock the owner check ticket of the line `- After #first, ...` of epic `epic`: True when this run pushed
+    `claim/ownercheck-E-FIRST` first (#1797: two runs made two checks of epic #1780 in 2 minutes, and the owner got two
+    requests for one check)."""
+    msg = f"Claim ownercheck {epic} {first} by {who()} ({uuid.uuid4().hex})"
+    return push(git("commit-tree", EMPTY_TREE, "-m", msg).stdout.strip(), f"claim/ownercheck-{epic}-{first}", remote)
 
 
 def agent_state(body):
@@ -576,7 +585,7 @@ def prunable(tips, open_numbers, now, days=LOCK_DAYS):
             continue
         kind, _, rest = name.partition("-")
         epic = rest.split("-")[0]
-        if kind == "refill" and epic.isdigit() and epic != "0" and int(epic) not in open_numbers:
+        if kind in ("refill", "ownercheck") and epic.isdigit() and epic != "0" and int(epic) not in open_numbers:
             out.append(name)
         elif kind in days and now - t > days[kind] * 86400:
             out.append(name)
@@ -769,6 +778,8 @@ def main(argv=None):
     g.add_argument("--adopt", metavar="NAME", help="take over the claim that the pacer made as NAME (the brief of the run)")
     g.add_argument("--comment", action="store_true", help="lock the owner comment with this ID")
     g.add_argument("--refill", action="store_true", help="lock the new sub-issues of this epic (0: the whole refill)")
+    g.add_argument("--ownercheck", action="store_true", help="lock the owner check ticket of this epic and the "
+                   "line `- After #A, ...` of --state A (before you make it)")
     g.add_argument("--fixmain", action="store_true", help="lock the Fix main ticket of the break in --state SHA (number 0)")
     g.add_argument("--review", action="store_true", help="lock the process review after its gap of merged PRs (number 0)")
     g.add_argument("--reviewed", choices=("change", "none"), help="after the review: set the next gap")
@@ -776,14 +787,15 @@ def main(argv=None):
     g.add_argument("--prune", action="store_true", help="delete the refs of closed tickets and old locks (number 0; "
                    "claims.yml: runs cannot delete refs)")
     ap.add_argument("--state", help="--refill: the state part of the lock (default: closed sub-issues, or the hour); "
-                    "--fixmain: the commit that broke main (default: the head of origin/main)")
+                    "--fixmain: the commit that broke main (default: the head of origin/main); "
+                    "--ownercheck: the first ticket A of the line (default 0)")
     ap.add_argument("--pr-branch", metavar="BRANCH", help="--guard: the branch of a PR that this run took over")
     ap.add_argument("--or", dest="more", type=int, nargs="+", default=[], metavar="N",
                     help="a claim: when another run has the ticket, try these tickets in this order (one call)")
     ap.add_argument("--remote", default="origin")
     a = ap.parse_args(argv)
     # A claim on a detached HEAD would be named `unknown`: the next beat of the run then calls its own claim a takeover (#155).
-    writes = a.comment or a.refill or a.review or a.roadmap or not (
+    writes = a.comment or a.ownercheck or a.refill or a.review or a.roadmap or not (
         a.release or a.show or a.beat or a.stale or a.stuck or a.guard or a.adopt or a.prune or a.fixmain or a.reviewed)
     if writes and who() == "unknown":
         print("detached HEAD: check out your branch first (`git checkout -B <branch> origin/main`)")
@@ -797,6 +809,13 @@ def main(argv=None):
             print(f"claimed comment {a.number}")
             return 0
         print(f"comment {a.number}: another run handles it")
+        return 1
+    if a.ownercheck:
+        first = a.state or "0"
+        if claim_ownercheck(a.number, first, a.remote):
+            print(f"claimed ownercheck {a.number} {first}")
+            return 0
+        print(f"ownercheck {a.number} {first}: another run makes the ticket")
         return 1
     if a.fixmain:
         sha = (a.state or git("rev-parse", f"{a.remote}/main", check=False).stdout.strip())[:7]
