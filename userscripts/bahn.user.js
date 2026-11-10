@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: bahn.de
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.2.1
+// @version      1.3.0
 // @description  Send the bahn.de search results (fahrplan and recon responses) to travel-aggregator.
 // @match        https://www.bahn.de/*
 // @match        https://int.bahn.de/*
@@ -22,6 +22,7 @@
   const SOURCE = "bahn.de";
   const PARSER_VERSION = "1.2.0";
   const PATHS = ["/web/api/angebote/fahrplan", "/web/api/angebote/recon", "/web/api/angebote/tagesbestpreis"];
+  const RESULTS_PATH = "/buchung/fahrplan/suche";
 
   const countRaw = (raw) => {
     const r = raw && raw.response;
@@ -42,6 +43,8 @@
     return Array.isArray(r.intervalle) ? r.intervalle.filter((iv) => iv && iv.preis).length : 0;
   };
 
+  // No offers seen (#1756): the results page of bahn.de, with the source and the parser version of this script.
+  core.resultsPage((u) => u.pathname === RESULTS_PATH, SOURCE, PARSER_VERSION);
   core.watch(core.urlTest((u) => PATHS.includes(u.pathname)), ({ url, method, body, text }) => {
     const response = core.parseJson(text);
     if (!response || !(Array.isArray(response.verbindungen) || Array.isArray(response.intervalle))) return;
