@@ -57,6 +57,20 @@ def day_summary(rows: Sequence[tuple], date_from: date | None, date_to: date | N
     return summary
 
 
+def day_sources(itineraries: Sequence[Any], day_of: Callable[[Any], str | None]) -> dict[str, list[str]]:
+    """The sources of the fares of each day (#2056): for each itinerary that is not hidden and has a day, the source of
+    each of its fares is added to that day. Each list is sorted, with no duplicates."""
+    found: dict[str, set[str]] = {}
+    for it in itineraries:
+        if it.hidden:
+            continue  # a hidden offer is in no day (#200)
+        key = day_of(it)
+        if key is None:
+            continue
+        found.setdefault(key, set()).update(fare.source for fare in it.fares)
+    return {key: sorted(sources) for key, sources in sorted(found.items())}
+
+
 RETURN_MAX_DAYS = 14  # the outbound days and the return days of a grid (a longer list shows its first 14 days)
 
 
