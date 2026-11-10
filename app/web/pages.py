@@ -59,7 +59,7 @@ from app.route_history import route_history
 from app.money import money
 from app.coverage import trip_coverage
 from app.sourcehealth import failing_sources
-from app.risk import carrier_extras, mode_extras, mode_hour_extras, reservation_extras, self_transfer_extras, stale_extras, station_change_extras, station_changes, transfer_extras
+from app.risk import carrier_extras, mode_extras, mode_hour_extras, reservation_extras, self_transfer_extras, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -576,7 +576,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
             + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
                 + mode_hour_extras(it, weights)
-            + carrier_extras(it, weights) + co2_extras(it, weights)
+            + carrier_extras(it, weights) + transfer_place_extras(it, weights) + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
             + transfer_extras(it, weights) + station_change_extras(it, weights) + fallback_extras(it, weights)
                 + stale_extras(it, weights, stale_before))
@@ -1159,6 +1159,12 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier2_markup: Decimal = Form(Weights.carrier2_markup, ge=-1000, le=1000),
                       carrier3_name: str = Form(Weights.carrier3_name, max_length=50),
                       carrier3_markup: Decimal = Form(Weights.carrier3_markup, ge=-1000, le=1000),
+                      transfer_place1_name: str = Form(Weights.transfer_place1_name, max_length=50),
+                      transfer_place1_markup: Decimal = Form(Weights.transfer_place1_markup, ge=-1000, le=1000),
+                      transfer_place2_name: str = Form(Weights.transfer_place2_name, max_length=50),
+                      transfer_place2_markup: Decimal = Form(Weights.transfer_place2_markup, ge=-1000, le=1000),
+                      transfer_place3_name: str = Form(Weights.transfer_place3_name, max_length=50),
+                      transfer_place3_markup: Decimal = Form(Weights.transfer_place3_markup, ge=-1000, le=1000),
                       train_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       bus_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       flight_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
@@ -1193,6 +1199,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier1_name=carrier1_name, carrier1_markup=carrier1_markup,
                       carrier2_name=carrier2_name, carrier2_markup=carrier2_markup,
                       carrier3_name=carrier3_name, carrier3_markup=carrier3_markup,
+                      transfer_place1_name=transfer_place1_name, transfer_place1_markup=transfer_place1_markup,
+                      transfer_place2_name=transfer_place2_name, transfer_place2_markup=transfer_place2_markup,
+                      transfer_place3_name=transfer_place3_name, transfer_place3_markup=transfer_place3_markup,
                       train_hour_markup=train_hour_markup, bus_hour_markup=bus_hour_markup,
                       flight_hour_markup=flight_hour_markup, ferry_hour_markup=ferry_hour_markup,
                       night_seat_adjust=night_seat_adjust, night_couchette_adjust=night_couchette_adjust,
@@ -1220,6 +1229,8 @@ WEIGHT_RANGES = {
     "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),
     "hour_tier2_markup": (0, 100),
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
+    "transfer_place1_markup": (-1000, 1000), "transfer_place2_markup": (-1000, 1000),
+    "transfer_place3_markup": (-1000, 1000),  # (#1850)
     "train_hour_markup": (0, 100), "bus_hour_markup": (0, 100), "flight_hour_markup": (0, 100),
     "ferry_hour_markup": (0, 100),  # (#1567)
     "night_seat_adjust": (-1000, 1000), "night_couchette_adjust": (-1000, 1000),

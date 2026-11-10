@@ -56,6 +56,23 @@ def carrier_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ..
     return tuple(parts)
 
 
+def transfer_place_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """One part ("transfer at <name>", amount) for each transfer at a marked place (#1850). The name is a part of the
+    arrival station or the departure station of the transfer; it matches without case and inner or outer spaces. A slot
+    with an empty name or a markup of 0 adds no part. A negative amount is a discount. Two transfers at one place add
+    the amount two times."""
+    parts = []
+    for n in (1, 2, 3):
+        name = _name_key(getattr(weights, f"transfer_place{n}_name"))
+        amount = Decimal(getattr(weights, f"transfer_place{n}_markup"))
+        if not name or amount == 0:
+            continue
+        for before, after in zip(itinerary.legs, itinerary.legs[1:]):
+            if name in _name_key(before.to_name or "") or name in _name_key(after.from_name or ""):
+                parts.append((f"transfer at {getattr(weights, f'transfer_place{n}_name').strip()}", amount))
+    return tuple(parts)
+
+
 def transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """Add one part "short transfer" for the short transfers: the penalty times their count.
 
