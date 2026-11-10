@@ -19,8 +19,12 @@
     <div><strong>{{ fare.latest_price | money(fare.currency) }}</strong> · effective cost <strong>{{ "no rate" if cost.no_rate else cost.total | money }}</strong></div>
     <div class="breakdown muted">{{ format_breakdown(cost) }}</div>
     <form class="share-mark" method="post" action="/s/{{ token }}/marks/{{ it.id }}">
-      {% if mark %}<span class="suits">{{ ui.icon("check") }}Suits you</span> <button class="btn btn-ghost" type="submit">Remove</button>
-      {% else %}<button class="btn" type="submit">{{ ui.icon("check") }}Suits me</button>{% endif %}
+      {% if mark %}<span class="suits">{{ ui.icon("check") }}Suits you</span>
+      <input type="text" name="note" maxlength="200" value="{{ mark.note or '' }}" placeholder="Note (optional)">
+      <button class="btn btn-ghost" type="submit" name="edit" value="1">Save note</button>
+      <button class="btn btn-ghost" type="submit" name="remove" value="1">Remove</button>
+      {% else %}<input type="text" name="note" maxlength="200" placeholder="Note (optional)">
+      <button class="btn" type="submit">{{ ui.icon("check") }}Suits me</button>{% endif %}
     </form>
     <details><summary>Legs</summary>
       <div class="timeline legs">
