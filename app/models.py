@@ -176,6 +176,8 @@ class Capture(Base):
     mismatch: Mapped[str | None] = mapped_column(String(200))
     # The number of travelers of the prices (#764): from the payload, else from search_context; NULL = not known.
     travelers: Mapped[int | None] = mapped_column(Integer)
+    # The discount cards of the travelers (#1750): a list, [] = no card; NULL = the payload does not tell it.
+    discounts: Mapped[list | None] = mapped_column(JSON)
     # The span of the gone check (#1404): the first and the last departure of the offers of the last parse; NULL
     # when the capture has no offer.
     depart_from: Mapped[datetime | None] = mapped_column(_tz())

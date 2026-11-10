@@ -17,6 +17,8 @@ class ParseResult:
     errors: list[dict[str, Any]] = field(default_factory=list)
     # The number of travelers of the prices (#764); None when the payload does not tell it.
     travelers: int | None = None
+    # The discount cards of the travelers (#1750): [] = no card; None when the payload does not tell it.
+    discounts: list[str] | None = None
     # The cheapest price of each day of a day price response (#1196); a day price is not an offer.
     day_prices: list["DayPrice"] = field(default_factory=list)
 
