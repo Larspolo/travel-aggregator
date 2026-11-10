@@ -1,7 +1,7 @@
 """The page "Travel per year" (#1364): the booked journeys per year and per mode."""
 
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.auth import require_login
@@ -18,7 +18,8 @@ router = APIRouter()
 @router.get("/upcoming/years", dependencies=[Depends(require_login)])
 def years(request: Request, session: Session = Depends(get_session)):
     itineraries = session.scalars(
-        select(Itinerary).where(Itinerary.booked.is_(True)).options(selectinload(Itinerary.legs))).all()
+        select(Itinerary).where(or_(Itinerary.booked.is_(True), Itinerary.cancelled_at.is_not(None)))
+        .options(selectinload(Itinerary.legs))).all()  # a cancelled booking keeps its paid price less the refund (#1687)
     profile = session.scalars(select(ScoreProfile).where(ScoreProfile.is_default.is_(True))).first()
     # the CO₂ note names the profile of the kg per hour (#1465)
     return templates.TemplateResponse(request, "spend.html", {
