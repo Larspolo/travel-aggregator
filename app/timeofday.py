@@ -42,20 +42,29 @@ def _night_minutes(start: datetime, end: datetime, weights: Weights) -> int:
     return int(total.total_seconds() // 60)
 
 
-def night_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+BERTH_LABELS = {"seat": "night in a seat", "couchette": "night in a couchette", "sleeper": "night in a sleeper"}
+
+
+def night_extras(itinerary, weights: Weights, fare=None) -> tuple[tuple[str, Decimal], ...]:
     """Add the night adjustment when the local time span covers at least night_min minutes of the night window.
+
+    A fare whose berth has a value in the weights (#1808) gets that value as "night in a <berth>"; else
+    "night travel" with night_adjust.
 
     The span starts at the local departure of the first leg and ends at the local arrival of the last leg.
     A negative amount is a bonus. An amount of 0 adds no part.
     """
-    amount = Decimal(weights.night_adjust)
+    berth = getattr(fare, "berth", None)
+    value = getattr(weights, f"night_{berth}_adjust", None) if berth in BERTH_LABELS else None
+    label = BERTH_LABELS[berth] if value is not None else "night travel"
+    amount = Decimal(weights.night_adjust if value is None else value)
     if amount == 0 or not itinerary.legs:
         return ()
     first, last = itinerary.legs[0], itinerary.legs[-1]
     start = (first.depart_at + timedelta(minutes=first.depart_offset_min)).replace(tzinfo=None)
     end = (last.arrive_at + timedelta(minutes=last.arrive_offset_min)).replace(tzinfo=None)
     if _night_minutes(start, end, weights) >= weights.night_min:
-        return (("night travel", amount),)
+        return ((label, amount),)
     return ()
 
 

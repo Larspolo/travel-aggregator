@@ -26,6 +26,10 @@ class Weights:
     night_end: time = time(6, 0)
     night_min: int = 240
     night_adjust: Decimal = Decimal("0")
+    # The night value of a berth (#1808): None = night_adjust.
+    night_seat_adjust: Decimal | None = None
+    night_couchette_adjust: Decimal | None = None
+    night_sleeper_adjust: Decimal | None = None
     # The overnight stop (#1256): a transfer with at least overnight_min night minutes adds overnight_cost.
     overnight_min: int = 240
     overnight_cost: Decimal = Decimal("0")

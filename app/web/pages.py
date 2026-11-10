@@ -484,7 +484,10 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  train_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  bus_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  flight_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
-                 ferry_hour_markup: str | None = Query(None, max_length=20)) -> dict:  # (#1568)
+                 ferry_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
+                 night_seat_adjust: str | None = Query(None, max_length=20),  # (#1808)
+                 night_couchette_adjust: str | None = Query(None, max_length=20),  # (#1808)
+                 night_sleeper_adjust: str | None = Query(None, max_length=20)) -> dict:  # (#1808)
     """The weights of the URL; None = not in the URL, the profile gives the value (#230). An hour value per mode
     (#1568) that is sent blank is `MODE_HOUR_BLANK`: the hour markup, also when the profile has a value."""
     values = dict(locals())
@@ -493,12 +496,16 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
     return values
 
 
-MODE_HOUR_FIELDS = ("train_hour_markup", "bus_hour_markup", "flight_hour_markup", "ferry_hour_markup")
+# The optional weights whose blank field in the URL means None (#1568, #1808), with their range.
+OPTIONAL_RANGES = {"train_hour_markup": (0, 100), "bus_hour_markup": (0, 100), "flight_hour_markup": (0, 100),
+                   "ferry_hour_markup": (0, 100), "night_seat_adjust": (-1000, 1000),
+                   "night_couchette_adjust": (-1000, 1000), "night_sleeper_adjust": (-1000, 1000)}
+MODE_HOUR_FIELDS = tuple(OPTIONAL_RANGES)
 MODE_HOUR_BLANK = ""  # a blank field of the live re-ranking (#1568): None in the weights, not the profile value
 
 
 def _mode_hour(name: str, raw: str | None) -> Decimal | str | None:
-    """The hour value of a mode in the URL (#1568): None (not sent), MODE_HOUR_BLANK, or a Decimal in 0..100."""
+    """An optional value in the URL (#1568, #1808): None (not sent), MODE_HOUR_BLANK, or a Decimal in its range."""
     if raw is None:
         return None
     raw = raw.strip()
@@ -508,8 +515,9 @@ def _mode_hour(name: str, raw: str | None) -> Decimal | str | None:
         value = Decimal(raw)
     except InvalidOperation:
         value = None
-    if value is None or not value.is_finite() or not 0 <= value <= 100:
-        raise HTTPException(422, f"{name}: {raw!r} is not in 0 to 100")
+    low, high = OPTIONAL_RANGES[name]
+    if value is None or not value.is_finite() or not low <= value <= high:
+        raise HTTPException(422, f"{name}: {raw!r} is not in {low} to {high}")
     return value
 
 
@@ -566,7 +574,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     rates, counts, fees = rates or {}, counts or {}, fees or {}
     travelers = it.trip.travelers if fees else 1  # the trip is read only when a fee can add a part
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
-            + night_extras(it, weights) + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
+            + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
                 + mode_hour_extras(it, weights)
             + carrier_extras(it, weights) + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
@@ -575,7 +583,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     def cost(f):
         eur, n = to_eur(f.latest_price, f.currency, rates), counts.get(f.id)
         b = effective_cost(per_traveler(eur, n) if eur is not None else Decimal(0), it.duration_min, it.transfers, weights,
-                           base + flexibility_extras(f, weights) + baggage_extras(f, it, weights, rates) + class_extras(f, it.duration_min, weights)
+                           base + night_extras(it, weights, f) + flexibility_extras(f, weights) + baggage_extras(f, it, weights, rates) + class_extras(f, it.duration_min, weights)
                                + self_transfer_extras(f, weights) + reservation_extras(f, weights)
                                + fee_extras(f, fees, travelers))
         return for_group(in_eur(b, f.latest_price, f.currency, eur), f.latest_price, f.currency, n)
@@ -1155,6 +1163,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       bus_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       flight_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       ferry_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
+                      night_seat_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
+                      night_couchette_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
+                      night_sleeper_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
                       session: Session = Depends(get_session)) -> RedirectResponse:
     """Store the present weights of the trip page as a named profile (#229); the same ranges as `trip_page`."""
     if session.get(Trip, trip_id) is None:
@@ -1183,7 +1194,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier2_name=carrier2_name, carrier2_markup=carrier2_markup,
                       carrier3_name=carrier3_name, carrier3_markup=carrier3_markup,
                       train_hour_markup=train_hour_markup, bus_hour_markup=bus_hour_markup,
-                      flight_hour_markup=flight_hour_markup, ferry_hour_markup=ferry_hour_markup)
+                      flight_hour_markup=flight_hour_markup, ferry_hour_markup=ferry_hour_markup,
+                      night_seat_adjust=night_seat_adjust, night_couchette_adjust=night_couchette_adjust,
+                      night_sleeper_adjust=night_sleeper_adjust)
     save_profile(session, name.strip(), weights)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
@@ -1209,6 +1222,8 @@ WEIGHT_RANGES = {
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
     "train_hour_markup": (0, 100), "bus_hour_markup": (0, 100), "flight_hour_markup": (0, 100),
     "ferry_hour_markup": (0, 100),  # (#1567)
+    "night_seat_adjust": (-1000, 1000), "night_couchette_adjust": (-1000, 1000),
+    "night_sleeper_adjust": (-1000, 1000),  # (#1808)
 }
 
 
