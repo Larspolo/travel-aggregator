@@ -2,12 +2,12 @@
 
 A transfer i of an itinerary is the pair legs[i], legs[i + 1]. It has a later connection when another itinerary of the
 pool has a leg that departs from the place of the transfer later than legs[i + 1] and ends at the final station of the
-itinerary. No database access: the caller gives the itineraries.
+itinerary on the same local day as the planned arrival (#1794). No database access: the caller gives the itineraries.
 """
 
 import sys
 from bisect import bisect_right
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -36,27 +36,34 @@ def _both_keys(code, name) -> list[str]:
     return keys
 
 
+def _arrival_day(leg) -> date:
+    """The local date of the arrival of a leg, by its stored offset (0 when the leg has no offset)."""
+    return (leg.arrive_at + timedelta(minutes=getattr(leg, "arrive_offset_min", None) or 0)).date()
+
+
 def build_index(pool) -> dict[tuple[str, str], list[tuple]]:
-    """Map (departure key, final key) to the sorted (departure time, id of the itinerary) of the legs with these keys."""
+    """Map (departure key, final key) to the sorted (departure time, id of the itinerary, local arrival day at the
+    final station) of the legs with these keys."""
     index: dict[tuple[str, str], list[tuple]] = {}
     for itinerary in pool:
         if not itinerary.legs:
             continue
         last = itinerary.legs[-1]
         finals = _both_keys(last.to_code, last.to_name)
+        day = _arrival_day(last)
         for leg in itinerary.legs:
             for dep in _both_keys(leg.from_code, leg.from_name):
                 for final in finals:
-                    index.setdefault((dep, final), []).append((leg.depart_at, id(itinerary)))
+                    index.setdefault((dep, final), []).append((leg.depart_at, id(itinerary), day))
     for entries in index.values():
         entries.sort()
     return index
 
 
-def _has_later(entries, depart_at, own_id) -> bool:
-    """True when an entry of another itinerary departs after `depart_at`."""
+def _has_later(entries, depart_at, own_id, day) -> bool:
+    """True when an entry of another itinerary departs after `depart_at` and arrives on the local day `day`."""
     start = bisect_right(entries, (depart_at, sys.maxsize))
-    return any(owner != own_id for _, owner in entries[start:])
+    return any(owner != own_id and arrives == day for _, owner, arrives in entries[start:])
 
 
 def no_fallback(it, index) -> list[int]:
@@ -68,11 +75,12 @@ def no_fallback(it, index) -> list[int]:
         return []
     last = it.legs[-1]
     final = _key(last.to_code, last.to_name)
+    day = _arrival_day(last)
     result = []
     for i, (before, after) in enumerate(zip(it.legs, it.legs[1:])):
         place = _key(before.to_code, before.to_name)
         entries = index.get((place, final), []) if place is not None and final is not None else []
-        if not _has_later(entries, after.depart_at, id(it)):
+        if not _has_later(entries, after.depart_at, id(it), day):
             result.append(i)
     return result
 
