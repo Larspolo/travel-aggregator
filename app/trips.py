@@ -19,6 +19,11 @@ def alt_places(text: str | None) -> list[str]:
     return [p.strip() for p in (text or "").split(",") if p.strip()]
 
 
+def trip_tags(text: str | None) -> list[str]:
+    """The tags of a trip (#1950) from its stored comma-separated text."""
+    return alt_places(text)
+
+
 def route_text(trip: Trip) -> str | None:
     """The route of a trip with its other places (#1422): "Amsterdam → Zürich or Basel"; None with no place."""
     if not (trip.origin_text or trip.destination_text):

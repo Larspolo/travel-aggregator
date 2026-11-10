@@ -34,6 +34,7 @@ class Trip(Base):
     travelers: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     status: Mapped[str] = mapped_column(String(20), default="planning", server_default="planning")
     notes: Mapped[str | None] = mapped_column(Text)
+    tags_text: Mapped[str | None] = mapped_column(String(120))  # at most 5 tags, joined with ", " (#1950)
     target_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)  # the fares at or below it (#846)
     share_hash: Mapped[str | None] = mapped_column(String(128), unique=True)  # the secret share link (#903)
     shared_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)

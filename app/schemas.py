@@ -158,6 +158,7 @@ class TripForm(BaseModel):
     travelers: int = Field(1, ge=1, le=9)
     status: TripStatus = "planning"
     notes: str | None = Field(None, max_length=5000)
+    tags_text: str | None = Field(None, max_length=200)  # comma-separated tags (#1950)
     target_price: Decimal | None = Field(None, gt=0, le=100000)  # EUR; the fares at or below it (#846)
     arrive_by: time | None = None  # the local time at the arrival place (#1294)
     profile_id: int | None = None  # the score profile of this trip; None = the default profile (#232)
@@ -168,6 +169,23 @@ class TripForm(BaseModel):
         if isinstance(data, dict):
             return {k: (None if isinstance(v, str) and not v.strip() and k != "title" else v) for k, v in data.items()}
         return data
+
+    @field_validator("tags_text")
+    @classmethod
+    def _tags(cls, v: str | None) -> str | None:
+        """Strip the tags, drop blank and repeated ones (no case, no diacritics); at most 5 of at most 20 characters."""
+        from app.tripmatch import fold  # app.tripmatch imports this module
+
+        tags: list[str] = []
+        for t in (v or "").split(","):
+            t = t.strip()
+            if t and fold(t) not in {fold(x) for x in tags}:
+                tags.append(t)
+        if len(tags) > 5:
+            raise ValueError("at most 5 tags")
+        if any(len(t) > 20 for t in tags):
+            raise ValueError("a tag has at most 20 characters")
+        return ", ".join(tags) or None
 
     @model_validator(mode="after")
     def _dates_in_order(self) -> "TripForm":
