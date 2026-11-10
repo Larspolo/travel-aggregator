@@ -78,7 +78,7 @@ from app.travel_day import MAX_TRAVEL_DAY_HOURS, TRAVEL_DAY_HOURS_KEY
 from app.parsers import group_price
 from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group, format_breakdown, format_total, in_eur,
                          per_traveler)
-from app.timeofday import arrive_by_extras, night_extras, night_time_extras, overnight_extras, time_extras
+from app.timeofday import arrive_by_extras, leave_after_extras, night_extras, night_time_extras, overnight_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trip_merge import is_linked, merge_choices
 from app.trips import archived_journeys, chain, find_journeys, list_trips, past_trips, route_text, sort_journeys, tag_journeys
@@ -617,6 +617,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
                 + mode_hour_extras(it, weights)
             + carrier_extras(it, weights) + transfer_place_extras(it, weights) + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
+            + (leave_after_extras(it, it.trip.leave_after, weights) if weights.leave_hour_markup else ())
             + transfer_extras(it, weights) + station_change_extras(it, weights) + fallback_extras(it, weights)
                 + stale_extras(it, weights, stale_before))
     def cost(f):
@@ -1154,7 +1155,7 @@ def _copy_of(trip: Trip, return_of_id: int | None = None) -> Trip:
     return Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
                 destination_text=trip.destination_text, origin_alt_text=trip.origin_alt_text,
                 destination_alt_text=trip.destination_alt_text, travelers=trip.travelers, profile_id=trip.profile_id,
-                notes=trip.notes, tags_text=trip.tags_text, target_price=trip.target_price, arrive_by=trip.arrive_by,
+                notes=trip.notes, tags_text=trip.tags_text, target_price=trip.target_price, arrive_by=trip.arrive_by, leave_after=trip.leave_after,
                 return_of_id=return_of_id)
 
 
