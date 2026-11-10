@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.auth import require_login
 from app.db import get_session
 from app.models import Fare, Itinerary, Trip
+from app.spend import YEAR_CSV_COLUMNS
 
 router = APIRouter()
 
@@ -178,6 +179,16 @@ def trip_csv(data: dict) -> bytes:
     writer = csv.writer(out)
     writer.writerow(CSV_COLUMNS)
     for row in csv_rows(data):
+        writer.writerow([_cell(value) for value in row])
+    return ("﻿" + out.getvalue()).encode("utf-8")
+
+
+def year_csv(rows: list[list[object]]) -> bytes:
+    """The CSV file of one year of "Travel per year" as UTF-8 with a byte order mark (#1730)."""
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(YEAR_CSV_COLUMNS)
+    for row in rows:
         writer.writerow([_cell(value) for value in row])
     return ("﻿" + out.getvalue()).encode("utf-8")
 
