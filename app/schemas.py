@@ -94,6 +94,8 @@ class IngestIn(BaseModel):
     search_context: dict[str, Any] | None = None
     raw: Any = None
     offers: list[OfferIn] = Field(default_factory=list, max_length=MAX_OFFERS)
+    # A random key of the userscript per payload (#1868): a resend with the same key and token gets the first answer.
+    capture_key: str | None = Field(None, pattern=r"^[A-Za-z0-9-]{16,64}$")
     # One entry {"index", "reason"} per rejected offer (#54). Set only by `_split_offers`, never by the client.
     offer_errors: list[dict[str, Any]] = Field(default_factory=list, exclude=True)
 
