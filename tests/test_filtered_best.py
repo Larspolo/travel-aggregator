@@ -27,7 +27,7 @@ def test_the_cheaper_offer_with_a_transfer_is_the_best_hidden_offer(trip):  # no
     assert "Best hidden offer: €80.00" in line
     assert "hidden by max transfers 0" in line
     assert "€20.00 less than the best shown offer" in line
-    link = html.unescape(re.search(r'href="([^"]+)">Show it', line).group(1))
+    link = re.search(r'href="([^"]+)">Show it', line).group(1)  # `line` is unescaped once already (#1993)
     assert "max_transfers" not in link
     page = client.get(link.split("#")[0]).text
     assert f'id="{link.split("#")[1]}"' in page

@@ -471,6 +471,7 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  first_class_hour: Decimal | None = Query(None, ge=-1000, le=1000),
                  self_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
                  reservation_fee: Decimal | None = Query(None, ge=0, le=1000),
+                 currency_fee_pct: Decimal | None = Query(None, ge=0, le=100),
                  stale_hours: int | None = Query(None, ge=1, le=720),
                  stale_penalty: Decimal | None = Query(None, ge=0, le=1000),
                  train_markup: Decimal | None = Query(None, ge=-1000, le=1000),
@@ -582,6 +583,14 @@ def fee_extras(fare, fees: dict, travelers: int) -> tuple[tuple[str, Decimal], .
     return ((f"{_source_name(fare.source)} fee", amount),)
 
 
+def currency_fee_extras(fare, eur: Decimal | None, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """The part "currency fee" (#1993): `currency_fee_pct` percent of the EUR price per traveler of a fare that is not
+    in EUR. A fare with no rate (`eur` None), a EUR fare and a percent of 0 add no part."""
+    if fare.currency == "EUR" or eur is None or weights.currency_fee_pct <= 0:
+        return ()
+    return (("currency fee", eur * weights.currency_fee_pct / 100),)
+
+
 def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datetime, rates=None, counts=None,
              fees=None):
     """The main fare of one itinerary and its effective cost: the lowest cost, a tie goes to the lowest price (#175).
@@ -599,10 +608,11 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
                 + stale_extras(it, weights, stale_before))
     def cost(f):
         eur, n = to_eur(f.latest_price, f.currency, rates), counts.get(f.id)
-        b = effective_cost(per_traveler(eur, n) if eur is not None else Decimal(0), it.duration_min, it.transfers, weights,
+        per = per_traveler(eur, n) if eur is not None else None
+        b = effective_cost(per if per is not None else Decimal(0), it.duration_min, it.transfers, weights,
                            base + night_extras(it, weights, f) + flexibility_extras(f, weights) + baggage_extras(f, it, weights, rates) + class_extras(f, it.duration_min, weights)
                                + self_transfer_extras(f, weights) + reservation_extras(f, weights)
-                               + fee_extras(f, fees, travelers))
+                               + fee_extras(f, fees, travelers) + currency_fee_extras(f, per, weights))
         return for_group(in_eur(b, f.latest_price, f.currency, eur), f.latest_price, f.currency, n)
     return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, fc[1].price))
 
@@ -1195,6 +1205,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       first_class_hour: Decimal = Form(Weights.first_class_hour, ge=-1000, le=1000),
                       self_transfer_penalty: Decimal = Form(Weights.self_transfer_penalty, ge=0, le=1000),
                       reservation_fee: Decimal = Form(Weights.reservation_fee, ge=0, le=1000),
+                      currency_fee_pct: Decimal = Form(Weights.currency_fee_pct, ge=0, le=100),  # (#1993)
                       stale_hours: int = Form(Weights.stale_hours, ge=1, le=720),
                       stale_penalty: Decimal = Form(Weights.stale_penalty, ge=0, le=1000),
                       hour_tier1_after_min: int = Form(Weights.hour_tier1_after_min, ge=0, le=2880),
@@ -1240,7 +1251,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       flex_partly_refundable=flex_partly_refundable, flex_flexible=flex_flexible,
                       first_class_hour=first_class_hour,
                       self_transfer_penalty=self_transfer_penalty, reservation_fee=reservation_fee,
-                      stale_hours=stale_hours,
+                      currency_fee_pct=currency_fee_pct, stale_hours=stale_hours,
                       stale_penalty=stale_penalty, hour_tier1_after_min=hour_tier1_after_min,
                       hour_tier1_markup=hour_tier1_markup, hour_tier2_after_min=hour_tier2_after_min,
                       hour_tier2_markup=hour_tier2_markup,
@@ -1273,7 +1284,7 @@ WEIGHT_RANGES = {
     "co2_price_kg": (0, 10), "co2_train_kg_h": (0, 1000), "co2_bus_kg_h": (0, 1000),
     "co2_flight_kg_h": (0, 1000), "co2_ferry_kg_h": (0, 1000),
     "flex_partly_refundable": (-1000, 1000), "flex_flexible": (-1000, 1000), "first_class_hour": (-1000, 1000),
-    "self_transfer_penalty": (0, 1000), "reservation_fee": (0, 1000), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
+    "self_transfer_penalty": (0, 1000), "reservation_fee": (0, 1000), "currency_fee_pct": (0, 100), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
     "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),
     "hour_tier2_markup": (0, 100),
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
