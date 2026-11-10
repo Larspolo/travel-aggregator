@@ -35,6 +35,10 @@
   <a class="btn" href="/trips/import">{{ ui.icon("upload") }}Import trip</a>
   <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
 {% endcall %}
+{% if past_count %}<form class="trip-past" method="post" action="/trips/archive-past">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p>{{ past_count }} trip{{ "s are" if past_count != 1 else " is" }} in the past. <button class="btn" type="submit">Archive them</button></p>
+</form>{% endif %}
 <form class="trip-find" method="get" action="/" role="search">
   <label for="trip-q">Find trips</label>
   <input type="search" id="trip-q" name="q" value="{{ q }}" maxlength="200">
