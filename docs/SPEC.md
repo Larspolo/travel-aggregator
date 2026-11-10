@@ -128,9 +128,11 @@ Either `raw` (server parses) or `offers` (pre-normalized) must be present; both 
 - Return counts: `{created, updated, unchanged, rejected, errors[]}`.
 - **One capture per resend** (#1868). The optional `capture_key` (16 to 64 characters `A-Z`, `a-z`, `0-9` and `-`,
   else 422) is a random key of the userscript per payload. A second POST with the same key and the same token gets the
-  stored answer of the first POST: no new capture, no new price row and no message. While the first POST has no stored
-  answer, the answer is 409 with `Retry-After: 5`. A payload with no key, or the same key from another token, is a new
-  capture.
+  stored answer of the first POST: no new capture, no new price row and no message. While the first POST runs (no stored
+  answer and less than 60 seconds since its capture, or two POSTs at the same time), the answer is 409 with
+  `Retry-After: 5`. After 60 seconds with no answer, the first POST failed: the answer is 200 with its stored result,
+  no created offer and a warning to see the captures page (#1869). A payload with no key, or the same key from another
+  token, is a new capture.
 - Everything timezone-aware; store UTC + original offset.
 
 ## 6. Data Model (suggested)

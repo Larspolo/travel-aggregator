@@ -189,6 +189,8 @@ class Capture(Base):
     token_id: Mapped[int | None] = mapped_column(ForeignKey("api_tokens.id", ondelete="SET NULL"))
     capture_key: Mapped[str | None] = mapped_column(String(64))
     answer_json: Mapped[dict | None] = mapped_column(JSON)
+    # The server time of the insert (#1869): a resend tells a first POST that still runs from one that failed.
+    received_at: Mapped[datetime | None] = mapped_column(_tz(), server_default=func.now())
 
     __table_args__ = (UniqueConstraint("token_id", "capture_key", name="uq_captures_token_key"),)
 
