@@ -25,6 +25,10 @@
   <tbody>{% for u in storage.sources %}<tr class="storage-row"><td>{{ u.source }}</td><td>{{ "{:,}".format(u.captures) }}</td><td>{{ u.raw_bytes|human_bytes }}</td></tr>{% endfor %}</tbody>
 </table>{% endif %}
 {% endcall %}
+{% call ui.card("Version") %}
+<p class="version-line">Commit {% if version.link %}<a href="{{ version.link }}">{{ version.sha[:7] }}</a>{% else %}{{ version.sha }}{% endif %} · built {{ version.built }}</p>
+<p class="version-revision">Database revision {{ version.current }}{% if version.pending %} · <span class="chip warn">migrations pending</span> (head {{ version.head }}){% else %} (head){% endif %}</p>
+{% endcall %}
 {% call ui.card("Backups") %}
 {% if backup_check and backup_check.state == "failed" %}<p role="alert" class="chip warn backup-check">Check failed at {{ backup_check.at }} UTC: {{ backup_check.error }}</p>
 {% endif %}
