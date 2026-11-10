@@ -54,6 +54,13 @@ def external_id(uid: Any) -> str | None:
 class FlixbusParser:
     source = "flixbus.com"
     version = "1.1.0"
+    # the personal keys beyond PERSONAL_KEYS (#1903): none in the fixtures (the `address` is already REDACTED)
+    redact_keys: frozenset[str] = frozenset()
+    # the query names of the search URL that the parser reads, or that name the search (#1903)
+    url_keep: frozenset[str] = frozenset({
+        "from_city_id", "to_city_id", "departure_date", "products", "currency", "locale", "search_by",
+        "include_after_midnight_rides", "disable_distribusion_trips", "disable_global_trips", "disable_trips",
+    })
     hosts = ("global.api.flixbus.com",)
     paths = ("/search/service/v4/search",)
     group_price = True  # the price is for all travelers of the search: `total` (#1026; the fixture README)

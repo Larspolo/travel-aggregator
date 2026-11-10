@@ -67,6 +67,10 @@ def _bags(info: Any) -> tuple[int | None, Decimal | None]:
 class KiwiParser:
     source = "kiwi.com"
     version = "1.3.0"
+    # no personal key beyond PERSONAL_KEYS in the fixtures (#1903)
+    redact_keys: frozenset[str] = frozenset()
+    # no URL in the fixtures: the search is in the body (#1903)
+    url_keep: frozenset[str] = frozenset()
     hosts = ("api.skypicker.com",)
     paths = ("/umbrella/v2/graphql",)
     features = ("SearchOneWayItinerariesQuery", "SearchReturnItinerariesQuery")

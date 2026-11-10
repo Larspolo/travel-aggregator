@@ -37,6 +37,10 @@ def local_time(station: dict, kind: str) -> datetime:
 class NsParser:
     source = "nsinternational.com"
     version = "1.2.0"
+    # no personal key beyond PERSONAL_KEYS in the fixtures (#1903)
+    redact_keys: frozenset[str] = frozenset()
+    # no URL in the fixtures: the search is in the body (#1903)
+    url_keep: frozenset[str] = frozenset()
     hosts = ("www.nsinternational.com",)
     paths = ("/api/v2/sales/traveloffers/search",)
     group_price = True  # the price is for all travelers of the request (#767; the fixture README)

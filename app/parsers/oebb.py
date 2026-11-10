@@ -105,6 +105,10 @@ def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str]]:
 class OebbParser:
     source = "oebbtickets.at"
     version = "1.1.0"
+    # no personal key beyond PERSONAL_KEYS: the fixtures have only the passenger id "1" (#1903)
+    redact_keys: frozenset[str] = frozenset()
+    # no URL in the fixtures: the search is in the body (#1903)
+    url_keep: frozenset[str] = frozenset()
     hosts = ("shop.oebbtickets.at",)
     paths = ("/api/hafas/v4/timetable", "/api/offer/v1/prices", "/api/offer/v6/offers")
 
