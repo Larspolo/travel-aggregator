@@ -158,6 +158,16 @@
 </ul>
 </section>
 {% endif %}
+{% if book_timing %}
+<section class="book-timing card" id="book-timing">
+<h2>When to book on this route</h2>
+<ul>
+{% for b in book_timing %}
+<li>{% if b.last_day is none %}more than {{ b.first_day - 1 }} days before{% else %}{{ b.first_day }}–{{ b.last_day }} days before{% endif %} · lowest {{ b.lowest_eur | money("EUR") }}</li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
 {% if at_target %}
 <section class="drops card" id="at-target">
 <h2>At your target price</h2>

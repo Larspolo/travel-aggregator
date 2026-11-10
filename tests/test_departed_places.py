@@ -15,6 +15,7 @@ from tests.test_ingest_api import BODY
 from tests.test_return_grid_whole import _page_cells
 from tests.test_reparse import setup  # noqa: F401  (fixture: logged-in client, #1179)
 from tests.test_split_page import _split
+from tests.test_trip_book_timing import without_book_timing
 from tests.test_trip_page import ingest, trip  # noqa: F401  (trip is a fixture)
 
 NOW = datetime.now(timezone.utc).replace(second=0, microsecond=0)
@@ -50,7 +51,7 @@ def test_the_days_show_no_departed_offer(trip, monkeypatch):  # noqa: F811
     client, auth, trip_id = trip
     ingest(client, auth, trip_id, [_offer("40.00", "ICE 1", YESTERDAY), _offer("70.00", "ICE 2", TOMORROW),
                                    _offer("75.00", "ICE 3", DAY_AFTER)])
-    page = client.get(f"/trips/{trip_id}").text
+    page = without_book_timing(client.get(f"/trips/{trip_id}").text)
     assert f"day={TOMORROW.date()}" in page and f"day={DAY_AFTER.date()}" in page
     assert f"day={YESTERDAY.date()}" not in page
     assert "€40.00" not in page

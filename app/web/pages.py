@@ -58,6 +58,7 @@ from app.history import chart, trend_chart
 from app.trend import trip_trend
 from app.booked_overlap import conflicts
 from app.duplicates import duplicate_trips
+from app.book_timing import book_timing
 from app.route_history import route_history
 from app.money import money
 from app.coverage import trip_coverage
@@ -961,6 +962,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["trend"] = trend_chart(trend) if len(trend) >= 2 else None
     context["at_target"] = at_target(session, trip)  # the fares at or below the target price (#847)
     context["route_history"] = route_history(session, trip)  # the older trips on the same route (#1522)
+    context["book_timing"] = book_timing(session, [trip.id] + [r.trip_id for r in context["route_history"]])  # #1916
     context["duplicates"] = duplicate_trips(session, trip)  # the other trips in planning of this journey (#1592)
     own = {it.id for it in trip.itineraries}  # the conflicts of the booked journeys of this trip (#1655)
     context["booked_conflicts"] = [c for it_id, found in conflicts(session, now).items() if it_id in own for c in found]

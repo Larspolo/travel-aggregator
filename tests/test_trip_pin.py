@@ -11,6 +11,7 @@ from app import tokens
 from app.auth import require_login
 from app.main import app
 from app.models import Itinerary, Trip
+from tests.test_trip_book_timing import without_book_timing
 from tests.test_trip_page import ingest, offer
 
 
@@ -77,16 +78,16 @@ def test_a_pinned_offer_is_the_first_row_and_unpinning_restores_the_order(trip, 
     client, trip_id = trip
     expensive = _expensive_id(sessions, trip_id)
     token = csrf(client, trip_id)
-    page = client.get(f"/trips/{trip_id}").text
+    page = without_book_timing(client.get(f"/trips/{trip_id}").text)
     assert page.index("€89.90") < page.index("€119.90")
 
     client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
-    page = client.get(f"/trips/{trip_id}").text
+    page = without_book_timing(client.get(f"/trips/{trip_id}").text)
     assert page.index("€119.90") < page.index("€89.90")
     assert '<span class="muted">pinned</span>' in page  # the row marker, not the nav link
 
     client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
-    page = client.get(f"/trips/{trip_id}").text
+    page = without_book_timing(client.get(f"/trips/{trip_id}").text)
     assert page.index("€89.90") < page.index("€119.90")
     assert '<span class="muted">pinned</span>' not in page
 
@@ -116,5 +117,5 @@ def test_a_pinned_offer_stays_first_in_every_sort_order(trip, sessions, query):
     expensive = _expensive_id(sessions, trip_id)
     token = csrf(client, trip_id)
     client.post(pin_url(trip_id, expensive), data={"csrf_token": token}, follow_redirects=False)
-    page = client.get(f"/trips/{trip_id}?{query}").text
+    page = without_book_timing(client.get(f"/trips/{trip_id}?{query}").text)
     assert page.index("€119.90") < page.index("€89.90")
