@@ -220,6 +220,41 @@ channel `none`, no message is sent.
 - "No backup for N days.": the newest backup is older than 48 hours. The app checks this when a userscript sends offers,
   and it sends the message at most once in 24 hours. When there is no backup at all, the text is "No backup yet.".
 
+##### Metrics for Prometheus
+
+The app has a metrics endpoint `GET /metrics` for a Prometheus server. It uses its own token, not an API token. To make the
+token, open the settings page and use the card "Metrics token", then press "Make a new token". The token shows only once:
+copy it then. "Stop the token" turns the endpoint off. A new token replaces the old one, and the old one stops at once.
+A request without the token, or with a wrong token, gets `401`.
+
+The endpoint shows these metrics (the text format of Prometheus):
+
+- `travel_trips`: the count of trips, also the archived trips.
+- `travel_offers`: the count of itineraries.
+- `travel_captures_total` (per `source`): the count of captures.
+- `travel_capture_failures_total` (per `source`): the count of failed captures.
+- `travel_last_good_capture_age_seconds` (per `source`): the seconds since the last good capture of the source.
+- `travel_backup_age_seconds`: the seconds since the newest backup. Only when there is a backup.
+- `travel_backup_size_bytes`: the size of the newest backup in bytes. Only when there is a backup.
+- `travel_backup_check_ok`: `1` when the check of the newest backup read the dump, else `0`. Only when there is a check result.
+
+Store the token in a file that only Prometheus can read, for example `/etc/prometheus/travel-metrics-token`. Then add this
+job to the Prometheus configuration (replace `<host>` with your host):
+
+```yaml
+scrape_configs:
+  - job_name: travel-aggregator
+    metrics_path: /metrics
+    scheme: https
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/travel-metrics-token
+    static_configs:
+      - targets: ['<host>']
+```
+
+Check: `curl -H "Authorization: Bearer <token>" https://<host>/metrics` shows the lines `travel_trips` and `travel_offers`.
+
 #### 8. Update
 
 The scoped watchtower checks the registry every 5 minutes and installs each new `:latest` image. Each closed epic
