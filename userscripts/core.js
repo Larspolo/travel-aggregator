@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 19;
+const CORE_VERSION = 20;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -220,6 +220,15 @@ const CORE_VERSION = 19;
   }
   let busy = false;
 
+  // A random UUID v4 text (36 characters) for `capture_key`; crypto.getRandomValues works in every page context.
+  function newKey() {
+    const b = crypto.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 15) | 64;
+    b[8] = (b[8] & 63) | 128;
+    const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  }
+
   // POST one payload to the configured server only (P1). Resolves "ok", "retry" or "drop".
   function post(payload) {
     const { server, token } = config();
@@ -241,7 +250,7 @@ const CORE_VERSION = 19;
         onload: (r) => {
           if (r.status >= 200 && r.status < 300) { core.sent(count(payload), warningOf(r), responseOf(r)); resolve("ok"); }
           else if (r.status === 401) { panel.setStatus("Check the API token", "error"); resolve("retry"); }
-          else if (r.status === 429) { panel.setStatus("Server busy: kept in the queue", "error"); resolve("retry"); }
+          else if (r.status === 429 || r.status === 409) { panel.setStatus("Server busy: kept in the queue", "error"); resolve("retry"); }
           else if (r.status >= 500) fail();
           else { panel.setStatus(`Send rejected (${r.status}): payload dropped`, "error"); resolve("drop"); }
         },
@@ -470,7 +479,8 @@ const CORE_VERSION = 19;
     // Queue one payload for the chosen trip; send it now only when auto-send is on.
     send(payload) {
       const id = tripId();
-      const item = Object.assign({}, payload, id ? { trip_id: id } : {}, autoTrip() ? { auto_trip: true } : {});
+      // The key (#1868) is made once per queued item: a resend of the queue sends the same key, so the server stores it once.
+      const item = Object.assign({}, payload, { capture_key: newKey() }, id ? { trip_id: id } : {}, autoTrip() ? { auto_trip: true } : {});
       const queue = loadQueue().concat([item]);
       const extra = Math.max(0, queue.length - QUEUE_MAX);
       droppedOld += extra;
