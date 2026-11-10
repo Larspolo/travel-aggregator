@@ -1,8 +1,9 @@
-"""The read-only page of a trip at a secret link (#903). The page shows no notes, booking links, captures or forms."""
+"""The read-only page of a trip at a secret link (#903). The page shows no notes except the partner's own (#1782),
+no booking links, captures or forms."""
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session, subqueryload
@@ -57,21 +58,32 @@ def _shared(request: Request, session: Session, token: str) -> Trip:
     return trip
 
 
+NOTE_MAX = 200
+
+
 @router.post("/s/{token}/marks/{itinerary_id}")
 def toggle_mark(request: Request, token: str, itinerary_id: int,
+                note: str | None = Form(None), edit: str | None = Form(None), remove: str | None = Form(None),
                 session: Session = Depends(get_session)) -> RedirectResponse:
     """Set or remove the "Suits me" mark of the travel partner on one row (#1781). No login and no CSRF token: the
-    secret token in the URL authorizes the request, as for the page. Only a row that the page shows can get a mark."""
+    secret token in the URL authorizes the request, as for the page. Only a row that the page shows can get a mark.
+    A note (#1782) is set with the mark or with `edit`; `remove` deletes the mark and its note. A bare POST on a
+    marked row still removes the mark (#1781)."""
     trip = _shared(request, session, token)
     it = session.get(Itinerary, itinerary_id)
     if it is None or it.trip_id != trip.id or it.hidden:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "no such row", headers=PRIVATE_HEADERS)
+    text = (note or "").strip() or None  # a blank note is no note
+    if text is not None and len(text) > NOTE_MAX:
+        raise HTTPException(422, f"a note has at most {NOTE_MAX} characters", headers=PRIVATE_HEADERS)
     mark = session.scalars(select(ShareMark).where(ShareMark.trip_id == trip.id,
                                                    ShareMark.itinerary_id == it.id)).one_or_none()
     if mark is None:
-        session.add(ShareMark(trip_id=trip.id, itinerary_id=it.id))
-    else:
+        session.add(ShareMark(trip_id=trip.id, itinerary_id=it.id, note=text))
+    elif remove is not None or edit is None:
         session.delete(mark)
+    else:
+        mark.note = text
     session.commit()
     return RedirectResponse(f"/s/{token}#row-{it.id}", status_code=status.HTTP_303_SEE_OTHER, headers=PRIVATE_HEADERS)
 
