@@ -1005,6 +1005,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["coverage"] = trip_coverage(session, trip)  # the search status and link per source (#318, #967)
     context["flash"] = request.session.pop("flash", None)
     context["share_link"] = request.session.pop("share_link", None)  # once after "Share" (#903)  # a message of the last action, for example an import
+    context["share_ended"] = bool(trip.share_ends_on and datetime.now(timezone.utc).date() > trip.share_ends_on)  # #2027
     return templates.TemplateResponse(request, "trip.html", context)
 
 
