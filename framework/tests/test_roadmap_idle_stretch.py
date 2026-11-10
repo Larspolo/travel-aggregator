@@ -1,7 +1,7 @@
 """The roadmap review ends an idle stretch once (#491). With no ready ticket no PR merges, so the merged count of the
 roadmap review (at least ROADMAP_IDLE_MIN, #5818) never came, and the queue stood idle 6.5 h on 2026-11-07; a review
-then made 3 epics. The stretch gets one review, ROADMAP_IDLE minutes after the last lock or merge, and its lock holds
-until a PR merges (the brake of #5818). health.py counts the wait for that clock as idle with work."""
+then made 3 epics. The stretch gets one review (at once after a merge, #1889, else ROADMAP_IDLE minutes after the last
+lock), and its lock holds until a PR merges (the brake of #5818). health.py counts the wait for that clock as idle with work."""
 import datetime
 
 import claim

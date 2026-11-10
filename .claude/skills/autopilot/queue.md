@@ -105,7 +105,7 @@ play-test tickets, P9 of `steering/project/PRINCIPLES.md`) and stop; do not make
 3. Make up to 20 new tickets (within the cap) for the remaining goals of the open epics, and for the fallbacks in
    `docs/coverage.md`. When the open epics have no goal left that an agent can do, make the next epic from the
    feature list of `steering/project/ROADMAP.md` with the `roadmap` skill (the goals take turns). Each feature has an epic: run
-   `python3 framework/tools/claim.py 0 --roadmap` (due after 30 merged PRs then, #3741, or at once when no run holds a claim and no ticket is ready, else after 60 minutes with no merged PR); exit 0: do the roadmap review now. Priority: that of the epic, else `P3`. Never `P0` or `P1`, except for
+   `python3 framework/tools/claim.py 0 --roadmap` (due after 30 merged PRs then, #3741, or at once when no run holds a claim and no ticket is ready and a PR merged after the last lock, else after 60 minutes with no merged PR); exit 0: do the roadmap review now. Priority: that of the epic, else `P3`. Never `P0` or `P1`, except for
    a `tooling` ticket that blocks other tickets. Look for duplicates first, and list the open issues again just
    before you make the tickets: parallel runs make the same follow-ups at the same time (#300, #301).
    Run that list in its own tool call and read it before the create calls: a list and the creates in one call made 7 copies (#2778).

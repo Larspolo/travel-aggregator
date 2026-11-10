@@ -56,7 +56,8 @@ the last review (`last_review` in the state comment of #1). A review with no cha
 merged PRs), a change sets it back to 50 (`--reviewed`). `--roadmap` locks the roadmap review the same way, 100 merged
 PRs after `last_roadmap` or its newest lock ref (#3352: a write of the body can be lost), 30 while the refill has no
 source (#3741), or the merged count (at least 10, #5818) with no live run and no ready ticket (#851), or after 60 minutes with no merged PR.
-With fewer than 10 merged PRs, an idle stretch (no ready ticket, no live run, starved refill) gets one review after 60 minutes (#491). A gap counts
+With fewer than 10 merged PRs, an idle stretch (no ready ticket, no live run, starved refill) gets one review (#491): at once
+after a merge since the last lock (#1889), else after 60 minutes. A gap counts
 merged PRs, not minutes: the speed of the project changes (#2039). The other times of this tool stay in seconds: a run that stopped
 merges nothing, so only the clock finds it.
 
@@ -480,13 +481,14 @@ def idle_stretch(last, merged, remote="origin"):
     no ready ticket (0, not a read error), no live run, and no lock of a stretch review with no merge after it. With no
     ready ticket no PR merges, so the merged count never reached its minimum, and the queue stood idle 6.5 h on
     2026-11-07; a review then made 3 epics (#491). One review per stretch keeps the brake of #5818: the key of the
-    stretch is `<merged>pr-<last>-1`, and its lock is the newest lock until a PR merges. The review waits ROADMAP_IDLE
-    minutes after the last lock or merge: the review that just ran had the same input."""
+    stretch is `<merged>pr-<last>-1`, and its lock is the newest lock until a PR merges. A merge after the last lock is a
+    new input: the review is due at once (#1889: the clock kept the queue idle 1.0 h, 2.9 h in sum on 2026-11-10). With
+    no merge after another lock it waits ROADMAP_IDLE minutes: that review had the same input, or its run stopped."""
     if live_runs(remote) != 0 or ready_tickets(remote) != 0:
         return None
     if merged == 0 and (newest := newest_lock("roadmap", remote)) and newest[0] < ROADMAP_IDLE_MIN:
         return None                                     # the review of this stretch ran: no new merge since its lock
-    return idle_minutes(last, remote) >= ROADMAP_IDLE
+    return merged > 0 or idle_minutes(last, remote) >= ROADMAP_IDLE
 
 
 def live_runs(remote="origin"):
