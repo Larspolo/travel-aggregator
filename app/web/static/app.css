@@ -618,6 +618,9 @@ input[name=it]:checked { counter-increment: picked; }
 .shared-row .leg { padding: var(--space-1) 0; }
 .shared-row .leg .service { display: flex; align-items: center; gap: 6px; font-weight: 500; }
 .shared-row .leg .stop time { display: inline-block; min-width: 3.2rem; font-variant-numeric: tabular-nums; font-weight: 600; }
+.shared-row .share-mark { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-2) 0 0; }
+.shared-row .share-mark .suits { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--accent); }
+.shared-row.marked { border-color: var(--accent); }
 .shared-row .timeline .transfer { font-size: var(--text-sm); padding: var(--space-1) 0; }
 
 a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }

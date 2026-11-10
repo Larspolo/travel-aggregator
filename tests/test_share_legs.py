@@ -25,7 +25,8 @@ def test_a_row_with_two_legs_shows_both_legs_and_the_transfer(trip):  # noqa: F8
                          ("15:26", "Zürich HB")):
         assert f"<time>{clock}</time> {place}" in legs
     assert "Transfer at Basel SBB: 0h 31" in legs
-    assert "<form" not in page and "bahn.de" not in page
+    # the only form is the "Suits me" mark of the row (#1781): no form of the owner
+    assert page.count("<form") == 1 and 'class="share-mark"' in page and "bahn.de" not in page
 
 
 @pytest.mark.slow

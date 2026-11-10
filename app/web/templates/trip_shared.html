@@ -4,19 +4,24 @@
 {% block nav %}{% endblock %}
 {% block content %}
 {{ ui.page_header(trip.title, subtitle=((trip.origin_text or "?") ~ " → " ~ (trip.destination_text or "?")) if (trip.origin_text or trip.destination_text) else none) }}
-<p class="muted">A read-only list of the offers, best effective cost first.</p>
+<p class="muted">A list of the offers, best effective cost first. Mark the ones that suit you: the trip owner sees your marks.</p>
 {% if cards_warning %}<p class="card cards-warning" role="status">{{ cards_warning }}</p>{% endif %}
 {% if not rows %}<p class="card">No offers yet.</p>{% endif %}
 <ol class="shared-rows">
 {% for it, fare, cost in rows %}
   {% set first, last = it.legs[0], it.legs[-1] %}
   {% set dep, arr = first.depart_at | local(first.depart_offset_min), last.arrive_at | local(last.arrive_offset_min) %}
-  <li class="card shared-row">
+  {% set mark = marks.get(it.id) %}
+  <li class="card shared-row{% if mark %} marked{% endif %}" id="row-{{ it.id }}">
     <div class="route-name">{{ first.from_name }} → {{ last.to_name }}</div>
     <div class="facts">{{ dep.strftime("%a %d %b %H:%M") }} → {{ arr.strftime("%H:%M") }}{% set days = arr | day_gap(dep) %}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}
       <span class="muted">· {{ (it.mode_summary or "").replace("+", ", ") }} · {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }} · {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }}</span></div>
     <div><strong>{{ fare.latest_price | money(fare.currency) }}</strong> · effective cost <strong>{{ "no rate" if cost.no_rate else cost.total | money }}</strong></div>
     <div class="breakdown muted">{{ format_breakdown(cost) }}</div>
+    <form class="share-mark" method="post" action="/s/{{ token }}/marks/{{ it.id }}">
+      {% if mark %}<span class="suits">{{ ui.icon("check") }}Suits you</span> <button class="btn btn-ghost" type="submit">Remove</button>
+      {% else %}<button class="btn" type="submit">{{ ui.icon("check") }}Suits me</button>{% endif %}
+    </form>
     <details><summary>Legs</summary>
       <div class="timeline legs">
       {% for leg in it.legs %}
