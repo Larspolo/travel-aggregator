@@ -19,6 +19,7 @@
         {% if new_since and it.first_seen_at and it.first_seen_at > new_since %}<span class="badge new" title="new since your last view">new</span>{% endif %}
         {% if share_marks and it.id in share_marks %}<span class="chip partner" title="marked on the shared link">Suits partner</span>{% endif %}
         {% for b in view.badges.get(it.id, []) %}<span class="badge {{ b | replace(" ", "-") }}">{{ b }}</span> {% endfor %}
+        {% if it.id in view.pareto %}<span class="chip info pareto" title="no other offer is cheaper and faster">no faster offer for less</span>{% endif %}
         {% if newest < stale_before %}<span class="badge stale" title="stale, price may have changed">stale</span>{% endif %}</div>
         <div class="facts"><span class="times">{{ dep.strftime("%a %d %b %H:%M") }} → {{ arr.strftime("%H:%M") }}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}</span>
           <span class="muted"><span class="modes">{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{% if m | mode_icon %}{{ ui.icon(m | mode_icon, m) }}{% else %}•{% endif %}</span>{% endfor %}</span>
