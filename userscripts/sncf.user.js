@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: sncf-connect.com
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.0.0
+// @version      1.1.0
 // @description  Send the SNCF Connect search results (itineraries responses) to travel-aggregator.
 // @match        https://www.sncf-connect.com/*
 // @run-at       document-start
@@ -40,6 +40,8 @@
     return out;
   };
 
+  // No offers seen (#1757): the results page of the site.
+  core.resultsPage((u) => u.hostname === HOST && u.pathname.startsWith("/app/home/shop/results/"), SOURCE, PARSER_VERSION);
   core.watch(core.urlTest((u) => u.hostname === HOST && u.pathname === PATH), ({ url, method, body, text }) => {
     const response = core.parseJson(text);
     const ld = response && response.longDistance;
