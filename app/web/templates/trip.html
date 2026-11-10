@@ -23,6 +23,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
       <button class="btn" type="submit">{{ ui.icon("eye-off") }}Revoke link</button>
     </form>
+    {% if share_marks %}<p class="muted share-marks">{{ share_marks | length }} itinerar{{ "y" if share_marks | length == 1 else "ies" }} marked on the shared link</p>{% endif %}
     {% else %}
     <form method="post" action="/trips/{{ trip.id }}/share">
       <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
