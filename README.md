@@ -479,6 +479,10 @@ shown row have the same effective cost. For example, `1 h 20 min faster, €3.00
 X. "Better below €X/h" means that it is the better one when your hour markup is below X. The best row shows no line,
 and a row with no break-even value shows no line. A value from €0/h to €100/h is a link: a click opens the page with that hour markup, so the row is the better one after the click. The value is rounded up for "above" and down for "below". The other weights of the page stay. A value outside this range is text only.
 
+### Seats left
+
+A fare with 5 or fewer seats left shows the badge "N seats left" (or "1 seat left") on the trip page and on the pinned page. The count comes from the newest capture of the fare: an older capture does not change it. The sources that give the count are Eurostar, Flixbus and Trainline. A fare from another source, or a fare with more than 5 seats, shows no badge.
+
 ### Departure days
 
 Above the table, the trip page shows a strip of the departure days. A trip with a date range shows each day of the range, up to the first 31 days. A day with no offer shows "no offers". Without a range, the strip shows each day that has an offer. The strip is hidden when it has fewer than two days.
