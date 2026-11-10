@@ -45,7 +45,7 @@ def test_two_ticked_rows_show_the_bar_and_open_the_compare_page(live, width):  #
             if SHOTS:
                 page.screenshot(path=f"{SHOTS}/bar-{width}-{scheme}.png")
             ids = page.eval_on_selector_all("#table input[name=it]:checked", "els => els.map(e => e.value)")
-            bar.locator("button").click()
+            bar.locator("button:not([formaction])").click()  # the Compare button; Hide and Pin have a formaction (#1897)
             page.wait_for_url(f"**/trips/{tid}/compare?*")
             assert sorted(ids) == sorted(v for k, v in [q.split("=") for q in page.url.split("?")[1].split("&")]
                                          if k == "it")

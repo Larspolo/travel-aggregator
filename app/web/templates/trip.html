@@ -191,6 +191,9 @@
 <div class="compare-bar card" role="region" aria-label="Compare selected">
   <span class="compare-count"></span>
   <button class="btn" type="submit" form="compare">{{ ui.icon("git-compare") }}Compare</button>
+  {# Hide or pin all ticked rows (#1897): the button sends the CSRF token as its own value; the action is in formaction. #}
+  <button class="btn btn-ghost" type="submit" form="compare" formmethod="post" name="csrf_token" value="{{ csrf_token(request) }}" formaction="/trips/{{ trip.id }}/itineraries/bulk?action=hide">Hide</button>
+  <button class="btn btn-ghost" type="submit" form="compare" formmethod="post" name="csrf_token" value="{{ csrf_token(request) }}" formaction="/trips/{{ trip.id }}/itineraries/bulk?action=pin">Pin</button>
 </div>
 </div>
 </div>
