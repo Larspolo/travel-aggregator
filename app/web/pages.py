@@ -8,7 +8,7 @@ import math
 import os
 import re
 import time as clock
-from datetime import datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal, InvalidOperation
 from pathlib import Path
 from typing import Annotated
@@ -81,7 +81,7 @@ from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group,
 from app.timeofday import arrive_by_extras, night_extras, night_time_extras, overnight_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trip_merge import is_linked, merge_choices
-from app.trips import archived_journeys, chain, find_journeys, list_trips, route_text, sort_journeys, tag_journeys
+from app.trips import archived_journeys, chain, find_journeys, list_trips, past_trips, route_text, sort_journeys, tag_journeys
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -326,7 +326,19 @@ def index(request: Request, archived: bool = False, q: str = Query("", max_lengt
                                        "q": q.strip(), "tag": tag.strip(), "sort": sort, "drops": drops_by_trip(session),
                                        "new": new_by_trip(session), "archived": archived, "archived_count": archived_count,
                                        "archived_lines": archived_lines, "archived_found": archived_found,
-                                       "failing": failing_sources(session)})
+                                       "failing": failing_sources(session),
+                                       "past_count": 0 if archived else len(past_trips(rows, date.today()))})
+
+
+@router.post("/trips/archive-past", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def archive_past(session: Session = Depends(get_session)) -> RedirectResponse:
+    """Archive the trips whose journey is in the past (#1998). The server computes the ids again: it trusts no form ids."""
+    for trip_id in past_trips(list_trips(session), date.today()):
+        trip = session.get(Trip, trip_id)
+        if trip is not None:
+            trip.status = "archived"
+    session.commit()
+    return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
 
 
 FORM_FIELDS = tuple(TripForm.model_fields)
