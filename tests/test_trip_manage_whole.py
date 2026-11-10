@@ -5,6 +5,7 @@ import re
 from decimal import Decimal
 
 from app.models import Itinerary
+from tests.test_trip_book_timing import without_book_timing
 from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a fixture)
 
 
@@ -35,7 +36,7 @@ def test_pin_hide_booked_and_note_work_together_on_the_trip_page(trip, sessions)
     _post(client, trip_id, booked, "booked", token)
     _post(client, trip_id, noted, "note", token, note="met Anna at the station")
 
-    page = client.get(f"/trips/{trip_id}").text
+    page = without_book_timing(client.get(f"/trips/{trip_id}").text)
     # the pinned row is first, although it has the highest price
     assert page.index("€119.90") < page.index("€99.90") < page.index("€109.90")
     # the hidden row shows only with show_hidden=true

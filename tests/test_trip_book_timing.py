@@ -65,3 +65,8 @@ def test_a_trip_with_no_capture_has_no_card(trip, sessions):  # noqa: F811
     client, _, trip_id = trip
     _route(sessions, trip_id)
     assert 'id="book-timing"' not in client.get(f"/trips/{trip_id}").text
+
+
+def without_book_timing(page: str) -> str:
+    """The page with no "When to book" card: for the tests of the table, which read the whole page."""
+    return re.sub(CARD, "", page, flags=re.S)
