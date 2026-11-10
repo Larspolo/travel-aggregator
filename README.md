@@ -1404,6 +1404,10 @@ times of the stored offset.
   `night travel`.
 - **Night travel € (negative = bonus)**, default `0`. The amount of the `night travel` part. A negative value is a bonus.
   A value of 0 removes the part.
+- **Night in a seat €**, **Night in a couchette €** and **Night in a sleeper €**, under "Advanced", default empty. Each
+  value is the night adjustment of one berth of a night train. Empty means the night travel adjustment above. The
+  Nightjet tiers of oebbtickets.at give the berth (seat, couchette, sleeper). The breakdown shows the part
+  `night in a seat`, `night in a couchette` or `night in a sleeper` instead of `night travel`.
 - **Night hour markup €/h**, default empty. Empty means the same as the hour markup. A value sets the hour markup inside
   the night window. The difference to the hour markup adds the part `night hours` for the night minutes.
 - **Overnight stop: minimum night minutes**, default `240`, and **Overnight stop: hotel cost (€)**, default `0`. In the
