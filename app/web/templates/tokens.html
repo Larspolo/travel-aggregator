@@ -49,7 +49,7 @@ Set API token:  {{ new_token }}</pre>
   <tr>
     <td>{{ t.name }}</td>
     <td>{{ t.created_at.strftime("%Y-%m-%d %H:%M") }} UTC</td>
-    <td>{% if t.last_used_at %}{{ t.last_used_at.strftime("%Y-%m-%d %H:%M") }} UTC{% else %}never{% endif %}</td>
+    <td>{% if t.last_used_at %}{{ t.last_used_at.strftime("%Y-%m-%d %H:%M") }} UTC{% else %}never{% endif %}{% if not t.revoked_at and (t.last_used_at or t.created_at) < unused_before %} <span class="chip">not used for 90 days</span>{% endif %}</td>
     <td class="table-actions">{% if t.revoked_at %}<span class="chip">revoked {{ t.revoked_at.strftime("%Y-%m-%d") }}</span>{% else %}
       <form class="inline-form" method="post" action="/tokens/{{ t.id }}/revoke">
         <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">

@@ -1010,8 +1010,10 @@ def _rows_or_redirect(request: Request, trip_id: int, session: Session, view: di
 def _tokens_page(request: Request, session: Session, new_token: str | None = None, code: int = 200) -> HTMLResponse:
     tokens = session.scalars(select(ApiToken).order_by(ApiToken.created_at.desc(), ApiToken.id.desc())).all()
     server_url = str(request.base_url).rstrip("/")
+    unused_before = datetime.now(timezone.utc) - timedelta(days=90)
     return templates.TemplateResponse(request, "tokens.html", {"tokens": tokens, "new_token": new_token,
                                                                "server_url": server_url,
+                                                               "unused_before": unused_before,
                                                                "userscripts": userscript_list(),
                                                                "bundle": bundle_info()}, status_code=code)
 
