@@ -29,6 +29,13 @@
 <svg class="icon"{% if label %} role="img" aria-label="{{ label }}"{% else %} aria-hidden="true"{% endif %}><use href="/static/icons.svg#{{ name }}"></use></svg>
 {%- endmacro %}
 
+{# "N seats left" on a fare with SEATS_FEW or fewer seats left (#1827). The limit is a constant, not a setting (P2). #}
+{% set SEATS_FEW = 5 %}
+{% macro seats_badge(fare) -%}
+{%- set n = fare.seats_left -%}
+{%- if n is not none and 0 < n <= SEATS_FEW %} <span class="badge seats-left" title="the source shows few seats at this price">{{ n }} seat{{ "s" if n != 1 }} left</span>{% endif -%}
+{%- endmacro %}
+
 {# A "1st" badge for a 1st class fare (#692). A fare name with "1st class" in it (bahn.de) already says it. #}
 {% macro class_badge(fare) -%}
 {%- if fare.travel_class == "first" and "1st" not in (fare.fare_name or "") %} <span class="badge first-class" title="1st class">1st</span>{% endif -%}
