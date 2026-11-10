@@ -184,6 +184,13 @@ class Capture(Base):
     # when the capture has no offer.
     depart_from: Mapped[datetime | None] = mapped_column(_tz())
     depart_to: Mapped[datetime | None] = mapped_column(_tz())
+    # The resend of a capture (#1868): the token and the `capture_key` of the userscript, and the answer of the first
+    # POST (NULL until it is stored). One capture per token and key; NULL keys are distinct (no key: as before).
+    token_id: Mapped[int | None] = mapped_column(ForeignKey("api_tokens.id", ondelete="SET NULL"))
+    capture_key: Mapped[str | None] = mapped_column(String(64))
+    answer_json: Mapped[dict | None] = mapped_column(JSON)
+
+    __table_args__ = (UniqueConstraint("token_id", "capture_key", name="uq_captures_token_key"),)
 
 
 class SilentPage(Base):

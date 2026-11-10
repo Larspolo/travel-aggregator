@@ -8,7 +8,8 @@ import json
 import logging
 from datetime import UTC, datetime, timedelta, timezone
 
-from sqlalchemy import select
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -48,13 +49,15 @@ def has_real_legs(legs) -> bool:
     return all(CHANGE_STATION not in (leg.from_name, leg.to_name) for leg in legs)
 
 
-def store_capture(session: Session, trip_id: int, payload: IngestIn) -> Capture:
+def store_capture(session: Session, trip_id: int, payload: IngestIn, token_id: int | None = None) -> Capture:
     """Add the capture row of one ingest call; `raw` is stored as gzip of its JSON (NULL with no raw). Only the
-    fields of P5: no request headers, no cookies. The caller commits; the row id is set after the flush."""
+    fields of P5: no request headers, no cookies. The `capture_key` is kept only with the token of the call (#1868).
+    The caller commits; the row id is set after the flush."""
     raw_gz = None if payload.raw is None else gzip.compress(json.dumps(payload.raw, separators=(",", ":")).encode())
     capture = Capture(trip_id=trip_id, source=payload.source, parser_version=payload.parser_version,
                       page_url=payload.page_url, search_context_json=payload.search_context, raw_gz=raw_gz,
-                      captured_at=payload.captured_at)
+                      captured_at=payload.captured_at, token_id=token_id,
+                      capture_key=None if token_id is None else getattr(payload, "capture_key", None))
     session.add(capture)
     session.flush()
     return capture
@@ -384,17 +387,25 @@ def _give_flags(session: Session, trip_id: int, flags: dict[str, tuple]) -> None
     session.flush()
 
 
-def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
+def find_resend(session: Session, token_id: int, key: str | None) -> Capture | None:
+    """The capture that the token sent before with this `capture_key` (#1868), or None (also with no key)."""
+    if key is None:
+        return None
+    return session.scalar(select(Capture).where(Capture.token_id == token_id, Capture.capture_key == key))
+
+
+def store(session: Session, body: IngestIn, drops: list | None = None, token_id: int | None = None) -> dict:
     """Store the capture of the body (with its raw, if any), then its valid offers; each price row links to the
     capture. The offers of a raw payload come from its parser (`app/parsers`); one bad connection is an entry of
     the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors", "warning", "trip_id", "trip_title"}: the
     errors are the offers that the schema or the parser rejected, with their index (#54). Each failure is logged
-    with the capture id (P3)."""
+    with the capture id (P3). With a token and a `capture_key`, the answer is also kept on the capture (#1868)."""
     raw_offers, raw_errors, unreadable, travelers, day_prices, discounts = parse_raw(body)
     trip_id = _choose_trip(session, body, list(body.offers) + raw_offers)
     before = _best(session, trip_id)
-    capture = store_capture(session, trip_id, body)
+    capture = store_capture(session, trip_id, body, token_id)
     session.commit()
+    capture_id, keyed = capture.id, capture.capture_key is not None
     if unreadable is not None:
         log.warning("capture %s: %s raw payload not read: %s", capture.id, body.source, unreadable)
     offers = list(body.offers) + raw_offers
@@ -420,9 +431,14 @@ def store(session: Session, body: IngestIn, drops: list | None = None) -> dict:
     session.commit()
     trip = session.get(Trip, trip_id)
     warning = _warning_text(reason, capture.travelers, None if trip is None else trip.travelers)
-    return {**counts, "rejected": len(errors), "errors": errors, "warning": warning, "mismatch": reason,
-            "trip_id": trip_id, "trip_title": None if trip is None else trip.title, "suggestion": suggestion,
-            "best": _best_json(before, _best(session, trip_id))}
+    answer = {**counts, "rejected": len(errors), "errors": errors, "warning": warning, "mismatch": reason,
+              "trip_id": trip_id, "trip_title": None if trip is None else trip.title, "suggestion": suggestion,
+              "best": _best_json(before, _best(session, trip_id))}
+    if keyed:  # an UPDATE, not the object: the retention above can delete an old capture
+        session.execute(update(Capture).where(Capture.id == capture_id)
+                        .values(answer_json=jsonable_encoder(answer)))
+        session.commit()
+    return answer
 
 
 def _best(session: Session, trip_id: int):
