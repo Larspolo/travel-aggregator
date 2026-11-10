@@ -140,6 +140,11 @@ Check: the page shows the trips list ("You have no trips." on a new server).
 Open the `/tokens` page, type a name (for example `laptop`) and make a token. Copy the token: the page shows it only
 once. (On the server, `docker compose exec app python -m app.tokens create laptop` does the same.)
 
+You can also type an end date (optional). The token stops working at 00:00 UTC of the day after that date, so
+the last day is the chosen date. A blank end date gives no end date. The column "Ends" shows the date, or "never".
+After the end date, the token shows the chip "ended". The API then answers `401`, as for a bad token. A date in
+the past is an error: no token is made. A token that was not used for 90 days shows the chip "not used for 90 days".
+
 Check: the token is in the list on the `/tokens` page.
 
 #### 5. Install the userscript
@@ -285,7 +290,7 @@ it. See "Risk" under "Ranking".
 An offer of a flight can have the fields `checked_bags_included` (a whole number from 0 to 9: the checked bags that the fare includes) and `checked_bag_price` (a money value: the price of the first checked bag, in the currency of the offer). A fare with `checked_bags_included` of at least 1 gets the part `baggage (included)`; a fare with `checked_bag_price` gets the part `baggage` at that price in EUR. See "Airport time and baggage (flights)" under "Ranking". A field with no value is not set.
 
 All routes but `/api/health` need `Authorization: Bearer <token>` (`python -m app.tokens create NAME`). Bodies are
-limited to 5 MB.
+limited to 5 MB. A token with an end date is refused after that date (see step 4 of the setup).
 
 The API has two limits:
 
@@ -309,7 +314,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/trips/{id}/delete` | The confirm page to delete a trip |
 | `/trips/{id}` | The offers of a trip, ranked by effective cost, with the two sliders |
 | `/trips/{id}/compare` | 2 to 4 offers of a trip side by side, with the best value of each line marked (see below) |
-| `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts) and revoke a token |
+| `/tokens` | The API tokens: create a token (shown once, with the settings for the userscripts; optional end date) and revoke a token |
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/rates` | The exchange rates: store the value in EUR of a currency, or delete a rate (see "Exchange rates" below) |
 | `/fees` | The booking fees: store the fee in EUR of a source, or set it to 0 to remove it (see "Booking fees" below) |
