@@ -1582,6 +1582,8 @@ its part from the ranking. Each part shows its own label in the breakdown.
   A value of 0 removes the part.
 - **Self-transfer €**, default `0`. The part `self-transfer` is this amount times the count of self-transfers of the fare.
   The count comes from the `ticket` field of the legs (see "API").
+- **Card fee for other currencies (%)**, in "Advanced", default `0`. The part `currency fee` is this percentage of the EUR
+  price per traveler of a fare that is not in EUR. A EUR fare, a fare with no exchange rate and a value of 0 add no part.
 
 ### CO₂
 
