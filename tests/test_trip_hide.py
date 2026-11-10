@@ -68,6 +68,7 @@ def test_a_hidden_offer_gets_no_highlight_even_when_it_is_the_cheapest(trip, ses
     hide(client, trip_id, cheap)
     page = client.get(f"/trips/{trip_id}?show_hidden=true").text
     page = page[page.index('id="table"'):]  # the table only: the timeline above it also has the prices (#815)
+    page = re.sub(r'<p class="best-at muted">.*?</p>', "", page)  # the "best at" line repeats a price (#1965)
     # the rows come cheapest first: the badge of the other row sits between the two prices
     assert "cheapest" in page
     assert page.index("€89.90") < page.index("cheapest") < page.index("€119.90")
