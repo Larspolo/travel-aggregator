@@ -559,6 +559,13 @@ The trip page shows an "Earlier trips on this route" card below the price trend.
 Each line shows the month of the older trip as a link to that trip, its cheapest seen price per traveler in EUR, and the price you paid for it per traveler, when you booked an offer of that trip. The cheapest price shows "-" when that trip has no price. The list shows at most 5 trips, the newest first.
 The card shows only when the route has an older trip.
 
+### When to book on this route
+
+The trip page shows a "When to book on this route" card below the "Earlier trips on this route" card. It tells you how early the low prices came on this route.
+Each row is a step of days before the departure: 0–7, 8–14, 15–30, 31–60, 61–90 and more than 90 days before. The row shows the lowest price per traveler in EUR that the app captured in that step.
+Only captured prices count: the prices of this trip and of the older trips of the same route (the trips of "Earlier trips on this route"). A hidden offer, a price after the departure and a price with no currency rate do not count.
+A step with no capture has no row. The card shows only when at least one step has a capture.
+
 ### What is new since your last view
 
 A trip page counts as viewed when you open it in full. The app then remembers the time of the view. The next time you look, it shows what changed since then:
