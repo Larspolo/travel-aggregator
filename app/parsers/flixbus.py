@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, urlparse
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult, count
+from app.parsers import ParseResult, count, seats
 from app.schemas import LegIn, OfferIn, _short_reason
 
 BOOKING_URL = "https://www.flixbus.com/"
@@ -53,7 +53,7 @@ def external_id(uid: Any) -> str | None:
 
 class FlixbusParser:
     source = "flixbus.com"
-    version = "1.0.0"
+    version = "1.1.0"
     hosts = ("global.api.flixbus.com",)
     paths = ("/search/service/v4/search",)
     group_price = True  # the price is for all travelers of the search: `total` (#1026; the fixture README)
@@ -104,6 +104,7 @@ class FlixbusParser:
             price_amount=Decimal(str(conn["price"]["total"])).quantize(Decimal("0.01")),
             price_currency=cur,
             fare_name=conn.get("transfer_type") or None,
+            seats_left=seats((conn.get("available") or {}).get("seats")),
             legs=legs,
             booking_url=BOOKING_URL,
         )

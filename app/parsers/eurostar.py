@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult, count
+from app.parsers import ParseResult, count, seats
 from app.parsers.bahn import station_tz
 from app.schemas import LegIn, OfferIn, _short_reason
 
@@ -33,7 +33,7 @@ def money(value: Any) -> Decimal:
 
 class EurostarParser:
     source = "eurostar.com"
-    version = "1.0.0"
+    version = "1.1.0"
     hosts = ("site-api.eurostar.com",)
     paths = ("/gateway",)
 
@@ -104,6 +104,7 @@ class EurostarParser:
                 price_currency=currency,
                 fare_name=cos["name"],
                 travel_class=CLASSES.get(cos.get("code")),
+                seats_left=seats(fare.get("seats")),
                 legs=legs,
                 booking_url=BOOKING_URL,
             ))
