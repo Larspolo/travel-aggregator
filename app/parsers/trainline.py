@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult, card_names, count
+from app.parsers import ParseResult, card_names, count, seats
 from app.schemas import LegIn, OfferIn, _short_reason
 
 BOOKING_URL = "https://www.thetrainline.com/"
@@ -43,7 +43,7 @@ def fare_name(type_name: str, class_name: str) -> str:
 
 class TrainlineParser:
     source = "thetrainline.com"
-    version = "1.1.0"
+    version = "1.2.0"
     hosts = ("www.thetrainline.com",)
     paths = ("/api/journey-search/",)
 
@@ -104,7 +104,7 @@ class TrainlineParser:
                 # Trainline books the mandatory reservation with the ticket: the price is the full price (#1622)
                 reservation="included" if leg.get("isReservationMandatory") is True else None,
             ))
-        best: dict[str, tuple[Decimal, str, str | None]] = {}
+        best: dict[str, tuple[Decimal, str, str | None, int | None]] = {}
         for section_id in journey.get("sections") or []:
             for alt_id in search["sections"][section_id].get("alternatives") or []:
                 alt = search["alternatives"][alt_id]
@@ -116,7 +116,9 @@ class TrainlineParser:
                 # str() first: a JSON float such as 65.74 must not become a long binary Decimal
                 amount = Decimal(str(alt["price"]["amount"])).quantize(Decimal("0.01"))
                 if name not in best or amount < best[name][0]:
-                    best[name] = (amount, alt["price"]["currencyCode"], travel_class(cls.get("name") or name))
+                    # #1826: the seats left of the kept fare (None when the payload gives no valid count)
+                    left = seats((fare.get("availability") or {}).get("remaining"))
+                    best[name] = (amount, alt["price"]["currencyCode"], travel_class(cls.get("name") or name), left)
         return [
             OfferIn(
                 external_id=journey.get("id"),
@@ -124,8 +126,9 @@ class TrainlineParser:
                 price_currency=cur,
                 fare_name=name,
                 travel_class=tc,
+                seats_left=left,
                 legs=legs,
                 booking_url=BOOKING_URL,
             )
-            for name, (amount, cur, tc) in best.items()
+            for name, (amount, cur, tc, left) in best.items()
         ]
