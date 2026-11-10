@@ -1013,13 +1013,20 @@ def _rows_or_redirect(request: Request, trip_id: int, session: Session, view: di
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
-def _tokens_page(request: Request, session: Session, new_token: str | None = None, code: int = 200) -> HTMLResponse:
+def _tokens_page(request: Request, session: Session, new_token: str | None = None, code: int = 200,
+                 error: str | None = None) -> HTMLResponse:
     tokens = session.scalars(select(ApiToken).order_by(ApiToken.created_at.desc(), ApiToken.id.desc())).all()
     server_url = str(request.base_url).rstrip("/")
-    unused_before = datetime.now(timezone.utc) - timedelta(days=90)
+    now = datetime.now(timezone.utc)
+    unused_before = now - timedelta(days=90)
+    # A token ends at 00:00 UTC of the day after its last day (#1847): show the last day.
+    last_days = {t.id: (t.expires_at.astimezone(timezone.utc) - timedelta(days=1)).date()
+                 for t in tokens if t.expires_at}
     return templates.TemplateResponse(request, "tokens.html", {"tokens": tokens, "new_token": new_token,
                                                                "server_url": server_url,
                                                                "unused_before": unused_before,
+                                                               "now": now, "last_days": last_days,
+                                                               "error": error,
                                                                "userscripts": userscript_list(),
                                                                "bundle": bundle_info()}, status_code=code)
 
@@ -1564,12 +1571,23 @@ def tokens_page(request: Request, session: Session = Depends(get_session)) -> HT
 
 
 @router.post("/tokens", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
-def new_token(request: Request, name: str = Form(""), session: Session = Depends(get_session)) -> HTMLResponse:
+def new_token(request: Request, name: str = Form(""), expires_on: str = Form(""),
+              session: Session = Depends(get_session)) -> HTMLResponse:
     name = name.strip()[:100]
     if not name:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "a token needs a name")
+    ends_at = None
+    if expires_on.strip():  # a blank field is no end date (#1847)
+        try:
+            last_day = datetime.strptime(expires_on.strip(), "%Y-%m-%d").date()
+        except ValueError:
+            return _tokens_page(request, session, code=422, error="The end date is not a valid date.")
+        if last_day < datetime.now(timezone.utc).date():
+            return _tokens_page(request, session, code=422,
+                                error="The end date is before today. No token was made.")
+        ends_at = datetime.combine(last_day + timedelta(days=1), time(0), tzinfo=timezone.utc)
     # The value shows only in this response; the database keeps only its hash (P5).
-    return _tokens_page(request, session, create_token(session, name))
+    return _tokens_page(request, session, create_token(session, name, expires_at=ends_at))
 
 
 @router.post("/tokens/{token_id}/revoke", dependencies=[Depends(require_login), Depends(verify_csrf)])
