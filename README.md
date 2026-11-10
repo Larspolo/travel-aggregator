@@ -1019,6 +1019,9 @@ when the offers reached your server, or an error message.
   Make the token on the `/tokens` page.
 - **Not sent.** When a send fails, the offers stay in the queue. With auto-send on, the userscript sends them again
   later.
+- **Resend.** The userscript gives each capture a key of its own. When the answer of the server gets lost and the
+  userscript sends the capture again, the server stores the capture once. The resend gives no second capture and no
+  second price row. Userscripts of an older version send no key, and they work as before.
 - **Server busy.** When the app answers `429` (too many requests, or too many bad tokens from your address), the panel
   shows `Server busy: kept in the queue`. The offers stay in the queue and the userscript sends them again later.
   See "API" for the limits.
