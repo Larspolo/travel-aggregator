@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from app.models import Capture, Setting
+from app.models import Capture, Setting, SilentPage
 
 WARN_FAILED = 2  # the trips list warns when this many captures failed after the last good one (#726)
 
@@ -40,9 +40,28 @@ def source_health(session: Session) -> list[dict]:
              .outerjoin(good, good.c.source == Capture.source)
              .outerjoin(newest, newest.c.source == Capture.source)
              .group_by(Capture.source).order_by(Capture.source))
-    return [{"source": r.source, "last_good_at": r.last_good_at, "parser_version": r.parser_version,
-             "failed_after": r.failed_after, "last_at": r.last_at, "script_version": r.script_version}
+    rows = [{"source": r.source, "last_good_at": r.last_good_at, "parser_version": r.parser_version,
+             "failed_after": r.failed_after, "last_at": r.last_at, "script_version": r.script_version,
+             "silent_after": 0, "silent_at": None}
             for r in session.execute(query)]
+    _add_silent(session, rows)
+    return rows
+
+
+def _add_silent(session: Session, rows: list[dict]) -> None:
+    """The silent pages (#1755) after the last good capture of each source: the count and the newest time."""
+    by_source = {r["source"]: r for r in rows}
+    for page in session.scalars(select(SilentPage).order_by(SilentPage.seen_at)):
+        r = by_source.get(page.source)
+        if r is None:
+            r = by_source[page.source] = {"source": page.source, "last_good_at": None, "parser_version": None,
+                                          "failed_after": 0, "last_at": None, "script_version": None,
+                                          "silent_after": 0, "silent_at": None}
+            rows.append(r)
+        if r["last_good_at"] is None or page.seen_at > r["last_good_at"]:
+            r["silent_after"] += 1
+            r["silent_at"] = page.seen_at
+    rows.sort(key=lambda r: r["source"])
 
 
 def add_old_script(health: list[dict]) -> list[dict]:

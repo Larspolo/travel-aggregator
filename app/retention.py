@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
-from app.models import Capture, Setting
+from app.models import Capture, Setting, SilentPage
 
 RETENTION_DAYS = 90
 RETENTION_KEY = "capture_retention_days"
@@ -35,5 +35,6 @@ def delete_old_captures(session: Session, days: int, now: datetime) -> int:
     limit = cutoff(days, now)
     if limit is None:
         return 0
+    session.execute(delete(SilentPage).where(SilentPage.seen_at < limit))  # #1755
     result = session.execute(delete(Capture).where(Capture.captured_at < limit))
     return result.rowcount

@@ -1,7 +1,7 @@
 """The discount cards of the travelers of a capture (#1750).
 
-Revision ID: 0038
-Revises: 0037
+Revision ID: 0039
+Revises: 0038
 
 No data loss: the upgrade adds the nullable column `captures.discounts`. The downgrade drops only this new column
 and its values.
@@ -10,8 +10,8 @@ and its values.
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0038"
-down_revision = "0037"
+revision = "0039"
+down_revision = "0038"
 branch_labels = None
 depends_on = None
 

@@ -5,7 +5,7 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 MAX_OFFERS = 500           # offers per batch
 MAX_LEGS = 20              # legs per offer
@@ -170,3 +170,31 @@ class TripForm(BaseModel):
         if self.date_from and self.date_to and self.date_to < self.date_from:
             raise ValueError("date_to is before date_from")
         return self
+
+
+class SilentIn(BaseModel):
+    """POST /api/silent (#1755): a results page on which the userscript saw no offers."""
+    model_config = ConfigDict(extra="forbid")
+
+    source: str = Field(min_length=1, max_length=50)
+    page_url: str = Field(min_length=1, max_length=2000)
+    seen_at: AwareDatetime
+    script_version: str = Field(min_length=1, max_length=50)
+
+    @field_validator("source")
+    @classmethod
+    def _known_source(cls, value: str) -> str:
+        from app.parsers import parser_classes
+
+        if value not in parser_classes():
+            raise ValueError(f"unknown source {value}")
+        return value
+
+    @field_validator("page_url")
+    @classmethod
+    def _path_and_query(cls, value: str) -> str:
+        """Keep only the path and the query: no host, no fragment."""
+        from urllib.parse import urlsplit
+
+        parts = urlsplit(value)
+        return (parts.path or "/") + (f"?{parts.query}" if parts.query else "")
