@@ -51,8 +51,12 @@ def test_a_shared_link_shows_the_ranked_rows_with_no_login_and_no_private_data(t
     page = r.text
     assert page.index("€89.90") < page.index("€119.90")
     assert "€50.00" not in page  # the hidden row
-    for private in ("secret-note-text", "secret-trip-notes", "bahn.de/buchung", "<form", "captures", "Log out"):
+    for private in ("secret-note-text", "secret-trip-notes", "bahn.de/buchung", "captures", "Log out"):
         assert private not in page
+    # the only forms are the "Suits me" marks of the rows (#1781): no form of the owner
+    assert re.findall(r'<form [^>]*action="([^"]+)"', page) == [f"{link}/marks/{i}" for i in
+                                                               re.findall(r'id="row-(\d+)"', page)]
+    assert page.count("<form") == 2
 
 
 def test_revoke_and_a_new_share_stop_the_old_link(trip, sessions):  # noqa: F811

@@ -317,3 +317,16 @@ class DayPrice(Base):
     currency: Mapped[str] = mapped_column(String(3))
     captured_at: Mapped[datetime] = mapped_column(_tz())
     capture_id: Mapped[int | None] = mapped_column(ForeignKey("captures.id", ondelete="SET NULL"), index=True)
+
+
+class ShareMark(Base):
+    """A "Suits me" mark of the travel partner on the read-only link of a trip (#1781): one per itinerary, no login.
+    `revoke()` and `new_link()` of app/share.py delete the marks of the trip; the database deletes them with it."""
+    __tablename__ = "share_marks"
+    __table_args__ = (UniqueConstraint("trip_id", "itinerary_id", name="uq_share_marks_trip_itinerary"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), index=True)
+    itinerary_id: Mapped[int] = mapped_column(ForeignKey("itineraries.id", ondelete="CASCADE"), index=True)
+    note: Mapped[str | None] = mapped_column(String(200), nullable=True)  # the note of the partner (#1782)
+    created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())

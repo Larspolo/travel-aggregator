@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, subqueryload
 from app.auth import require_login, token_limiter, verify_csrf
 from app.db import get_session
 from app.discount_cards import cards_warning, fare_cards
-from app.models import AccessTime, Itinerary, Trip
+from app.models import AccessTime, Itinerary, ShareMark, Trip
 from app.share import new_link, revoke, trip_for_token
 from app.fees import load_fees
 from app.web.pages import fare_travelers, format_breakdown, load_rates, resolve_weights, row_cost, templates
@@ -43,8 +43,8 @@ def revoke_share(trip_id: int, session: Session = Depends(get_session)) -> Redir
     return RedirectResponse(f"/trips/{trip_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.get("/s/{token}", response_class=HTMLResponse, name="shared_trip")
-def shared_trip(request: Request, token: str, session: Session = Depends(get_session)) -> HTMLResponse:
+def _shared(request: Request, session: Session, token: str) -> Trip:
+    """The trip of a share token. A bad token counts for the address (#904): 404, and 429 when the address is locked."""
     address = request.client.host if request.client else "unknown"
     wait = token_limiter.retry_after(address)
     if wait > 0:  # too many bad links of this address (#904): nobody can guess a link
@@ -54,6 +54,31 @@ def shared_trip(request: Request, token: str, session: Session = Depends(get_ses
     if trip is None:
         token_limiter.failure(address)
         raise HTTPException(status.HTTP_404_NOT_FOUND, "no shared trip", headers=PRIVATE_HEADERS)
+    return trip
+
+
+@router.post("/s/{token}/marks/{itinerary_id}")
+def toggle_mark(request: Request, token: str, itinerary_id: int,
+                session: Session = Depends(get_session)) -> RedirectResponse:
+    """Set or remove the "Suits me" mark of the travel partner on one row (#1781). No login and no CSRF token: the
+    secret token in the URL authorizes the request, as for the page. Only a row that the page shows can get a mark."""
+    trip = _shared(request, session, token)
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip.id or it.hidden:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "no such row", headers=PRIVATE_HEADERS)
+    mark = session.scalars(select(ShareMark).where(ShareMark.trip_id == trip.id,
+                                                   ShareMark.itinerary_id == it.id)).one_or_none()
+    if mark is None:
+        session.add(ShareMark(trip_id=trip.id, itinerary_id=it.id))
+    else:
+        session.delete(mark)
+    session.commit()
+    return RedirectResponse(f"/s/{token}#row-{it.id}", status_code=status.HTTP_303_SEE_OTHER, headers=PRIVATE_HEADERS)
+
+
+@router.get("/s/{token}", response_class=HTMLResponse, name="shared_trip")
+def shared_trip(request: Request, token: str, session: Session = Depends(get_session)) -> HTMLResponse:
+    trip = _shared(request, session, token)
     weights, _ = resolve_weights(session, trip, {}, None)  # the profile of the trip, no overrides
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
@@ -65,6 +90,7 @@ def shared_trip(request: Request, token: str, session: Session = Depends(get_ses
     rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts, fees)) for it in itineraries
             if it.fares and it.legs]
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))
-    context = {"trip": trip, "rows": rows, "format_breakdown": format_breakdown,
+    marks = {m.itinerary_id: m for m in session.scalars(select(ShareMark).where(ShareMark.trip_id == trip.id))}
+    context = {"trip": trip, "rows": rows, "format_breakdown": format_breakdown, "token": token, "marks": marks,
                "cards_warning": cards_warning(itineraries, fare_cards(session, itineraries))}  # #1751
     return templates.TemplateResponse(request, "trip_shared.html", context, headers=PRIVATE_HEADERS)

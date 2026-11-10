@@ -24,6 +24,7 @@ PUBLIC = {
     ("GET", "/sw.js"): "the service worker script of the installed app, no data",
     ("GET", "/manifest.webmanifest"): "the app manifest, no data",
     ("GET", "/s/{token}"): "a share link: the random token is the access",
+    ("POST", "/s/{token}/marks/{itinerary_id}"): "a mark of the travel partner on a share link: the token is the access (#1781)",
     ("GET", "/calendar/{token}.ics"): "the calendar feed (#1112): the random token is the access",
     ("GET", "/userscripts/{name}"): "the userscript install for Tampermonkey, no data",
     # The docs of FastAPI: only the schema, the repository is public.
