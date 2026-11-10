@@ -23,7 +23,8 @@ from app.schemas import LegIn, OfferIn, _short_reason
 BOOKING_URL = "https://shop.oebbtickets.at/"
 CURRENCY = "EUR"
 # Nightjet accommodation type -> fare name; the order is the order of the fares
-TIERS = {"SEAT": "Seat", "COUCHETTE": "Couchette", "BERTH": "Sleeper"}
+# accommodation type -> (fare name, berth; #1807)
+TIERS = {"SEAT": ("Seat", "seat"), "COUCHETTE": ("Couchette", "couchette"), "BERTH": ("Sleeper", "sleeper")}
 BUS = {"Bus", "BUS", "ICB", "NJB", "WB"}
 
 
@@ -84,24 +85,26 @@ def _second(section: dict) -> list[dict]:
     return tc["offers"]
 
 
-def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None]]:
-    """{fare name: (cheapest price, flexibility)} of the Nightjet tiers of a section; {} for a section with no tiers."""
+def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str]]:
+    """{fare name: (cheapest price, flexibility, berth)} of the Nightjet tiers of a section; {} for a section with no
+    tiers."""
     kinds = {c["id"]: c.get("accommodationType") for c in (section.get("media") or {}).get("compartments") or []}
-    best: dict[str, tuple[Decimal, str | None]] = {}
+    best: dict[str, tuple[Decimal, str | None, str]] = {}
     for offer in _second(section):
         for c in (offer.get("reservation") or {}).get("compartments") or []:
-            name = TIERS.get(kinds.get(c.get("id")))
-            if name is None or c.get("price") is None:
+            tier = TIERS.get(kinds.get(c.get("id")))
+            if tier is None or c.get("price") is None:
                 continue
+            name, berth = tier
             p = money(offer.get("price") or 0) + money(c["price"])
             if name not in best or p < best[name][0]:
-                best[name] = (p, _flex(offer))
-    return {n: best[n] for n in TIERS.values() if n in best}
+                best[name] = (p, _flex(offer), berth)
+    return {name: best[name] for name, _ in TIERS.values() if name in best}
 
 
 class OebbParser:
     source = "oebbtickets.at"
-    version = "1.0.0"
+    version = "1.1.0"
     hosts = ("shop.oebbtickets.at",)
     paths = ("/api/hafas/v4/timetable", "/api/offer/v1/prices", "/api/offer/v6/offers")
 
@@ -152,9 +155,9 @@ class OebbParser:
                 continue
             base += min(money(o["price"]) for o in _second(section))
         if not tiers:
-            tiers = {None: (Decimal("0"), None)}
+            tiers = {None: (Decimal("0"), None, None)}
         return [
             OfferIn(price_amount=base + price, price_currency=CURRENCY, fare_name=name, flexibility=flex,
-                    travel_class="standard", legs=trip, booking_url=BOOKING_URL)
-            for name, (price, flex) in tiers.items()
+                    travel_class="standard", berth=berth, legs=trip, booking_url=BOOKING_URL)
+            for name, (price, flex, berth) in tiers.items()
         ]
