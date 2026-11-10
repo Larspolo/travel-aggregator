@@ -873,6 +873,10 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "rates": rates, "tradeoff": tradeoff, "gone_fares": gone_marks, "suspect_fares": suspect,
                "co2": {it.id: kg for it, *_ in rows if (kg := co2_kg(it, weights)) > 0},  # #1418
                "new_since": trip.viewed_at}  # the rows after the last full view are "new" (#1090)
+    from app.models import ShareMark
+    # the "Suits me" marks of the shared link (#1783): a chip and the note; no change of the score or the order (P2)
+    context["share_marks"] = {m.itinerary_id: m for m in session.scalars(
+        select(ShareMark).where(ShareMark.trip_id == trip_id))}
     cards = fare_cards(session, itineraries)  # the discount cards of the fares (#1751)
     context["cards_warning"] = cards_warning(itineraries, cards, gone_marks, departed_now)
     context["card_label"] = lambda f: card_label(f, cards)
