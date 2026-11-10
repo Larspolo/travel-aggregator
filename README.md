@@ -1434,6 +1434,11 @@ its part from the ranking. Each part shows its own label in the breakdown.
 - **Change of station penalty €**, default `0`. The part `change of station` is this amount times the count of changes
   of station. A transfer counts as a change of station when the leg before it arrives at another station than the leg
   after it departs from. The expanded row shows the change as "Change of station: A → B". Split tickets use the same rule.
+- **No later connection penalty €**, default `0`. The part `no later connection` is this amount times the count of
+  transfers with no later connection. A transfer has a later connection when another captured itinerary of the trip
+  departs later from the place of the transfer and ends at the final station of the itinerary. Only the captured
+  itineraries of the trip count, and only those that have not departed yet (also the hidden ones). The expanded row
+  shows "· no later connection captured" after each such transfer. The mark shows also when the penalty is `0`. A value of 0 removes the part.
 - **Train markup €**, **Bus markup €**, **Flight markup €** and **Ferry markup €**, each default `0`. An itinerary that
   uses the mode adds the part `<mode> markup` once. A negative amount is a discount.
 - **Carriers**, in "Advanced": three slots, each with **Carrier n name** and **Carrier n markup €**. The default is no name
