@@ -3,6 +3,7 @@ of the token (P5)."""
 
 import hmac
 import secrets
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import PlainTextResponse, RedirectResponse
@@ -12,7 +13,8 @@ from sqlalchemy.orm import Session
 
 from app.auth import bearer, hash_token, require_login, verify_csrf
 from app.db import get_session
-from app.models import Itinerary, Setting, Trip
+from app.models import Capture, Itinerary, Setting, Trip
+from app.sourcehealth import failed_clause, source_health
 
 KEY = "metrics_token_hash"
 MEDIA_TYPE = "text/plain; version=0.0.4"
@@ -45,6 +47,40 @@ def metrics_token_ok(session: Session, token: str) -> bool:
     return hmac.compare_digest(setting.value.encode(), hash_token(token).encode())
 
 
+def label_value(value: str) -> str:
+    """Escape a label value as the text format says: a backslash, a double quote and a line break."""
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+def source_lines(session: Session, now: datetime) -> list[str]:
+    """Per source: the count of captures, the failed captures and the age of the last good capture (#1893)."""
+    counts = session.execute(select(Capture.source, func.count(Capture.id)).group_by(Capture.source)).all()
+    failures = dict(session.execute(select(Capture.source, func.count(Capture.id).filter(failed_clause()))
+                                    .group_by(Capture.source)).all())
+    last_good = {row["source"]: row["last_good_at"] for row in source_health(session)}
+    lines = [
+        "# HELP travel_captures_total The count of captures per source.",
+        "# TYPE travel_captures_total counter",
+    ]
+    lines += [f'travel_captures_total{{source="{label_value(src)}"}} {n}' for src, n in sorted(counts)]
+    lines += [
+        "# HELP travel_capture_failures_total The count of failed captures per source.",
+        "# TYPE travel_capture_failures_total counter",
+    ]
+    lines += [f'travel_capture_failures_total{{source="{label_value(src)}"}} {failures.get(src, 0)}'
+              for src, _ in sorted(counts)]
+    lines += [
+        "# HELP travel_last_good_capture_age_seconds The seconds since the last good capture per source.",
+        "# TYPE travel_last_good_capture_age_seconds gauge",
+    ]
+    for src, _ in sorted(counts):
+        at = last_good.get(src)
+        if at is not None:
+            age = int((now - at).total_seconds())
+            lines.append(f'travel_last_good_capture_age_seconds{{source="{label_value(src)}"}} {age}')
+    return lines
+
+
 def metrics_text(session: Session) -> str:
     """The body in the text format of Prometheus."""
     values = [
@@ -54,6 +90,7 @@ def metrics_text(session: Session) -> str:
     lines = []
     for name, help_text, value in values:
         lines += [f"# HELP {name} {help_text}", f"# TYPE {name} gauge", f"{name} {value}"]
+    lines += source_lines(session, datetime.now(UTC))
     return "\n".join(lines) + "\n"
 
 
