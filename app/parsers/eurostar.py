@@ -34,6 +34,10 @@ def money(value: Any) -> Decimal:
 class EurostarParser:
     source = "eurostar.com"
     version = "1.1.0"
+    # no personal key beyond PERSONAL_KEYS: `passengerId` is the slot "passenger_1" (#1903)
+    redact_keys: frozenset[str] = frozenset()
+    # no URL in the fixtures: the search is in the body (#1903)
+    url_keep: frozenset[str] = frozenset()
     hosts = ("site-api.eurostar.com",)
     paths = ("/gateway",)
 

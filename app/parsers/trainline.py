@@ -44,6 +44,10 @@ def fare_name(type_name: str, class_name: str) -> str:
 class TrainlineParser:
     source = "thetrainline.com"
     version = "1.2.0"
+    # no personal key beyond PERSONAL_KEYS: `dateOfBirth` is in PERSONAL_KEYS (#1903)
+    redact_keys: frozenset[str] = frozenset()
+    # no URL in the fixtures: the search is in the body (#1903)
+    url_keep: frozenset[str] = frozenset()
     hosts = ("www.thetrainline.com",)
     paths = ("/api/journey-search/",)
 

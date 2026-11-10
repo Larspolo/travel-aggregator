@@ -47,6 +47,10 @@ def service_no(transporter: dict) -> str | None:
 class SncfParser:
     source = "sncf-connect.com"
     version = "1.0.0"
+    # no personal key beyond PERSONAL_KEYS in the fixtures (#1903)
+    redact_keys: frozenset[str] = frozenset()
+    # no URL in the fixtures: the search is in the body (#1903)
+    url_keep: frozenset[str] = frozenset()
     hosts = ("www.sncf-connect.com",)
     paths = ("/bff/api/v1/itineraries",)
 

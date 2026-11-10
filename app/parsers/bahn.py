@@ -78,6 +78,10 @@ def travelers(request: dict | None) -> int | None:
 class BahnParser:
     source = "bahn.de"
     version = "1.3.0"
+    # no personal key beyond PERSONAL_KEYS: the fixtures have no BahnCard number and no traveler name (#1903)
+    redact_keys: frozenset[str] = frozenset()
+    # the station codes and the date of the search are in the body, not in a URL: no query name to keep (#1903)
+    url_keep: frozenset[str] = frozenset()
     hosts = ("www.bahn.de", "int.bahn.de")
     paths = ("/web/api/angebote/fahrplan", "/web/api/angebote/recon", "/web/api/angebote/tagesbestpreis")
     group_price = True  # the price is for all travelers of the request (#767; the fixture README)
