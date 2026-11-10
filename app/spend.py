@@ -70,13 +70,17 @@ def _mode_of(it) -> str:
 
 
 def _add(acc: _Acc, it, rates: dict[str, Decimal], weights: Weights) -> None:
-    acc.journeys += 1
-    acc.minutes += it.duration_min
-    acc.co2 += co2_kg(it, weights)
+    # A cancelled booking is no journey (#1687): its paid price less the refund stays in the total.
+    cancelled = it.cancelled_at is not None
+    if not cancelled:
+        acc.journeys += 1
+        acc.minutes += it.duration_min
+        acc.co2 += co2_kg(it, weights)
     if it.booked_price is None:
         return
     currency = it.booked_currency or EUR
-    eur = to_eur(it.booked_price, currency, rates)
+    amount = it.booked_price - (it.refund_price or Decimal(0)) if cancelled else it.booked_price
+    eur = to_eur(amount, currency, rates)
     if eur is None:
         acc.missing[currency] = acc.missing.get(currency, 0) + 1
     else:
