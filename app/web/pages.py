@@ -1881,7 +1881,7 @@ def test_message(request: Request, session: Session = Depends(get_session)) -> R
     msgs = alert_messages(session, "Test message from travel-aggregator",
                           "The channel of travel-aggregator works.", click)
     if msgs:
-        deliver(msgs)
+        deliver(msgs, session=session)
         request.session["flash"] = f"Test message sent by {msgs[0].channel}"
     else:
         request.session["flash"] = "Select a channel first"

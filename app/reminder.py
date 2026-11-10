@@ -66,7 +66,7 @@ def send_reminders(session: Session, now: datetime, base_url: str) -> int:
         msgs = alert_messages(session, f"Search again: {trip.title}", "\n".join(lines + ([click] if click else [])), click)
         if not msgs:
             break
-        deliver(msgs)
+        deliver(msgs, session=session)
         mark_reminded(trip, now)
         session.commit()
         sent += 1

@@ -11,6 +11,7 @@ import base64
 import json
 import logging
 import smtplib
+import urllib.error
 import urllib.request
 from collections.abc import Callable
 from contextlib import AbstractContextManager
@@ -23,7 +24,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.models import PushSubscription, Setting, Trip
+from app.models import PushSubscription, SentMessage, Setting, Trip
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ SOURCE_ALERT_KEY = "source_alert_on"  # #1174: "0" turns off the messages of fai
 CHANNELS = ("none", "ntfy", "email", "webpush")
 GONE = (404, 410)  # the push service no longer knows the subscription
 TIMEOUT_S = 5
+KEEP_SENT = 100  # #1812: the newest rows of `sent_messages`
 
 
 @dataclass(frozen=True)
@@ -159,31 +161,69 @@ def push(m: Message) -> None:
             vapid_private_key=s.vapid_private_key, vapid_claims={"sub": s.vapid_subject}, timeout=TIMEOUT_S, ttl=86400)
 
 
-def deliver(msgs: list[Message], new_session: Callable[[], AbstractContextManager[Session]] | None = None) -> None:
-    gone = []
+def reason(m: Message, e: Exception) -> str:
+    """A short reason of a failed send with no address (P5, #1812)."""
+    if isinstance(e, urllib.error.HTTPError):
+        return f"ntfy HTTP {e.code}"
+    if isinstance(e, WebPushException):
+        return f"webpush HTTP {getattr(e.response, 'status_code', None)}"
+    if isinstance(e, smtplib.SMTPException):
+        code = getattr(e, "smtp_code", None)
+        return f"email {type(e).__name__}" + (f" {code}" if code is not None else "")
+    return f"{m.channel} {type(e).__name__}"[:200]
+
+
+def send(m: Message) -> None:
+    if m.channel == "email":
+        send_email(m)
+    elif m.channel == "webpush":
+        push(m)
+    else:  # an HTTP header is latin-1: ntfy reads a UTF-8 title from the raw bytes
+        post(m.url, m.text, {"Title": m.title.encode().decode("latin-1"), "Click": m.click})
+
+
+def store(session: Session, msgs: list[Message], results: list[str | None]) -> None:
+    """One row per message, then delete the rows older than the newest KEEP_SENT (#1812)."""
+    for m, r in zip(msgs, results, strict=True):
+        session.add(SentMessage(title=m.title[:200], click=m.click, channel=m.channel[:10], ok=r is None, reason=r))
+    session.flush()
+    keep = select(SentMessage.id).order_by(SentMessage.id.desc()).limit(KEEP_SENT).scalar_subquery()
+    session.execute(delete(SentMessage).where(SentMessage.id.not_in(keep)))
+
+
+def deliver(msgs: list[Message], new_session: Callable[[], AbstractContextManager[Session]] | None = None,
+            session: Session | None = None) -> list[str | None]:
+    """Send each message. The result per message: None (sent) or a short reason. Never raises."""
+    gone, results = [], []
     for m in msgs:
         try:
-            if m.channel == "email":
-                send_email(m)
-            elif m.channel == "webpush":
-                push(m)
-            else:  # an HTTP header is latin-1: ntfy reads a UTF-8 title from the raw bytes
-                post(m.url, m.text, {"Title": m.title.encode().decode("latin-1"), "Click": m.click})
-        except WebPushException as e:
-            if getattr(e.response, "status_code", None) in GONE:
+            send(m)
+            results.append(None)
+        except Exception as e:  # noqa: BLE001 (a failed send must not break the ingest)
+            results.append(reason(m, e))
+            if isinstance(e, WebPushException) and getattr(e.response, "status_code", None) in GONE:
                 gone.append(m.url)
             else:
-                log.warning("price drop message not sent: %s", e)
-        except Exception as e:  # noqa: BLE001 (a failed send must not break the ingest)
-            log.warning("price drop message not sent: %s", e)
-    if gone and new_session is not None:
-        try:
-            with new_session() as session:
-                session.execute(delete(PushSubscription).where(PushSubscription.endpoint.in_(gone)))
-                session.commit()
-            log.info("deleted %d push subscriptions that the push service no longer knows", len(set(gone)))
-        except Exception as e:  # noqa: BLE001
-            log.warning("push subscriptions not deleted: %s", e)
+                log.warning("price drop message not sent: %s", results[-1])
+    if not msgs:
+        return results
+    try:
+        if session is not None:
+            _save(session, msgs, results, gone)
+        elif new_session is not None:
+            with new_session() as s:
+                _save(s, msgs, results, gone)
+    except Exception as e:  # noqa: BLE001
+        log.warning("message results not stored: %s", e)
+    return results
+
+
+def _save(session: Session, msgs: list[Message], results: list[str | None], gone: list[str]) -> None:
+    if gone:
+        session.execute(delete(PushSubscription).where(PushSubscription.endpoint.in_(gone)))
+        log.info("deleted %d push subscriptions that the push service no longer knows", len(set(gone)))
+    store(session, msgs, results)
+    session.commit()
 
 
 def vapid_keys() -> tuple[str, str]:
