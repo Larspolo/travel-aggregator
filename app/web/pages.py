@@ -481,6 +481,12 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  carrier2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  carrier3_name: str | None = Query(None, max_length=50),
                  carrier3_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 transfer_place1_name: str | None = Query(None, max_length=100),  # (#1851)
+                 transfer_place1_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 transfer_place2_name: str | None = Query(None, max_length=100),
+                 transfer_place2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 transfer_place3_name: str | None = Query(None, max_length=100),
+                 transfer_place3_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  train_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  bus_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  flight_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
@@ -1161,11 +1167,11 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier2_markup: Decimal = Form(Weights.carrier2_markup, ge=-1000, le=1000),
                       carrier3_name: str = Form(Weights.carrier3_name, max_length=50),
                       carrier3_markup: Decimal = Form(Weights.carrier3_markup, ge=-1000, le=1000),
-                      transfer_place1_name: str = Form(Weights.transfer_place1_name, max_length=50),
+                      transfer_place1_name: str = Form(Weights.transfer_place1_name, max_length=100),
                       transfer_place1_markup: Decimal = Form(Weights.transfer_place1_markup, ge=-1000, le=1000),
-                      transfer_place2_name: str = Form(Weights.transfer_place2_name, max_length=50),
+                      transfer_place2_name: str = Form(Weights.transfer_place2_name, max_length=100),
                       transfer_place2_markup: Decimal = Form(Weights.transfer_place2_markup, ge=-1000, le=1000),
-                      transfer_place3_name: str = Form(Weights.transfer_place3_name, max_length=50),
+                      transfer_place3_name: str = Form(Weights.transfer_place3_name, max_length=100),
                       transfer_place3_markup: Decimal = Form(Weights.transfer_place3_markup, ge=-1000, le=1000),
                       train_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       bus_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
@@ -1248,9 +1254,10 @@ def form_weights(form) -> tuple[Weights, str | None]:
         raw = (form.get(f.name) or "").strip()
         if not raw:
             continue
-        if isinstance(f.default, str):  # a carrier name (#1530, #1531): any text up to 50 characters
-            if len(raw) > 50:
-                return Weights(), f"{f.name}: the name is longer than 50 characters; nothing changed."
+        if isinstance(f.default, str):  # a carrier name (#1531): up to 50 characters; a transfer place: 100 (#1851)
+            limit = 100 if f.name.startswith("transfer_place") else 50
+            if len(raw) > limit:
+                return Weights(), f"{f.name}: the name is longer than {limit} characters; nothing changed."
             values[f.name] = raw
             continue
         bounds = WEIGHT_RANGES[f.name]
