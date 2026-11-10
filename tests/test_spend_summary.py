@@ -16,7 +16,7 @@ def _leg(mode, depart, minutes, offset=0):
 
 def _journey(legs, minutes, price=None, currency=None, depart=None):
     return SimpleNamespace(legs=legs, depart_at=depart or legs[0].depart_at, duration_min=minutes,
-                           booked_price=price, booked_currency=currency)
+                           booked_price=price, booked_currency=currency, cancelled_at=None, refund_price=None)
 
 
 def _at(*args):
