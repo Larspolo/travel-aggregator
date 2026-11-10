@@ -252,6 +252,13 @@ def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None, in
     return result.offers, result.errors, None, result.travelers, result.day_prices, result.discounts
 
 
+def _parsed_with(source: str, raw) -> str | None:
+    """The version of the server parser of the source that parses the raw payload (#1989); None without a raw
+    payload or without a parser."""
+    parser = get_parser(source)
+    return None if raw is None or parser is None else parser.version
+
+
 def set_result(capture: Capture, counts: dict, errors: list[dict], unreadable: str | None) -> None:
     """Keep the result of the last parse on the capture (#346): the counts, the first 50 errors (index and short
     reason only, P5) and the reason of an unreadable payload."""
@@ -275,6 +282,7 @@ def reparse(session: Session, capture: Capture) -> dict | None:
     raw, parser = load_raw(capture), get_parser(capture.source)
     if raw is None or parser is None:
         return None
+    capture.parsed_with = parser.version
     try:
         result = parser.parse(raw)
     except ValueError as e:
@@ -326,6 +334,7 @@ def move_capture(session: Session, capture: Capture, target_trip_id: int) -> dic
         result = parser.parse(raw)
     except ValueError as e:
         return {"unreadable": str(e)[:200]}
+    capture.parsed_with = parser.version
     try:
         flags = _remove_from_old_trip(session, capture.id, old_trip_id)
         counts = {"created": 0, "updated": 0, "unchanged": 0}
@@ -458,6 +467,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None, token_id:
                      captured_at=body.captured_at)
     set_result(capture, counts, errors, unreadable)
     set_span(capture, offers)
+    capture.parsed_with = _parsed_with(body.source, body.raw)
     capture.travelers = capture_travelers(capture, travelers)
     capture.discounts = discounts
     reason = _trip_mismatch(session, trip_id, offers, capture.travelers)
