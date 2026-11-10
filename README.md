@@ -899,8 +899,13 @@ The trips list shows the mark "shared" after the trips that have a link.
 The shared page `/s/<token>` lists the offers that are not hidden, best effective cost first. Each offer shows the route,
 the times, the duration, the transfers, the fare and price, the effective cost with its breakdown, and its legs.
 The page uses the profile of the trip. The sliders and filters of the trip page do not apply.
-The shared page does not show the notes, the booking links, the price captures or history, the hidden offers, or any
+The shared page does not show the notes of the trip, the booking links, the price captures or history, the hidden offers, or any
 control such as pin, book or delete.
+
+The travel partner can mark an offer with "Suits me". A marked offer shows the mark "Suits you" on the shared page. The
+partner can add a note of up to 200 characters with the mark; the note is shown as text on the shared page, and the partner can
+change it with "Save note" or remove the mark and its note with "Remove". The trip page shows the marks to the owner.
+"Revoke link" deletes the marks of the trip.
 
 To stop the link, click "Revoke link" on the trip page. The link then returns "not found" (404). "Share" shows again
 after "Revoke link", and it makes a new link: the old link stays stopped. Each address that sends too many wrong
