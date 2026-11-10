@@ -59,7 +59,9 @@ When `python3 framework/tools/claim.py 0 --roadmap` exits 0, after step 8 of the
 1. Mark a feature done (`[x]`, with the epic number) when its epic is closed: `python3 framework/tools/roadmap_status.py`
    prints the features to mark ("mark done"), with no epic ("no epic") and `[x]` with no number ("no number").
 2. Compare each goal with the code and the principles: what must a user do that the project cannot do yet? Add at
-   most 5 missing features, each with a new key, one line and its sub-items.
+   most 5 missing features, each with a new key, one line and its sub-items. Add at least one that an agent can
+   start now to goals 1 to 3: the refill reads only these goals (`free_sources()` in `framework/tools/usage.py`), and
+   the 2 new `host:` features of #1741 left the refill with no source (#1769).
 3. Keep the order: the features that the next features need come first.
 4. Put the change into the PR of your ticket, or make a `docs`, `size:S` ticket for it. The owner can change the list
    at any time.
