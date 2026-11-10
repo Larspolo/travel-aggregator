@@ -1,7 +1,7 @@
 """Queries for the trips pages."""
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -168,6 +168,28 @@ def in_journeys(rows: list[TripRow]) -> list[tuple[str, TripRow, str]]:
                 add(kind, t, prev.title)
             lines.append(("total", journey[-1], _journey_total(*journey)))
     return lines
+
+
+def past_trips(rows: list[TripRow], today: date, days: int = 7) -> list[int]:
+    """The ids of the trips that are not archived and whose journey ended before `today - days` (#1997).
+
+    A journey is the lines of `in_journeys()` from a "trip" line to the next one (the return, next and split trips).
+    Its last day is the largest `date_to` (else `date_from`) of its trips. A journey with a trip with no date gives no id."""
+    cutoff = today - timedelta(days=days)
+    groups: list[list[TripRow]] = []
+    for kind, trip, _note in in_journeys(rows):
+        if kind == "trip":
+            groups.append([])
+        if kind != "total" and groups:
+            groups[-1].append(trip)
+    ids: list[int] = []
+    for group in groups:
+        days_of_journey = [t.date_to or t.date_from for t in group]
+        if not days_of_journey or any(d is None for d in days_of_journey):
+            continue
+        if max(days_of_journey) < cutoff:
+            ids.extend(t.id for t in group if t.status != "archived")
+    return ids
 
 
 def archived_journeys(rows: list[TripRow], archived: bool) -> list[tuple[str, TripRow, str]]:
