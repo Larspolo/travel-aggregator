@@ -347,6 +347,9 @@ button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(
 .profile-best ul { margin: 0; padding-left: var(--space-5); }
 .trip-find { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-4); }
 .trip-find input { flex: 1 1 12rem; min-width: 0; min-height: 44px; }
+.trip-sort { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin: 0 0 var(--space-4); }
+.trip-sort a { display: inline-flex; align-items: center; min-height: 44px; }
+.trip-sort a[aria-current] { font-weight: 600; text-decoration: none; }
 .journey {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow);
   padding: var(--space-4) var(--space-5); margin-bottom: var(--space-5);

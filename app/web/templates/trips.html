@@ -40,6 +40,7 @@
   <input type="search" id="trip-q" name="q" value="{{ q }}" maxlength="200">
   {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
   {% if tag %}<input type="hidden" name="tag" value="{{ tag }}">{% endif %}
+  {% if sort != "date" %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
   <button class="btn" type="submit">Find</button>
 </form>
 {% if tag %}<p class="trip-tag-filter">Tag: <strong>{{ tag }}</strong> <a href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a></p>{% endif %}
@@ -49,6 +50,14 @@
   <p class="chip warn"><a href="/captures?{{ {"failed": 1, "source": h.source} | urlencode }}">{{ h.source }}: the last {{ h.failed_after }} capture{{ "" if h.failed_after == 1 else "s" }} failed</a></p>
   {% endfor %}
 </div>
+{% endif %}
+{% if lines or archived_lines %}
+<nav class="trip-sort" aria-label="Sort the trips">Sort:
+  {% for key, label in [("date", "Date"), ("price", "Price"), ("capture", "Newest capture"), ("title", "Title")] %}
+  {% set keep = {} %}{% if archived %}{% set _ = keep.update({"archived": 1}) %}{% endif %}{% if q %}{% set _ = keep.update({"q": q}) %}{% endif %}{% if tag %}{% set _ = keep.update({"tag": tag}) %}{% endif %}{% set _ = keep.update({"sort": key}) %}
+  <a href="/?{{ keep | urlencode }}"{% if key == sort %} aria-current="true"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
 {% endif %}
 {% if lines %}
 {{ trip_grid(lines) }}
