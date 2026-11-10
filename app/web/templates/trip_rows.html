@@ -15,7 +15,7 @@
         {% if it.pinned %}<span class="muted">pinned</span>{% endif %}
         {% if it.booked %}<span class="badge booked">booked</span>{% if it.booked_price is not none %}
         {% set paid_fare = it.fares | selectattr("id", "equalto", it.booked_fare_id) | first %}
-        <span class="paid">Paid {{ it.booked_price | money(it.booked_currency) }}{% if paid_fare and paid_fare.currency == it.booked_currency and paid_fare.latest_price != it.booked_price %}{% set delta = paid_fare.latest_price - it.booked_price %}<span class="muted">, now {{ paid_fare.latest_price | money(paid_fare.currency) }} ({{ "+" if delta > 0 else "−" }}{{ (delta | abs) | money(it.booked_currency) }})</span>{% endif %}</span>{% endif %}{% endif %}
+        <span class="paid">Paid {{ it.booked_price | money(it.booked_currency) }}{% if paid_fare and paid_fare.currency == it.booked_currency and paid_fare.latest_price != it.booked_price %}{% set delta = paid_fare.latest_price - it.booked_price %}<span class="muted">, now {{ paid_fare.latest_price | money(paid_fare.currency) }} ({{ "+" if delta > 0 else "−" }}{{ (delta | abs) | money(it.booked_currency) }})</span>{% endif %}</span>{% endif %}{% endif %}{% if it.cancelled_at %}<span class="paid">Booking cancelled: paid {{ (it.booked_price or 0) | money(it.booked_currency or "EUR") }}, refund {{ (it.refund_price or 0) | money(it.booked_currency or "EUR") }}</span>{% endif %}
         {% if new_since and it.first_seen_at and it.first_seen_at > new_since %}<span class="badge new" title="new since your last view">new</span>{% endif %}
         {% for b in view.badges.get(it.id, []) %}<span class="badge {{ b | replace(" ", "-") }}">{{ b }}</span> {% endfor %}
         {% if newest < stale_before %}<span class="badge stale" title="stale, price may have changed">stale</span>{% endif %}</div>
@@ -80,6 +80,12 @@
           <div class="field"><label for="paid-price-{{ it.id }}">Paid price</label>
           <input id="paid-price-{{ it.id }}" name="price" inputmode="decimal" value="{{ '' if it.booked_price is none else it.booked_price }}" required></div>
           <button class="btn" type="submit">{{ ui.icon("check") }}Save paid price</button>
+        </form>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/cancel">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <div class="field"><label for="refund-{{ it.id }}">Refund</label>
+          <input id="refund-{{ it.id }}" name="refund" inputmode="decimal" value="0"></div>
+          <button class="btn" type="submit">Cancel booking</button>
         </form>
         {% endif %}
         <div hx-get="/trips/{{ trip.id }}/itineraries/{{ it.id }}/history" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"></div>
