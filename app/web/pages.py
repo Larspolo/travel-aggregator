@@ -1225,9 +1225,9 @@ def form_weights(form) -> tuple[Weights, str | None]:
 
 
 def _profile_form(request: Request, profile: ScoreProfile | None, name: str, weights: Weights,
-                  error: str | None = None, code: int = 200) -> HTMLResponse:
+                  error: str | None = None, code: int = 200, fit=None) -> HTMLResponse:
     return templates.TemplateResponse(request, "profile_edit.html", {"profile": profile, "name": name,
-                                      "weights": weights, "error": error}, status_code=code)
+                                      "weights": weights, "error": error, "fit": fit}, status_code=code)
 
 
 @router.get("/profiles/new", response_class=HTMLResponse, dependencies=[Depends(require_login)])
@@ -1242,7 +1242,36 @@ def edit_profile_page(profile_id: int, request: Request, session: Session = Depe
     profile = session.get(ScoreProfile, profile_id)
     if profile is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no profile {profile_id}")
-    return _profile_form(request, profile, profile.name, from_config(profile.config_json))
+    weights = from_config(profile.config_json)
+    return _profile_form(request, profile, profile.name, weights, fit=_hour_fit(session, weights))
+
+
+def _hour_fit(session: Session, weights: Weights):
+    """(low, high, count, total) of the bookings at these weights, or None (#1711)."""
+    from app.calibrate import best_fit, booking_intervals
+    places = session.scalars(select(AccessTime)).all()
+    rows = booking_intervals(session, weights, places, load_rates(session), load_fees(session))
+    return best_fit(iv for _, iv in rows)
+
+
+def fit_hour_value(fit) -> Decimal:
+    """The middle of a closed interval, else its one end; in cents and inside 0 to 100 (#1711)."""
+    low, high = fit[0], fit[1]
+    v = (low + high) / 2 if low is not None and high is not None else (low if low is not None else high)
+    return min(max(v, Decimal("0")), Decimal("100")).quantize(Decimal("0.01"))
+
+
+@router.post("/profiles/{profile_id}/hour-value", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def use_hour_value_page(profile_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    profile = session.get(ScoreProfile, profile_id)
+    if profile is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no profile {profile_id}")
+    weights = from_config(profile.config_json)
+    fit = _hour_fit(session, weights)  # again on the server: the form sends no value
+    if fit is not None:
+        update_profile(session, profile_id, profile.name,
+                       dataclasses.replace(weights, hour_markup=fit_hour_value(fit)))
+    return RedirectResponse(f"/profiles/{profile_id}", status_code=303)
 
 
 @router.post("/profiles/new", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
