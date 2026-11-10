@@ -13,7 +13,7 @@ The project values: `agent.toml`. Write all text in ASD-STE100 Simplified Techni
 |---|---|
 | Install | `python3 -m pip install -r requirements-dev.txt` |
 | Lint | `ruff check .` |
-| Tests of a change | `python3 -m pytest tests/test_a.py ...` (`-n auto` for many files) |
+| Tests of a change | `python3 -m pytest tests/test_a.py ...` (3 or more files run in xdist workers: `tests/conftest.py`) |
 | Fast tests (CI) | `python3 -m pytest -n auto` |
 | Slow tests | `python3 -m pytest -m slow` (Playwright browser tests of the pages and the userscripts; CI job `browser` on each PR) |
 | Development server | `docker compose up --build` (owner's computer; the cloud has no Docker daemon) |

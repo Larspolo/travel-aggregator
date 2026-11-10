@@ -24,6 +24,29 @@ def pytest_addoption(parser):
                      help="run only part K of N of the selected tests: whole files (tests/shard.py, #1062)")
 
 
+PARALLEL_FILES = 3   # from 3 files, xdist is faster: 3 files 8.6 s -> 6.7 s, 6 files 15.0 s -> 9.3 s (4 CPUs, #1890)
+
+
+def parallel_workers(option, args):
+    """The xdist workers for a call that names test files and no -n: one for each file, at most 'auto'. None: no change.
+    A worker starts its own cluster (about 2 s), so 1 or 2 files run faster with no xdist. The quick CI runs all fast
+    tests with -n auto, so each fast test can run in a worker."""
+    if getattr(option, "numprocesses", 0) is not None or getattr(option, "dist", "no") != "no":
+        return None                                    # no xdist, or -n / --dist given (-n 0 keeps one process)
+    if option.collectonly or option.usepdb or "slow" in (option.markexpr or "").replace("not slow", ""):
+        return None
+    files = {a.split("::")[0] for a in args if a.split("::")[0].endswith(".py")}
+    return len(files) if len(files) >= PARALLEL_FILES else None
+
+
+@pytest.hookimpl(tryfirst=True)   # before the hook of xdist that reads -n
+def pytest_cmdline_main(config):
+    n = parallel_workers(config.option, config.args)
+    if n and not os.environ.get("PYTEST_XDIST_WORKER"):
+        config.option.numprocesses = "auto"
+        config.option.maxprocesses = min(n, config.option.maxprocesses or n)
+
+
 @pytest.hookimpl(trylast=True)   # after `-m slow` deselects the other tests: the parts split only the selected tests
 def pytest_collection_modifyitems(config, items):
     value = config.getoption("--shard")
