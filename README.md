@@ -908,6 +908,13 @@ When another trip in planning has the same route and dates, the trip page shows 
 - The trip dropdown of the userscript panel shows only the trips with the status `planning`.
 - An archived trip keeps its offers and captures. Set the status again to bring it back to the trips list.
 
+### Tags of a trip
+
+- The trip form (the form to create a trip and the edit form `/trips/{id}/edit`) has the field "Tags". Type the tags separated by commas, for example `work, summer 2027`.
+- A trip has at most 5 tags. A tag has at most 20 characters. A form with more tags, or with a longer tag, gives an error and saves nothing.
+- The trips list `/` shows the tags of each trip under its title. A click on a tag filters the list: `/?tag=work` shows only the trips with that tag. The filter ignores upper and lower case and accents. The link "Show all trips" removes the filter.
+- The export and the import keep the tags. The JSON export (see "Export a trip") has the tags of the trip. The import (see "Import a trip") sets the tags of a new trip. An import into a trip that exists keeps the tags of that trip. The copy of a trip (see "Copy a trip") keeps its tags too.
+
 ### Export a trip
 
 - The trip page `/trips/{id}` has the links "Export CSV" and "Export JSON". They are in the "More" menu of the page.
