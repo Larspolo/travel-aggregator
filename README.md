@@ -607,6 +607,14 @@ The claim shows its amount and its percentage, for example "Claim €45.00 (25 %
 
 "Travel per year" lists the open claims under "Open claims", with the date, the route and the amount. Press "Claim paid" to mark a claim as paid. The row then shows "claim paid" and the claim leaves the list.
 
+### Booking code of a booked journey
+
+A booked row of `/trips/{id}` has the field "Booking code" with the button "Save code". Type the code of the booking, at most 40 characters. A blank field removes the code. A longer code shows an error (HTTP 422) and stores nothing. The row shows the code as "Booking code: <code>".
+
+The Upcoming page shows "Booking code: <code>" in the box of each journey that has a code. The print layout of one journey (`/upcoming?only=<id>`) and its offline copy show it too. A journey with no code shows no booking code.
+
+The shared page of a trip and the calendar feed do not show the booking code.
+
 ### Pinned offers
 
 The "Pinned" link in the app bar opens `/pinned`. The link shows the number of pinned offers in brackets, for example "Pinned (3)".
