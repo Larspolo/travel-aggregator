@@ -594,6 +594,19 @@ After the cancel:
 - The row shows "Booking cancelled: paid €89.00, refund €60.00", with the paid price and the refund. The paid fields stay.
 - "Travel per year" counts the paid price less the refund for the year of the journey. It counts no journey, and no hours or CO₂, for it.
 
+### Delay compensation of a booked train journey
+
+A booked row of `/trips/{id}` whose journey has arrived has the form "Save delay" with the field "Delay at arrival (min)". Type the arrival delay as a whole number of minutes, from 0 to 1440. A blank field removes the delay. A bad value shows an error (HTTP 422) and stores nothing.
+
+The row shows a claim when the journey has arrived and the delay is at least 60 minutes:
+
+- A delay from 60 minutes gives 25 % of the paid price.
+- A delay from 120 minutes gives 50 % of the paid price.
+
+The claim shows its amount and its percentage, for example "Claim €45.00 (25 % for a delay of 75 min)". A journey with a bus or a flight leg, or with no paid price, shows no claim.
+
+"Travel per year" lists the open claims under "Open claims", with the date, the route and the amount. Press "Claim paid" to mark a claim as paid. The row then shows "claim paid" and the claim leaves the list.
+
 ### Pinned offers
 
 The "Pinned" link in the app bar opens `/pinned`. The link shows the number of pinned offers in brackets, for example "Pinned (3)".
