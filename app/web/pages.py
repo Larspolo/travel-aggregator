@@ -22,6 +22,8 @@ from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session, subqueryload
 
 from app.storage import human_bytes, storage_use
+from app.api.health import _built
+from app.version import revisions
 from app.web.userscripts import bundle_info, userscript_list
 from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter,
                       require_login, session_epoch, verify_csrf)
@@ -1676,12 +1678,27 @@ def _backup_check(session: Session, newest: tuple[datetime, int] | None) -> dict
     return {"state": "none"}
 
 
+def version_card(session: Session) -> dict:
+    """The card "Version" (#1738): the commit with its link, the build time and the database revision."""
+    sha = os.environ.get("GIT_SHA", "dev")
+    repo = get_settings().issues_url.removesuffix("/issues/new")
+    built = _built()
+    try:
+        built_text = datetime.strptime(built, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d %H:%M UTC")
+    except ValueError:
+        built_text = built
+    current, head = revisions(session)
+    return {"sha": sha, "link": f"{repo}/commit/{sha}" if sha != "dev" else "", "built": built_text,
+            "current": current or "none", "head": head or "none", "pending": current != head}
+
+
 @router.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def settings_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     """General: the capture retention period and the state of the backups (#925)."""
     newest = newest_backup(Path(os.environ.get("BACKUP_DIR", "/backups")))
     days = retention_days(session)
     return templates.TemplateResponse(request, "settings.html", {"backup": newest,
+                                                                     "version": version_card(session),
                                                                      "backup_check": _backup_check(session, newest),
                                                                  "backup_old": newest is not None and
                                                                  datetime.now(timezone.utc) - newest[0] > BACKUP_MAX_AGE,
