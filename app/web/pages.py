@@ -53,7 +53,7 @@ from app.door import baggage_extras, door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
 from app.co2 import co2_extras, co2_kg
-from app.tradeoff import best_range, break_even
+from app.tradeoff import best_at_price, best_range, break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
 from app.booked_overlap import conflicts
@@ -2144,9 +2144,13 @@ def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, 
         fares = [f for f in it.fares if not source or f.source == source]
         return row_cost(it, fares, places, higher, stale_before, rates, counts, fees)[1].total
     best_next, lines, yours = nxt(best[0]), {}, _amount(weights.hour_markup)
+    price_lines = lines["price"] = {}
     for it, _, cost in rows:
         if it.id == best[0].id:
             continue
+        at = best_at_price(best[2].total, cost.price, cost.total)  # the price at which this row is the best (#1965)
+        if at is not None:
+            price_lines[it.id] = _amount(at)
         be = break_even(best[2].total, best_next, cost.total, nxt(it), weights.hour_markup)
         if be is None:
             continue
