@@ -1276,6 +1276,22 @@ To make a profile with no trip, open `/profiles/new`. Enter a name and the weigh
 weights of a profile later, press "Edit" for the profile on `/profiles`. This opens `/profiles/{id}`: change the values
 and press "Save".
 
+#### Hour value of your bookings
+
+The edit page of a profile (`/profiles/{id}`) suggests an hour value from your bookings. The suggestion uses the
+weights of that profile.
+
+- A booking counts when you booked a journey or cancelled it, and the journey has a booking time. The other offers
+  of the same trip count when they depart at or after that booking time.
+- Each offer has the prices of the time of the booking: the newest price at or before the booking time.
+- The page shows the hour values at which your booked offer had the lowest effective cost of its trip. The most
+  bookings that share one interval give the suggestion, for example "Your bookings fit an hour value from €20 to €40
+  (2 of 2 bookings)". An interval with no upper end shows "from €20", and one with no lower end shows "up to €40".
+- When no booking can be compared, the page shows "No bookings to compare yet" and no button.
+- "Use this hour value" sets the hour markup of the profile to the suggested value. For a closed interval this is
+  the middle; for an open interval it is the end that is given. The value is rounded to cents and kept between 0
+  and 100. The page computes the value again on the server, and then shows the new value in "Hour markup €/h".
+
 #### Hour tiers
 
 The time cost can have up to two more hour rates, by the length of the trip. Set them under "Advanced" in the
