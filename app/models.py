@@ -129,6 +129,7 @@ class Fare(Base):
     travel_class: Mapped[str | None] = mapped_column(String(10))
     berth: Mapped[str | None] = mapped_column(String(10))  # #1807: seat, couchette or sleeper of a night train
     checked_bags_included: Mapped[int | None] = mapped_column(Integer)  # #1525
+    seats_left: Mapped[int | None] = mapped_column(Integer)  # #1823: seats left at the newest capture
     checked_bag_price: Mapped[Decimal | None] = mapped_column(Money)  # the first checked bag, in `currency`
     self_transfers: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # #176, derived at ingest
     reservation_legs: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # #1620, derived at ingest

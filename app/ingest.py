@@ -129,10 +129,12 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
             _replace_legs(session, it, offer)
     fare = next((f for f in it.fares if f.source == source and f.fare_name == offer.fare_name), None)
     old = None if fare is None else (fare.latest_price, fare.currency)
+    # #1823: an older capture must not replace the seats left of a newer one
+    newer = fare is None or captured_at >= fare.latest_captured_at
     if fare is None:
         fare = Fare(source=source, fare_name=offer.fare_name, latest_price=offer.price_amount,
                     currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers,
-                    reservation_legs=offer.reservation_legs, berth=offer.berth)
+                    reservation_legs=offer.reservation_legs, berth=offer.berth, seats_left=offer.seats_left)
         it.fares.append(fare)
     elif fare.latest_price == offer.price_amount and fare.currency == offer.price_currency:
         fare.latest_captured_at = max(fare.latest_captured_at, captured_at)  # a capture of the same price (#1404)
@@ -140,6 +142,8 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
                                                           offer.self_transfers)
         fare.reservation_legs = offer.reservation_legs
         fare.travel_class, fare.berth = offer.travel_class, offer.berth
+        if newer:
+            fare.seats_left = offer.seats_left
         fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
         return result
     if captured_at >= fare.latest_captured_at:
@@ -171,6 +175,8 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
                                                           offer.self_transfers)
     fare.reservation_legs = offer.reservation_legs
     fare.travel_class, fare.berth = offer.travel_class, offer.berth
+    if newer:
+        fare.seats_left = offer.seats_left
     fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
     fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=captured_at,
                                  capture_id=capture_id))

@@ -49,6 +49,11 @@ def count(value: Any) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 9 else None
 
 
+def seats(value: Any) -> int | None:
+    """A count of seats left from 0 to 9999, else None: an invalid count is no mark, the offer is kept (#1823, P5)."""
+    return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 9999 else None
+
+
 def parser_classes() -> dict[str, type]:
     """The parser class of each source, keyed by its `source` name, in a fixed order."""
     from app.parsers.bahn import BahnParser
