@@ -1250,6 +1250,7 @@ The captures pages have a "Raw" link for each capture with raw data. The link op
 capture id and the raw payload as text. A capture with no raw data shows "No raw payload" instead of the link.
 A long payload shows only its start, with the note "The payload is N KB; download it to see all of it."
 The button "Download JSON" on that page downloads the whole raw payload as a JSON file named `<source>-<id>.json`.
+The button "Keep" on that page keeps the capture after the retention period (see "Keep a capture" below). On a kept capture, the button reads "Do not keep".
 
 The link "Download for a bug report" on that page (`/captures/{id}/report.json`) downloads the same payload as a file named `<source>-<id>-report.json` with the
 personal values replaced by `"REDACTED"`: names, e-mail addresses, phone numbers, dates of birth, card and booking numbers,
@@ -1399,6 +1400,13 @@ The card "Storage" on `/settings` shows the size of the database and of the raw 
 and the raw size of each source. It also shows the captures that the next cleanup removes at the current period.
 
 A deleted capture cannot be reparsed (see above). Set a longer period before you need to reparse an old capture.
+
+### Keep a capture
+
+To keep one capture after the retention period, open its raw view (see "Raw payload of a capture") and press "Keep". The
+captures page then shows "kept" in the row of that capture. The cleanup does not delete a kept capture, even when it is
+older than the period. Press "Do not keep" on the raw view to remove the mark. The cleanup deletes the capture at the next
+ingest after that, when it is older than the period.
 
 ## Ranking
 
