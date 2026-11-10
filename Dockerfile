@@ -26,6 +26,8 @@ VOLUME ["/backups"]
 WORKDIR /app
 COPY --from=build /opt/venv /opt/venv
 COPY --chown=root:root . /app
+# The build time of the image: /api/health gives it, so the owner sees when the running image was built (#1736).
+RUN date -u +%Y-%m-%dT%H:%M:%SZ > /app/BUILD_TIME
 USER app
 EXPOSE 8000
 # No curl in the slim image: the healthcheck uses Python. Traefik sends no request to a container that is not
