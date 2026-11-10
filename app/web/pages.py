@@ -1820,7 +1820,9 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  "flash": request.session.pop("flash", None),
                                                                  "totp": totp_state(request, session),
                                                                  "passkeys": passkeys.listing(session),
-                                                                 "logins": login_log.recent(session)})
+                                                                 "logins": login_log.recent(session),
+                                                                 "metrics_token": request.session.pop("metrics_token", None),
+                                                                 "metrics_on": session.get(Setting, "metrics_token_hash") is not None})
 
 
 def totp_state(request: Request, session: Session) -> dict:

@@ -44,6 +44,20 @@
 <p><a class="btn" href="/settings/export.json" download>Export the settings</a> <a class="btn" href="/settings/import">Import settings</a></p>
 <p class="help">One JSON file with the profiles, places, exchange rates, source fees and settings. It has no tokens, passwords or message addresses.</p>
 {% endcall %}
+{% call ui.card("Metrics token") %}
+<p class="help">A Prometheus server reads <code>GET /metrics</code> with <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+{% if metrics_token %}<p role="status">The new token shows only now: <input class="share-link" readonly value="{{ metrics_token }}" aria-label="Metrics token"></p>
+{% elif metrics_on %}<p class="chip good">A metrics token is active.</p>
+{% else %}<p>No metrics token.</p>{% endif %}
+<form method="post" action="/settings/metrics-token">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-actions"><button class="btn" type="submit">Make a new token</button></div>
+</form>
+{% if metrics_on or metrics_token %}<form method="post" action="/settings/metrics-token/revoke">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-actions"><button class="btn" type="submit">Stop the token</button></div>
+</form>{% endif %}
+{% endcall %}
 {% call ui.card("Sessions") %}
 <form method="post" action="/settings/sessions/end-others">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
