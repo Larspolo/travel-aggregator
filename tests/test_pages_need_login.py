@@ -23,6 +23,7 @@ PUBLIC = {
     ("POST", "/logout"): "ends the session",
     ("GET", "/sw.js"): "the service worker script of the installed app, no data",
     ("GET", "/manifest.webmanifest"): "the app manifest, no data",
+    ("GET", "/metrics"): "the Prometheus metrics: the metrics token (Bearer, hash in the database) is the access (#1892)",
     ("GET", "/s/{token}"): "a share link: the random token is the access",
     ("POST", "/s/{token}/marks/{itinerary_id}"): "a mark of the travel partner on a share link: the token is the access (#1781)",
     ("GET", "/calendar/{token}.ics"): "the calendar feed (#1112): the random token is the access",
