@@ -765,6 +765,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               show_hidden: bool = Query(False),
               show_departed: bool = Query(False),
               hide_stale: bool = Query(False),
+              pareto_only: bool = Query(False, alias="pareto"),  # "only these": the marked offers (#1857)
               profile: int | None = Query(None)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
@@ -798,6 +799,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     gone_marks, suspect = _gone_and_suspect(session, itineraries) if itineraries else ({}, {})
     gone = {**suspect, **gone_marks}
     rows, all_rows, modes, sources, carriers, tests = [], [], set(), set(), set(), []
+    hides_of = {}  # the labels of the filters that hide each row: the same sets as `tests` (#1857)
     best_hidden = None  # (fare, cost, itinerary, labels) of the lowest cost that a filter hides (#1454)
     for it in itineraries:
         if not it.fares:
@@ -826,6 +828,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         hides |= {f"excluded mode {m}" for m in exclude_mode if any(leg.mode == m for leg in it.legs)}
         hides |= {f"excluded carrier {c}" for c in exclude_carrier if any(leg.carrier == c for leg in it.legs)}
         tests.append(hides)
+        hides_of[it.id] = hides
         if hides:
             # a candidate for the best hidden offer (#1454): never a "Hide", departed or all-gone row
             now_fares = [f for f in it.fares if f.id not in gone]
@@ -844,20 +847,26 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     def all_gone(r):
         return r[1].id in gone  # the main fare is gone only when all fares of the row are gone
     rows.sort(key=lambda r: (all_gone(r), r[2].total, r[0].depart_at))  # the default order and the tie order
-    badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
     # a hidden or departed row gets no highlight (#200, #1391)
     shown = [r for r in rows if not r[0].hidden and not departed.is_departed(r[0], departed_now)
              and not all_gone(r)]  # a row with only gone fares gets no highlight (#1386)
+    # no other shown offer is cheaper and faster (#1856): the price and the door-to-door minutes, not the weights
+    pareto = pareto_ids([(r[0].id, r[2].price, door_minutes(r[0], places, weights)) for r in shown])
+    if pareto_only:
+        # "only these" (#1857): the marks stay as they are; each shown offer without a mark is hidden
+        dropped = {r[0].id for r in shown if r[0].id not in pareto}
+        for it_id in dropped:
+            hides_of[it_id].add("only marked")
+        rows = [r for r in rows if r[0].id not in dropped]
+        shown = [r for r in shown if r[0].id not in dropped]
+    badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
     if shown:
         for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[2].price),
                           ("fastest", lambda r: r[0].duration_min)):
             badges.setdefault(min(shown, key=key)[0].id, []).append(name)
-    # no other shown offer is cheaper and faster (#1856): the price and the door-to-door minutes, not the weights
-    door = {r[0].id: door_minutes(r[0], places, weights) for r in shown}
-    pareto = pareto_ids([(r[0].id, r[2].price, door[r[0].id]) for r in shown])
-    # the price against the door-to-door hours (#1858)
-    price_hours = pareto_chart([(r[0].id, r[0].mode_summary or "offer", r[2].price, door[r[0].id])
-                                for r in shown], pareto)
+    # the price against the door-to-door hours of the shown offers (#1858)
+    price_hours = pareto_chart([(r[0].id, r[0].mode_summary or "offer", r[2].price,
+                                 door_minutes(r[0], places, weights)) for r in shown], pareto)
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     rows.sort(key=all_gone)  # stable: the rows with only gone fares after the current rows (#1386)
@@ -868,7 +877,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
-            "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale}
+            "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale,
+            "pareto_only": pareto_only}
     # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
     query = {**{k: v for k, v in to_config(weights).items() if v is not None},
              **{k: MODE_HOUR_BLANK for k in MODE_HOUR_FIELDS if getattr(weights, k) is None},  # (#1568)
@@ -885,6 +895,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         query["show_departed"] = True  # the sort links and the sliders keep it (#1391)
     if hide_stale:
         query["hide_stale"] = True  # the sort links keep it (#277)
+    if pareto_only:
+        query["pareto"] = True  # the sort links and the sliders keep it (#1857)
     if chosen is not None:
         query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
     # the break-even links re-rank this page with another hour value: the sort and the filters stay (#920)
@@ -923,7 +935,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         f"mode {mode}", f"source {source}", f"max transfers {limit_transfers}", f"max duration {limit_duration} min",
         f"depart after {earliest_depart}", f"arrive by {latest_arrive}",
         *(f"excluded mode {m}" for m in exclude_mode), *(f"excluded carrier {c}" for c in exclude_carrier),
-        "hide stale", f"day {day}"])
+        "hide stale", "only marked", f"day {day}"])
     # the transfer places of the offers of the page (#1460): only for a trip that is no part of a split
     context["via_places"] = [] if trip.split_of_id else via_places(itineraries, split_skip(trip))
     context["best_hidden"] = hidden_best(best_hidden, best_direct, query, sort, dir, trip_id)  # #1454
@@ -934,7 +946,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                f"max duration {limit_duration} min": {"max_duration_min": None},
                f"depart after {earliest_depart}": {"earliest_depart": None},
                f"arrive by {latest_arrive}": {"latest_arrive": ""},  # empty: no arrive-by limit (#1296)
-               "hide stale": {"hide_stale": None}, f"day {day}": {"day": None},
+               "hide stale": {"hide_stale": None}, "only marked": {"pareto": None}, f"day {day}": {"day": None},
                **{f"excluded mode {m}": {"exclude_mode": [x for x in exclude_mode if x != m]} for m in exclude_mode},
                **{f"excluded carrier {c}": {"exclude_carrier": [x for x in exclude_carrier if x != c]}
                   for c in exclude_carrier}}
@@ -972,6 +984,8 @@ def unfilter(query: dict, labels) -> dict:
             q["exclude_carrier"] = [c for c in q.get("exclude_carrier", []) if c != label[17:]]
         elif label == "hide stale":
             q.pop("hide_stale", None)
+        elif label == "only marked":
+            q.pop("pareto", None)
         elif label.startswith("arrive by "):
             q["latest_arrive"] = ""  # an empty value is no limit; no value is the arrive-by time of the trip (#1296)
         else:
