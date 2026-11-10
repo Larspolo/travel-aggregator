@@ -1124,7 +1124,7 @@ def _copy_of(trip: Trip, return_of_id: int | None = None) -> Trip:
     return Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
                 destination_text=trip.destination_text, origin_alt_text=trip.origin_alt_text,
                 destination_alt_text=trip.destination_alt_text, travelers=trip.travelers, profile_id=trip.profile_id,
-                notes=trip.notes, target_price=trip.target_price, arrive_by=trip.arrive_by,
+                notes=trip.notes, tags_text=trip.tags_text, target_price=trip.target_price, arrive_by=trip.arrive_by,
                 return_of_id=return_of_id)
 
 
