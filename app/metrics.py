@@ -2,8 +2,11 @@
 of the token (P5)."""
 
 import hmac
+import json
+import os
 import secrets
 from datetime import UTC, datetime
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import PlainTextResponse, RedirectResponse
@@ -12,6 +15,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.auth import bearer, hash_token, require_login, verify_csrf
+from app.backup import CHECK_KEY, newest_backup
 from app.db import get_session
 from app.models import Capture, Itinerary, Setting, Trip
 from app.sourcehealth import failed_clause, source_health
@@ -45,6 +49,30 @@ def metrics_token_ok(session: Session, token: str) -> bool:
     if setting is None or not setting.value:
         return False
     return hmac.compare_digest(setting.value.encode(), hash_token(token).encode())
+
+
+def backup_values(session: Session, backup_dir: Path, now: datetime) -> list[tuple[str, str, float]]:
+    """The backup gauges (#1894): the age and the size of the newest dump, and the result of its check.
+
+    A gauge has no value (and no line) when there is no backup, or no check result.
+    """
+    values = []
+    newest = newest_backup(backup_dir)
+    if newest is not None:
+        when, size = newest
+        values += [
+            ("travel_backup_age_seconds", "Seconds since the newest backup.", (now - when).total_seconds()),
+            ("travel_backup_size_bytes", "Size of the newest backup in bytes.", size),
+        ]
+    setting = session.get(Setting, CHECK_KEY)
+    try:
+        data = json.loads(setting.value) if setting is not None else None
+    except (TypeError, ValueError):
+        data = None
+    if isinstance(data, dict) and ("error" in data or "tables" in data):
+        ok = 0 if "error" in data else 1
+        values.append(("travel_backup_check_ok", "1 if the check of the newest backup read the dump, else 0.", ok))
+    return values
 
 
 def label_value(value: str) -> str:
@@ -87,6 +115,7 @@ def metrics_text(session: Session) -> str:
         ("travel_trips", "The count of trips, also the archived trips.", session.scalar(select(func.count(Trip.id)))),
         ("travel_offers", "The count of itineraries.", session.scalar(select(func.count(Itinerary.id)))),
     ]
+    values += backup_values(session, Path(os.environ.get("BACKUP_DIR", "/backups")), datetime.now(UTC))
     lines = []
     for name, help_text, value in values:
         lines += [f"# HELP {name} {help_text}", f"# TYPE {name} gauge", f"{name} {value}"]
