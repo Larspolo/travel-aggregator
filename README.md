@@ -1247,6 +1247,15 @@ The card "Best offers by source" on `/captures` shows, for each source, two numb
 
 Hidden offers do not count, and an offer that had departed at the newest capture does not count. The card shows only on the page of all captures. It does not show with the filters "Only failed captures" or `?source=`, and it does not show when there are no captures. The card uses the display name of the source from `search_links.toml`.
 
+### Empty fields by source
+
+The card "Empty fields by source" on `/captures` shows, for each source and each of 5 fields, how many of its fares have that field empty. The fields are the service number, the carrier (of the train, bus, flight or ferry legs), the fare name, the travel class and the flexibility. A leg with a car or another mode does not count. For example: "bahn.de: no service number in 12 of 12 fares (before: 0 of 40)".
+
+- The first numbers count the fares of the last 14 days. The second numbers count the fares of the 90 days before them.
+- A field is marked "stopped" when the source gave it before and no longer does: at least 5 recent and 10 older fares, half or more of the recent fares have the field empty, and less than 10 % of the older fares had it empty.
+
+Lines with the marked fields come first. The card shows only on the page of all captures, not with the filter "Only failed captures" or `?source=`, and it does not show when no source has a fare in the last 14 days. It helps to see a site change that removes a field, which otherwise gives no failure.
+
 ### Upload a payload file
 
 Use the form "Upload a payload" on `/trips/{id}/captures` to store a saved JSON file as a capture of the trip. The app
