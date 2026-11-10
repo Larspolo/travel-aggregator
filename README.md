@@ -904,6 +904,7 @@ When another trip in planning has the same route and dates, the trip page shows 
 
 - A trip has the status `planning` (the default), `booked` or `archived`. Set it in the edit form `/trips/{id}/edit` (field "Status").
 - The trips list `/` does not show the archived trips. When there are archived trips, it has the link "Archived trips (N)". It opens `/?archived=1` with the title "Archived trips" and the link "Trips" back.
+- The trips list shows "N trips are in the past" when trips that are not archived ended more than 7 days ago. A journey ends on the last day of its trips (the return day). The button "Archive them" moves these trips to the archive. Nothing moves without the click, and the trips keep their offers and marks.
 - The field "Find trips" on the trips list searches the title, origin, destination and note of a trip. It ignores upper and lower case and accents. A journey shows whole. The archived trips that match show below the other results, under "In the archive (N)".
 - A return trip shows in the list of its outbound trip: the status of the outbound trip decides for both (see "Round trips" above).
 - The trip dropdown of the userscript panel shows only the trips with the status `planning`.
