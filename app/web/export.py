@@ -101,6 +101,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                 "fares": [
                     {
                         "source": fare.source, "fare_name": fare.fare_name, "travel_class": fare.travel_class,
+                        "berth": fare.berth,
                         "flexibility": fare.flexibility, "booking_url": fare.booking_url,
                         "latest_price": str(fare.latest_price), "currency": fare.currency,
                         "reservation_legs": fare.reservation_legs,

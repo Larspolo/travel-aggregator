@@ -4,7 +4,7 @@ instance. The keys are those of the ingest: a second import of the same data add
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, model_validator
 from sqlalchemy import select
@@ -63,6 +63,7 @@ class FareData(_Model):
     source: str = Field(min_length=1, max_length=50)
     fare_name: str | None = Field(None, max_length=100)
     travel_class: str | None = Field(None, max_length=10)
+    berth: Literal["seat", "couchette", "sleeper"] | None = None  # #1807
     flexibility: str | None = Field(None, max_length=50)
     booking_url: str | None = Field(None, max_length=2000, pattern=r"^https?://")
     latest_price: Decimal = Price
@@ -203,7 +204,7 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
         for fd in d.fares:
             fare = next((f for f in it.fares if f.source == fd.source and f.fare_name == fd.fare_name), None)
             if fare is None:
-                fare = Fare(source=fd.source, fare_name=fd.fare_name, travel_class=fd.travel_class,
+                fare = Fare(source=fd.source, fare_name=fd.fare_name, travel_class=fd.travel_class, berth=fd.berth,
                             flexibility=fd.flexibility, booking_url=fd.booking_url,
                             self_transfers=_self_transfers(d.legs), latest_price=fd.latest_price,
                             currency=fd.currency, latest_captured_at=fd.latest_captured_at,
