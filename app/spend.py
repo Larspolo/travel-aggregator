@@ -6,7 +6,11 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from app.co2 import co2_kg
 from app.currency import EUR, to_eur
+from app.delay_claim import claim
 from app.ranking import Weights
+
+YEAR_CSV_COLUMNS = ["date", "route", "modes", "carriers", "status", "paid", "currency", "paid_eur", "refund",
+                    "refund_eur", "claim_paid"]
 
 
 @dataclass
@@ -107,3 +111,51 @@ def year_summary(itineraries, rates: dict[str, Decimal], weights: Weights | None
         lines.sort(key=lambda s: (-s.journeys, s.mode))
         result.append(YearSummary(year, acc.journeys, acc.paid, acc.missing, _hours(acc.minutes), _kg(acc.co2), lines))
     return result
+
+
+def _join(values) -> str:
+    """The distinct non-empty values in their order, joined for one cell (as `app/web/export.py`)."""
+    return "; ".join(dict.fromkeys(v for v in values if v))
+
+
+def _first_leg_date(it):
+    if not it.legs:
+        return it.depart_at.astimezone(UTC).date()
+    first = it.legs[0]
+    return (first.depart_at + timedelta(minutes=first.depart_offset_min)).date()
+
+
+def _csv_row(it, rates: dict[str, Decimal]) -> list[object]:
+    legs = it.legs
+    first_name = legs[0].from_name if legs else ""
+    last_name = legs[-1].to_name if legs else ""
+    cancelled = it.cancelled_at is not None
+    paid = it.booked_price
+    currency = it.booked_currency or EUR
+    paid_eur = to_eur(paid, currency, rates) if paid is not None else None
+    refund = refund_eur = None
+    if cancelled and paid is not None:
+        refund = it.refund_price or Decimal(0)
+        net_eur = to_eur(paid - refund, currency, rates)
+        refund_eur = paid_eur - net_eur if paid_eur is not None and net_eur is not None else None
+    delay_claim = claim(it) if it.claim_paid_at is not None else None
+    return [
+        _first_leg_date(it).isoformat(),
+        f"{first_name or ''} - {last_name or ''}",
+        _join(leg.mode for leg in legs),
+        _join(leg.carrier for leg in legs),
+        "cancelled" if cancelled else "booked",
+        paid,
+        currency,
+        paid_eur,
+        refund,
+        refund_eur,
+        delay_claim.amount if delay_claim is not None else None,
+    ]
+
+
+def year_rows(itineraries, year: int, rates: dict[str, Decimal]) -> list[list[object]]:
+    """One row per booked or cancelled itinerary of `year`, in the order of `depart_at`, with the columns of
+    `YEAR_CSV_COLUMNS`. Summing `paid_eur` less `refund_eur` gives the paid total of `year_summary()`."""
+    chosen = sorted((it for it in itineraries if _year_of(it) == year), key=lambda it: it.depart_at)
+    return [_csv_row(it, rates) for it in chosen]
