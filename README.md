@@ -1533,6 +1533,12 @@ The trip form has the field **Arrive by**: the local time at the destination. An
 - The trip page hides each offer whose last leg arrives after this time, on the day of its departure. A `latest_arrive` value in the query replaces this time. An empty `latest_arrive` shows all offers.
 - **Wait before the arrival time, € per hour**, in "Advanced", default `0`. An offer that arrives before the time costs the waiting hours at this rate. The breakdown shows the part "wait 3 h 30 min before 14:00". An arrival at or after the time adds no part. A value of 0 removes the part.
 
+### Leave after
+
+The trip form has the field **Leave after**: the local time at the origin. An empty field means no time. The trip page shows "Leave after 09:00" under the title.
+
+- **Wait before the leave time, € per hour**, in "Advanced", default `0`. An offer that departs before the time costs the waiting hours at this rate. The breakdown shows the part "leave 2 h 30 min before 09:00". An offer that departs at or after the time adds no part. A value of 0 removes the part.
+
 ### Hour value per mode
 
 The **Advanced** section under the sliders has four fields, one for each mode: **Train hour €**, **Bus hour €**,
