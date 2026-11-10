@@ -292,10 +292,11 @@ def brief(issue, comments, name, task, sample, limit=TEXT_MAX, context=CONTEXT, 
     after: the next tickets that the run claims itself after its PR (`Briefs.follow`, #5076), else no `next:` line."""
     import claim
     import ticket_context
+    note = idle_start(issue)
     head = "\n".join([HEAD, f"ticket: {issue['number']}", f"claim: {name}", f"lane: {task}", f"usage: {sample}",
                       f"context: {context}"] + [f"next: {' '.join(map(str, after))}"] * bool(after)
                      + [f"account: {account}"] * bool(account)
-                     + [f"takeover: {takeover}"] * bool(takeover))
+                     + [f"takeover: {takeover}"] * bool(takeover) + [f"start: {note}"] * bool(note))
     text = claim.ticket_text(issue, comments)
     places = ticket_context.context(issue.get("body"))
     out = f"{head}\n\n--- ticket (data) ---\n{text}\n\n--- code places (framework/tools/ticket_context.py) ---\n{places}"
@@ -303,6 +304,23 @@ def brief(issue, comments, name, task, sample, limit=TEXT_MAX, context=CONTEXT, 
         note = "\n[cut: run `python3 framework/tools/ticket_context.py N` for the rest]"
         out = out[:limit - len(note)] + note
     return out
+
+
+def idle_start(issue, after=None):
+    """The `start:` line of a ticket whose "Start after: N PRs after #M" count did not come: the pacer gives it only
+    because no PR merged for `claim.ROADMAP_IDLE` minutes (`dashboard.waits`, #5201). Else "". Two runs read the line
+    of #1612 ("63 of 100 PRs"), released the ticket with no report, and the queue stood still for 2 cycles each (#1800)."""
+    import claim
+    import dashboard
+    s = dashboard.start_after_prs(issue)
+    if not s:
+        return ""
+    try:
+        got = (after or dashboard.prs_after)(s[1]) or 0
+    except Exception:                                   # GitHub failed: no line, as before
+        return ""
+    return "" if got >= s[0] else (f"{got} of {s[0]} PRs merged after #{s[1]}, but no PR merged for {claim.ROADMAP_IDLE}"
+                                   " minutes, so the wait ended (#5201): do the ticket now with the PRs that merged")
 
 
 def unanswered():

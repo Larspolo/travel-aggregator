@@ -945,6 +945,19 @@ def git_files():
     return [(p, os.path.getsize(os.path.join(root, p))) for p in paths if p and os.path.isfile(os.path.join(root, p))]
 
 
+def quick_ci_runs(created, seen, pages=10):
+    """The runs of the quick CI (`ci.yml`) in the time `created` that are not in `seen` (ids). The 10 pages of all
+    runs end at about 1000 runs (the Dashboard runs fill 10 pages a day): on the window of 100 merged PRs, the CI runs
+    of the first hours were cut, and 2 "red CI" takeovers counted as "after the report" (#1800)."""
+    out = []
+    for page in range(1, pages + 1):
+        rs = api(f"actions/workflows/ci.yml/runs?per_page=100&page={page}&created={created}")["workflow_runs"]
+        out += [r for r in rs if r["id"] not in seen]
+        if len(rs) < 100:
+            break
+    return out
+
+
 def fetch(since, until=None):
     iso = f"{since:%Y-%m-%dT%H:%M:%SZ}"
     created = f"{iso}..{until:%Y-%m-%dT%H:%M:%SZ}" if until else f">={iso}"   # the Dashboard runs fill 10 pages a day
@@ -954,6 +967,7 @@ def fetch(since, until=None):
         runs += rs
         if len(rs) < 100:
             break
+    runs += quick_ci_runs(created, {r["id"] for r in runs})
     ci = [r for r in runs if r["name"] == "CI" and r.get("status") == "completed"][:CI_JOB_RUNS]
     jobs = [j for r in ci for j in api(f"actions/runs/{r['id']}/jobs")["jobs"]]
     # one day more: the "Started by" comment of a ticket that merged in the period can be older

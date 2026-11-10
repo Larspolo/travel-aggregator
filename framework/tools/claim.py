@@ -191,6 +191,24 @@ def who():
     return git("symbolic-ref", "--short", "HEAD", check=False).stdout.strip() or "unknown"
 
 
+NAMES = "travel-aggregator.run"   # git config: the names that this run claimed or adopted with (#1800)
+
+
+def names():
+    """The names of this run: the branch of HEAD and each name of its claims and adopts. A run that changed its branch
+    after the adopt read its own beat as a takeover, and its report kept the claim: a takeover 41 minutes later (#1560).
+    A run that released its pacer claim by mistake could not claim it again: the "Started by" of the pacer name was
+    of another run (#1665)."""
+    return {who(), *git("config", "--get-all", NAMES, check=False).stdout.split()}
+
+
+def remember(*found):
+    """Add the names `found` to NAMES (not "unknown", no copies)."""
+    for name in dict.fromkeys(found):
+        if name and name != "unknown" and name not in git("config", "--get-all", NAMES, check=False).stdout.split():
+            git("config", "--add", NAMES, name, check=False)
+
+
 def lane():
     """" lane NAME" when the run set `git config travel-aggregator.lane NAME` (a Haiku run, #1727), else "": the pacer
     counts the runs of each lane (`health.lane_claims`)."""
@@ -531,7 +549,7 @@ def release(number, remote="origin", word="Release", by=None, adopt=None):
         return None
     ref = slot(number, max(found))
     line = subject(ref, remote)
-    if line.split(" ")[3:4] not in ([by or who()], [adopt]):  # "Claim #N by <branch> (...)", "Beat #N by <branch>"
+    if not set(line.split(" ")[3:4]) & (({by} if by else names()) | {adopt}):   # "Claim #N by <branch> (...)", "Beat #N by <branch>"
         sys.exit(f"{ref} belongs to another run: {owner(line)} took #{number} over ({line}). Stop the work on #{number}"
                  f" now: no push, no comment, no release; pick the next ticket.")
     own = account() or (m[0] if adopt and (m := re.search(r" account \S+", line)) else "")   # the account of the brief
@@ -640,11 +658,12 @@ def ticket_text(issue, comments):
 
 
 def started_by_other(comments, me, now, limit=RECENT):
-    """Branch of the last "Started by `X`." comment of another branch in the last `limit` seconds, else None."""
+    """Branch of the last "Started by `X`." comment of another branch in the last `limit` seconds, else None. me: a
+    name or a set of names of this run (`names`)."""
     for c in reversed(comments):
         m = re.match(r"Started by `([^`]+)`", c["body"])
         t = datetime.datetime.fromisoformat(c["created_at"].replace("Z", "+00:00")).timestamp()
-        if m and m.group(1) != me and now - t < limit:
+        if m and m.group(1) not in (me if isinstance(me, set) else {me}) and now - t < limit:
             return m.group(1)
     return None
 
@@ -944,6 +963,7 @@ def adopt(number, name, remote="origin"):
         git("config", "travel-aggregator.lane", m[1])
     ref = release(number, remote, word="Beat", adopt=name)
     if ref:
+        remember(name, who())
         mark_commits()
     print(f"adopted {ref}: #{number} is yours" if ref else f"#{number}: the beat failed, follow the skill without the brief")
     return 0 if ref else 1
@@ -977,7 +997,7 @@ def claim_ticket(number, takeover=False, remote="origin"):
         return 1
     comments = api(f"issues/{number}/comments?per_page=100") if on_github(remote) else []
     if not takeover and on_github(remote):
-        other = started_by_other(comments, who(), time.time())
+        other = started_by_other(comments, names(), time.time())
         if other:
             print(f"#{number} owned by another run: `{other}` was first (\"Started by\" less than 30 minutes ago). Pick"
                   " the next candidate, do not comment.")
@@ -990,6 +1010,7 @@ def claim_ticket(number, takeover=False, remote="origin"):
             return 1
     ref = claim(number, takeover, remote, stale_limit(number, remote) if takeover else STALE)
     if ref:
+        remember(who())
         mark_commits()
         print(f"claimed {ref}")
         if on_github(remote) and not takeover:

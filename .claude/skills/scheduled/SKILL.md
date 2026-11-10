@@ -20,7 +20,8 @@ This is a scheduled, unattended run. Other runs can work at the same time. The p
    tickets"; it commented "Taken over by"). `PR #M B`: start at autopilot step 6.8 on the PR branch B
    (`git checkout -B <session branch> origin/B`; a conflict: `python3 framework/tools/merge_main.py --push N --pr-branch B`; red
    CI: fix and `git push origin HEAD:B` after `claim.py N --guard --pr-branch B`; wait for its CI: `ship_pr.py N --ci --pr-branch B`). `no PR`: do the ticket from step 6.
-   A `next:` line (#5076): up to 2 next tickets that the pacer did not claim. After the report of each ticket, take
+   A `start:` line (#1800): the "Start after: N PRs" count did not come, but the idle rule ended the wait: do the
+   ticket now, do not give it back. A `next:` line (#5076): up to 2 next tickets that the pacer did not claim. After the report of each ticket, take
    the next ticket from that line (`more.md`, "Next tickets of the brief"), not with `cycle_start.py`; do not stop to
    let the pacer pick. Exit 1: follow this skill with no brief. No brief in this turn: first run `python3 framework/tools/tokens.py
    --queued` (one call). Exit 0: a brief waits as the next turn of this session (a fire queues the prompt of the task
