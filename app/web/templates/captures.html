@@ -39,7 +39,9 @@
     <td>{% if s.failed_after %}<span class="chip danger">{{ s.failed_after }}</span>{% else %}0{% endif %}</td></tr>
   {% endfor %}
   </tbody>
-</table></div></section>
+</table></div>
+  {% for s in sources if s.silent_after %}<p class="chip warn silent-pages">{{ s.source }}: {{ s.silent_after }} results page{{ "" if s.silent_after == 1 else "s" }} with no offers seen (<time datetime="{{ s.silent_at.isoformat() }}">{{ s.silent_at.strftime('%H:%M') }}</time>)</p>{% endfor %}
+</section>
 {% endif %}
 {% if captures %}
 <section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Captures"><table>

@@ -182,6 +182,17 @@ class Capture(Base):
     depart_to: Mapped[datetime | None] = mapped_column(_tz())
 
 
+class SilentPage(Base):
+    """A results page on which the userscript saw no offers (#1755). Privacy (P5): only these fields."""
+    __tablename__ = "silent_page"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source: Mapped[str] = mapped_column(String(50), index=True)
+    page_url: Mapped[str] = mapped_column(String(2000))
+    seen_at: Mapped[datetime] = mapped_column(_tz())
+    script_version: Mapped[str] = mapped_column(String(50))
+
+
 class ApiToken(Base):
     __tablename__ = "api_tokens"
 
