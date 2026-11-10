@@ -7,6 +7,11 @@ itinerary. No database access: the caller gives the itineraries.
 
 import sys
 from bisect import bisect_right
+from datetime import datetime, timezone
+from decimal import Decimal
+
+from sqlalchemy import select
+from sqlalchemy.orm import object_session, selectinload
 
 from app.risk import _name_key
 
@@ -69,3 +74,33 @@ def no_fallback(it, index) -> list[int]:
         if not _has_later(entries, after.depart_at, id(it)):
             result.append(i)
     return result
+
+
+def fallback_index(session, trip_id: int, now: datetime):
+    """The index of the not-departed itineraries of the trip (also hidden ones), built once per request (#1773).
+
+    The SQLAlchemy session dict (`session.info`) keeps it for the request (P4).
+    """
+    from app.models import Itinerary
+
+    cache = session.info.setdefault("fallback_index", {})
+    if trip_id not in cache:
+        pool = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.depart_at > now)
+                               .options(selectinload(Itinerary.legs))).all()
+        cache[trip_id] = build_index(pool)
+    return cache[trip_id]
+
+
+def fallback_extras(it, weights) -> tuple[tuple[str, Decimal], ...]:
+    """The part "no later connection": the penalty times the transfers with no later connection (#1773).
+
+    A penalty of 0, an itinerary with one leg or one with no session adds no part and runs no query.
+    """
+    penalty = Decimal(weights.no_fallback_penalty)
+    if penalty == 0 or len(it.legs) < 2:
+        return ()
+    session = object_session(it)
+    if session is None:
+        return ()
+    count = len(no_fallback(it, fallback_index(session, it.trip_id, datetime.now(timezone.utc))))
+    return (("no later connection", penalty * count),) if count else ()

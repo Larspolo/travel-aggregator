@@ -50,6 +50,8 @@ class Weights:
     # The change of station (#1501): its own minimum (None = short_transfer_min) and a penalty per change; 0 disables it.
     station_change_min: int | None = None
     station_change_penalty: Decimal = Decimal("0")
+    # A penalty per transfer with no later captured connection (#1773); 0 disables it and runs no query.
+    no_fallback_penalty: Decimal = Decimal("0")
     # The mode markups (#174): a flat amount per itinerary that uses the mode; a negative amount is a discount.
     train_markup: Decimal = Decimal("0")
     bus_markup: Decimal = Decimal("0")
