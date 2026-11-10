@@ -96,6 +96,20 @@
       <label>Carrier 3 markup € (negative = discount)
         <input type="number" name="carrier3_markup" min="-1000" max="1000" step="0.01" value="{{ weights.carrier3_markup }}"></label>
     </fieldset>
+    <fieldset><legend>Transfer places</legend>
+      <label>Transfer place 1
+        <input type="text" name="transfer_place1_name" maxlength="100" value="{{ weights.transfer_place1_name }}"></label>
+      <label>Transfer markup 1 € (negative = discount)
+        <input type="number" name="transfer_place1_markup" min="-1000" max="1000" step="0.01" value="{{ weights.transfer_place1_markup }}"></label>
+      <label>Transfer place 2
+        <input type="text" name="transfer_place2_name" maxlength="100" value="{{ weights.transfer_place2_name }}"></label>
+      <label>Transfer markup 2 € (negative = discount)
+        <input type="number" name="transfer_place2_markup" min="-1000" max="1000" step="0.01" value="{{ weights.transfer_place2_markup }}"></label>
+      <label>Transfer place 3
+        <input type="text" name="transfer_place3_name" maxlength="100" value="{{ weights.transfer_place3_name }}"></label>
+      <label>Transfer markup 3 € (negative = discount)
+        <input type="number" name="transfer_place3_markup" min="-1000" max="1000" step="0.01" value="{{ weights.transfer_place3_markup }}"></label>
+    </fieldset>
     <fieldset><legend>CO₂</legend>
       <label>CO₂ price € per kg
         <input type="number" name="co2_price_kg" min="0" max="10" step="0.01" value="{{ weights.co2_price_kg }}"></label>
