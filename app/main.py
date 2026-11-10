@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
+from app import metrics
 from app.api import health, ingest, trips
 from app.config import get_settings
 from app.schemas import MAX_BODY_BYTES, MAX_HAR_BYTES
@@ -49,6 +50,7 @@ app.include_router(trips.router, prefix="/api")
 app.include_router(trip_import.router)  # before pages: /trips/{trip_id} also matches /trips/import
 app.include_router(settings_export.router)  # before pages
 app.include_router(trip_merge.router)  # before pages: /trips/{trip_id}/merge
+app.include_router(metrics.router)  # before pages
 app.include_router(pages.router)
 app.include_router(share.router)
 app.include_router(manual.router)
