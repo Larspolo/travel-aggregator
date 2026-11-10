@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: eurostar.com
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.0.0
+// @version      1.1.0
 // @description  Send the Eurostar search results (NewBookingSearch responses) to travel-aggregator.
 // @match        https://www.eurostar.com/*
 // @run-at       document-start
@@ -37,6 +37,8 @@
     return outbound && Array.isArray(outbound.journeys) ? outbound.journeys.length : 0;
   };
 
+  // No offers seen (#1757): the results page of the site.
+  core.resultsPage((u) => u.hostname === "www.eurostar.com" && /^\/search\/[a-z]{2}-[a-z]{2}\/?$/.test(u.pathname), SOURCE, PARSER_VERSION);
   core.watch(core.urlTest((u) => u.hostname === HOST && u.pathname === PATH), ({ url, method, body, text }) => {
     const request = withoutQuery(core.parseJson(body));
     if (!request) return;
