@@ -71,6 +71,8 @@ class Weights:
     self_transfer_penalty: Decimal = Decimal("0")
     # The fee per leg with a mandatory reservation that the fare does not include (#1623); 0 disables it.
     reservation_fee: Decimal = Decimal("0")
+    # The percent of the EUR price of a fare in another currency than EUR (#1993); 0 disables the part.
+    currency_fee_pct: Decimal = Decimal("0")
     # The age in hours after which a row is stale (#275): a display flag only, not part of the cost.
     stale_hours: int = 24
     # The penalty of a stale row (#276): added to its cost; 0 disables it.
