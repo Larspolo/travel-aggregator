@@ -206,6 +206,8 @@ def pending(started, lines, now, minutes=PENDING, refill_lane="deep"):
         if not (t.isdigit() and by):
             continue
         run = re.sub(r"-\d+$", "", by[1])
+        if run.startswith("pacer-r"):                  # a claim of a brief: `recent_starts` subtracts its run (#1801)
+            continue
         if int(t) < cut:
             old.add(run)
         elif subject.startswith("Claim "):

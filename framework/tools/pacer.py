@@ -368,6 +368,7 @@ class Briefs:
 
     def __init__(self, todo, out, now, found, dry=False, hour=None, reads=None):
         self.todo, self.given, self.dry, self.hour = None, [], dry, hour or {}
+        self.briefed = {}                               # {task: runs that got a brief}: their claims count them (#1801)
         self.next = {}                                  # {ticket: its `next:` tickets} for `record` (#5308)
         self.stuck, self.takeovers, self.nexts, self.feedback = [], set(), set(), 0
         self.plan = [t for t, *_ in todo or ()]         # the tasks of the runs of this cycle that have no ticket yet
@@ -479,6 +480,7 @@ class Briefs:
             claim.start(got[0], by=got[1], note=(" Stuck: its run stopped." if over else "")
                         + (f" Session: {link}" if link else ""), **({"word": "Taken over by"} if over else {}))
             self.given.append(got[0])
+            self.briefed[task] = self.briefed.get(task, 0) + 1
             if got[3]:
                 self.next[got[0]] = list(got[3])
 
@@ -517,9 +519,13 @@ def record(at, found, burn, burn7, k, runs, started, line, problems=(), github=N
     return {**rec, "problems": list(problems), "line": line}
 
 
-def recent_starts(path, now, minutes=usage.PENDING):
+def recent_starts(path, now, minutes=usage.PENDING, briefed=None):
     """{task: runs} that the cycles of the log file `path` (`--log`) started in the last `minutes` before `now` (a Unix
-    time): `usage.fire` counts those with no claim yet. An absent or broken log: none."""
+    time): `usage.fire` counts those with no claim yet. An absent or broken log: none. briefed (the default: when
+    `minutes` is PENDING): subtract the runs that got a brief (`briefed` of the record): the pacer claimed for them, so
+    `claims` counts them while they live, and a released claim does not hold the ticket for one more cycle (#1801)."""
+    if briefed is None:
+        briefed = minutes == usage.PENDING
     out = {}
     try:
         with open(path) as f:
@@ -532,9 +538,11 @@ def recent_starts(path, now, minutes=usage.PENDING):
                 if at.timestamp() >= now - minutes * 60:
                     for task, n in (r.get("started") or {}).items():
                         out[task] = out.get(task, 0) + n
+                    for task, n in (r.get("briefed") or {}).items() if briefed else ():
+                        out[task] = out.get(task, 0) - n
     except OSError:
         pass
-    return out
+    return {t: n for t, n in out.items() if n > 0}
 
 
 def switch(config=None):
@@ -659,7 +667,7 @@ def main(argv=None, env=os.environ):
                              "missing": round(missing[n], 2) if n in missing else None}
                          for n, u in reads.items()} if many else None          # the quota of each account (#4239)
                 f.write(json.dumps({**record(at, found, burn, burn7, k, runs, started, line, problems, gh, quota),
-                                    "briefs": briefs.given, "next": {str(n): t for n, t in briefs.next.items()}}
+                                    "briefs": briefs.given, "briefed": briefs.briefed, "next": {str(n): t for n, t in briefs.next.items()}}
                                    | ({"accounts": {x: sum(c for (y, _), c in count.items() if y == x) for x in envs}}
                                       if many else {})) + "\n")
         except OSError as e:
