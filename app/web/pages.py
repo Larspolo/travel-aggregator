@@ -42,7 +42,7 @@ from app.config import get_settings
 from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
 from app.fallback import fallback_extras, no_fallback_marks
-from app.days import day_summary, return_grid, with_day_prices
+from app.days import day_sources, day_summary, return_grid, with_day_prices
 from app.timeline import timeline
 from app.filtered import hidden_counts
 from app.split_suggest import split_skip, via_places
@@ -140,6 +140,24 @@ def in_time_window(it, earliest_depart: time | None, latest_arrive: time | None)
     if latest_arrive is not None and (arr.date() > dep.date() or arr.time() > latest_arrive):
         return False
     return True
+
+
+def day_cover(trip, itineraries, days) -> dict[str, tuple[list[str], list[tuple[str, str]]]]:
+    """For each day of `days`: the names of the sources with offers that day, and the (name, link) of that day for
+    each other source with a link (#2058). A trip with no date gives no entry."""
+    if not trip.date_from:
+        return {}
+    from app.search_links import day_links
+    found = day_sources(itineraries, lambda it: depart_day(it) if it.legs else None)
+    cover = {}
+    for d in days:
+        key = str(d.day)
+        links = day_links(trip, date.fromisoformat(key))
+        sources = found.get(key, [])
+        names = [links[s][0] if s in links else s for s in sources]
+        missing = [(name, url) for source, (name, url) in links.items() if source not in sources and url]
+        cover[key] = (names, missing)
+    return cover
 
 
 def depart_day(it) -> str:
@@ -955,6 +973,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     context["days"] = with_day_prices(context["days"], session.scalars(  # the day prices of bahn.de (#1198)
         select(DayPrice).where(DayPrice.trip_id == trip.id)).all())
+    context["day_cover"] = day_cover(trip, itineraries, context["days"])  # the searched sources of each day (#2058)
     # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
     context["timeline"] = timeline(rows, lambda it: depart_day(it) if it.legs else None)
     context["timeline_rows"] = {r[0].id: r for r in rows}
