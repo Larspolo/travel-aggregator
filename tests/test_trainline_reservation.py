@@ -51,8 +51,8 @@ def test_no_trainline_fare_has_a_required_reservation(name):
     assert all(o.reservation_legs == 0 for o in result.offers)
 
 
-def test_version_is_1_1_0():
-    assert TrainlineParser.version == "1.1.0"
+def test_version_is_1_2_0():
+    assert TrainlineParser.version == "1.2.0"
 
 
 def test_missing_flag_gives_none():
