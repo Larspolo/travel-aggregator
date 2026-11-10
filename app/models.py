@@ -192,6 +192,8 @@ class Capture(Base):
     answer_json: Mapped[dict | None] = mapped_column(JSON)
     # The server time of the insert (#1869): a resend tells a first POST that still runs from one that failed.
     received_at: Mapped[datetime | None] = mapped_column(_tz(), server_default=func.now())
+    # The version of the server parser that parsed the capture last (#1989); NULL = not parsed, or before 0048.
+    parsed_with: Mapped[str | None] = mapped_column(String(50))
 
     __table_args__ = (UniqueConstraint("token_id", "capture_key", name="uq_captures_token_key"),)
 
