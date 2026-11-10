@@ -7,7 +7,6 @@ import os
 import secrets
 from datetime import UTC, datetime
 from pathlib import Path
-from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import PlainTextResponse, RedirectResponse
