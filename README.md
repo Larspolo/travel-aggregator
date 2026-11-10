@@ -257,6 +257,7 @@ The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a sett
 | `GET /api/trips` | The trips, newest first; `?status=planning` (or `booked`, `archived`) shows only the trips of that status |
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
 | `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` and the field `warning`: the text of the trip warning, or `null` (see "Trip warning of a capture") |
+| `POST /api/silent` | A results page with no offers seen: `{"source", "page_url", "seen_at", "script_version"}`. The app stores these four fields only (see "No offers seen on a results page"). Answers `{"id": n}` |
 
 The body can have the field `auto_trip` (`true` or `false`, default `false`). With `true`, the app stores the offers in the
 planning trip that matches them when `trip_id` does not match, as described in "Auto-select trip" under "Userscript
@@ -1005,6 +1006,9 @@ when the offers reached your server, or an error message.
   the oldest one, and the next panel status starts with `1 old capture dropped.`
 - **Queue commands.** The Tampermonkey menu has `Send now`, which sends the queue at once, oldest first. It also has
   `Discard the queue`, which empties the queue and shows `Discarded N captures`. It sends no request to the server.
+- **No offers seen.** On a results page of bahn.de, Eurostar or SNCF Connect, the panel shows `No offers seen on this
+  page` when no search response that the userscript accepts came within 30 seconds. The site may have changed the
+  address of its search response. See "No offers seen on a results page".
 
 ### bahn.de userscript
 
@@ -1184,6 +1188,19 @@ line "N captures from the HAR file", and the captures list shows each one with i
 - A HAR file larger than 30 MB gives "The HAR file is larger than 30000000 bytes." Nothing is stored.
 - The app reads only the address, the method, and the request and response bodies of each entry. It never keeps the
   headers or the cookies of the file.
+
+### No offers seen on a results page
+
+When the panel shows `No offers seen on this page`, the userscript loaded a results page and no search response
+that it accepts came. The app then stores the page: the source, the address of the page without the host, the time,
+and the version of the userscript. The app stores no offers for it.
+
+- The page `/captures` shows the line `<source>: N results page(s) with no offers seen (HH:MM)` above the list of
+  captures, with the time of the newest such page. The line shows only when such a page exists.
+- The panel line is a warning only. It sends no request to the travel site and shows no browser dialog.
+- What to do: first update the userscript (`/tokens` has the install link). If the line stays, upload the payload of
+  the search with "Upload a payload file" or the HAR file of the search with "Upload a HAR file" (see above), so the
+  offers reach the app.
 
 ### Status of the sources
 
