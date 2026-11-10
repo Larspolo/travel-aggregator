@@ -1,2 +1,2 @@
 {# The count of shown rows with an estimated part in the breakdown (#2053); the link only for a place gap. #}
-{% if estimates %}<p id="trip-estimates" class="filtered muted">{{ estimates }} row{{ "s have" if estimates != 1 else " has" }} an estimate in the breakdown{% if estimate_places %} · <a href="/places">Places</a>{% endif %}</p>{% endif %}
+{% if estimates %}<p id="trip-estimates" class="filtered muted estimates">{{ estimates }} row{{ "s have" if estimates != 1 else " has" }} an estimate in the breakdown{% if estimate_places %} · <a href="/places">Places</a>{% endif %}</p>{% endif %}
