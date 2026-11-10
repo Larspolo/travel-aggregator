@@ -141,12 +141,12 @@ def counted(body, now=None):
 
 
 def handoffs(tickets, claims, pulls, me):
-    """The tickets of the report that run `me` still claims ({N: subject of its top claim slot}) while no open PR in
+    """The tickets of the report that run `me` (a name or the set `claim.names()`, #1800) still claims ({N: subject of its top claim slot}) while no open PR in
     `pulls` closes them: the run reported and leaves them, so `--post` gives the claims back (a hand-off, #5462). A
     held claim waited 30 minutes for `claim.py 0 --stuck` and a takeover: #5228 and #5413 on 2026-10-31 (a `Part of`
     PR merged, the ticket stayed open). A ticket whose open PR closes it waits for Automerge, which ends its claim."""
     return [n for n in dict.fromkeys(tickets) if (line := claims.get(n)) and not line.startswith("Release")
-            and line.split(" ")[3:4] == [me] and not any(claim.closes(n).search(claim.prose(p.get("body"))) for p in pulls)]
+            and set(line.split(" ")[3:4]) & (me if isinstance(me, set) else {me}) and not any(claim.closes(n).search(claim.prose(p.get("body"))) for p in pulls)]
 
 
 def hand_off(tickets):
@@ -156,7 +156,7 @@ def hand_off(tickets):
         for n in dict.fromkeys(tickets):
             if found := claim.refs(n):
                 claims[n] = claim.subject(claim.slot(n, max(found)))
-        for n in handoffs(tickets, claims, pages("pulls?state=open"), claim.who()):
+        for n in handoffs(tickets, claims, pages("pulls?state=open"), claim.names()):
             if claim.release(n):
                 claim.stop(n)
                 print(f"released #{n}: the run reported it and no open PR closes it (a hand-off, #5462)")
