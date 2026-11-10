@@ -22,7 +22,8 @@
         {% if newest < stale_before %}<span class="badge stale" title="stale, price may have changed">stale</span>{% endif %}</div>
         <div class="facts"><span class="times">{{ dep.strftime("%a %d %b %H:%M") }} → {{ arr.strftime("%H:%M") }}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}</span>
           <span class="muted"><span class="modes">{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{% if m | mode_icon %}{{ ui.icon(m | mode_icon, m) }}{% else %}•{% endif %}</span>{% endfor %}</span>
-          {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }} · {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }}</span></div>
+          {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }} · {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }}</span>
+          {% if it.id in view.pareto %}<span class="chip info pareto" title="no other offer is cheaper and faster">no faster offer for less</span>{% endif %}</div>
         {% if it.note %}<div class="muted">{{ it.note }}</div>{% endif %}</td>
       <td class="carrier"><div class="clip" title="{{ carriers }}">{{ carriers }}</div><div class="clip muted" title="{{ fare_line }}">{{ fare_line }}</div></td>
       <td class="price">{{ ui.price_change(fare, seen) }}{% if fare.id in suspect_fares %} <span class="chip suspect" title="{% if suspect_fares[fare.id].last is not none %}The last price was {{ suspect_fares[fare.id].last | money(suspect_fares[fare.id].currency) }}{% else %}A price of 0 cannot be right{% endif %}">check the price</span>{% endif %}</td>
