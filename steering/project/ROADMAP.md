@@ -80,6 +80,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A bahn.de capture with BahnCard 50 and an NS International capture with no card on the same trip show "BahnCard 50" on the bahn.de fares and "These fares use different discount cards" on the trip page; a trip with only BahnCard 50 fares shows no warning
 - [ ] `capture:silent` The userscript panel shows "No offers seen on this page" when a results page of its site (a URL pattern per userscript) loaded and no response that the userscript accepts came within 30 seconds, and the status per source (`capture:health`) counts these pages with their time (P3: a site change that moves its JSON URL gives no capture and no failed capture, so no other mark shows it; P6: the panel shows it, no browser dialog)
   - A bahn.de results page whose search response has another URL than the userscript accepts shows "No offers seen on this page" after 30 seconds, and the captures page shows "bahn.de: 1 results page with no offers seen (12:04)"; a normal search shows no such line
+- [ ] `capture:sbb` SBB (sbb.ch): userscript, server parser, trimmed fixtures (P3: the JSON responses of the connections and their fares; the Half Fare card of the travelers as a discount card of `capture:discount`, where the payload tells it), so that the trips to Switzerland (for example Zürich or Basel, `trip:alternatives`) have a Swiss source
+  - A search on sbb.ch shows its connections with their fares on the trip page, and a parser test reads a trimmed fixture of a real search
 
 ## 2. Rank offers by effective cost
 
@@ -134,6 +136,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With "reservation €10 per leg", a TGV leg with a mandatory reservation shows "reservation €10.00" in its breakdown and the mark on its row; a fare that includes the reservation and an ICE with an optional reservation do not change
 - [x] `rank:calibrate` (#1708) An hour value that fits the owner's bookings: for each booked journey (`trip:booked-fare`), the range of hour values at which its itinerary was the best offer of its trip at the time of the booking (the prices of the price history at `booked_at`, as `rank:tradeoff` computes the hour value of a row); the profile page shows the range that fits the most bookings, with "Use this hour value" (P2: a suggestion, the owner chooses; nothing changes by itself)
   - A booking that cost €20 more than the best offer to save 1 hour, and a booking that took 1 hour more to pay €40 less, give "Your bookings fit an hour value from €20 to €40 (2 of 2 bookings)"
+- [ ] `rank:fallback` A transfer with no later connection: for each transfer of an itinerary, the trip page looks for a later captured itinerary of the same trip that also departs the transfer place after the planned departure and arrives at the destination on the same day; with none, the row shows "no later connection captured" and a penalty in "Advanced" adds to the score (default €0, P2; P1: only the captured itineraries of the trip, the app fetches nothing)
+  - A trip with A → X → B (departs X at 21:00) and no captured itinerary that departs X after 21:00 shows "no later connection captured" on the row, and a penalty of €30 makes its score €30 higher; when an itinerary that departs X at 22:00 is captured, the mark and the penalty go away
 
 ## 3. Plan a trip in one place
 
@@ -231,6 +235,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A booked journey with the code "K7Q2XP" shows "Booking code: K7Q2XP" on the Upcoming page and the print page, and the shared link and the calendar feed do not contain "K7Q2XP"
 - [x] `trip:spend-csv` (#1728) "Export CSV" of the booked journeys of a year on "Travel per year" (`trip:spend`): one row per booked or cancelled journey with the date, the route, the modes, the carriers, the paid price and currency, the EUR value, the refund (`trip:cancel-booking`) and the paid claim (`trip:delay-claim`), so that the owner can give the travel cost of a year to an employer or a tax form (P5: the owner keeps the data)
   - "Export CSV" for 2026 gives one row per booked or cancelled journey of 2026, and the sum of its EUR column less the EUR value of the refunds is the paid sum of the summary for 2026
+- [ ] `trip:share-vote` The travel partner marks the itineraries that suit them on the read-only link (`trip:share`), with no login: one "Suits me" mark per itinerary and an optional note of up to 200 characters (P5: validated, limited and escaped; P6: page buttons, no browser dialog); the owner sees the marks and the notes on the trip page, and "Revoke" stops the link and its marks
+  - A "Suits me" click on the read-only link shows the mark on the same row of the owner's trip page; after "Revoke", the link and a mark request give HTTP 404
 
 ## 4. Run it on my home server
 
