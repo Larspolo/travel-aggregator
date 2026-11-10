@@ -56,9 +56,9 @@ def test_version_card_says_when_migrations_are_pending(sessions, migrated_url, m
     cfg = Config("alembic.ini")
     cfg.set_main_option("sqlalchemy.url", migrated_url)
     cfg.attributes["configure_logger"] = False
-    command.downgrade(cfg, "0036")
+    command.downgrade(cfg, "0037")
     with sessions() as s:
         card = version_card(s)
     assert card["pending"] is True
-    assert card["current"] == "0036" and card["head"] == "0037"
+    assert card["current"] == "0037" and card["head"] == "0038"
     _built.cache_clear()
