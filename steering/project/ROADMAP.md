@@ -82,6 +82,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A bahn.de results page whose search response has another URL than the userscript accepts shows "No offers seen on this page" after 30 seconds, and the captures page shows "bahn.de: 1 results page with no offers seen (12:04)"; a normal search shows no such line
 - [ ] `capture:sbb` SBB (sbb.ch): userscript, server parser, trimmed fixtures (P3: the JSON responses of the connections and their fares; the Half Fare card of the travelers as a discount card of `capture:discount`, where the payload tells it), so that the trips to Switzerland (for example Zürich or Basel, `trip:alternatives`) have a Swiss source
   - A search on sbb.ch shows its connections with their fares on the trip page, and a parser test reads a trimmed fixture of a real search
+- [ ] `capture:seats-left` The seats left of a fare: the parsers store the count where the payload tells it (eurostar.com `fares[].seats`, flixbus.com `available.seats`; no count is no mark), each capture updates it, and the trip page and the pinned page (`trip:pinned-page`) show "N seats left" on a fare with 5 or fewer (P1: only the captured payloads; P3: a cheap fare that is almost sold out shows it before the next search)
+  - A Eurostar capture with `"seats": 2` on the Standard fare shows "2 seats left" on that fare, and the fare with 28 seats shows no mark; a later capture with 9 seats removes the mark
 
 ## 2. Rank offers by effective cost
 
@@ -136,8 +138,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - With "reservation €10 per leg", a TGV leg with a mandatory reservation shows "reservation €10.00" in its breakdown and the mark on its row; a fare that includes the reservation and an ICE with an optional reservation do not change
 - [x] `rank:calibrate` (#1708) An hour value that fits the owner's bookings: for each booked journey (`trip:booked-fare`), the range of hour values at which its itinerary was the best offer of its trip at the time of the booking (the prices of the price history at `booked_at`, as `rank:tradeoff` computes the hour value of a row); the profile page shows the range that fits the most bookings, with "Use this hour value" (P2: a suggestion, the owner chooses; nothing changes by itself)
   - A booking that cost €20 more than the best offer to save 1 hour, and a booking that took 1 hour more to pay €40 less, give "Your bookings fit an hour value from €20 to €40 (2 of 2 bookings)"
-- [ ] `rank:fallback` A transfer with no later connection: for each transfer of an itinerary, the trip page looks for a later captured itinerary of the same trip that also departs the transfer place after the planned departure and arrives at the destination on the same day; with none, the row shows "no later connection captured" and a penalty in "Advanced" adds to the score (default €0, P2; P1: only the captured itineraries of the trip, the app fetches nothing)
+- [x] `rank:fallback` (#1771) A transfer with no later connection: for each transfer of an itinerary, the trip page looks for a later captured itinerary of the same trip that also departs the transfer place after the planned departure and arrives at the destination on the same day; with none, the row shows "no later connection captured" and a penalty in "Advanced" adds to the score (default €0, P2; P1: only the captured itineraries of the trip, the app fetches nothing)
   - A trip with A → X → B (departs X at 21:00) and no captured itinerary that departs X after 21:00 shows "no later connection captured" on the row, and a penalty of €30 makes its score €30 higher; when an itinerary that departs X at 22:00 is captured, the mark and the penalty go away
+- [ ] `rank:berth` A night value per berth: the night travel adjustment (`rank:time`) of a night-train fare depends on its berth (seat, couchette, sleeper; the ÖBB Nightjet tiers of the parser, and the other parsers where the payload tells it): one adjustment per berth in "Advanced" (default empty: the night adjustment of the profile, so the score does not change, P2), and the breakdown shows the berth
+  - With "couchette −€40" and "seat €0", the Couchette fare of a Nightjet connection scores €40 better than the night adjustment of the profile gives, and its breakdown shows "night in a couchette −€40.00"; a day train does not change
 
 ## 3. Plan a trip in one place
 
@@ -237,6 +241,8 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Export CSV" for 2026 gives one row per booked or cancelled journey of 2026, and the sum of its EUR column less the EUR value of the refunds is the paid sum of the summary for 2026
 - [ ] `trip:share-vote` The travel partner marks the itineraries that suit them on the read-only link (`trip:share`), with no login: one "Suits me" mark per itinerary and an optional note of up to 200 characters (P5: validated, limited and escaped; P6: page buttons, no browser dialog); the owner sees the marks and the notes on the trip page, and "Revoke" stops the link and its marks
   - A "Suits me" click on the read-only link shows the mark on the same row of the owner's trip page; after "Revoke", the link and a mark request give HTTP 404
+- [ ] `trip:message-log` The messages that the app sent (`trip:notify`: price drops, target prices, reminders, source health and backup alerts) on the messages settings page: the last 50 with their time, kind, trip, channel and result ("sent" or the error of the channel), with no message address (P5), so that a channel that fails (an ntfy topic that moved, an SMTP error) does not stop the messages with no sign (P6: the page shows it, no browser dialog)
+  - A target-price message whose ntfy topic answers HTTP 404 shows "failed: ntfy HTTP 404" with its time and trip on the messages page, and a test message after the fix shows "sent"
 
 ## 4. Run it on my home server
 
