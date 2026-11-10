@@ -48,6 +48,11 @@
   {% for name, w in wins %}<li>{{ name }}: best in {{ w.best }} of {{ w.trips }} trip{{ "" if w.trips == 1 else "s" }} (last 12 months)</li>{% endfor %}
 </ul></section>
 {% endif %}
+{% if fields %}
+<section class="card" id="field-health"><h2>Empty fields by source</h2><ul>
+  {% for text, mark in fields %}<li>{{ text }}{% if mark %} <strong class="mark">stopped</strong>{% endif %}</li>{% endfor %}
+</ul></section>
+{% endif %}
 {% if captures %}
 <section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Captures"><table>
   <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Check the price</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
