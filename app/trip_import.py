@@ -6,7 +6,7 @@ from datetime import UTC, date, datetime, time
 from decimal import Decimal
 from typing import Any, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -14,7 +14,7 @@ from app.derived import Leg as DerivedLeg
 from app.derived import derive
 from app.ingest import fingerprint
 from app.models import Fare, FarePrice, Itinerary, Leg, Trip
-from app.schemas import MAX_LEGS, Mode, utc_offset_min
+from app.schemas import MAX_LEGS, Mode, clean_tags, utc_offset_min
 from app.web.export import FORMAT, VERSION
 
 Price = Field(ge=0, max_digits=10, decimal_places=2)
@@ -38,6 +38,20 @@ class TripData(_Model):
     notes: str | None = None
     target_price: Decimal | None = Field(None, gt=0, le=100000)  # missing in an older export: None (#846)
     arrive_by: time | None = None  # missing in an older export: None (#1294)
+    tags: list[str] = []  # missing in an older export: no tag (#1950)
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def _tags(cls, v: Any) -> list[str]:
+        """The same rule as the trip form (app/schemas.py clean_tags): at most 5 tags of at most 20 characters."""
+        if v is None:
+            return []
+        if not isinstance(v, list) or not all(isinstance(t, str) for t in v):
+            raise ValueError("tags is a list of text")
+        if any("," in t for t in v):
+            raise ValueError("a tag has no comma")
+        text = clean_tags(", ".join(v))
+        return text.split(", ") if text else []
 
 
 class LegData(_Model):
@@ -182,7 +196,8 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
         trip = Trip(title=t.title, origin_text=t.origin, destination_text=t.destination,
                     origin_alt_text=t.origin_alt, destination_alt_text=t.destination_alt,
                     date_from=t.date_from, date_to=t.date_to, travelers=t.travelers, status=t.status, notes=t.notes,
-                    target_price=t.target_price, arrive_by=t.arrive_by)
+                    target_price=t.target_price, arrive_by=t.arrive_by,
+                    tags_text=", ".join(t.tags) or None)
         session.add(trip)
         session.flush()
     else:

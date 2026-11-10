@@ -16,6 +16,7 @@ from app.auth import require_login
 from app.db import get_session
 from app.models import Fare, Itinerary, Trip
 from app.spend import YEAR_CSV_COLUMNS
+from app.trips import trip_tags
 
 router = APIRouter()
 
@@ -74,6 +75,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
             "travelers": trip.travelers, "status": trip.status, "notes": trip.notes,
             "target_price": str(trip.target_price) if trip.target_price is not None else None,
             "arrive_by": trip.arrive_by.strftime("%H:%M") if trip.arrive_by else None,
+            "tags": trip_tags(trip.tags_text),
         },
         "itineraries": [
             {
