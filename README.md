@@ -1230,6 +1230,15 @@ personal values replaced by `"REDACTED"`: names, e-mail addresses, phone numbers
 and the personal keys that the parser of the source names. The prices, the connections and the response stay as they are,
 so a parser fix can read the file. Check the file before you attach it to an issue: the app cannot find every personal value.
 
+### Best offers by source
+
+The card "Best offers by source" on `/captures` shows, for each source, two numbers, for example "bahn.de: best in 3 of 5 trips (last 12 months)":
+
+- The second number (5) is the trips with a capture of that source in the last 12 months.
+- The first number (3) is the trips whose best offer has its main fare from that source. The best offer is the one with the lowest effective cost by your default profile (not the profile of the trip), at the newest capture of the trip.
+
+Hidden offers do not count, and an offer that had departed at the newest capture does not count. The card shows only on the page of all captures. It does not show with the filters "Only failed captures" or `?source=`, and it does not show when there are no captures. The card uses the display name of the source from `search_links.toml`.
+
 ### Upload a payload file
 
 Use the form "Upload a payload" on `/trips/{id}/captures` to store a saved JSON file as a capture of the trip. The app
