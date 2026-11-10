@@ -1506,7 +1506,15 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   Kind `access` is the way from the place to the first station; kind `egress` is the way from the last station to the
   place. A leg matches a place when its station name has the same text (case and outer spaces do not count). An offer
   with a matching access place adds the parts `access time` (minutes × hour markup) and `access cost`. An offer with a
-  matching egress place adds `egress time` and `egress cost`. An offer with no matching place adds nothing.
+  matching egress place adds `egress time` and `egress cost`. An offer with no matching place adds nothing, except when
+  you have a place of that kind: then it adds the part `no access place for <station>` (or `no egress place for
+  <station>`) at €0, so that you see the gap.
+- **Estimates.** A part with the word "estimate" in its label, and a part `no access place for` or `no egress place for`,
+  is an estimate, not a value from the offer. The part `baggage (estimate)` is the baggage fee of the Advanced section,
+  used for a flight fare with no known bag price. The trip page shows the count of rows with an estimate in the
+  breakdown, for example "2 rows have an estimate in the breakdown". When the count includes a place gap, the link
+  "Places" goes to `/places`: add the place of the station, with its minutes and cost, so that the offer gets its
+  door-to-door part.
 - **Airport time and baggage (flights).** An offer with a flight leg adds two parts. `airport time` is the minutes before
   departure plus the minutes after landing, at the hour markup. The part `baggage` (or `baggage (included)`) depends on the
   fare: a fare with an included checked bag (field `checked_bags_included` of at least 1) gets `baggage (included)` at €0;
