@@ -38,6 +38,7 @@ class Trip(Base):
     target_price: Mapped[Decimal | None] = mapped_column(Money, nullable=True)  # the fares at or below it (#846)
     share_hash: Mapped[str | None] = mapped_column(String(128), unique=True)  # the secret share link (#903)
     shared_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
+    share_ends_on: Mapped[date | None] = mapped_column(Date, nullable=True)  # the last day of the link (#2026)
     viewed_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the last full view (#1090)
     reminded_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the last reminder (#1118)
     arrive_by: Mapped[time | None] = mapped_column(Time, nullable=True)  # local time at the arrival place (#1294)

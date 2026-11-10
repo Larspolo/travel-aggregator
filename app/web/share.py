@@ -1,7 +1,7 @@
 """The read-only page of a trip at a secret link (#903). The page shows no notes except the partner's own (#1782),
 no booking links, captures or forms."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -40,6 +40,25 @@ def share_trip(request: Request, trip_id: int, session: Session = Depends(get_se
 @router.post("/trips/{trip_id}/share/revoke", dependencies=[Depends(require_login), Depends(verify_csrf)])
 def revoke_share(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
     revoke(_trip(session, trip_id))
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/trips/{trip_id}/share/end", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def end_share(trip_id: int, share_ends_on: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+    """Set the last day of the link (#2026). A blank value clears it; a past or non-ISO date gives 422 and no change."""
+    trip = _trip(session, trip_id)
+    value = share_ends_on.strip()
+    if not value:
+        trip.share_ends_on = None
+    else:
+        try:
+            day = date.fromisoformat(value)
+        except ValueError:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the end date is not a date (YYYY-MM-DD)")
+        if day < datetime.now(timezone.utc).date():
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the end date is in the past")
+        trip.share_ends_on = day
     session.commit()
     return RedirectResponse(f"/trips/{trip_id}", status_code=status.HTTP_303_SEE_OTHER)
 

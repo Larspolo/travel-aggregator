@@ -32,6 +32,7 @@ def revoke(trip: Trip) -> None:
     _delete_marks(trip)
     trip.share_hash = None
     trip.shared_at = None
+    trip.share_ends_on = None
 
 
 def trip_for_token(session: Session, token: str) -> Trip | None:
@@ -40,4 +41,6 @@ def trip_for_token(session: Session, token: str) -> Trip | None:
     trip = session.scalars(select(Trip).where(Trip.share_hash == digest)).one_or_none()
     if trip is None or not hmac.compare_digest(trip.share_hash.encode(), digest.encode()):
         return None
+    if trip.share_ends_on is not None and datetime.now(timezone.utc).date() > trip.share_ends_on:  # #2026
+        return None  # the link works on its end date, and stops after it
     return trip
