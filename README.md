@@ -1469,8 +1469,9 @@ its part from the ranking. Each part shows its own label in the breakdown.
 - **Carriers**, in "Advanced": three slots, each with **Carrier n name** and **Carrier n markup €**. The default is no name
   and a markup of `0`, so no slot adds a part. A leg whose carrier is the name of a slot adds the part `carrier <name>`
   with the markup, once per itinerary. The name matches without case and outer spaces. A negative markup is a discount.
-- **Transfer place 1 to 3**, in "Advanced": three slots, each with **Transfer place n name** and **Transfer place n markup €**.
-  The default is no name and a markup of `0`, so no slot adds a part. A transfer at a place of a slot adds the markup, and the
+- **Transfer place 1 to 3**, in "Advanced", fieldset "Transfer places": three slots, each with the label **Transfer place n**
+  (the name) and **Transfer markup n € (negative = discount)** (the markup). This markup is not the slider **Transfer markup €**,
+  which sets the markup for each transfer at any place. The default is no name and a markup of `0`, so no slot adds a part. A transfer at a place of a slot adds the markup, and the
   breakdown shows the part `transfer at <name>` with the amount. A transfer is at a place when the arrival station of the leg
   before it, or the departure station of the leg after it, contains the slot name. The name matches without case
   and outer spaces, for example `Brussels-Midi` or `Paris CDG`. Two transfers at one place add the markup two times.
