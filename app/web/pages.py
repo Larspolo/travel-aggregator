@@ -1325,7 +1325,7 @@ def toggle_booked(request: Request, trip_id: int, itinerary_id: int, session: Se
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
     it.booked = not it.booked
     it.booked_fare_id = it.booked_price = it.booked_currency = it.booked_at = None
-    it.cancelled_at = it.refund_price = None
+    it.cancelled_at = it.refund_price = it.booking_code = None
     if it.booked and it.fares:  # keep the paid fare: the main fare with the weights of the trip (#1146)
         now = datetime.now(timezone.utc)
         weights, _ = resolve_weights(session, it.trip, {}, None)
@@ -1352,7 +1352,28 @@ def save_note(trip_id: int, itinerary_id: int, note: str = Form("", max_length=2
 PAID_PRICE_MAX = Decimal("100000")  # the paid price is below this (#1148)
 
 
+BOOKING_CODE_MAX = 40  # the length of the booking code column (#1716)
 DELAY_MAX_MIN = 1440  # the arrival delay is 0 to this number of minutes (#1691)
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/booking-code",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_booking_code(trip_id: int, itinerary_id: int, code: str = Form(""),
+                      session: Session = Depends(get_session)) -> RedirectResponse:
+    """The owner stores the booking code of a booked or cancelled journey (#1716): at most 40 characters. A blank
+    clears the code; a longer code is 422 and stores nothing."""
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    if not it.booked and it.cancelled_at is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "the itinerary is not booked")
+    text = code.strip()
+    if len(text) > BOOKING_CODE_MAX:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            f"the booking code has more than {BOOKING_CODE_MAX} characters")
+    it.booking_code = text or None
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/delay",
