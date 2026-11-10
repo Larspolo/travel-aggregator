@@ -45,7 +45,27 @@ def source_health(session: Session) -> list[dict]:
              "silent_after": 0, "silent_at": None}
             for r in session.execute(query)]
     _add_silent(session, rows)
+    _add_old_parsed(session, rows)
     return rows
+
+
+def old_parsed_clause(source: str, version: str):
+    """A good capture with raw data that an older (or unknown) parser version read (#1990)."""
+    return and_(Capture.source == source, Capture.unreadable.is_(None),
+                func.coalesce(Capture.rejected_count, 0) == 0, Capture.raw_gz.is_not(None),
+                or_(Capture.parsed_with.is_(None), Capture.parsed_with != version))
+
+
+def _add_old_parsed(session: Session, rows: list[dict]) -> None:
+    from app.parsers import get_parser
+    for row in rows:
+        parser = get_parser(row["source"])
+        row["old_parsed"], row["current_version"] = 0, None
+        if parser is None:
+            continue
+        row["current_version"] = parser.version
+        row["old_parsed"] = session.scalar(
+            select(func.count(Capture.id)).where(old_parsed_clause(row["source"], parser.version)))
 
 
 def _add_silent(session: Session, rows: list[dict]) -> None:
