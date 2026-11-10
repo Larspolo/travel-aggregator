@@ -43,6 +43,11 @@
   {% for s in sources if s.silent_after %}<p class="chip warn silent-pages">{{ s.source }}: {{ s.silent_after }} results page{{ "" if s.silent_after == 1 else "s" }} with no offers seen (<time datetime="{{ s.silent_at.isoformat() }}">{{ s.silent_at.strftime('%H:%M') }}</time>)</p>{% endfor %}
 </section>
 {% endif %}
+{% if wins %}
+<section class="card" id="source-wins"><h2>Best offers by source</h2><ul>
+  {% for name, w in wins %}<li>{{ name }}: best in {{ w.best }} of {{ w.trips }} trip{{ "" if w.trips == 1 else "s" }} (last 12 months)</li>{% endfor %}
+</ul></section>
+{% endif %}
 {% if captures %}
 <section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Captures"><table>
   <thead><tr>{% if not trip %}<th>Trip</th>{% endif %}<th>Captured</th><th>Source</th><th>Parser</th><th>Offers</th><th>Rejected</th><th>Result</th><th>Check the price</th><th>Trip</th><th>Raw</th><th></th><th></th></tr></thead>
