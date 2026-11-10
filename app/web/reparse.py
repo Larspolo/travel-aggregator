@@ -15,6 +15,8 @@ from app import ingest
 from app.failure_report import report_url
 from app.sourcehealth import add_old_script, failed_clause, source_health
 from app.suspect import suspect_counts
+from app.search_links import load_sources
+from app.source_wins import source_wins
 from app.auth import require_login, verify_csrf
 from app.db import get_session
 from app.models import Capture, Trip
@@ -133,6 +135,12 @@ def _trip_captures(request: Request, session: Session, trip_id: int, failed: boo
                                       status_code=code)
 
 
+def _named_wins(session: Session) -> list[tuple[str, object]]:
+    """The (display name, `SourceWins`) of each source with a capture in the last 12 months (#1941)."""
+    names = {s.get("source") or key: s.get("name") or key for key, s in load_sources().items()}
+    return [(names.get(w.source, w.source), w) for w in source_wins(session, datetime.now(timezone.utc))]
+
+
 @router.get("/captures", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def all_captures_page(request: Request, failed: bool = False, source: str | None = Query(None, max_length=50),
                       session: Session = Depends(get_session)) -> HTMLResponse:
@@ -153,7 +161,8 @@ def all_captures_page(request: Request, failed: bool = False, source: str | None
                                        "source": source, "sources": [] if failed or source else add_old_script(source_health(session)), "now": datetime.now(timezone.utc),
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session, source) if failed else [],
-                                       "suspect_counts": suspect_counts(session, trip_ids)})  # #1607
+                                       "suspect_counts": suspect_counts(session, trip_ids),  # #1607
+                                       "wins": [] if failed or source else _named_wins(session)})  # #1941
 
 
 @router.post("/captures/reparse-failed", response_class=HTMLResponse,
