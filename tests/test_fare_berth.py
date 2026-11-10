@@ -87,13 +87,13 @@ def test_the_migration_upgrades_and_downgrades(empty_database_url):
     cfg = Config("alembic.ini")
     cfg.set_main_option("sqlalchemy.url", empty_database_url)
     cfg.attributes["configure_logger"] = False
-    command.upgrade(cfg, "0040")
+    command.upgrade(cfg, "0041")
     engine = create_engine(empty_database_url)
     try:
         assert "berth" not in {c["name"] for c in inspect(engine).get_columns("fares")}
-        command.upgrade(cfg, "0041")
+        command.upgrade(cfg, "0042")
         assert "berth" in {c["name"] for c in inspect(engine).get_columns("fares")}
-        command.downgrade(cfg, "0040")
+        command.downgrade(cfg, "0041")
         assert "berth" not in {c["name"] for c in inspect(engine).get_columns("fares")}
     finally:
         engine.dispose()
