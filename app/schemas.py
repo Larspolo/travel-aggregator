@@ -52,6 +52,7 @@ class OfferIn(BaseModel):
     travel_class: Literal["first", "standard"] | None = None
     berth: Literal["seat", "couchette", "sleeper"] | None = None  # the berth of a night train (#1807)
     checked_bags_included: int | None = Field(None, ge=0, le=9)  # #1525
+    seats_left: int | None = Field(None, ge=0, le=9999)  # #1823: seats left of the fare, when the source gives it
     checked_bag_price: Decimal | None = Field(None, ge=0, max_digits=10, decimal_places=2)  # first bag, price currency
     legs: list[LegIn] = Field(min_length=1, max_length=MAX_LEGS)
     booking_url: str | None = Field(None, max_length=2000, pattern=r"^https?://")
