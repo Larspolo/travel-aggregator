@@ -48,3 +48,29 @@ def break_even(
     hour_value = raw.quantize(CENT, rounding=ROUND_HALF_EVEN)
     better = "above" if slope_x < slope_a else "below"
     return BreakEven(hour_value, better)
+
+
+def best_range(
+    a_now: Decimal,
+    a_next: Decimal,
+    others: list[tuple[Decimal, Decimal]],
+    h: Decimal,
+) -> tuple[Decimal | None, Decimal | None]:
+    """Give the hour values between which offer a stays the best.
+
+    `others` holds `(x_now, x_next)` for each other offer. The lower limit is the highest
+    break-even where that offer is better below it; the upper limit is the lowest break-even
+    where that offer is better above it. A limit is None when no offer sets it.
+    """
+    lower: Decimal | None = None
+    upper: Decimal | None = None
+    for x_now, x_next in others:
+        result = break_even(a_now, a_next, x_now, x_next, h)
+        if result is None:
+            continue
+        if result.better == "below":
+            if lower is None or result.hour_value > lower:
+                lower = result.hour_value
+        elif upper is None or result.hour_value < upper:
+            upper = result.hour_value
+    return lower, upper
