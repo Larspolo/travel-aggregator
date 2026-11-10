@@ -32,4 +32,4 @@ def test_one_offer_gives_no_chart():
 def test_the_trip_page_with_one_offer_has_no_chart(trip):  # noqa: F811
     client, auth, trip_id = trip
     capture(client, auth, trip_id, "90.00", "2026-11-03T10:00:00Z")
-    assert 'id="price-hours"' not in client.get(f"/trips/{trip_id}").text
+    assert "Price and door-to-door hours" not in client.get(f"/trips/{trip_id}").text
