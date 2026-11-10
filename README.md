@@ -952,6 +952,23 @@ The rules:
 - A journey with no paid price counts as a journey, but adds nothing to the sum.
 - The CO₂ is an estimate per traveler: the hours of each leg times the kg per hour of its mode, with the kg per hour of the default profile. The page shows "about N kg CO₂" for each year and each mode, and names the profile.
 
+Each year has the link "Export CSV". It downloads the file `travel-<year>.csv` (`/upcoming/years/<year>/export.csv`)
+with one row for each booked or cancelled journey of the year, in the order of departure. The year of a journey has the
+rule above. The columns:
+
+- `date`: the local date of departure of the first leg;
+- `route`: the place of departure of the first leg and the place of arrival of the last leg;
+- `modes` and `carriers`: the modes and the carriers of the legs;
+- `status`: `booked`, or `cancelled` for a cancelled booking;
+- `paid` and `currency`: the paid price and its currency (EUR when the booking has no currency);
+- `paid_eur`: the EUR value of the paid price;
+- `refund` and `refund_eur`: the refund of a cancelled booking and its EUR value (empty for a booked journey);
+- `claim_paid`: the amount of the delay claim, when you pressed "Claim paid" (see "Delay compensation of a booked train journey").
+
+The sum of `paid_eur` less the sum of `refund_eur` is the paid sum of the year on the page. A price with no rate to EUR
+has empty EUR cells, and is not in that sum. A journey with no paid price has an empty `paid` cell. The file starts with a
+UTF-8 byte order mark, so that a spreadsheet opens the accents correctly.
+
 ## Userscript panel
 
 Each userscript shows a small panel at the bottom right of the travel site. The panel shows `Captured N offers → sent ✓`
