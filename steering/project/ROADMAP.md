@@ -85,6 +85,10 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
 - [ ] `capture:seats-left` The seats left of a fare: the parsers store the count where the payload tells it (eurostar.com `fares[].seats`, flixbus.com `available.seats`; no count is no mark), each capture updates it, and the trip page and the pinned page (`trip:pinned-page`) show "N seats left" on a fare with 5 or fewer (P1: only the captured payloads; P3: a cheap fare that is almost sold out shows it before the next search)
   - A Eurostar capture with `"seats": 2` on the Standard fare shows "2 seats left" on that fare, and the fare with 28 seats shows no mark; a later capture with 9 seats removes the mark
 
+- [ ] `capture:resend` A capture that the userscript sends again (a retry after a lost answer of the server, `capture:userscript`) is stored once: the userscript gives each payload a random key, the server keeps one capture per key and token, and a second POST with the same key gets the result of the first with no new capture and no new price row (P3: a slow network must not double the price history, the captures page or the counts of `capture:health`; P4: a PostgreSQL `UNIQUE` constraint)
+  - The same payload sent twice with one key gives 1 capture and 1 price row, and the second answer has the counts of the first
+  - A payload with no key is stored as before (the older userscripts)
+
 ## 2. Rank offers by effective cost
 
 - [x] `rank:base` (#10) Base formula (price + hours × hour_markup + transfers × transfer_markup), a breakdown per row, sliders with live re-ranking
@@ -140,8 +144,12 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - A booking that cost €20 more than the best offer to save 1 hour, and a booking that took 1 hour more to pay €40 less, give "Your bookings fit an hour value from €20 to €40 (2 of 2 bookings)"
 - [x] `rank:fallback` (#1771) A transfer with no later connection: for each transfer of an itinerary, the trip page looks for a later captured itinerary of the same trip that also departs the transfer place after the planned departure and arrives at the destination on the same day; with none, the row shows "no later connection captured" and a penalty in "Advanced" adds to the score (default €0, P2; P1: only the captured itineraries of the trip, the app fetches nothing)
   - A trip with A → X → B (departs X at 21:00) and no captured itinerary that departs X after 21:00 shows "no later connection captured" on the row, and a penalty of €30 makes its score €30 higher; when an itinerary that departs X at 22:00 is captured, the mark and the penalty go away
-- [ ] `rank:berth` A night value per berth: the night travel adjustment (`rank:time`) of a night-train fare depends on its berth (seat, couchette, sleeper; the ÖBB Nightjet tiers of the parser, and the other parsers where the payload tells it): one adjustment per berth in "Advanced" (default empty: the night adjustment of the profile, so the score does not change, P2), and the breakdown shows the berth
+- [x] `rank:berth` (#1806) A night value per berth: the night travel adjustment (`rank:time`) of a night-train fare depends on its berth (seat, couchette, sleeper; the ÖBB Nightjet tiers of the parser, and the other parsers where the payload tells it): one adjustment per berth in "Advanced" (default empty: the night adjustment of the profile, so the score does not change, P2), and the breakdown shows the berth
   - With "couchette −€40" and "seat €0", the Couchette fare of a Nightjet connection scores €40 better than the night adjustment of the profile gives, and its breakdown shows "night in a couchette −€40.00"; a day train does not change
+
+- [ ] `rank:transfer-place` A markup per transfer place in "Advanced" (default none, P2), as `rank:carrier` does for a carrier: each transfer at a named station or airport (for example Brussels-Midi or Paris CDG) adds the amount, a negative amount is a discount, and the breakdown shows the place and the amount
+  - A markup of €20 for Brussels-Midi adds €20 to each itinerary with a transfer there, and the breakdown shows "transfer at Brussels-Midi +€20"
+  - With no markup set, the score of each offer does not change
 
 ## 3. Plan a trip in one place
 
@@ -241,8 +249,12 @@ milestones 1 to 3: `capture:skeleton` to `capture:bahn`, `rank:base` to `rank:pr
   - "Export CSV" for 2026 gives one row per booked or cancelled journey of 2026, and the sum of its EUR column less the EUR value of the refunds is the paid sum of the summary for 2026
 - [ ] `trip:share-vote` The travel partner marks the itineraries that suit them on the read-only link (`trip:share`), with no login: one "Suits me" mark per itinerary and an optional note of up to 200 characters (P5: validated, limited and escaped; P6: page buttons, no browser dialog); the owner sees the marks and the notes on the trip page, and "Revoke" stops the link and its marks
   - A "Suits me" click on the read-only link shows the mark on the same row of the owner's trip page; after "Revoke", the link and a mark request give HTTP 404
-- [ ] `trip:message-log` The messages that the app sent (`trip:notify`: price drops, target prices, reminders, source health and backup alerts) on the messages settings page: the last 50 with their time, kind, trip, channel and result ("sent" or the error of the channel), with no message address (P5), so that a channel that fails (an ntfy topic that moved, an SMTP error) does not stop the messages with no sign (P6: the page shows it, no browser dialog)
+- [x] `trip:message-log` (#1811) The messages that the app sent (`trip:notify`: price drops, target prices, reminders, source health and backup alerts) on the messages settings page: the last 50 with their time, kind, trip, channel and result ("sent" or the error of the channel), with no message address (P5), so that a channel that fails (an ntfy topic that moved, an SMTP error) does not stop the messages with no sign (P6: the page shows it, no browser dialog)
   - A target-price message whose ntfy topic answers HTTP 404 shows "failed: ntfy HTTP 404" with its time and trip on the messages page, and a test message after the fix shows "sent"
+
+- [ ] `trip:pareto` The offers that no other offer of the trip beats on both the price and the door-to-door hours (`rank:door`) get the mark "no faster offer for less": a filter "only these" on the trip page, and a chart of the price against the hours of all offers with these marked, so that the owner sees the offers that a change of the hour value can bring to the top (P2: the ranking stays explainable; the weights do not change the mark)
+  - An offer that is dearer and slower than another offer of the trip has no mark; the cheapest and the fastest offer always have it
+  - The mark and the chart work at phone width and with a keyboard (`trip:a11y`)
 
 ## 4. Run it on my home server
 
