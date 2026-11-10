@@ -32,6 +32,18 @@ class DayPrice:
     price_currency: str
 
 
+def card_names(values: Any) -> list[str]:
+    """The discount card names of a list: its non-empty strings, no duplicates; [] for a value that is no list (P5)."""
+    if not isinstance(values, list):
+        return []
+    out: list[str] = []
+    for v in values:
+        name = v.strip() if isinstance(v, str) else ""
+        if name and name not in out:
+            out.append(name)
+    return out
+
+
 def count(value: Any) -> int | None:
     """A traveler count from 1 to 9, else None (P5: the payload is untrusted)."""
     return value if isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 9 else None
