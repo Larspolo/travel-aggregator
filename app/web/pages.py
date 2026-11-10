@@ -1588,6 +1588,27 @@ def toggle_hide(request: Request, trip_id: int, itinerary_id: int, session: Sess
     return _rows_or_redirect(request, trip_id, session, view)
 
 
+@router.post("/trips/{trip_id}/itineraries/bulk",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def bulk_hide_or_pin(request: Request, trip_id: int, action: str = Query(""), it: list[int] = Form([]),
+                     session: Session = Depends(get_session), view: dict = Depends(trip_view)) -> Response:
+    """Hide or pin all the ticked offers of the trip (#1897). The action comes in the query of the button's
+    formaction, the CSRF token in the button's own value (a button sends only its own name and value). All ids are
+    checked before any change: an id of another trip gives 404 and changes nothing."""
+    if action not in ("hide", "pin"):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "action must be hide or pin")
+    rows = [session.get(Itinerary, itinerary_id) for itinerary_id in it]
+    if any(row is None or row.trip_id != trip_id for row in rows):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"an itinerary is not in trip {trip_id}")
+    for row in rows:
+        if action == "hide":
+            row.hidden = True
+        else:
+            row.pinned = True
+    session.commit()
+    return _rows_or_redirect(request, trip_id, session, view)
+
+
 @router.get("/tokens", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def tokens_page(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     return _tokens_page(request, session)
