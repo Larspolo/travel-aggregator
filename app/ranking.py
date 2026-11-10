@@ -90,6 +90,14 @@ class Weights:
     carrier2_markup: Decimal = Decimal("0")
     carrier3_name: str = ""
     carrier3_markup: Decimal = Decimal("0")
+    # The transfer place markups (#1850): a transfer at a place whose name a slot has adds the markup once per transfer.
+    # A markup of 0 or an empty name disables the slot.
+    transfer_place1_name: str = ""
+    transfer_place1_markup: Decimal = Decimal("0")
+    transfer_place2_name: str = ""
+    transfer_place2_markup: Decimal = Decimal("0")
+    transfer_place3_name: str = ""
+    transfer_place3_markup: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
