@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult, count
+from app.parsers import ParseResult, card_names, count
 from app.schemas import LegIn, OfferIn, _short_reason
 
 BOOKING_URL = "https://www.thetrainline.com/"
@@ -70,6 +70,9 @@ class TrainlineParser:
         body = request.get("body") if isinstance(request, dict) else None
         people = body.get("passengers") if isinstance(body, dict) else None
         result = ParseResult(travelers=count(len(people)) if isinstance(people, list) else None)
+        # the request's `cards` list names the discount cards of the search (#1752); None when the request has no list
+        cards = body.get("cards") if isinstance(body, dict) else None
+        result.discounts = card_names(cards) if isinstance(cards, list) else None
         for i, journey in enumerate(journeys.values()):
             try:
                 result.offers.extend(self._offers(journey, data, search))

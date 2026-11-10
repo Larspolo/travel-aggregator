@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult, count
+from app.parsers import ParseResult, card_names, count
 from app.schemas import LegIn, OfferIn, _short_reason
 
 DEFAULT_TZ = "Europe/Amsterdam"
@@ -53,6 +53,7 @@ class NsParser:
         request = raw.get("request") if "response" in raw else None
         people = request.get("travelers") if isinstance(request, dict) else None
         result = ParseResult(travelers=count(len(people)) if isinstance(people, list) else None)
+        result.discounts = self._discounts(conns)
         for i, conn in enumerate(conns):
             try:
                 result.offers.extend(self._offers(conn))
@@ -61,6 +62,20 @@ class NsParser:
             except (KeyError, TypeError, ValueError, AttributeError) as e:
                 result.errors.append({"index": i, "reason": f"bad connection: {type(e).__name__} {e}"[:200]})
         return result
+
+    def _discounts(self, conns: list) -> list[str] | None:
+        """The cards of `reductionCardsApplied` of the offers: null = no card (#1750). None when no offer has the field."""
+        seen, names = False, []
+        offers = [o for conn in conns if isinstance(conn, dict) for o in (conn.get("offers") or [])]
+        for o in offers:
+            if isinstance(o, dict) and "reductionCardsApplied" in o:
+                seen = True
+                value = o["reductionCardsApplied"]
+                if isinstance(value, list):
+                    names += [n for n in card_names(value) if n not in names]
+                elif value is not None:
+                    return None
+        return names if seen else None
 
     def _offers(self, conn: dict) -> list[OfferIn]:
         it = conn["itinerary"]

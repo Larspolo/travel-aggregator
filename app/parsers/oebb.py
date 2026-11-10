@@ -16,7 +16,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app.parsers import ParseResult
+from app.parsers import ParseResult, card_names
 from app.parsers.bahn import station_tz
 from app.schemas import LegIn, OfferIn, _short_reason
 
@@ -36,6 +36,22 @@ def money(value: Any) -> Decimal:
 def local(value: str, esn: Any) -> datetime:
     t = datetime.fromisoformat(value)
     return t if t.tzinfo else t.replace(tzinfo=station_tz(esn))
+
+
+def reductions(node: Any, names: list[str]) -> bool:
+    """Adds the card names of every `relevantReductions` list under `node` to `names`; True when the key is there."""
+    seen = False
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key == "relevantReductions":
+                seen = True
+                names += [n for n in card_names(value) if n not in names]
+            else:
+                seen = reductions(value, names) or seen
+    elif isinstance(node, list):
+        for value in node:
+            seen = reductions(value, names) or seen
+    return seen
 
 
 def legs(conn: dict) -> list[LegIn]:
@@ -97,6 +113,9 @@ class OebbParser:
         if not isinstance(response, dict):
             raise ValueError("the oebbtickets.at response is not an object")
         result = ParseResult()
+        names: list[str] = []
+        # the `relevantReductions` lists of the response name the cards (#1752); None when the response has none
+        result.discounts = names if reductions(response, names) else None
         if "offerSections" in response:
             try:
                 result.offers.extend(self._fares(response))
