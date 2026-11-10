@@ -394,6 +394,39 @@ def find_resend(session: Session, token_id: int, key: str | None) -> Capture | N
     return session.scalar(select(Capture).where(Capture.token_id == token_id, Capture.capture_key == key))
 
 
+class ResendBusy(Exception):
+    """The first POST of this `capture_key` and token still runs (#1869): the caller answers 409."""
+
+
+# A first POST with no stored answer after this time failed (#1869); before it, it can still run.
+RESEND_WAIT = timedelta(seconds=60)
+FAILED_SEND = "The first send of this capture failed on the server; see the captures page"
+
+
+def resend_answer(session: Session, capture: Capture, now: datetime) -> dict:
+    """The answer to a resend of `capture` (#1868, #1869): the stored answer of the first POST. With no answer, the
+    first POST still runs (ResendBusy) or, after RESEND_WAIT, it failed: then an answer from the stored result of the
+    capture, with no created or updated offer and the warning FAILED_SEND. It is stored, so that each later resend gets
+    the same answer and the userscript removes the payload from its queue (P3: the raw stays for a reparse)."""
+    if capture.answer_json is not None:
+        return capture.answer_json
+    if capture.received_at is None or now - capture.received_at < RESEND_WAIT:
+        raise ResendBusy
+    trip = session.get(Trip, capture.trip_id)
+    errors = capture.errors_json or []
+    answer = {"created": 0, "updated": 0, "unchanged": 0, "rejected": capture.rejected_count or len(errors),
+              "errors": errors, "warning": FAILED_SEND, "mismatch": capture.mismatch, "trip_id": capture.trip_id,
+              "trip_title": None if trip is None else trip.title, "suggestion": None, "best": None}
+    capture.answer_json = answer
+    session.commit()
+    return answer
+
+
+def _is_resend_race(exc: IntegrityError) -> bool:
+    """True when `exc` is the unique constraint of the token and the key (#1869): a second POST of the same key."""
+    return getattr(getattr(exc.orig, "diag", None), "constraint_name", None) == "uq_captures_token_key"
+
+
 def store(session: Session, body: IngestIn, drops: list | None = None, token_id: int | None = None) -> dict:
     """Store the capture of the body (with its raw, if any), then its valid offers; each price row links to the
     capture. The offers of a raw payload come from its parser (`app/parsers`); one bad connection is an entry of
@@ -403,8 +436,14 @@ def store(session: Session, body: IngestIn, drops: list | None = None, token_id:
     raw_offers, raw_errors, unreadable, travelers, day_prices, discounts = parse_raw(body)
     trip_id = _choose_trip(session, body, list(body.offers) + raw_offers)
     before = _best(session, trip_id)
-    capture = store_capture(session, trip_id, body, token_id)
-    session.commit()
+    try:
+        capture = store_capture(session, trip_id, body, token_id)
+        session.commit()
+    except IntegrityError as exc:  # another POST of the same key inserted its capture first (#1869)
+        session.rollback()
+        if _is_resend_race(exc):
+            raise ResendBusy from exc
+        raise
     capture_id, keyed = capture.id, capture.capture_key is not None
     if unreadable is not None:
         log.warning("capture %s: %s raw payload not read: %s", capture.id, body.source, unreadable)
