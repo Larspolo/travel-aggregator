@@ -6,6 +6,7 @@ The templates, the date format and the place values of each source are in `app/d
 """
 
 import tomllib
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 from types import SimpleNamespace
@@ -60,6 +61,13 @@ def links_by_source(trip) -> dict[str, tuple[str, str | None]]:
     (#967); a table with no `source` key is keyed by its table name."""
     return {s.get("source") or key: (s.get("name") or s.get("source") or key, _trip_link(s, trip))
             for key, s in load_sources().items()}
+
+
+def day_links(trip, day: date) -> dict[str, tuple[str, str | None]]:
+    """The links of `links_by_source` for `day` instead of the trip date (#2057). The trip does not change."""
+    values = SimpleNamespace(origin_text=getattr(trip, "origin_text", None),
+                             destination_text=getattr(trip, "destination_text", None), date_from=day)
+    return links_by_source(values)
 
 
 def _pairs(trip) -> list[tuple[str | None, str | None]]:
