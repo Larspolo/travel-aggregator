@@ -35,7 +35,9 @@
   {% for s in sources %}
   <tr class="source-row"><td class="source-name">{{ s.source }}</td>
     <td>{% if s.last_good_at %}<time datetime="{{ s.last_good_at.isoformat() }}" title="{{ s.last_good_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ s.last_good_at | ago(now) }}</time>{% else %}never{% endif %}</td>
-    <td>{{ s.parser_version or "-" }}{% if s.served_version %}<br><a class="chip warn" href="/tokens">old userscript {{ s.script_version }}: update to {{ s.served_version }}</a>{% endif %}</td>
+    <td>{{ s.parser_version or "-" }}{% if s.served_version %}<br><a class="chip warn" href="/tokens">old userscript {{ s.script_version }}: update to {{ s.served_version }}</a>{% endif %}{% if s.old_parsed %}<br><span id="reparse-old-{{ loop.index }}" class="old-parsed">{{ s.old_parsed }} captures of an older version
+      <button hx-post="/captures/reparse-old" hx-vals='{{ {"source": s.source} | tojson }}' hx-target="#reparse-old-{{ loop.index }}"
+        hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse with version {{ s.current_version }}</button></span>{% endif %}</td>
     <td>{% if s.failed_after %}<span class="chip danger">{{ s.failed_after }}</span>{% else %}0{% endif %}</td></tr>
   {% endfor %}
   </tbody>

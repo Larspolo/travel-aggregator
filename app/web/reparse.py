@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from app import ingest
 from app.failure_report import report_url
 from app.field_health import field_health
-from app.sourcehealth import add_old_script, failed_clause, source_health
+from app.sourcehealth import add_old_script, failed_clause, old_parsed_clause, source_health
 from app.suspect import suspect_counts
 from app.search_links import load_sources
 from app.source_wins import source_wins
@@ -199,6 +199,33 @@ def reparse_failed(source: str = Form(...), session: Session = Depends(get_sessi
         updated += counts["updated"]
     message = (f"Reparsed {ok + still} captures of {source} with {parser.version}: {ok} now parse, {still} still fail; "
                f"{created} created, {updated} updated.")
+    if more:
+        message += f" More than {REPARSE_LIMIT} captures wait: click again."
+    return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
+
+
+@router.post("/captures/reparse-old", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def reparse_old(source: str = Form(...), session: Session = Depends(get_session)) -> HTMLResponse:
+    """Reparse the good captures of an older parser version of one source (#1990), at most REPARSE_LIMIT."""
+    parser = get_parser(source)
+    if parser is None:
+        return HTMLResponse(f'<span class="reparse-result">{_escape(f"The source {source} has no parser.")}</span>')
+    query = select(Capture).where(old_parsed_clause(source, parser.version))
+    captures = session.scalars(query.order_by(Capture.id).limit(REPARSE_LIMIT + 1)).all()
+    more = len(captures) > REPARSE_LIMIT
+    done = fail = created = updated = 0
+    for capture in captures[:REPARSE_LIMIT]:
+        counts = ingest.reparse(session, capture)
+        if counts is None:
+            continue
+        done += 1
+        if counts["unreadable"] or counts["rejected"]:
+            fail += 1
+        created += counts["created"]
+        updated += counts["updated"]
+    message = (f"Reparsed {done} captures of {source} with {parser.version}: {created} created, {updated} updated, "
+               f"{fail} now fail.")
     if more:
         message += f" More than {REPARSE_LIMIT} captures wait: click again."
     return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
