@@ -1,11 +1,19 @@
 """The hour values at which each booking was the best offer of its trip (epic #1708).
 
-Pure functions: the totals come from `row_cost()` at the hour value `h` and at `h + 1`,
-as in `tradeoff_lines()` of `app/web/pages.py`. Reading the bookings is #1710.
+The totals come from `row_cost()` at the hour value `h` and at `h + 1`, as in `tradeoff_lines()`
+of `app/web/pages.py`, with the prices of the time of each booking (#1710).
 """
 
+import dataclasses
+from datetime import timedelta
 from decimal import Decimal
 
+from sqlalchemy import or_, select
+from sqlalchemy.orm import Session, selectinload
+
+from app.models import Capture, Fare, Itinerary
+from app.parsers import group_price
+from app.ranking import Weights
 from app.tradeoff import break_even
 
 Totals = tuple[Decimal, Decimal]  # the total at the hour value h and at h + 1
@@ -70,3 +78,79 @@ def best_fit(intervals) -> tuple[Decimal | None, Decimal | None, int, int] | Non
             count -= 1
     return (None if best_low == _LOW else best_low, None if best_high == _HIGH else best_high,
             best, len(intervals))
+
+
+class _At:
+    """A read-only view of an object with some attributes replaced: the stored row does not change (#1710)."""
+
+    def __init__(self, obj, **values):
+        self._obj, self._values = obj, values
+
+    def __getattr__(self, name):
+        values = self.__dict__["_values"]
+        return values[name] if name in values else getattr(self.__dict__["_obj"], name)
+
+
+def _offer_at(it: Itinerary, at):
+    """The itinerary with each fare at the price of its newest `FarePrice` at or before `at`, and the
+    chosen prices; None when no fare had a price then."""
+    fares, prices = [], {}
+    for f in it.fares:
+        before = [p for p in f.prices if p.captured_at <= at]
+        if not before:
+            continue
+        p = max(before, key=lambda p: (p.captured_at, p.id))
+        fares.append(_At(f, latest_price=p.price, currency=p.currency, latest_captured_at=p.captured_at))
+        prices[f.id] = (p, f.source)
+    if not fares:
+        return None
+    return _At(it, fares=fares), prices
+
+
+def booking_intervals(session: Session, weights: Weights, places, rates, fees) -> list:
+    """Give (itinerary, interval or None) for each booked or cancelled journey with a `booked_at`, in the
+    order of `booked_at`: the hour values at which it had the lowest effective cost of its trip then.
+
+    The offers are the itineraries of the trip that did not depart before `booked_at`, each fare at the
+    price of its newest `FarePrice` at or before `booked_at`. A booking with no other offer gives None.
+    """
+    from app.web.pages import row_cost  # here: the profile page will import this module
+
+    booked = or_(Itinerary.booked.is_(True), Itinerary.cancelled_at.is_not(None))
+    trip_ids = select(Itinerary.trip_id).where(booked, Itinerary.booked_at.is_not(None))
+    its = session.scalars(select(Itinerary).where(Itinerary.trip_id.in_(trip_ids))
+                          .options(selectinload(Itinerary.legs), selectinload(Itinerary.trip),
+                                   selectinload(Itinerary.fares).selectinload(Fare.prices))).all()
+    bookings = sorted((it for it in its if it.booked_at is not None and (it.booked or it.cancelled_at is not None)),
+                      key=lambda it: (it.booked_at, it.id))
+    higher = dataclasses.replace(weights, hour_markup=weights.hour_markup + 1)
+    result = []
+    for b in bookings:
+        at = b.booked_at
+        offers = [(it, o) for it in its if it.trip_id == b.trip_id and it.depart_at >= at
+                  for o in [_offer_at(it, at)] if o is not None]
+        counts = _travelers(session, [prices for _, (_, prices) in offers])
+        stale_before = at - timedelta(hours=weights.stale_hours)
+
+        def totals(view):
+            return tuple(row_cost(view, view.fares, places, w, stale_before, rates, counts, fees)[1].total
+                         for w in (weights, higher))
+        mine = [view for it, (view, _) in offers if it.id == b.id]
+        others = [totals(view) for it, (view, _) in offers if it.id != b.id]
+        if not mine or not others:
+            result.append((b, None))
+            continue
+        result.append((b, booking_interval(totals(mine[0]), others, weights.hour_markup)))
+    return result
+
+
+def _travelers(session: Session, offers) -> dict[int, int]:
+    """The travelers of the chosen price of each fare whose source gives the price of the group, as
+    `fare_travelers()` of `app/web/pages.py` does for the newest price (#767): only counts of 2 or more."""
+    chosen = {fid: p.capture_id for prices in offers for fid, (p, source) in prices.items()
+              if p.capture_id is not None and group_price(source)}
+    if not chosen:
+        return {}
+    travelers = dict(session.execute(select(Capture.id, Capture.travelers)
+                                     .where(Capture.id.in_(set(chosen.values())))).all())
+    return {fid: n for fid, cid in chosen.items() if (n := travelers.get(cid)) is not None and n > 1}
