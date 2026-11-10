@@ -64,7 +64,7 @@ from app.profiles import active_weights, default_weights, delete as delete_profi
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
 from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PushSubscription, ScoreProfile, Setting,
-                        SourceFee, Trip)
+                        SentMessage, SourceFee, Trip)
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
                         REMINDER_DAYS_KEY, REMINDER_NOT_SENT, SOURCE_ALERT_KEY, alert_messages, deliver, setting,
                         webpush_ready)
@@ -1871,6 +1871,9 @@ def messages_page(request: Request, session: Session = Depends(get_session)) -> 
         "smtp_ready": bool(get_settings().smtp_host),
         "vapid_public_key": get_settings().vapid_public_key if webpush_ready() else "",
         "push_count": session.scalar(select(func.count()).select_from(PushSubscription)),
+        "messages": session.scalars(select(SentMessage).order_by(SentMessage.sent_at.desc(), SentMessage.id.desc())
+                                    .limit(50)).all(),  # #1813
+        "now": datetime.now(timezone.utc), "base_url": str(request.base_url).rstrip("/"),
         "flash": request.session.pop("flash", None)})
 
 
