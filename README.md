@@ -689,6 +689,10 @@ The app can also send a message when a pinned fare drops. Choose the channel on 
 The settings page saves the channel only with what the channel needs: a missing address, topic URL or server setting
 gives an error and changes nothing.
 
+The messages settings page (`/settings/messages`) shows the last 50 messages that the app sent, under "Last messages".
+Each row has the time, the title, the channel and the result. The result is "sent", or "failed" with a short reason
+when the channel could not send the message.
+
 Each message has the title "Price drop: " and the trip title, and one line for each dropped fare:
 `fare name (source): EUR old price → EUR new price`. The message links to the trip page. One message goes to each trip
 of an ingest. A failed send is logged and does not change the answer to the userscript.
