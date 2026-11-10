@@ -13,9 +13,9 @@ from app.backup import stale_backup_messages
 from app.sourcehealth import source_alert_messages
 from app.auth import require_token
 from app.db import get_session
-from app.models import ApiToken, Setting, Trip
+from app.models import ApiToken, Setting, SilentPage, Trip
 from app.reminder import BASE_URL_KEY
-from app.schemas import IngestIn
+from app.schemas import IngestIn, SilentIn
 
 router = APIRouter()
 
@@ -46,3 +46,14 @@ def post_ingest(body: IngestIn, request: Request, tasks: BackgroundTasks, _: Api
         new_session = contextmanager(request.app.dependency_overrides.get(get_session, get_session))
         tasks.add_task(notify.deliver, msgs, new_session)
     return result
+
+
+@router.post("/silent")
+def post_silent(body: SilentIn, _: ApiToken = Depends(require_token),
+                session: Session = Depends(get_session)) -> dict[str, int]:
+    """A results page with no offers seen (#1755): store only the four fields (P5)."""
+    row = SilentPage(source=body.source, page_url=body.page_url, seen_at=body.seen_at,
+                     script_version=body.script_version)
+    session.add(row)
+    session.commit()
+    return {"id": row.id}
