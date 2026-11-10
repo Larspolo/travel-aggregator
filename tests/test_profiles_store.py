@@ -16,7 +16,7 @@ from tests.test_trip_booked import _alembic, csrf, trip  # noqa: F401 (fixture)
 
 CHANGED = {"hour_markup": "22.5", "transfer_markup": "7", "airport_before_min": "90", "airport_after_min": "15",
            "baggage_fee": "25.00", "early_limit": "07:15", "late_limit": "22:00", "time_window_penalty": "12",
-           "night_start": "22:30", "night_end": "05:45", "night_min": "180", "night_adjust": "-20", "overnight_min": "300", "overnight_cost": "70", "wait_hour_markup": "4",
+           "night_start": "22:30", "night_end": "05:45", "night_min": "180", "night_adjust": "-20", "overnight_min": "300", "overnight_cost": "70", "wait_hour_markup": "4", "leave_hour_markup": "20",
            "night_hour_markup": "4", "short_transfer_min": "12", "short_transfer_penalty": "30",
            "station_change_min": "45", "station_change_penalty": "12", "no_fallback_penalty": "30",
            "train_markup": "-5", "bus_markup": "3", "flight_markup": "40", "ferry_markup": "2",

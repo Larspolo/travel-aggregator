@@ -123,3 +123,24 @@ def arrive_by_extras(itinerary, arrive_by, weights: Weights) -> tuple[tuple[str,
     hours, rest = divmod(minutes, 60)
     span = " ".join(p for p in (f"{hours} h" if hours else "", f"{rest} min" if rest else "") if p)
     return ((f"wait {span} before {arrive_by.strftime('%H:%M')}", cost),)
+
+
+def leave_after_extras(itinerary, leave_after, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the cost of the wait from the local departure of the first leg to `leave_after` on the same local date (#2022).
+
+    No part when the markup is 0, the trip has no `leave_after`, the itinerary has no legs, or the offer departs at or
+    after the time.
+    """
+    markup = Decimal(weights.leave_hour_markup)
+    if markup == 0 or leave_after is None or not itinerary.legs:
+        return ()
+    first = itinerary.legs[0]
+    departure = (first.depart_at + timedelta(minutes=first.depart_offset_min)).replace(tzinfo=None)
+    target = datetime.combine(departure.date(), leave_after.replace(tzinfo=None))
+    minutes = int((target - departure).total_seconds() // 60)
+    if minutes <= 0:
+        return ()
+    cost = (Decimal(minutes) / 60 * markup).quantize(Decimal("0.01"))
+    hours, rest = divmod(minutes, 60)
+    span = " ".join(p for p in (f"{hours} h" if hours else "", f"{rest} min" if rest else "") if p)
+    return ((f"leave {span} before {leave_after.strftime('%H:%M')}", cost),)

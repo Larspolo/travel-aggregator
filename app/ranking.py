@@ -41,6 +41,8 @@ class Weights:
     co2_ferry_kg_h: Decimal = Decimal("3")
     # The wait before the "arrive by" time of the trip (#1295): € per hour; 0 disables it.
     wait_hour_markup: Decimal = Decimal("0")
+    # The wait before the "leave after" time of the trip (#2022): € per hour; 0 disables it.  # #2022
+    leave_hour_markup: Decimal = Decimal("0")
     # The hour markup inside the night window (#143); None = the same as hour_markup.
     night_hour_markup: Decimal | None = None
     # The hour value per mode (#1567): € per hour of a leg of the mode; None = the hour markup (no part).

@@ -44,6 +44,8 @@
         <input type="number" name="overnight_cost" min="0" max="1000" step="0.01" value="{{ weights.overnight_cost }}"></label>
       <label>Wait before the arrival time, € per hour
         <input type="number" name="wait_hour_markup" min="0" max="100" step="0.01" value="{{ weights.wait_hour_markup }}"></label>
+      <label>Wait before the leave time, € per hour
+        <input type="number" name="leave_hour_markup" min="0" max="200" step="0.01" value="{{ weights.leave_hour_markup }}"></label>
       <label>Night hour markup €/h
         <input type="number" name="night_hour_markup" min="0" max="100" step="0.01" value="{% if weights.night_hour_markup is not none %}{{ weights.night_hour_markup }}{% elif not night_blank %}{{ weights.hour_markup }}{% endif %}"{% if night_blank %} placeholder="the hour markup"{% endif %}></label>
     </fieldset>
