@@ -215,7 +215,7 @@ def _alert(url: str, now: datetime, error: str | None) -> None:
                 msgs = notify.alert_messages(session, "Backup works again", "The daily backup works again.", "")
                 session.delete(row)
             session.commit()
-        notify.deliver(msgs)
+        notify.deliver(msgs, new_session=make_sessionmaker(engine))
     except Exception as e:  # noqa: BLE001 (an alert must not stop the backup loop)
         log.warning("backup message not sent: %s", _redact(str(e), url))
     finally:

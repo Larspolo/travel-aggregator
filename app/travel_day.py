@@ -101,7 +101,7 @@ def send_travel_days(session: Session, now: datetime, base_url: str) -> int:
         msgs = alert_messages(session, title, text, click)
         if not msgs:
             break
-        deliver(msgs)
+        deliver(msgs, session=session)
         mark_sent(it, now)
         session.commit()
         sent += 1

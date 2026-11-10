@@ -330,3 +330,16 @@ class ShareMark(Base):
     itinerary_id: Mapped[int] = mapped_column(ForeignKey("itineraries.id", ondelete="CASCADE"), index=True)
     note: Mapped[str | None] = mapped_column(String(200), nullable=True)  # the note of the partner (#1782)
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
+
+
+class SentMessage(Base):
+    """The result of one message by the channel of `trip:notify` (#1812): no address, only a short reason."""
+    __tablename__ = "sent_messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sent_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
+    title: Mapped[str] = mapped_column(String(200))
+    click: Mapped[str] = mapped_column(Text, default="")
+    channel: Mapped[str] = mapped_column(String(10))
+    ok: Mapped[bool] = mapped_column(Boolean)
+    reason: Mapped[str | None] = mapped_column(String(200), nullable=True)
