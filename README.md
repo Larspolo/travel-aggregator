@@ -1181,6 +1181,11 @@ capture id and the raw payload as text. A capture with no raw data shows "No raw
 A long payload shows only its start, with the note "The payload is N KB; download it to see all of it."
 The button "Download JSON" on that page downloads the whole raw payload as a JSON file named `<source>-<id>.json`.
 
+The link "Download for a bug report" on that page (`/captures/{id}/report.json`) downloads the same payload as a file named `<source>-<id>-report.json` with the
+personal values replaced by `"REDACTED"`: names, e-mail addresses, phone numbers, dates of birth, card and booking numbers,
+and the personal keys that the parser of the source names. The prices, the connections and the response stay as they are,
+so a parser fix can read the file. Check the file before you attach it to an issue: the app cannot find every personal value.
+
 ### Upload a payload file
 
 Use the form "Upload a payload" on `/trips/{id}/captures` to store a saved JSON file as a capture of the trip. The app
