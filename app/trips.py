@@ -1,7 +1,7 @@
 """Queries for the trips pages."""
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -234,3 +234,30 @@ def tag_journeys(lines: list[tuple[str, TripRow, str]], tag: str) -> list[tuple[
         groups[-1].append(line)
     return [line for g in groups
             if any(kind != "total" and any(fold(x) == needle for x in t.tags) for kind, t, _ in g) for line in g]
+
+
+def sort_journeys(lines: list[tuple[str, TripRow, str]], key: str,
+                  captured: dict[int, datetime]) -> list[tuple[str, TripRow, str]]:
+    """The journeys of `lines` in the order of `key` (#1972): "price" (lowest first, no offer and no rate last),
+    "capture" (newest capture first, no capture last), "title" (A to Z, no case, no diacritics). "date" or an
+    unknown key keeps the order of `lines`. A journey stays whole; a tie keeps its order (a stable sort)."""
+    from app.tripmatch import fold
+
+    if key not in ("price", "capture", "title"):
+        return lines
+    groups: list[list[tuple[str, TripRow, str]]] = []
+    for line in lines:
+        if line[0] == "trip" or not groups:
+            groups.append([])
+        groups[-1].append(line)
+    if key == "price":
+        groups.sort(key=lambda g: (g[0][1].best_price is None or g[0][1].no_rate,
+                                   g[0][1].best_price if g[0][1].best_price is not None else Decimal(0)))
+    elif key == "title":
+        groups.sort(key=lambda g: fold(g[0][1].title))
+    else:
+        timed = [g for g in groups if captured.get(g[0][1].id) is not None]
+        untimed = [g for g in groups if captured.get(g[0][1].id) is None]
+        timed.sort(key=lambda g: captured[g[0][1].id], reverse=True)
+        groups = timed + untimed
+    return [line for g in groups for line in g]
