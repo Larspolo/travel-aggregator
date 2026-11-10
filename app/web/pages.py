@@ -53,7 +53,7 @@ from app.door import baggage_extras, door_extras, flight_extras
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
 from app.co2 import co2_extras, co2_kg
-from app.tradeoff import break_even
+from app.tradeoff import best_range, break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
 from app.booked_overlap import conflicts
@@ -2161,6 +2161,22 @@ def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, 
             link = f"/trips/{trip_id}?" + urlencode({**base_qs, "hour_markup": str(int(rounded))}, doseq=True)
         lines[it.id] = (f"{time_part}, {price_part} than the best: better {be.better} ",
                         f"{_amount(be.hour_value)}/h", f" (yours: {yours}/h)", link)
+    lower, upper = best_range(best[2].total, best_next,
+                              [(c.total, nxt(i)) for i, _, c in shown if i.id != best[0].id], weights.hour_markup)
+    if lower is not None or upper is not None:
+        def part(value, rounding):  # lower limit up, upper limit down: the best row stays best (#1936)
+            rounded = value.to_integral_value(rounding=rounding)
+            link = None
+            if Decimal(0) <= rounded <= 100:
+                link = f"/trips/{trip_id}?" + urlencode({**base_qs, "hour_markup": str(int(rounded))}, doseq=True)
+            return (f"{_amount(value)}/h", link)
+        segments = [("best ", None)]
+        if lower is not None:
+            segments += [("from ", None), part(lower, ROUND_CEILING)]
+        if upper is not None:
+            segments += [(" to " if lower is not None else "up to ", None), part(upper, ROUND_FLOOR)]
+        segments.append((f" (yours: {yours}/h)", None))
+        lines["best"] = (best[0].id, segments)
     return lines
 
 

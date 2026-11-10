@@ -46,7 +46,7 @@
     </tr>
     <tr class="detail">
       <td colspan="5"><details><summary>Legs and fares</summary>
-        {% if tradeoff and it.id in tradeoff %}{% set head, value, tail, link = tradeoff[it.id] %}<p class="tradeoff muted">{{ head }}{% if link %}<a href="{{ link }}">{{ value }}</a>{% else %}{{ value }}{% endif %}{{ tail }}</p>{% endif %}{% if co2 and it.id in co2 %}<p class="co2 muted">CO₂ about {{ co2[it.id]|round|int }} kg per traveler (estimate)</p>{% endif %}
+        {% if tradeoff and it.id in tradeoff %}{% set head, value, tail, link = tradeoff[it.id] %}<p class="tradeoff muted">{{ head }}{% if link %}<a href="{{ link }}">{{ value }}</a>{% else %}{{ value }}{% endif %}{{ tail }}</p>{% endif %}{% if tradeoff and tradeoff.best and tradeoff.best[0] == it.id %}<p class="best-range muted">{% for text, link in tradeoff.best[1] %}{% if link %}<a href="{{ link }}">{{ text }}</a>{% else %}{{ text }}{% endif %}{% endfor %}</p>{% endif %}{% if co2 and it.id in co2 %}<p class="co2 muted">CO₂ about {{ co2[it.id]|round|int }} kg per traveler (estimate)</p>{% endif %}
         {% if share_marks and it.id in share_marks and share_marks[it.id].note %}<p class="partner-note">Partner: {{ share_marks[it.id].note }}</p>{% endif %}
         {% set changes = station_changes(it) %}{% set lonely = no_fallback_marks(it) %}
         <div class="timeline legs">
