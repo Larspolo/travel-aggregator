@@ -5,6 +5,7 @@ import re
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from fastapi.testclient import TestClient
 
 from app.api.health import _built
@@ -60,5 +61,6 @@ def test_version_card_says_when_migrations_are_pending(sessions, migrated_url, m
     with sessions() as s:
         card = version_card(s)
     assert card["pending"] is True
-    assert card["current"] == "0036" and card["head"] == "0037"
+    head = ScriptDirectory.from_config(cfg).get_current_head()  # not a fixed name: each new migration moves it
+    assert card["current"] == "0036" and card["head"] == head != "0036"
     _built.cache_clear()
