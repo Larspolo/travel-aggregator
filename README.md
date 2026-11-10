@@ -253,7 +253,7 @@ The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a sett
 
 | Method and path | Use |
 |---|---|
-| `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>"}`. No token. |
+| `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>", "built": "<build time of the image>"}`. No token. |
 | `GET /api/trips` | The trips, newest first; `?status=planning` (or `booked`, `archived`) shows only the trips of that status |
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
 | `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` and the field `warning`: the text of the trip warning, or `null` (see "Trip warning of a capture") |
@@ -880,6 +880,12 @@ When another trip in planning has the same route and dates, the trip page shows 
 - The import rule: the file wins. Each profile, place, rate, fee and setting of the file replaces the value of the same name on your instance. The rows that are not in the file stay.
 - At most one profile of the file can be the default.
 - To move your instance to an empty database: export the settings and the trips, install the new instance, import the settings first, then import each trip under "Import a trip".
+
+### Version of the app
+
+- The settings page `/settings` has the card "Version". It shows the commit that runs, with a link to that commit on GitHub (no link when the app runs without an image), and the time when the image was built (UTC).
+- The card also shows the database revision. When the database is not at the newest migration, the card shows the mark "migrations pending" and the newest revision (head).
+- The same commit and build time are in `GET /api/health`: the keys `commit` and `built`. Use it to check the version of a server without a login.
 
 ### Share a trip read-only
 
