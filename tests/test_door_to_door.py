@@ -26,7 +26,9 @@ def test_egress_match_with_case_and_space():
 
 
 def test_no_match_and_wrong_kind_add_nothing():
-    assert door_extras(_it("A", "B"), [_p(1, "B", "access", 10, "1"), _p(2, "C", "egress", 10, "1")], H) == ()
+    # no time or cost is added; each kind with places but no match shows a €0 line (#2052)
+    assert door_extras(_it("A", "B"), [_p(1, "B", "access", 10, "1"), _p(2, "C", "egress", 10, "1")], H) == (
+        ("no access place for A", Decimal(0)), ("no egress place for B", Decimal(0)))
 
 
 def test_access_and_egress_together_first_by_id():

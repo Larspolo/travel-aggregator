@@ -58,8 +58,14 @@ def door_extras(itinerary, places, hour_markup: Decimal) -> tuple[tuple[str, Dec
     (case and outer spaces do not count; with two equal texts, the first by id). No match adds nothing.
     """
     extras: list[tuple[str, Decimal]] = []
-    for kind, p in _matched(itinerary, places):
+    matched = _matched(itinerary, places)
+    for kind, p in matched:
         extras += [(f"{kind} time", Decimal(p.minutes) * hour_markup / 60), (f"{kind} cost", Decimal(p.cost))]
+    if itinerary.legs:  # (#2052) a kind with places but no match shows €0, so the owner sees the gap
+        stations = (("access", itinerary.legs[0].from_name), ("egress", itinerary.legs[-1].to_name))
+        for kind, name in stations:
+            if any(p.kind == kind for p in places) and kind not in {k for k, _ in matched}:
+                extras.append((f"no {kind} place for {name}", Decimal(0)))
     return tuple(extras)
 
 
