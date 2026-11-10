@@ -969,6 +969,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         from app.profile_compare import best_by_profile
         context["profile_best"] = best_by_profile(session, trip)
     current = [r for r in all_rows if not all_gone(r)] or all_rows  # gone fares count only with no current one (#1386)
+    from app.door import estimate_count, has_place_gap
+    context["estimates"] = estimate_count(shown)  # the rows with an estimated part (#2053)
+    context["estimate_places"] = has_place_gap(shown)
     context["days"] = day_summary(current, trip.date_from, trip.date_to,
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     context["days"] = with_day_prices(context["days"], session.scalars(  # the day prices of bahn.de (#1198)

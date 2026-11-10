@@ -77,3 +77,20 @@ def door_minutes(itinerary, places, weights: Weights) -> int:
     if any(leg.mode == FLIGHT for leg in itinerary.legs):
         minutes += weights.airport_before_min + weights.airport_after_min
     return minutes
+
+
+_PLACE_GAPS = ("no access place for ", "no egress place for ")
+
+
+def _estimate(label: str) -> bool:
+    return label == "baggage (estimate)" or label.startswith(_PLACE_GAPS)
+
+
+def estimate_count(rows) -> int:
+    """Give the count of (itinerary, fare, cost) rows with an estimated part in the breakdown (#2053)."""
+    return sum(1 for _, _, cost in rows if any(_estimate(label) for label, _ in cost.extras))
+
+
+def has_place_gap(rows) -> bool:
+    """Give True when a row has a "no access/egress place for" line: the trip page links to /places (#2053)."""
+    return any(label.startswith(_PLACE_GAPS) for _, _, cost in rows for label, _ in cost.extras)
