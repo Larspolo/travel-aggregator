@@ -172,6 +172,7 @@ def in_journeys(rows: list[TripRow]) -> list[tuple[str, TripRow, str]]:
 
 def past_trips(rows: list[TripRow], today: date, days: int = 7) -> list[int]:
     """The ids of the trips that are not archived and whose journey ended before `today - days` (#1997).
+    A journey whose first trip is archived gives no id (#2009).
 
     A journey is the lines of `in_journeys()` from a "trip" line to the next one (the return, next and split trips).
     Its last day is the largest `date_to` (else `date_from`) of its trips. A journey with a trip with no date gives no id."""
@@ -186,6 +187,8 @@ def past_trips(rows: list[TripRow], today: date, days: int = 7) -> list[int]:
     for group in groups:
         days_of_journey = [t.date_to or t.date_from for t in group]
         if not days_of_journey or any(d is None for d in days_of_journey):
+            continue
+        if group[0].status == "archived":  # the first trip decides for the journey (#561, #2009)
             continue
         if max(days_of_journey) < cutoff:
             ids.extend(t.id for t in group if t.status != "archived")
