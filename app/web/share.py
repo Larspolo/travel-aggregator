@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, subqueryload
 
 from app.auth import require_login, token_limiter, verify_csrf
 from app.db import get_session
+from app.discount_cards import cards_warning, fare_cards
 from app.models import AccessTime, Itinerary, Trip
 from app.share import new_link, revoke, trip_for_token
 from app.fees import load_fees
@@ -64,5 +65,6 @@ def shared_trip(request: Request, token: str, session: Session = Depends(get_ses
     rows = [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts, fees)) for it in itineraries
             if it.fares and it.legs]
     rows.sort(key=lambda r: (r[2].total, r[0].depart_at))
-    context = {"trip": trip, "rows": rows, "format_breakdown": format_breakdown}
+    context = {"trip": trip, "rows": rows, "format_breakdown": format_breakdown,
+               "cards_warning": cards_warning(itineraries, fare_cards(session, itineraries))}  # #1751
     return templates.TemplateResponse(request, "trip_shared.html", context, headers=PRIVATE_HEADERS)

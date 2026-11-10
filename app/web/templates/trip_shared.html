@@ -5,6 +5,7 @@
 {% block content %}
 {{ ui.page_header(trip.title, subtitle=((trip.origin_text or "?") ~ " → " ~ (trip.destination_text or "?")) if (trip.origin_text or trip.destination_text) else none) }}
 <p class="muted">A read-only list of the offers, best effective cost first.</p>
+{% if cards_warning %}<p class="card cards-warning" role="status">{{ cards_warning }}</p>{% endif %}
 {% if not rows %}<p class="card">No offers yet.</p>{% endif %}
 <ol class="shared-rows">
 {% for it, fare, cost in rows %}

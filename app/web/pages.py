@@ -28,6 +28,7 @@ from app.web.userscripts import bundle_info, userscript_list
 from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter,
                       require_login, session_epoch, verify_csrf)
 from app import departed
+from app.discount_cards import card_label, cards_warning, fare_cards
 from app.delay_claim import claim as delay_claim
 from app.backup import BACKUP_MAX_AGE, STAMP_FORMAT, newest_backup
 import segno
@@ -868,6 +869,9 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "rates": rates, "tradeoff": tradeoff, "gone_fares": gone_marks, "suspect_fares": suspect,
                "co2": {it.id: kg for it, *_ in rows if (kg := co2_kg(it, weights)) > 0},  # #1418
                "new_since": trip.viewed_at}  # the rows after the last full view are "new" (#1090)
+    cards = fare_cards(session, itineraries)  # the discount cards of the fares (#1751)
+    context["cards_warning"] = cards_warning(itineraries, cards, gone_marks, departed_now)
+    context["card_label"] = lambda f: card_label(f, cards)
     if len(profiles) > 1:  # the best offer of each profile (#1211); one profile only: no section
         from app.profile_compare import best_by_profile
         context["profile_best"] = best_by_profile(session, trip)
