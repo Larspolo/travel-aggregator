@@ -1238,6 +1238,11 @@ The button does not send a request to the travel site.
 
 A reparse replaces the stored parse result with the new one. Reload the page to see it.
 
+After you update a parser, the good captures of an older parser version can parse better with the new one. Open `/captures`:
+the status of each source shows "N captures of an older version" when N good captures were parsed by an older parser. Press
+"Reparse with version V" (V is the current parser version of the source) to reparse these captures. The button runs the
+parser on the stored raw data and does not send a request to the travel site.
+
 ### Raw payload of a capture
 
 The captures pages have a "Raw" link for each capture with raw data. The link opens `/captures/{id}/raw`: the source, the
