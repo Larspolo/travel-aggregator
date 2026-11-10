@@ -206,6 +206,7 @@ class ApiToken(Base):
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
     last_used_at: Mapped[datetime | None] = mapped_column(_tz())
     revoked_at: Mapped[datetime | None] = mapped_column(_tz())
+    expires_at: Mapped[datetime | None] = mapped_column(_tz())
 
 
 class AccessTime(Base):

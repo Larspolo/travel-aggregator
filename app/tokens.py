@@ -18,10 +18,10 @@ from app.db import make_engine, make_sessionmaker
 from app.models import ApiToken
 
 
-def create(session: Session, name: str) -> str:
-    """A new token (shown once) for NAME; its hash goes into api_tokens."""
+def create(session: Session, name: str, expires_at: datetime | None = None) -> str:
+    """A new token (shown once) for NAME; its hash goes into api_tokens. After EXPIRES_AT the API rejects it."""
     token = secrets.token_urlsafe(32)
-    session.add(ApiToken(name=name, token_hash=hash_token(token)))
+    session.add(ApiToken(name=name, token_hash=hash_token(token), expires_at=expires_at))
     session.commit()
     return token
 

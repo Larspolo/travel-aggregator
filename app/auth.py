@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.db import get_session
@@ -241,7 +241,10 @@ def require_token(request: Request,
         token_limiter.failure(address)
         raise unauthorized
     digest = hash_token(credentials.credentials)
-    token = session.scalar(select(ApiToken).where(ApiToken.token_hash == digest, ApiToken.revoked_at.is_(None)))
+    now = datetime.now(UTC)
+    token = session.scalar(select(ApiToken).where(
+        ApiToken.token_hash == digest, ApiToken.revoked_at.is_(None),
+        or_(ApiToken.expires_at.is_(None), ApiToken.expires_at > now)))
     if token is None or not hmac.compare_digest(token.token_hash, digest):
         token_limiter.failure(address)
         raise unauthorized
@@ -250,7 +253,7 @@ def require_token(request: Request,
         log.warning("API request limit reached for token %s", token.id)
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "too many requests",
                             headers={"Retry-After": str(wait)})
-    token.last_used_at = datetime.now(UTC)
+    token.last_used_at = now
     session.commit()
     return token
 
