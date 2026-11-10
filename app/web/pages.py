@@ -81,7 +81,7 @@ from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group,
 from app.timeofday import arrive_by_extras, night_extras, night_time_extras, overnight_extras, time_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trip_merge import is_linked, merge_choices
-from app.trips import archived_journeys, chain, find_journeys, list_trips, route_text
+from app.trips import archived_journeys, chain, find_journeys, list_trips, route_text, tag_journeys
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -309,14 +309,14 @@ def new_by_trip(session: Session) -> dict[int, int]:
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def index(request: Request, archived: bool = False, q: str = Query("", max_length=200),
-          session: Session = Depends(get_session)) -> HTMLResponse:
+          tag: str = Query("", max_length=20), session: Session = Depends(get_session)) -> HTMLResponse:
     rows = list_trips(session)
     archived_count = sum(1 for kind, _, _ in archived_journeys(rows, True) if kind == "trip")
     # a search on the trips list also finds the archived trips, below the other results (#1222)
-    archived_lines = find_journeys(rows, q, True) if q.strip() and not archived else []
+    archived_lines = tag_journeys(find_journeys(rows, q, True), tag) if q.strip() and not archived else []
     archived_found = sum(1 for kind, _, _ in archived_lines if kind == "trip")
     return templates.TemplateResponse(request, "trips.html",
-                                      {"lines": find_journeys(rows, q, archived), "q": q.strip(), "drops": drops_by_trip(session),
+                                      {"lines": tag_journeys(find_journeys(rows, q, archived), tag), "q": q.strip(), "tag": tag.strip(), "drops": drops_by_trip(session),
                                        "new": new_by_trip(session), "archived": archived, "archived_count": archived_count,
                                        "archived_lines": archived_lines, "archived_found": archived_found,
                                        "failing": failing_sources(session)})

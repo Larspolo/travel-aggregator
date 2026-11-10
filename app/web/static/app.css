@@ -460,6 +460,8 @@ button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(
 .trip-card-head .btn-icon:hover { background: var(--surface-2); }
 .trip-route { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); margin: 0; color: var(--muted); overflow-wrap: anywhere; }
 .trip-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin: 0; color: var(--muted); font-size: var(--text-sm); }
+.trip-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); margin: 0; }
+.trip-tags .chip { overflow-wrap: anywhere; max-width: 100%; }
 .trip-best {
   margin: var(--space-2) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--line); color: var(--muted);
   font-size: var(--text-sm); font-variant-numeric: tabular-nums;

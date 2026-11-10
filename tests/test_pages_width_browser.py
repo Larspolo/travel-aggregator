@@ -29,9 +29,11 @@ OUTSIDE = """(w) => [...document.querySelectorAll('body *')].filter(e => {
 def test_each_page_fits_the_screen(live, days_trip, sessions, path, width):  # noqa: F811
     from sqlalchemy import select
 
-    from app.models import Itinerary
+    from app.models import Itinerary, Trip
 
     with sessions() as s:
+        s.get(Trip, days_trip).tags_text = ", ".join(f"{k}tag-of-twenty-chars"[:20] for k in "abcde")  # #1951
+        s.commit()
         ids = s.scalars(select(Itinerary.id).where(Itinerary.trip_id == days_trip).order_by(Itinerary.id)).all()
     from playwright.sync_api import sync_playwright
 

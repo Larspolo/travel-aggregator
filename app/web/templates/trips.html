@@ -22,6 +22,7 @@
       <span class="chip{% if t.status == "booked" %} good{% elif t.status == "planning" %} info{% endif %}">{{ t.status }}</span>
     </p>
     <p class="trip-best">{% if t.best_price is not none %}Best <strong>{{ t.best_price | money(t.best_currency) }}</strong>{% if t.no_rate %} no rate{% endif %}{% if t.at_target %} <span class="drop">at target</span>{% endif %}{% if t.id in drops %} <span class="drop">price dropped {{ drops[t.id][1] | money(drops[t.id][0]) }}</span>{% endif %}{% else %}<span class="muted">no offers yet</span>{% endif %}{% if t.shared %} <span class="drop">shared</span>{% endif %}</p>
+    {% if t.tags %}<p class="trip-tags">{% for g in t.tags %}<a class="chip" href="/?tag={{ g | urlencode }}">{{ g }}</a> {% endfor %}</p>{% endif %}
     {% endcall %}
     {% endif %}
   {% endfor %}
@@ -38,8 +39,10 @@
   <label for="trip-q">Find trips</label>
   <input type="search" id="trip-q" name="q" value="{{ q }}" maxlength="200">
   {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
+  {% if tag %}<input type="hidden" name="tag" value="{{ tag }}">{% endif %}
   <button class="btn" type="submit">Find</button>
 </form>
+{% if tag %}<p class="trip-tag-filter">Tag: <strong>{{ tag }}</strong> <a href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a></p>{% endif %}
 {% if failing %}
 <div class="source-warning" role="alert">
   {% for h in failing %}
@@ -56,6 +59,10 @@
 {% elif archived_lines %}
 <h2>In the archive ({{ archived_found }})</h2>
 {{ trip_grid(archived_lines) }}
+{% elif tag %}
+{% call ui.empty_state('No trips with the tag "' ~ tag ~ '".') %}
+  <a class="btn" href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a>
+{% endcall %}
 {% elif q %}
 {% call ui.empty_state('No trip matches "' ~ q ~ '".') %}
   <a class="btn" href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a>

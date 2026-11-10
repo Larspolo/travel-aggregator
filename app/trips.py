@@ -51,6 +51,7 @@ class TripRow:
     shared: bool = False  # the trip has an active share link (#905)
     split_of_id: int | None = None  # the trip that this trip is a part of (#1177)
     notes: str | None = None  # not shown on the list; only searched (#1220)
+    tags: tuple[str, ...] = ()  # shown on the list as links to `/?tag=` (#1951)
 
 
 def list_trips(session: Session) -> list[TripRow]:
@@ -64,6 +65,7 @@ def list_trips(session: Session) -> list[TripRow]:
         select(
             Trip.id, Trip.title, Trip.origin_text, Trip.destination_text, Trip.date_from, Trip.date_to,
             Trip.status, Trip.return_of_id, Trip.split_of_id, Trip.target_price, Trip.share_hash, Trip.notes,
+                Trip.tags_text,
             Itinerary.id.label("itinerary_id"),
             Fare.id.label("fare_id"), Fare.latest_price, Fare.currency, CurrencyRate.eur_per_unit,
         )
@@ -108,6 +110,7 @@ def _trip_row(info: dict, rates: dict[str, Decimal]) -> TripRow:
         best_price=best_price, best_currency=best_currency, return_of_id=r.return_of_id, no_rate=no_rate,
         at_target=bool(in_eur) and r.target_price is not None and best_price <= r.target_price,
         shared=r.share_hash is not None, split_of_id=r.split_of_id, notes=r.notes,
+        tags=tuple(trip_tags(r.tags_text)),
     )
 
 
@@ -214,3 +217,20 @@ def chain(trip: Trip) -> list[Trip]:
 def _linked_after(trip: Trip) -> Trip | None:
     """The trip that has this trip as return_of (the query, not the relationship: its join is not one-to-one)."""
     return object_session(trip).scalar(select(Trip).where(Trip.return_of_id == trip.id))
+
+
+def tag_journeys(lines: list[tuple[str, TripRow, str]], tag: str) -> list[tuple[str, TripRow, str]]:
+    """The journeys of `lines` with a trip that has `tag` (#1951), with no case and no diacritics. A journey shows
+    whole, as in `find_journeys()`; a blank tag keeps all."""
+    from app.tripmatch import fold
+
+    needle = fold(tag.strip())
+    if not needle:
+        return lines
+    groups: list[list[tuple[str, TripRow, str]]] = []
+    for line in lines:
+        if line[0] == "trip" or not groups:
+            groups.append([])
+        groups[-1].append(line)
+    return [line for g in groups
+            if any(kind != "total" and any(fold(x) == needle for x in t.tags) for kind, t, _ in g) for line in g]
