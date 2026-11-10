@@ -54,7 +54,7 @@
 </ul>
 </section>
 {% endif %}
-{% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
+{% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.pareto_only or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <div class="trip-layout">
 <aside class="panel card" tabindex="0" aria-label="Weights and filters"><details class="panel-toggle"><summary>Weights and filters</summary>
 {% if profiles %}
@@ -75,6 +75,7 @@
     <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
     <label><input type="checkbox" name="show_departed" value="true"{% if view.show_departed %} checked{% endif %}> show departed</label>
     <label><input type="checkbox" name="hide_stale" value="true"{% if view.hide_stale %} checked{% endif %}> hide stale</label>
+    <label><input type="checkbox" name="pareto" value="true"{% if view.pareto_only %} checked{% endif %}> only these</label>
     <input type="hidden" name="sort" value="{{ view.sort }}"><input type="hidden" name="dir" value="{{ view.dir }}">
     <input type="hidden" id="view-day" name="day" value="{{ view.day }}">
     <label class="field">Mode <select name="mode"><option value="">All</option>
