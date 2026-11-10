@@ -19,6 +19,7 @@ from app.auth import require_login, verify_csrf
 from app.db import get_session
 from app.models import Capture, Trip
 from app.parsers import get_parser, parser_classes
+from app.redact import PERSONAL_KEYS, redact
 from app.har import HarError, read_har
 from app.schemas import MAX_BODY_BYTES, MAX_HAR_BYTES, IngestIn
 from app.web.pages import _get_trip, templates
@@ -242,6 +243,25 @@ def capture_raw_download(capture_id: int, session: Session = Depends(get_session
     safe_source = re.sub(r"[^A-Za-z0-9.-]", "", capture.source)
     return Response(gzip.decompress(capture.raw_gz), media_type="application/json",
                     headers={"Content-Disposition": f'attachment; filename="{safe_source}-{capture.id}.json"'})
+
+
+@router.get("/captures/{capture_id}/report.json", dependencies=[Depends(require_login)])
+def capture_report_download(capture_id: int, session: Session = Depends(get_session)) -> Response:
+    """The raw payload with its personal values REDACTED, for a bug report (#1904): the keys of its parser (#1903)."""
+    capture = session.get(Capture, capture_id)
+    if capture is None or capture.raw_gz is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no raw payload for capture {capture_id}")
+    try:
+        raw = json.loads(gzip.decompress(capture.raw_gz))
+    except ValueError:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no JSON payload for capture {capture_id}")
+    cls = parser_classes().get(capture.source)
+    keys = PERSONAL_KEYS | (cls.redact_keys if cls else frozenset())
+    url_keep = cls.url_keep if cls else frozenset()
+    body = json.dumps(redact(raw, keys, url_keep), ensure_ascii=False).encode("utf-8")
+    safe_source = re.sub(r"[^A-Za-z0-9.-]", "", capture.source)
+    return Response(body, media_type="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="{safe_source}-{capture.id}-report.json"'})
 
 
 @router.post("/captures/{capture_id}/move", response_class=HTMLResponse,

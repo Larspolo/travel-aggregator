@@ -931,6 +931,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     # the seen price of each shown fare before mark_seen() changes it: the price changes of the rows (#1092)
     context["seen"] = {f.id: f.seen_price for r in rows for f in r[0].fares}
     best_direct = min((r[2].total for r in shown), default=None)
+    context["hides_of"] = hides_of  # the filters that hide each offer: "Hide all" hides these (#1898)
     context["filtered"] = hidden_counts(tests, [  # the offers that each filter hides, in the order of the form (#1452)
         f"mode {mode}", f"source {source}", f"max transfers {limit_transfers}", f"max duration {limit_duration} min",
         f"depart after {earliest_depart}", f"arrive by {latest_arrive}",
@@ -1606,6 +1607,22 @@ def bulk_hide_or_pin(request: Request, trip_id: int, action: str = Query(""), it
         else:
             row.pinned = True
     session.commit()
+    return _rows_or_redirect(request, trip_id, session, view)
+
+
+@router.post("/trips/{trip_id}/itineraries/hide-filtered",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def hide_filtered(request: Request, trip_id: int, session: Session = Depends(get_session),
+                  view: dict = Depends(trip_view)) -> Response:
+    """"Hide all" of the filter line (#1898): hides each offer that a filter of the page hides, with the filters of
+    the request (the query of the button's formaction). The page is built as for a GET, so the rows are the same
+    ones that the line counts."""
+    filtered_page = trip_page(request, trip_id, session, **view)
+    ids = [it_id for it_id, labels in filtered_page.context["hides_of"].items() if labels]
+    if ids:
+        for row in session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, Itinerary.id.in_(ids))):
+            row.hidden = True
+        session.commit()
     return _rows_or_redirect(request, trip_id, session, view)
 
 

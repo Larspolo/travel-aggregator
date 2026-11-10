@@ -3,7 +3,7 @@
 {% block title %}Raw payload of capture {{ capture.id }} · travel-aggregator{% endblock %}
 {% block content %}
 {% call ui.page_header("Raw payload of capture " ~ capture.id, back=("/trips/" ~ capture.trip_id ~ "/captures", "Back to the captures")) %}{% endcall %}
-<p>Source: {{ capture.source }} · <a href="/captures/{{ capture.id }}/raw.json">Download JSON</a></p>
+<p>Source: {{ capture.source }} · <a href="/captures/{{ capture.id }}/raw.json">Download JSON</a> · <a href="/captures/{{ capture.id }}/report.json">Download for a bug report</a></p>
 {% if text is none %}
 {{ ui.empty_state("No raw payload") }}
 {% else %}

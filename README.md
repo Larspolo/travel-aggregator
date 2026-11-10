@@ -452,6 +452,8 @@ removed when it is fixed.
 
 The table of `/trips/{id}` has one row per journey. The same train from bahn.de and NS International shows once, with the fares of both sources in its "Legs and fares". Two offers are one journey when their modes and service numbers are the same, and their first departure and last arrival are at the same UTC time (the carrier and the times of the legs between do not count). The pin, hide, booked, note and price history are per journey.
 Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
+Tick the boxes of the rows, and a bar shows at the bottom of the table with the count. Its buttons work on the ticked rows: "Compare" opens the compare page, "Hide" hides all the ticked offers and "Pin" pins all of them. Each button also works with the keyboard and on a phone. When the filters hide offers, the line "Filters hide N of M offers" has the button "Hide all N": it hides each offer that the filters hide, so they stay hidden when you remove the filters.
+
 A fare of the 1st class shows the badge "1st" after its name. The badge shows in the fare list of each row and on the compare page.
 A fare that the site priced with a discount card shows the card name after its name, for example "BahnCard 50". No name shows when the capture does not tell the cards, or when the fare name already has the card name.
 When the current fares of a trip use different sets of discount cards, the trip page shows the warning "These fares use different discount cards: BahnCard 50, none", above the table. Each set shows once, joined with " + " when a fare uses more than one card, and "none" is the fare with no card. The warning counts only the fares that show as current: a hidden fare, a departed fare and a fare that a newer search did not show again do not count, and a fare with no known cards does not count.
@@ -1180,6 +1182,11 @@ The captures pages have a "Raw" link for each capture with raw data. The link op
 capture id and the raw payload as text. A capture with no raw data shows "No raw payload" instead of the link.
 A long payload shows only its start, with the note "The payload is N KB; download it to see all of it."
 The button "Download JSON" on that page downloads the whole raw payload as a JSON file named `<source>-<id>.json`.
+
+The link "Download for a bug report" on that page (`/captures/{id}/report.json`) downloads the same payload as a file named `<source>-<id>-report.json` with the
+personal values replaced by `"REDACTED"`: names, e-mail addresses, phone numbers, dates of birth, card and booking numbers,
+and the personal keys that the parser of the source names. The prices, the connections and the response stay as they are,
+so a parser fix can read the file. Check the file before you attach it to an issue: the app cannot find every personal value.
 
 ### Upload a payload file
 
