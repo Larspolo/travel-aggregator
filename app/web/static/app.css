@@ -104,6 +104,8 @@ nav.topbar .menu-links a.active { background: var(--accent-soft); color: var(--a
 /* The chart uses the colors of the page, in light and dark mode (#698). */
 .price-chart { max-width: 320px; color: var(--accent); }
 .price-chart circle { fill: currentColor; }
+#table, .price-hours { overflow-anchor: none; } /* the table swap keeps the scroll position (#1858) */
+.price-chart circle.other { fill: var(--surface); stroke: currentColor; stroke-width: 1.5; }
 .price-chart text { fill: var(--muted); font-size: var(--text-sm); }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .toolbar form { margin: 0; display: contents; }
