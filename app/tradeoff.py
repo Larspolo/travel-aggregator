@@ -74,3 +74,18 @@ def best_range(
         elif upper is None or result.hour_value < upper:
             upper = result.hour_value
     return lower, upper
+
+
+def best_at_price(best_total: Decimal, price: Decimal, total: Decimal) -> Decimal | None:
+    """Give the price at which an offer has the same effective cost as the best offer.
+
+    `total` is the effective cost of the offer at `price`; lowering the price by the
+    difference to `best_total` makes it as cheap as the best. Give None when a value is
+    not finite (no rate, #385) or when the price would be 0 or less.
+    """
+    if not all(t.is_finite() for t in (best_total, price, total)):
+        return None
+    result = price - (total - best_total)
+    if result <= 0:
+        return None
+    return result
