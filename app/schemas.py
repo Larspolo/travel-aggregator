@@ -143,6 +143,23 @@ def utc_offset_min(t: datetime) -> int:
 TripStatus = Literal["planning", "booked", "archived"]
 
 
+def clean_tags(text: str | None) -> str | None:
+    """The tags of a trip (#1950): strip them, drop blank and repeated ones (no case, no diacritics); at most 5 of at
+    most 20 characters. Returns the comma-separated text, or None with no tag."""
+    from app.tripmatch import fold  # app.tripmatch imports this module
+
+    tags: list[str] = []
+    for t in (text or "").split(","):
+        t = t.strip()
+        if t and fold(t) not in {fold(x) for x in tags}:
+            tags.append(t)
+    if len(tags) > 5:
+        raise ValueError("at most 5 tags")
+    if any(len(t) > 20 for t in tags):
+        raise ValueError("a tag has at most 20 characters")
+    return ", ".join(tags) or None
+
+
 class TripForm(BaseModel):
     """The fields of the create and edit forms of a trip (#22). An empty text field is None."""
 
@@ -173,19 +190,7 @@ class TripForm(BaseModel):
     @field_validator("tags_text")
     @classmethod
     def _tags(cls, v: str | None) -> str | None:
-        """Strip the tags, drop blank and repeated ones (no case, no diacritics); at most 5 of at most 20 characters."""
-        from app.tripmatch import fold  # app.tripmatch imports this module
-
-        tags: list[str] = []
-        for t in (v or "").split(","):
-            t = t.strip()
-            if t and fold(t) not in {fold(x) for x in tags}:
-                tags.append(t)
-        if len(tags) > 5:
-            raise ValueError("at most 5 tags")
-        if any(len(t) > 20 for t in tags):
-            raise ValueError("a tag has at most 20 characters")
-        return ", ".join(tags) or None
+        return clean_tags(v)
 
     @model_validator(mode="after")
     def _dates_in_order(self) -> "TripForm":
