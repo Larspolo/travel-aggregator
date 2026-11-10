@@ -26,4 +26,18 @@
   <button class="btn btn-primary" type="submit">Save</button>
 </form>
 {% endcall %}
+{% if profile %}
+{% call ui.card("Hour value of your bookings") %}
+{% if fit %}
+{% set low, high, count, total = fit %}
+<p class="hour-fit">Your bookings fit an hour value {% if low is not none %}from €{{ low|int if low == low|int else low }}{% endif %}{% if low is not none and high is not none %} {% endif %}{% if high is not none %}{% if low is none %}up {% endif %}to €{{ high|int if high == high|int else high }}{% endif %} ({{ count }} of {{ total }} bookings)</p>
+<form method="post" action="/profiles/{{ profile.id }}/hour-value">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <button class="btn" type="submit">Use this hour value</button>
+</form>
+{% else %}
+<p class="hour-fit">No bookings to compare yet</p>
+{% endif %}
+{% endcall %}
+{% endif %}
 {% endblock %}
