@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 18;
+const CORE_VERSION = 19;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -342,6 +342,8 @@ const CORE_VERSION = 18;
   // One hook of fetch and XMLHttpRequest for all site userscripts. It only reads the responses that the page itself
   // gets (P1). Each watcher gets {url, method, body, text} of a response whose URL it accepts.
   const watchers = [];
+  // A response that a watcher accepts stops the timer of a results page (#1756). Set once core.resultsPage runs.
+  let onAccepted = () => {};
   // The text of a response or a request body: a string, JSON, a Blob, an ArrayBuffer (or a view) or URLSearchParams.
   const asText = (v) => {
     try {
@@ -364,6 +366,7 @@ const CORE_VERSION = 18;
     watchers.forEach((w) => {
       try { if (w.accepts(url)) w.onResponse(r); } catch (e) { /* a site error does not stop the others */ }
     });
+    if (accepted(url)) onAccepted();
   };
   const accepted = (url) => watchers.some((w) => { try { return w.accepts(url); } catch (e) { return false; } });
   function hook() {
@@ -498,6 +501,64 @@ const CORE_VERSION = 18;
   const later = () => setTimeout(core.diagnose, 3000);
   if (root.document && root.document.readyState === "complete") later();
   else root.addEventListener("load", later);
+
+  // No offers seen (#1756): on a results page, a timer of SILENT_MS waits for a response that a watcher accepts.
+  // When none comes, the panel says so and one POST /api/silent (#1755) tells the server. No queue, no retry, no
+  // browser dialog (P1, P6). A change of the location (a new search of a single-page site) starts the timer again.
+  const SILENT_MS = 30000;
+  let silentTimer = null;
+  let silentTest = null;
+  let silentSource = "";
+  let silentVersion = "";
+  let silentHooked = false;
+  const silentStop = () => { clearTimeout(silentTimer); silentTimer = null; };
+  onAccepted = silentStop;
+  const silentSend = () => {
+    silentTimer = null;
+    panel.setStatus("No offers seen on this page", "warn");
+    const { server, token } = config();
+    if (!/^https?:\/\//.test(server)) return;
+    gm.request({
+      method: "POST",
+      url: server + "/api/silent",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      data: JSON.stringify({
+        source: silentSource,
+        page_url: root.location.pathname + root.location.search,
+        seen_at: new Date().toISOString(),
+        script_version: silentVersion,
+      }),
+      onerror: () => {},
+      ontimeout: () => {},
+    });
+  };
+  const silentCheck = () => {
+    silentStop();
+    let onResults = false;
+    try { onResults = Boolean(silentTest && silentTest(new URL(root.location.href))); } catch (e) { onResults = false; }
+    if (onResults) silentTimer = setTimeout(silentSend, SILENT_MS);
+  };
+  core.resultsPage = (test, source, version) => {
+    silentTest = test;
+    silentSource = String(source || "");
+    silentVersion = String(version || "");
+    if (!silentHooked) {
+      silentHooked = true;
+      const h = root.history;
+      ["pushState", "replaceState"].forEach((name) => {
+        const orig = h && h[name];
+        if (typeof orig !== "function") return;
+        h[name] = function () {
+          const r = orig.apply(this, arguments);
+          silentCheck();
+          return r;
+        };
+      });
+      root.addEventListener("popstate", silentCheck);
+      root.addEventListener("hashchange", silentCheck);
+    }
+    silentCheck();
+  };
   // The panel has the settings too (#536): the Tampermonkey menu is hidden in the extension popup.
   const setServer = async () => {
     const v = await panel.ask("travel-aggregator server URL", config().server, "url");
