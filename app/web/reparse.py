@@ -257,6 +257,19 @@ def reparse_capture(request: Request, capture_id: int, session: Session = Depend
     return HTMLResponse(f'<span class="reparse-result">{_escape(message)}</span>')
 
 
+@router.post("/captures/{capture_id}/keep", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def keep_capture(capture_id: int, keep: str = Form(...), session: Session = Depends(get_session)) -> RedirectResponse:
+    """Set (keep=1) or clear (keep=0) the keep mark of a capture (#2018): a kept capture survives the retention cleanup."""
+    if keep not in ("0", "1"):
+        raise HTTPException(422, "keep must be 1 or 0")
+    capture = session.get(Capture, capture_id)
+    if capture is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no capture {capture_id}")
+    capture.kept = keep == "1"
+    session.commit()
+    return RedirectResponse(f"/captures/{capture_id}/raw", status_code=status.HTTP_303_SEE_OTHER)
+
+
 RAW_LIMIT = 200_000
 
 

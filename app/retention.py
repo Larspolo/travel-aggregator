@@ -36,5 +36,5 @@ def delete_old_captures(session: Session, days: int, now: datetime) -> int:
     if limit is None:
         return 0
     session.execute(delete(SilentPage).where(SilentPage.seen_at < limit))  # #1755
-    result = session.execute(delete(Capture).where(Capture.captured_at < limit))
+    result = session.execute(delete(Capture).where(Capture.captured_at < limit, Capture.kept.is_(False)))  # #2018
     return result.rowcount

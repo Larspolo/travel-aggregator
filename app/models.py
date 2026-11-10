@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from sqlalchemy import (
     JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, String, Text, Time, UniqueConstraint,
-    func, text,
+    false, func, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -194,6 +194,8 @@ class Capture(Base):
     received_at: Mapped[datetime | None] = mapped_column(_tz(), server_default=func.now())
     # The version of the server parser that parsed the capture last (#1989); NULL = not parsed, or before 0048.
     parsed_with: Mapped[str | None] = mapped_column(String(50))
+    # The keep mark (#2018): the retention cleanup does not delete a kept capture.
+    kept: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     __table_args__ = (UniqueConstraint("token_id", "capture_key", name="uq_captures_token_key"),)
 
