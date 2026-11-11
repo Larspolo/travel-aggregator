@@ -31,6 +31,12 @@ def trip_score_trend(session: Session, trip, weights: Weights, places, rates=Non
     capture. A day with no capture keeps the value of the day before. Each itinerary that is not hidden counts with
     the newest price of each fare at the end of the day; a fare with no price row yet does not count. No row is
     stale on a past day (`stale_before` is the earliest time)."""
+    return [(day, cost) for day, _, cost, _ in _best_by_day(session, trip, weights, places, rates, counts, fees)]
+
+
+def _best_by_day(session: Session, trip, weights: Weights, places, rates, counts, fees) -> list[tuple]:
+    """`(day, best itinerary, its cost, cost of each itinerary id)` at the end of each day (`trip_score_trend()`).
+    The best of the day before stays on a tie; else the lowest cost, the earliest departure, the lowest id."""
     its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
                           .options(selectinload(Itinerary.fares))).all()
     fares = {f.id: (it, f) for it in its for f in it.fares}
@@ -39,8 +45,9 @@ def trip_score_trend(session: Session, trip, weights: Weights, places, rates=Non
         .where(FarePrice.fare_id.in_(fares)).order_by(FarePrice.captured_at, FarePrice.id)).all() if fares else []
     if not rows:
         return []
-    result: list[tuple[date, Decimal]] = []
+    result: list[tuple] = []
     newest: dict[int, tuple[Decimal, str]] = {}  # fare id to its newest price and currency so far
+    best = None
     i, day, last = 0, _day(rows[0].captured_at), _day(rows[-1].captured_at)
     while day <= last:
         while i < len(rows) and _day(rows[i].captured_at) <= day:
@@ -50,8 +57,21 @@ def trip_score_trend(session: Session, trip, weights: Weights, places, rates=Non
         for fare_id, (price, currency) in newest.items():
             it, fare = fares[fare_id]
             by_it.setdefault(it.id, [it]).append(_FareOnDay(fare, price, currency))
-        costs = [row_cost(v[0], v[1:], places, weights, _NO_STALE, rates, counts, fees)[1].total
-                 for v in by_it.values()]
-        result.append((day, min(costs)))
+        costs = {k: row_cost(v[0], v[1:], places, weights, _NO_STALE, rates, counts, fees)[1].total
+                 for k, v in by_it.items()}
+        low = min(costs.values())
+        if best is None or costs.get(best.id) != low:
+            best = min((by_it[k][0] for k, c in costs.items() if c == low), key=lambda it: (it.depart_at, it.id))
+        result.append((day, best, low, costs))
         day += timedelta(days=1)
     return result
+
+
+def best_changes(session: Session, trip, weights: Weights, places, rates=None, counts=None, fees=None,
+                 limit=5) -> list[tuple]:
+    """The days on which another itinerary became the best (#2165): `(day, old itinerary, old cost on that day,
+    new itinerary, new cost)`, the newest day first, at most `limit` entries."""
+    days = _best_by_day(session, trip, weights, places, rates, counts, fees)
+    changes = [(day, old, costs[old.id], new, cost)
+               for (_, old, _, _), (day, new, cost, costs) in zip(days, days[1:]) if new.id != old.id]
+    return changes[::-1][:limit]
