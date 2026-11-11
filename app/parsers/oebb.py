@@ -102,9 +102,19 @@ def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str]]:
     return {name: best[name] for name, _ in TIERS.values() if name in best}
 
 
+def _bike(connection: dict) -> str | None:
+    """The bicycle transport of a connection (#2460): true is "allowed" (no reservation is known), false "no"."""
+    value = connection.get("bikeAccessible")
+    if value is True:
+        return "allowed"
+    if value is False:
+        return "no"
+    return None
+
+
 class OebbParser:
     source = "oebbtickets.at"
-    version = "1.1.0"
+    version = "1.2.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have only the passenger id "1" (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -151,6 +161,7 @@ class OebbParser:
 
     def _fares(self, response: dict) -> list[OfferIn]:
         trip = legs(response["connection"])
+        bike = _bike(response["connection"])
         base, tiers = Decimal("0"), {}
         for section in response["offerSections"]:
             t = _tiers(section)
@@ -162,6 +173,6 @@ class OebbParser:
             tiers = {None: (Decimal("0"), None, None)}
         return [
             OfferIn(price_amount=base + price, price_currency=CURRENCY, fare_name=name, flexibility=flex,
-                    travel_class="standard", berth=berth, legs=trip, booking_url=BOOKING_URL)
+                    travel_class="standard", berth=berth, legs=trip, booking_url=BOOKING_URL, bike=bike)
             for name, (price, flex, berth) in tiers.items()
         ]
