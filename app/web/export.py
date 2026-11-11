@@ -76,7 +76,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
             "target_price": str(trip.target_price) if trip.target_price is not None else None,
             "arrive_by": trip.arrive_by.strftime("%H:%M") if trip.arrive_by else None,
             "leave_after": trip.leave_after.strftime("%H:%M") if trip.leave_after else None,
-            "checked_bag": trip.checked_bag,
+            "checked_bag": trip.checked_bag, "bike": trip.bike,
             "hour_value": str(trip.hour_value) if trip.hour_value is not None else None,
             "tags": trip_tags(trip.tags_text),
         },
@@ -111,7 +111,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                         "berth": fare.berth,
                         "flexibility": fare.flexibility, "booking_url": fare.booking_url,
                         "latest_price": str(fare.latest_price), "currency": fare.currency,
-                        "reservation_legs": fare.reservation_legs,
+                        "reservation_legs": fare.reservation_legs, "bike": fare.bike,
                         "latest_captured_at": _iso(fare.latest_captured_at),
                         "prices": [
                             {"captured_at": _iso(p.captured_at), "price": str(p.price), "currency": p.currency}
