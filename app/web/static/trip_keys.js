@@ -5,6 +5,14 @@ document.addEventListener("keydown", function (e) {
   var t = e.target;
   if (e.ctrlKey || e.altKey || e.metaKey) return;
   if (t && (t.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName))) return;
+  if (e.key === "?") {  // the keys panel (#2439); Escape closes it (the popover does that itself)
+    var panel = document.getElementById("keys");
+    if (panel && panel.showPopover && !panel.matches(":popover-open")) {
+      e.preventDefault();
+      panel.showPopover();
+    }
+    return;
+  }
   var rows = Array.prototype.slice.call(document.querySelectorAll('tr[id^="it-"]'));  // read at each key: htmx swaps #table
   var i = rows.indexOf(document.activeElement);
   if (e.key === "j" || e.key === "k") {

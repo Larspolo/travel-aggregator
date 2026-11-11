@@ -236,6 +236,16 @@
 {% with oob = false %}{% include "trip_filtered.html" %}{% endwith %}
 {% include "trip_estimates.html" %}
 {% if view.change_line %}{% set at, n, kind = view.change_line %}<p class="capture-change-filter">Changes of the capture of <time datetime="{{ at.isoformat() }}">{{ at.strftime('%Y-%m-%d %H:%M') }} UTC</time>: {{ n }} {{ kind }} · <a href="{{ view.all_changes_href }}">Show all</a></p>{% endif %}
+<p><button type="button" popovertarget="keys">Keys</button></p>
+<div id="keys" popover="auto" class="card" aria-labelledby="keys-title">
+<h2 id="keys-title">Keys</h2>
+<dl>
+<dt><kbd>j</kbd> and <kbd>k</kbd></dt><dd>Move the focus to the next or the previous row</dd>
+<dt><kbd>Enter</kbd></dt><dd>Open or close the details of the focused row</dd>
+<dt><kbd>?</kbd></dt><dd>Open this panel</dd>
+<dt><kbd>Escape</kbd></dt><dd>Close this panel</dd>
+</dl>
+</div>
 <div class="card table-card" id="table">
 {% if budget_line %}<p class="budget-left">{{ budget_line }}</p>{% endif %}
 {% include "trip_table.html" %}
