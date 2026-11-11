@@ -1146,6 +1146,10 @@ The rules:
 - A journey with no paid price counts as a journey, but adds nothing to the sum.
 - The CO₂ is an estimate per traveler: the hours of each leg times the kg per hour of its mode, with the kg per hour of the default profile. The page shows "about N kg CO₂" for each year and each mode, and names the profile.
 
+A budget is optional and has no default. Each year has the field "Budget (EUR)" on "Travel per year": enter the amount and save it. The page then shows the paid sum of the year against the budget and the rest, for example "€1,015.80 of €1,200.00 · €184.20 left", or "over the budget" with the amount over it.
+
+A trip of that year shows the rest of the budget next to its best offer, for example "€184.20 left of the budget of 2026". A fare whose price is more than the rest has the mark "over the budget".
+
 Each year has the link "Export CSV". It downloads the file `travel-<year>.csv` (`/upcoming/years/<year>/export.csv`)
 with one row for each booked or cancelled journey of the year, in the order of departure. The year of a journey has the
 rule above. The columns:
