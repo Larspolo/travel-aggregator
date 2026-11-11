@@ -29,7 +29,7 @@ def upgrade() -> None:
         sa.CheckConstraint("cost >= 0", name="ck_trip_access_times_cost"),
     )
     op.create_index("uq_trip_access_times_place", "trip_access_times",
-                    ["trip_id", "kind", sa.text("lower(trim(place_text))")], unique=True)
+                    ["trip_id", "kind", sa.text("lower(TRIM(BOTH FROM place_text))")], unique=True)
 
 
 def downgrade() -> None:

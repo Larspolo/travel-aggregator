@@ -248,7 +248,6 @@ class TripAccessTime(Base):
         CheckConstraint("kind IN ('access', 'egress')", name="ck_trip_access_times_kind"),
         CheckConstraint("minutes >= 0", name="ck_trip_access_times_minutes"),
         CheckConstraint("cost >= 0", name="ck_trip_access_times_cost"),
-        Index("uq_trip_access_times_place", "trip_id", "kind", text("lower(trim(place_text))"), unique=True),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -259,6 +258,11 @@ class TripAccessTime(Base):
     cost: Mapped[Decimal] = mapped_column(Money)
 
     trip = True  # the label of #2109: an override of the trip
+
+
+# The text is the form that PostgreSQL gives back, so that autogenerate finds no change (test_models.py).
+Index("uq_trip_access_times_place", TripAccessTime.trip_id, TripAccessTime.kind,
+      text("lower(TRIM(BOTH FROM place_text))"), unique=True)
 
 
 class CurrencyRate(Base):
