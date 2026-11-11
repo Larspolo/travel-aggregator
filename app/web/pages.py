@@ -27,7 +27,8 @@ from app.version import revisions
 from app.web.userscripts import bundle_info, userscript_list
 from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter,
                       require_login, safe_next, session_epoch, verify_csrf)
-from app import departed
+from app import departed, sales_open
+from app.parsers import all_sources
 from app.door import door_minutes
 from app.compare_parts import part_rows
 from app.pareto import pareto_ids
@@ -2292,6 +2293,7 @@ def messages_page(request: Request, session: Session = Depends(get_session)) -> 
         "reminder_before_days": setting(session, REMINDER_BEFORE_KEY, "14"), "max_reminder_days": MAX_REMINDER_DAYS,
         "travel_day_hours": setting(session, TRAVEL_DAY_HOURS_KEY, "0"), "max_travel_day_hours": MAX_TRAVEL_DAY_HOURS,
         "source_alert": setting(session, SOURCE_ALERT_KEY, "1"),
+        "horizons": [(src, setting(session, sales_open.HORIZON_KEY.format(source=src))) for src in all_sources()],
         "smtp_ready": bool(get_settings().smtp_host),
         "vapid_public_key": get_settings().vapid_public_key if webpush_ready() else "",
         "push_count": session.scalar(select(func.count()).select_from(PushSubscription)),
@@ -2365,6 +2367,29 @@ def save_messages(notify_channel: str = Form("none"), ntfy_url: str = Form(""), 
     if travel_day_hours != REMINDER_NOT_SENT:
         session.merge(Setting(key=TRAVEL_DAY_HOURS_KEY, value=str(int(travel_day_hours.strip()))))
     session.commit()
+    return RedirectResponse("/settings/messages", status_code=303)
+
+
+@router.post("/settings/sales-open", dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def save_sales_open(request: Request, session: Session = Depends(get_session)) -> RedirectResponse:
+    """The booking horizon in days per source (#2255). A blank field removes it; a bad value changes nothing."""
+    form = await request.form()
+    values = {src: str(form.get(f"horizon_{src}", "")).strip() for src in all_sources()
+              if f"horizon_{src}" in form}
+    for src, value in values.items():
+        if value and not (value.isascii() and value.isdecimal()
+                          and sales_open.MIN_DAYS <= int(value) <= sales_open.MAX_DAYS):
+            request.session["flash"] = (f"The booking horizon of {src} must be a whole number from "
+                                        f"{sales_open.MIN_DAYS} to {sales_open.MAX_DAYS} days. Nothing changed.")
+            return RedirectResponse("/settings/messages", status_code=303)
+    for src, value in values.items():
+        key = sales_open.HORIZON_KEY.format(source=src)
+        if value:
+            session.merge(Setting(key=key, value=str(int(value))))
+        elif (row := session.get(Setting, key)) is not None:
+            session.delete(row)
+    session.commit()
+    request.session["flash"] = "Booking horizons saved"
     return RedirectResponse("/settings/messages", status_code=303)
 
 

@@ -46,6 +46,23 @@
     <button class="btn" type="submit" formaction="/settings/messages/test">Send a test message</button></div>
 </form>
 {% endcall %}
+{% call ui.card("Advanced") %}
+<details id="sales-open"><summary>Booking horizon per source</summary>
+<form method="post" action="/settings/sales-open">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p class="help">The number of days before the trip date when the source opens its sales. Empty is no horizon.</p>
+  <div class="form-grid">
+  {% for src, days in horizons %}
+    <div class="field">
+      <label for="horizon_{{ src }}">{{ src }} (days)</label>
+      <input id="horizon_{{ src }}" name="horizon_{{ src }}" inputmode="numeric" value="{{ days }}">
+    </div>
+  {% endfor %}
+  </div>
+  <div class="form-actions"><button class="btn" type="submit">Save the horizons</button></div>
+</form>
+</details>
+{% endcall %}
 {% call ui.card("Last messages") %}
 {% if messages %}
 <table>
