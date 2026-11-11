@@ -50,7 +50,7 @@
   <pre class="share-link">{{ share_link }}</pre></section>{% endif %}
 {% if flash %}<p class="card" role="status">{{ flash }}</p>{% endif %}
 {% if cards_warning %}<p class="card cards-warning" role="status">{{ cards_warning }}</p>{% endif %}
-<ul class="search-links" aria-label="Search status of each source">{% for c in coverage %}<li>{% if c.failed %}{{ c.name }}: last search failed · <a href="/trips/{{ trip.id }}/captures?failed=1">Failed captures</a>{% elif c.captured_at %}{{ c.name }}: {{ c.captured_at|ago(now) }} · {{ c.offer_count or 0 }} offers{% else %}{{ c.name }}: not searched yet{% endif %}{% if c.url %} · <a href="{{ c.url }}" target="_blank" rel="noopener">Search on {{ c.name }}</a>{% endif %}</li>{% endfor %}</ul>
+<ul class="search-links" aria-label="Search status of each source">{% for c in coverage %}<li>{% if c.failed %}{{ c.name }}: last search failed · <a href="/trips/{{ trip.id }}/captures?failed=1">Failed captures</a>{% elif c.captured_at %}{{ c.name }}: {{ c.captured_at|ago(now) }} · {{ c.offer_count or 0 }} offers{% elif c.sales_open_on %}{{ c.name }}: sales open on {{ c.sales_open_on.isoformat() }}{% else %}{{ c.name }}: not searched yet{% endif %}{% if c.url and not c.sales_open_on %} · <a href="{{ c.url }}" target="_blank" rel="noopener">Search on {{ c.name }}</a>{% endif %}</li>{% endfor %}</ul>
 {% include "journey.html" %}
 {% if booked_conflicts %}
 <section class="booked-conflicts card" id="booked-conflicts" role="alert">
