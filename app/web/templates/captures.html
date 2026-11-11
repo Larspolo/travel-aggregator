@@ -64,7 +64,7 @@
     {% if not trip %}<td><a href="/trips/{{ c.trip_id }}">{{ trip_titles[c.trip_id] }}</a></td>{% endif %}
     <td><time datetime="{{ c.captured_at.isoformat() }}" title="{{ c.captured_at.strftime('%Y-%m-%d %H:%M') }} UTC">{{ c.captured_at | ago(now) }}</time></td><td>{{ c.source }}{% if c.travelers %}<br><small class="capture-travelers">{{ c.travelers }} traveler{{ "s" if c.travelers != 1 }}</small>{% endif %}{% if c.kept %}<br><span class="muted">kept</span>{% endif %}</td><td>{{ c.parser_version or "-" }}</td>
     <td>{{ c.offer_count if c.offer_count is not none else "-" }}</td>
-    <td>{% set ch = capture_changes.get(c.id) %}{% if c.offer_count is none %}-{% elif ch and (ch.new or ch.lower or ch.higher) %}{{ ch.new | length }} new, {{ ch.lower | length }} lower, {{ ch.higher | length }} higher{% else %}no change{% endif %}</td>
+    <td>{% set ch = capture_changes.get(c.id) %}{% if c.offer_count is none %}-{% elif ch and (ch.new or ch.lower or ch.higher) %}{% for kind in ("new", "lower", "higher") %}{% set n = ch[kind] | length %}{% if n %}<a class="change-link" href="/trips/{{ c.trip_id }}?capture={{ c.id }}&amp;change={{ kind }}">{{ n }} {{ kind }}</a>{% else %}0 {{ kind }}{% endif %}{{ ", " if not loop.last }}{% endfor %}{% else %}no change{% endif %}</td>
     <td>{{ c.rejected_count if c.rejected_count is not none else "-" }}</td>
     {% set failed = c.unreadable or (c.rejected_count or 0) > 0 %}
     {% if failed %}
