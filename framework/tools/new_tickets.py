@@ -18,7 +18,8 @@ optional head lines, then the body (the `ticket` skill form):
     ...
     Depends on: #new1
 
-`parent: E` links the ticket as a sub-issue of epic E. `#newK` (in the body and in `parent:`) is the number of the
+`lane: main <reason>`: a `size:S` ticket with no lane label needs it (the reason it needs Opus, #2129); it adds no
+label. `parent: E` links the ticket as a sub-issue of epic E. `#newK` (in the body and in `parent:`) is the number of the
 K-th ticket of the same file, so a chain or a new epic with its sub-issues fits in one file: make the earlier ticket
 first. A body (not `parent:`) may name a later ticket of the file (for example an epic's `## Owner checks` names its
 sub-issues): the tool makes that ticket, then patches the body once with the number. Each body needs the sections `## Goal` and `## Acceptance criteria` (the `ticket` skill; the hook
@@ -35,7 +36,9 @@ import dashboard  # noqa: E402
 
 NEW = re.compile(r"#new(\d+)\b")
 PARENT_NEW = re.compile(r"new(\d+)$")
-HEAD = re.compile(r"^(labels|parent):\s*(.*)$")
+HEAD = re.compile(r"^(labels|parent|lane):\s*(.*)$")
+MAIN = re.compile(r"main\s+\S")
+NO_LANE = {"epic", "decision"}  # the `ticket` skill: epics and decision tickets get no lane label
 
 
 def parse(text):
@@ -43,7 +46,7 @@ def parse(text):
     out = []
     for line in text.splitlines():
         if line.startswith("# "):
-            out.append({"title": line[2:].strip(), "labels": [], "parent": None, "body": [], "head": True})
+            out.append({"title": line[2:].strip(), "labels": [], "parent": None, "lane": None, "body": [], "head": True})
             continue
         if not out:
             if line.strip():
@@ -53,6 +56,8 @@ def parse(text):
         if t["head"] and m:
             if m[1] == "labels":
                 t["labels"] = [x.strip() for x in m[2].split(",") if x.strip()]
+            elif m[1] == "lane":
+                t["lane"] = m[2].strip()
             else:
                 t["parent"] = m[2].strip().lstrip("#")
             continue
@@ -67,7 +72,22 @@ def parse(text):
             raise ValueError("a ticket has no title")
         if not ("## Goal" in t["body"] and "## Acceptance criteria" in t["body"]):
             raise ValueError(f"{t['title']!r}: a new issue needs the sections ## Goal and ## Acceptance criteria")
+        lane(t)
     return out
+
+
+def lane(t):
+    """Raise ValueError for a `size:S` ticket with no lane (#2129: Opus runs did 4 such tickets that Haiku does for
+    1/8 of the cost). The `ticket` skill, "Model lanes": each `size:S` ticket gets `lane:haiku` unless it needs a
+    render, a screenshot or a judgment of a look; then the head line `lane: main <reason>` says why."""
+    if t["lane"] is not None and not MAIN.match(t["lane"]):
+        raise ValueError(f"{t['title']!r}: write 'lane: main <reason>' (the reason the ticket needs Opus), "
+                         "or give the label lane:haiku or lane:deep")
+    labels = set(t["labels"])
+    if ("size:S" in labels and not labels & NO_LANE and t["lane"] is None
+            and not any(x.startswith("lane:") for x in labels)):
+        raise ValueError(f"{t['title']!r}: a size:S ticket gets lane:haiku, or the head line 'lane: main <reason>' "
+                         "when it needs a render, a screenshot or a judgment of a look (ticket skill, Model lanes)")
 
 
 def check(tickets):

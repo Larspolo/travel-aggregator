@@ -24,6 +24,7 @@ Part one.
 
 # Make the second part
 labels: P2, size:S
+lane: main the row needs a screenshot
 parent: new1
 
 ## Goal
