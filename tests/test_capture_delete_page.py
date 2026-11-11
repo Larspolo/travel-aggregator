@@ -44,7 +44,7 @@ def test_captures_page_links_each_capture_to_its_delete_page(client, sessions):
     cid = _ingest(c, auth, trip_id, sessions, raw={"a": 1})
     text = c.get(f"/trips/{trip_id}/captures").text
     assert f'href="/captures/{cid}/delete"' in text
-    assert re.search(rf'<a class="delete-capture" href="/captures/{cid}/delete">Delete</a>', text)
+    assert re.search(rf'<a class="btn btn-danger delete-capture" href="/captures/{cid}/delete">Delete</a>', text)
 
 
 def test_confirm_page_shows_the_counts_and_a_delete_button(client, sessions):
