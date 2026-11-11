@@ -114,6 +114,7 @@ def booking_intervals(session: Session, weights: Weights, places, rates, fees) -
     The offers are the itineraries of the trip that did not depart before `booked_at`, each fare at the
     price of its newest `FarePrice` at or before `booked_at`. A booking with no other offer gives None.
     """
+    from app.door import trip_places
     from app.web.pages import row_cost  # here: the profile page will import this module
 
     booked = or_(Itinerary.booked.is_(True), Itinerary.cancelled_at.is_not(None))
@@ -125,15 +126,19 @@ def booking_intervals(session: Session, weights: Weights, places, rates, fees) -
                       key=lambda it: (it.booked_at, it.id))
     higher = dataclasses.replace(weights, hour_markup=weights.hour_markup + 1)
     result = []
+    own_places: dict = {}  # the places of each trip, loaded once per trip (#2109)
     for b in bookings:
         at = b.booked_at
+        if b.trip_id not in own_places:
+            own_places[b.trip_id] = trip_places(session, b.trip)
+        trip_pl = own_places[b.trip_id]
         offers = [(it, o) for it in its if it.trip_id == b.trip_id and it.depart_at >= at
                   for o in [_offer_at(it, at)] if o is not None]
         counts = _travelers(session, [prices for _, (_, prices) in offers])
         stale_before = at - timedelta(hours=weights.stale_hours)
 
         def totals(view):
-            return tuple(row_cost(view, view.fares, places, w, stale_before, rates, counts, fees)[1].total
+            return tuple(row_cost(view, view.fares, trip_pl, w, stale_before, rates, counts, fees)[1].total
                          for w in (weights, higher))
         mine = [view for it, (view, _) in offers if it.id == b.id]
         others = [totals(view) for it, (view, _) in offers if it.id != b.id]
