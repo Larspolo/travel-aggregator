@@ -1250,6 +1250,20 @@ wait until the prices show in the list. The panel shows the number of captured o
 
 The trip page has no ÖBB search link yet. Open the search on the ÖBB site yourself.
 
+### SBB userscript
+
+The SBB userscript captures the search results of www.sbb.ch: the connections, their times and their fares.
+It reads only the responses that the SBB page itself gets. It sends no request to sbb.ch.
+
+To install it, add the file `userscripts/sbb.user.js` of this repository to Tampermonkey as a new script.
+Then set the server URL and the API token in the Tampermonkey menu. On www.sbb.ch, search for a journey.
+The panel shows the number of captured offers.
+
+A Half Fare card of a traveler (Halbtax) shows in the fare as the discount card "Half Fare card". A GA travelcard
+shows as "GA travelcard". A fare with no card shows no card name.
+
+The search status of a trip shows a search link to www.sbb.ch. Use it to open the same search on the site.
+
 ### Parse result of a capture
 
 The column "Captured" shows the age of each capture, for example "2 h ago". Point at the age to see the full UTC time.
