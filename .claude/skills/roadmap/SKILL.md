@@ -65,3 +65,9 @@ When `python3 framework/tools/claim.py 0 --roadmap` exits 0, after step 8 of the
 3. Keep the order: the features that the next features need come first.
 4. Put the change into the PR of your ticket, or make a `docs`, `size:S` ticket for it. The owner can change the list
    at any time.
+5. Make the epics of the new features in the same run, before the PR merges, when fewer tickets are ready than the
+   target (R < N, `Deep work` of `cycle_start.py`) and `python3 framework/tools/claim.py 0 --refill` exits 0: do
+   "Make the next epic" above for each new feature that an agent can start, up to the cap of the refill
+   (`autopilot/queue.md`). An epic needs only the key in its body, not the merged line. Else the merge makes a refill
+   source, and the pacer starts a second deep run only for these epics: 6 of 8 roadmap reviews in 100 PRs had such a
+   run within 15 minutes, $11 of the $42 of the deep lane (#2454).
