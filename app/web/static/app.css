@@ -692,3 +692,4 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 
 /* the days on which the best offer changed (#2166): a long carrier text wraps at a phone width */
 .best-changes { padding-left: 1.2rem; overflow-wrap: anywhere; }
+details.builtin-places > summary { min-height: 44px; }

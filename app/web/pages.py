@@ -72,8 +72,10 @@ from app.profiles import active_weights, default_weights, delete as delete_profi
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
 from app.same_journey import JoinError, join, split
-from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PushSubscription, ScoreProfile, Setting,
+from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PlaceName, PushSubscription, ScoreProfile, Setting,
                         SentMessage, SourceFee, Trip, TripAccessTime)
+from app.place_names import aliases as place_aliases
+from app.tripmatch import ALIASES, fold
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
                         REMINDER_DAYS_KEY, REMINDER_NOT_SENT, SOURCE_ALERT_KEY, alert_messages, deliver, setting,
                         webpush_ready)
@@ -2093,7 +2095,45 @@ def settings_page(request: Request, session: Session = Depends(get_session)) -> 
                                                                  "passkeys": passkeys.listing(session),
                                                                  "logins": login_log.recent(session),
                                                                  "metrics_token": request.session.pop("metrics_token", None),
-                                                                 "metrics_on": session.get(Setting, "metrics_token_hash") is not None})
+                                                                 "metrics_on": session.get(Setting, "metrics_token_hash") is not None,
+                                                                 "place_names": session.scalars(select(PlaceName).order_by(PlaceName.city, PlaceName.id)).all(),
+                                                                 "builtin_places": ALIASES,
+                                                                 "place_error": request.session.pop("place_error", None)})
+
+
+def _place_name_error(session: Session, city: str, name: str) -> str | None:
+    """The reason to reject a place name, or None (#2217, P5)."""
+    for label, value in (("City", city), ("Name", name)):
+        if not 1 <= len(value) <= 60:
+            return f"{label} must have 1 to 60 characters."
+    known = {fold(n) for key, local in place_aliases(session).items() for n in (key, *local)}
+    if fold(name) in known:
+        return f"The name {name} is already a place name."
+    return None
+
+
+@router.post("/settings/place-names", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def add_place_name(request: Request, city: str = Form(""), name: str = Form(""),
+                   session: Session = Depends(get_session)) -> RedirectResponse:
+    """Add a place name of the owner (#2217)."""
+    city, name = city.strip(), name.strip()
+    error = _place_name_error(session, city, name)
+    if error:
+        request.session["place_error"] = error
+    else:
+        session.add(PlaceName(city=city, name=name))
+        session.commit()
+    return RedirectResponse("/settings#place-names", status_code=303)
+
+
+@router.post("/settings/place-names/{place_id}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def delete_place_name(place_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    """Delete a place name of the owner (#2217)."""
+    row = session.get(PlaceName, place_id)
+    if row is not None:
+        session.delete(row)
+        session.commit()
+    return RedirectResponse("/settings#place-names", status_code=303)
 
 
 def totp_state(request: Request, session: Session) -> dict:
