@@ -60,10 +60,13 @@ def trip_budget(session, trip, rates: dict[str, Decimal]):
     if row is None:
         return None, None
     year = trip.date_from.year
-    paid = next((y.paid_eur for y in year_summary(booked(session), rates) if y.year == year), None)
+    summary = next((y for y in year_summary(booked(session), rates) if y.year == year), None)
+    paid = summary.paid_eur if summary else None
     rest = budget_rest(paid, row.amount)
     amount = f"€{abs(rest):,.2f}"
-    return (f"{amount} left of the budget of {year}" if rest >= 0 else f"{amount} over the budget of {year}"), rest
+    # a paid price with no rate is not in the sum: say so, as the page "Travel per year" does (#2410)
+    note = " (prices with no rate are not counted)" if summary and summary.missing else ""
+    return (f"{amount} left of the budget of {year}" if rest >= 0 else f"{amount} over the budget of {year}") + note, rest
 
 
 def budget_rest(paid: Decimal | None, budget: Decimal) -> Decimal:
