@@ -34,6 +34,14 @@ def travel_class(name: str) -> str | None:
     return None
 
 
+BIKE = {"allowedWithReservation": "reservation", "notAllowed": "no", "allowed": "allowed"}
+
+
+def bike(status: Any) -> str | None:
+    """#2458: the bicycle transport of a journey; None for no value or an unknown one."""
+    return BIKE.get(status) if isinstance(status, str) else None
+
+
 def fare_name(type_name: str, class_name: str) -> str:
     """The fare type name, plus the class name when the fare type name does not say the class."""
     if not class_name or any(w in type_name.lower() for w in CLASS_WORDS):
@@ -43,7 +51,7 @@ def fare_name(type_name: str, class_name: str) -> str:
 
 class TrainlineParser:
     source = "thetrainline.com"
-    version = "1.2.0"
+    version = "1.3.0"
     # no personal key beyond PERSONAL_KEYS: `dateOfBirth` is in PERSONAL_KEYS (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -88,6 +96,7 @@ class TrainlineParser:
 
     def _offers(self, journey: dict, data: dict, search: dict) -> list[OfferIn]:
         locations, carriers, modes = data["locations"], data.get("carriers") or {}, data.get("transportModes") or {}
+        journey_bike = bike(journey.get("bikeRestrictionStatus"))  # #2458: the bicycle transport of the journey
         legs = []
         for leg_id in journey["legs"]:
             leg = search["legs"][leg_id]
@@ -131,6 +140,7 @@ class TrainlineParser:
                 fare_name=name,
                 travel_class=tc,
                 seats_left=left,
+                bike=journey_bike,
                 legs=legs,
                 booking_url=BOOKING_URL,
             )
