@@ -73,24 +73,55 @@ def transfer_place_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decim
     return tuple(parts)
 
 
-def transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
-    """Add one part "short transfer" for the short transfers: the penalty times their count.
-
-    A transfer is the time from the arrival of one leg to the departure of the next one (both UTC, so no offset is
-    needed). A penalty of 0 adds no part.
-    """
-    penalty = Decimal(weights.short_transfer_penalty)
-    if penalty == 0 or len(itinerary.legs) < 2:
-        return ()
+def short_transfers(itinerary, weights: Weights) -> list[tuple[int, str | None, int, int]]:
+    """The transfers under their minimum (#2074): (index, place, minutes, minimum) for each one. The place is the name
+    of the matched transfer place with the minimum in use, else None. One rule for `transfer_extras()` and the row."""
+    if len(itinerary.legs) < 2:
+        return []
     minimum = timedelta(minutes=weights.short_transfer_min)
     # A change of station uses its own minimum (#1501); None keeps the short-transfer minimum for it too.
     changes = set(station_changes(itinerary)) if weights.station_change_min is not None else set()
     change_minimum = timedelta(minutes=int(weights.station_change_min)) if changes else minimum
-    def needed(i, before, after):
-        return transfer_minimum(before, after, weights, change_minimum if i in changes else None)
+    # The minimum of a matched transfer place (#2073): with two matches the larger one; a change of station keeps
+    # its own minimum when it is larger.
+    slots = [(getattr(weights, f"transfer_place{n}_name"), getattr(weights, f"transfer_place{n}_min"))
+             for n in (1, 2, 3)]
+    slots = [(_name_key(name), name.strip(), timedelta(minutes=int(m))) for name, m in slots
+             if _name_key(name) and m is not None]
+    found = []
+    for i, (before, after) in enumerate(zip(itinerary.legs, itinerary.legs[1:])):
+        here = [(m, label) for key, label, m in slots
+                if key in _name_key(before.to_name or "") or key in _name_key(after.from_name or "")]
+        base = change_minimum if i in changes else minimum
+        need, place = base, None
+        if here:
+            top, label = max(here, key=lambda h: h[0])
+            if i in changes and change_minimum >= top:
+                need = change_minimum
+            else:
+                need, place = top, label
+        gap = after.depart_at - before.arrive_at
+        if gap < need:
+            found.append((i, place, int(gap.total_seconds() // 60), int(need.total_seconds() // 60)))
+    return found
 
-    short = sum(1 for i, (before, after) in enumerate(zip(itinerary.legs, itinerary.legs[1:]))
-                if after.depart_at - before.arrive_at < needed(i, before, after))
+
+def short_place_marks(itinerary, weights: Weights) -> dict[int, str]:
+    """The line of each short transfer at a named place with a minimum (#2074), by transfer index."""
+    return {i: f"short transfer at {place}: {minutes} min, minimum {need} min"
+            for i, place, minutes, need in short_transfers(itinerary, weights) if place}
+
+
+def transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add one part "short transfer" for the short transfers: the penalty times their count.
+
+    A transfer is the time from the arrival of one leg to the departure of the next one (both UTC, so no offset is
+    needed). A penalty of 0 adds no part. The rule is in `short_transfers()`.
+    """
+    penalty = Decimal(weights.short_transfer_penalty)
+    if penalty == 0:
+        return ()
+    short = len(short_transfers(itinerary, weights))
     if short == 0:
         return ()
     return (("short transfer", penalty * short),)

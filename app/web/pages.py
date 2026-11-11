@@ -63,7 +63,7 @@ from app.route_history import route_history
 from app.money import money
 from app.coverage import trip_coverage
 from app.sourcehealth import failing_sources
-from app.risk import carrier_extras, mode_extras, mode_hour_extras, reservation_extras, self_transfer_extras, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
+from app.risk import carrier_extras, mode_extras, mode_hour_extras, reservation_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -89,6 +89,7 @@ templates.env.globals["csrf_token"] = csrf_token
 templates.env.globals["route_text"] = route_text
 templates.env.globals["station_changes"] = station_changes
 templates.env.globals["no_fallback_marks"] = no_fallback_marks
+templates.env.globals["short_place_marks"] = short_place_marks
 templates.env.globals["delay_claim"] = delay_claim  # the claim of a delayed booked row (#1692)
 # All settings pages, in groups: the settings navigation of each settings page and the "Settings" link of the
 # app bar use this one list (#925, DESIGN.md section 5, "Settings").
