@@ -63,8 +63,8 @@ def test_a_tap_on_a_phone_ticks_a_row_and_the_bar_buttons_are_in_view(live):  # 
         assert bar.is_visible()
         assert page.evaluate("document.documentElement.scrollWidth") <= PHONE  # no sideways scroll
         buttons = bar.locator("button")
-        assert buttons.count() == 3
-        for i in range(3):
+        assert buttons.count() == 4  # Compare, Hide, Pin, Same journey (#2145)
+        for i in range(4):
             box = buttons.nth(i).bounding_box()
             assert box is not None and box["x"] >= 0 and box["x"] + box["width"] <= PHONE
             covered = page.evaluate(

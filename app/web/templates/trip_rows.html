@@ -68,6 +68,11 @@
             {% if f.source == "manual" %}<a class="btn btn-ghost" href="/trips/{{ trip.id }}/fares/{{ f.id }}/price">Change price</a> <a class="btn btn-ghost" href="/trips/{{ trip.id }}/fares/{{ f.id }}/delete">Delete</a>{% endif %}</div>
         {% endfor %}
         </div>
+        {% if joined is defined and joined.get(it.id) %}<div class="joined"><p>Joined from {{ joined[it.id]|length + 1 }} rows</p>
+        {% for b_id in joined[it.id] %}<form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/split/{{ b_id }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button class="btn btn-ghost" type="submit">Not the same journey</button>
+        </form>{% endfor %}</div>{% endif %}
         <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/note">
           <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
           <div class="field"><label for="note-{{ it.id }}">Note</label>
