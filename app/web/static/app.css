@@ -571,7 +571,7 @@ button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(
 input[name=it]:checked { counter-increment: picked; }
 .compare-bar {
   display: none; position: sticky; bottom: var(--space-3); z-index: 5; margin-top: var(--space-3);
-  align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-3);
+  align-items: center; justify-content: space-between; flex-wrap: wrap; /* 4 buttons on a phone (#2145) */ gap: var(--space-3); padding: var(--space-2) var(--space-3);
   box-shadow: var(--shadow);
 }
 .results:has(input[name=it]:checked) .compare-bar { display: flex; }

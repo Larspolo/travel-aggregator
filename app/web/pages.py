@@ -68,6 +68,7 @@ from app.risk import carrier_extras, mode_extras, mode_hour_extras, reservation_
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
+from app.same_journey import JoinError, join, split
 from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PushSubscription, ScoreProfile, Setting,
                         SentMessage, SourceFee, Trip, TripAccessTime)
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
@@ -996,7 +997,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     # the break-even links re-rank this page with another hour value: the sort and the filters stay (#920)
     tradeoff = tradeoff_lines(rows, shown, source, places, weights, stale_before, rates,
                               trip_id, {**query, "sort": sort, "dir": dir}, counts, fees)  # #895
-    context = {"trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
+    context = {"joined": _joined_rows(session, trip_id), "trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
                "rates": rates, "tradeoff": tradeoff, "gone_fares": gone_marks, "suspect_fares": suspect,
@@ -1726,6 +1727,33 @@ def toggle_hide(request: Request, trip_id: int, itinerary_id: int, session: Sess
     return _rows_or_redirect(request, trip_id, session, view)
 
 
+def _joined_rows(session: Session, trip_id: int) -> dict[int, list[int]]:
+    """The ids of the rows that are joined into each row of the trip (#2145)."""
+    joined: dict[int, list[int]] = {}
+    for b_id, a_id in session.execute(select(Itinerary.id, Itinerary.merged_into_id).where(
+            Itinerary.trip_id == trip_id, Itinerary.merged_into_id.is_not(None)).order_by(Itinerary.id)):
+        joined.setdefault(a_id, []).append(b_id)
+    return joined
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/split/{joined_id}",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def split_journey(request: Request, trip_id: int, itinerary_id: int, joined_id: int,
+                  session: Session = Depends(get_session), view: dict = Depends(trip_view)) -> Response:
+    """"Not the same journey" (#2145): split a joined row from its row, the reverse of "Same journey"."""
+    a, b = session.get(Itinerary, itinerary_id), session.get(Itinerary, joined_id)
+    if a is None or b is None or a.trip_id != trip_id or b.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"an itinerary is not in trip {trip_id}")
+    try:
+        split(session, a, b)
+        session.commit()
+        request.session["flash"] = "The row is split into 2 rows."
+    except JoinError as e:
+        session.rollback()
+        request.session["flash"] = f"Not split: {e}."
+    return _rows_or_redirect(request, trip_id, session, view)
+
+
 @router.post("/trips/{trip_id}/itineraries/bulk",
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 def bulk_hide_or_pin(request: Request, trip_id: int, action: str = Query(""), it: list[int] = Form([]),
@@ -1733,11 +1761,23 @@ def bulk_hide_or_pin(request: Request, trip_id: int, action: str = Query(""), it
     """Hide or pin all the ticked offers of the trip (#1897). The action comes in the query of the button's
     formaction, the CSRF token in the button's own value (a button sends only its own name and value). All ids are
     checked before any change: an id of another trip gives 404 and changes nothing."""
-    if action not in ("hide", "pin"):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "action must be hide or pin")
+    if action not in ("hide", "pin", "join"):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "action must be hide, pin or join")
     rows = [session.get(Itinerary, itinerary_id) for itinerary_id in it]
     if any(row is None or row.trip_id != trip_id for row in rows):
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"an itinerary is not in trip {trip_id}")
+    if action == "join":  # "Same journey" (#2145): the first ticked row of the table order is A
+        if len(rows) != 2:
+            request.session["flash"] = "Select exactly 2 rows for \u201cSame journey\u201d. Nothing changed."
+        else:
+            try:
+                join(session, rows[0], rows[1])
+                session.commit()
+                request.session["flash"] = "The 2 rows are joined into one row."
+            except JoinError as e:
+                session.rollback()
+                request.session["flash"] = f"Not joined: {e}."
+        return _rows_or_redirect(request, trip_id, session, view)
     for row in rows:
         if action == "hide":
             row.hidden = True
