@@ -170,7 +170,7 @@ does not say?
 - The kind label does not choose the lane: a clear `process` ticket can be Haiku or main.
 - Each `size:S` ticket gets `lane:haiku` (decision #158, kept by #161: rework 0 / 34, CI runs per run 1.2 before
   1.1), also when the 3 rules of the Haiku row are not all true, unless it needs a render, a screenshot or a judgment
-  of a look. In the queue refill, also give `lane:haiku` to the ready `size:S` tickets with no lane that meet this rule.
+  of a look: then give the head line `lane: main <reason>` (`new_tickets.py` stops a `size:S` ticket with neither, #2129). In the queue refill, also give `lane:haiku` to the ready `size:S` tickets with no lane that meet this rule.
 - Not sure between Haiku and main: Haiku (owner, 2026-10-28). A Haiku run that finds the ticket unclear removes the
   label (`autopilot` skill, `queue.md`). Not sure between main and deep: main.
 - Write tickets for Haiku (owner, 2026-10-29: 40 % of the closed tickets had `lane:haiku`, but 2 of 25 ready ones).
