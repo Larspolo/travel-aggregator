@@ -471,6 +471,8 @@ iPhone: tap Share, then "Add to Home Screen"). The app then has its name, its ic
 manifest (`/manifest.webmanifest`). Each page links this manifest. On an iPhone or iPad, Web Push works only from the
 app on the home screen, not in a browser tab (see "Messages outside the app").
 
+The installed app is also a share target: "Travel" shows in the share menu of the phone. Share a page of a travel site, for example a results page, and choose "Travel". The app opens the form of a manual offer (see "Add an offer by hand") with the address of the page as the booking link and the title as the fare name. If you are not logged in, the app first asks you to log in and then shows the form. Choose the trip and save the offer. The app does not open the shared address. An address that is not a web address (http or https) is refused.
+
 ### Use the keyboard and a screen reader
 
 Each page works with the keyboard only. Tab moves to the next control and Shift+Tab to the previous one. Each control
@@ -1042,6 +1044,7 @@ The trip page has a link "Add an offer by hand" above the offer table. It opens 
 The form has a price (required), a currency (EUR by default), an optional fare name, a field "Class" (`Not set`, `1st class` or `2nd class`; `Not set` stores no class) and the UTC offset of the times.
 Each leg has a mode, a from and to place, a departure and an arrival. The form has up to four legs. A leg with no field filled in is left out.
 The app saves the offer with the source `manual`. Save returns you to the trip page, where the offer is ranked with the others.
+The same form opens from a share of the phone (see "Use a phone"): the booking link and the fare name are filled in, and you choose the trip.
 
 ### Correct a manual offer
 
