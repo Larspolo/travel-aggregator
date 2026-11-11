@@ -99,7 +99,7 @@ def test_search_response_is_sent_with_its_prices(page):
     sent = page.evaluate("window.__ingest")[0]
     assert sent["url"] == "https://ta.example/api/ingest"
     b = sent["body"]
-    assert (b["source"], b["trip_id"], b["parser_version"]) == ("oebbtickets.at", 5, "1.1.0")
+    assert (b["source"], b["trip_id"], b["parser_version"]) == ("oebbtickets.at", 5, "1.2.0")
     assert b["raw"]["url"] == SITE + SEARCH_PATH
     assert b["raw"]["method"] == "POST"
     assert b["raw"]["request"] == SEARCH_BODY
