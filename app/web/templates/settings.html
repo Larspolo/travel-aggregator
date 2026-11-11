@@ -17,6 +17,30 @@
   <div class="form-actions"><button class="btn btn-primary" type="submit">Save</button></div>
 </form>
 {% endcall %}
+<div id="place-names">
+{% call ui.card("Place names") %}
+{% if place_error %}<p role="alert" class="chip warn place-error">{{ place_error }}</p>{% endif %}
+{% if place_names %}<table class="place-names">
+  <thead><tr><th>City</th><th>Name</th><th></th></tr></thead>
+  <tbody>{% for p in place_names %}<tr class="place-name-row"><td>{{ p.city }}</td><td>{{ p.name }}</td><td>
+    <form method="post" action="/settings/place-names/{{ p.id }}/delete">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">Delete</button>
+    </form></td></tr>{% endfor %}</tbody>
+</table>{% else %}<p>You have no place names.</p>{% endif %}
+<form method="post" action="/settings/place-names">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field"><label for="place-city">City</label><input id="place-city" name="city" maxlength="60" required></div>
+    <div class="field"><label for="place-name">Name</label><input id="place-name" name="name" maxlength="60" required></div>
+  </div>
+  <div class="form-actions"><button class="btn" type="submit">Add</button></div>
+</form>
+<details class="builtin-places"><summary>Built-in names</summary>
+<ul>{% for city, local in builtin_places.items() %}<li>{{ city }}: {{ local|join(", ") }}</li>{% endfor %}</ul>
+</details>
+{% endcall %}
+</div>
 {% call ui.card("Storage") %}
 <p class="storage-line">Database {{ storage.database_bytes|human_bytes }} · raw captures {{ storage.raw_bytes|human_bytes }} in {{ "{:,}".format(storage.captures) }} captures ·
 {% if retention_days == 0 %}the cleanup removes nothing (0 keeps all captures){% else %}the next cleanup removes {{ "{:,}".format(storage.cleanup_captures) }} captures ({{ storage.cleanup_bytes|human_bytes }}){% endif %}</p>
