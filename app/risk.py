@@ -77,9 +77,23 @@ def later_transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decim
     return (("later transfers", amount.quantize(Decimal("0.01"))),)
 
 
+def _days_off(itinerary) -> frozenset:
+    """The days off of the session of `itinerary` (#2371); an itinerary with no session (a plain object) has none."""
+    from sqlalchemy.orm.exc import UnmappedInstanceError
+    from sqlalchemy.orm import object_session
+
+    from app.days_off import days_off
+
+    try:
+        session = object_session(itinerary)
+    except UnmappedInstanceError:
+        return frozenset()
+    return frozenset() if session is None else days_off(session)
+
+
 def work_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """One part ("work hours", amount) for the minutes of the legs on a local workday (#2332): the minutes between
-    work_hour_start:00 and work_hour_end:00 on Monday to Friday, times (value − hour_markup) / 60. The local times of a
+    work_hour_start:00 and work_hour_end:00 on Monday to Friday that is not a day off (#2371), times (value − hour_markup) / 60. The local times of a
     leg use its departure offset (#2358). A value of None or a difference of 0 adds no part."""
     value = weights.work_hour_markup
     if value is None:
@@ -87,13 +101,14 @@ def work_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], 
     diff = Decimal(value) - Decimal(weights.hour_markup)
     if diff == 0:
         return ()
+    off = _days_off(itinerary)
     minutes = 0
     for leg in itinerary.legs:
         start = (leg.depart_at + timedelta(minutes=leg.depart_offset_min)).replace(tzinfo=None)
         end = (leg.arrive_at + timedelta(minutes=leg.depart_offset_min)).replace(tzinfo=None)
         day = start.date()
         while day <= end.date():
-            if day.isoweekday() <= 5:
+            if day.isoweekday() <= 5 and day not in off:
                 w_start = datetime.combine(day, time(weights.work_hour_start))
                 w_end = datetime.combine(day, time(weights.work_hour_end))
                 overlap = min(end, w_end) - max(start, w_start)
