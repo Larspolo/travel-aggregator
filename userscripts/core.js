@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 22;
+const CORE_VERSION = 23;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -128,6 +128,20 @@ const CORE_VERSION = 22;
       sendButton: controls.querySelector(".send"),
       serverButton: controls.querySelector(".set-server"),
       tokenButton: controls.querySelector(".set-token"),
+      // Turns the end of the status text (the suffix " · Best of trip: …") into a link to href (#2367).
+      addLink(suffix, href) {
+        const text = box.textContent;
+        if (!suffix || !text.endsWith(suffix)) return;
+        box.textContent = text.slice(0, -suffix.length);
+        const a = document.createElement("a");
+        a.className = "best-link";
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.href = href;
+        a.textContent = suffix.slice(3);  // without the leading " · "
+        a.addEventListener("click", (e) => e.stopPropagation());  // a click on the link does not fold the panel
+        box.append(" · ", a);
+      },
       setStatus(text, kind) {
         const note = droppedOld ? `${droppedOld} old capture${droppedOld === 1 ? "" : "s"} dropped. ` : "";
         droppedOld = 0;
@@ -211,6 +225,14 @@ const CORE_VERSION = 22;
     const amount = Number(best.total).toFixed(2).replace(/\.00$/, "");
     return ` · Best of trip: €${amount}${best.new === true ? " (new)" : ""}`;
   }
+  // The best offer as a link to its row on the trip page (#2367): only with a positive integer itinerary_id (#2365).
+  const bestLink = (resp, suffix) => {
+    const raw = resp && resp.best && resp.best.itinerary_id;
+    const trip = Number(resp.trip_id) > 0 ? Number(resp.trip_id) : tripId();
+    const server = config().server;
+    if (typeof raw !== "number" || !Number.isInteger(raw) || raw <= 0 || !trip || !/^https?:\/\//.test(server)) return;
+    panel.addLink(suffix, `${server}/trips/${trip}#it-${raw}`);
+  };
   // The parsed ingest response; {} when it is not a JSON object.
   function responseOf(r) {
     try {
@@ -488,6 +510,7 @@ const CORE_VERSION = 22;
         gm.setValue("trip", id);
         showTripLink();
         panel.setStatus(`Captured ${n} offers → sent to ${resp.trip_title || `trip ${id}`} ✓${bestOf(resp)}`, "ok");
+        bestLink(resp, bestOf(resp));
         return;
       }
       const best = bestOf(resp);
@@ -497,6 +520,7 @@ const CORE_VERSION = 22;
         panel.setStatus(`Captured ${n} offers → sent ✓, but ${text}${best}`, "warn");
       } else if (warning) panel.setStatus(`Captured ${n} offers → sent ✓, but these offers do not match the trip${best}`, "warn");
       else panel.setStatus(`Captured ${n} offers → sent ✓${best}`, "ok");
+      bestLink(resp, best);
     },
     queue: loadQueue,
     flush,
