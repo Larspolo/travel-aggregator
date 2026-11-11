@@ -530,9 +530,9 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  transfer_place2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  transfer_place3_name: str | None = Query(None, max_length=100),
                  transfer_place3_markup: Decimal | None = Query(None, ge=-1000, le=1000),
-                 transfer_place1_min: int | None = Query(None, ge=0, le=240),
-                 transfer_place2_min: int | None = Query(None, ge=0, le=240),
-                 transfer_place3_min: int | None = Query(None, ge=0, le=240),
+                 transfer_place1_min: str | None = Query(None, max_length=20),  # (#2073)
+                 transfer_place2_min: str | None = Query(None, max_length=20),  # (#2073)
+                 transfer_place3_min: str | None = Query(None, max_length=20),  # (#2073)
                  train_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  bus_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  flight_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
@@ -551,7 +551,8 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
 # The optional weights whose blank field in the URL means None (#1568, #1808), with their range.
 OPTIONAL_RANGES = {"train_hour_markup": (0, 100), "bus_hour_markup": (0, 100), "flight_hour_markup": (0, 100),
                    "ferry_hour_markup": (0, 100), "night_seat_adjust": (-1000, 1000),
-                   "night_couchette_adjust": (-1000, 1000), "night_sleeper_adjust": (-1000, 1000)}
+                   "night_couchette_adjust": (-1000, 1000), "night_sleeper_adjust": (-1000, 1000),
+                   "transfer_place1_min": (0, 240), "transfer_place2_min": (0, 240), "transfer_place3_min": (0, 240)}
 MODE_HOUR_FIELDS = tuple(OPTIONAL_RANGES)
 MODE_HOUR_BLANK = ""  # a blank field of the live re-ranking (#1568): None in the weights, not the profile value
 
@@ -570,6 +571,10 @@ def _mode_hour(name: str, raw: str | None) -> Decimal | str | None:
     low, high = OPTIONAL_RANGES[name]
     if value is None or not value.is_finite() or not low <= value <= high:
         raise HTTPException(422, f"{name}: {raw!r} is not in {low} to {high}")
+    if name.endswith("_min"):  # a number of minutes (#2073)
+        if value != value.to_integral_value():
+            raise HTTPException(422, f"{name}: {raw!r} is not a whole number")
+        return int(value)
     return value
 
 
