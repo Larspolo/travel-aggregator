@@ -8,7 +8,7 @@ PLACE = "?transfer_place1_name=Mannheim%20Hbf&transfer_place1_markup="
 
 
 def _row(page, service_no):
-    return next(part for part in page.split("<tr") if f"DB {service_no}" in part)
+    return next(part for part in page.split("<tr") if f"Deutsche Bahn {service_no}" in part)
 
 
 def _cost(page, service_no):

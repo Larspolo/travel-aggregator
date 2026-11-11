@@ -22,7 +22,7 @@ def _ingest_hours_ago(client, auth, trip_id, hours_ago, service_no, price):
 
 
 def _row(page, service_no):
-    return next(part for part in page.split("<tr") if f"DB {service_no}" in part)
+    return next(part for part in page.split("<tr") if f"Deutsche Bahn {service_no}" in part)
 
 
 def _setup(client, auth, trip_id):

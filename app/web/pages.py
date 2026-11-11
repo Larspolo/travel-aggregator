@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session, subqueryload
 
 from app.storage import human_bytes, storage_use
+from app.carriers import carrier_names as _carrier_names
 from app.api.health import _built
 from app.version import revisions
 from app.web.userscripts import bundle_info, userscript_list
@@ -212,6 +213,14 @@ def web_url(url: str | None) -> str | None:
 templates.env.filters["web_url"] = web_url
 templates.env.filters["money"] = money
 templates.env.filters["mode_icon"] = mode_icon
+
+
+def carrier_label(raw: str | None) -> str:
+    """The carrier names of a raw carrier text (one name per carrier, #2250), joined with ", "; "?" if none."""
+    return ", ".join(_carrier_names(raw)) or "?"
+
+
+templates.env.filters["carrier_names"] = carrier_label
 templates.env.filters["day_gap"] = day_gap
 templates.env.filters["ago"] = ago
 templates.env.filters["by_eur"] = by_eur

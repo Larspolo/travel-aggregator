@@ -89,7 +89,7 @@ def test_demo_screenshots(trip, sessions, tmp_path):  # noqa: F811
                                         full_page=True)
                     page.goto(base + f"/trips/{tid}")
                     text = page.inner_text("main") if page.locator("main").count() else page.inner_text("body")
-                    for word in ("FlixBus", "KLM", "+1 day", "stale"):
+                    for word in ("Flix", "KLM", "+1 day", "stale"):
                         assert word in text, word
                     page.evaluate("document.querySelector('#table tr.detail details').open = true;"
                                   "document.querySelector('details.more').open = true")

@@ -21,7 +21,7 @@ def _id_of(sessions, trip_id, service_no):
 
 def _row_cost(page, service_no):
     """The effective cost of the row of the trip table that shows the service."""
-    row = next(part for part in page.split("<tr") if f"DB {service_no}" in part and 'class="cost' in part)
+    row = next(part for part in page.split("<tr") if f"Deutsche Bahn {service_no}" in part and 'class="cost' in part)
     return COST.findall(row)[0]
 
 
