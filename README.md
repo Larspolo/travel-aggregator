@@ -487,7 +487,7 @@ removed when it is fixed.
 
 ### Compare offers in the trip table
 
-The table of `/trips/{id}` has one row per journey. The same train from bahn.de and NS International shows once, with the fares of both sources in its "Legs and fares". Two offers are one journey when their modes and service numbers are the same, and their first departure and last arrival are at the same UTC time (the carrier and the times of the legs between do not count). The pin, hide, booked, note and price history are per journey.
+The table of `/trips/{id}` has one row per journey. The same train from bahn.de and NS International shows once, with the fares of both sources in its "Legs and fares". Two offers are one journey when their modes and service numbers are the same, and their first departure and last arrival are at the same UTC time (the carrier and the times of the legs between do not count). The pin, hide, booked, note and price history are per journey. The carrier of each leg shows by its name of the table: "DB Fernverkehr AG" shows as "Deutsche Bahn".
 Each row shows a mode icon for each mode of its legs: 🚆 train, 🚌 bus and ✈️ flight.
 Tick the boxes of the rows, and a bar shows at the bottom of the table with the count. Its buttons work on the ticked rows: "Compare" opens the compare page, "Hide" hides all the ticked offers and "Pin" pins all of them. Each button also works with the keyboard and on a phone. When the filters hide offers, the line "Filters hide N of M offers" has the button "Hide all N": it hides each offer that the filters hide, so they stay hidden when you remove the filters.
 
@@ -512,7 +512,7 @@ Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 - `earliest_depart`: the first leg departs at or after this local time.
 - `latest_arrive`: the last leg arrives by this local time, on the day of its departure.
 - `exclude_mode`: a mode (train, bus or flight) hides each offer with one of its legs.
-- `exclude_carrier`: a carrier hides each offer with one of its legs. A carrier markup (under "Advanced", see "Risk") ranks an offer; an exclusion hides it.
+- `exclude_carrier`: a carrier hides each offer with one of its legs. The filter lists one entry per carrier of the built-in table (see "Carriers" under "Advanced"). For example, legs of "FlixBus B.V." and "FlixBus Polska sp. z.o.o." give one entry "Flix" that hides both. A leg of "Nederlandse Spoorwegen, DB Fernverkehr AG" counts as "NS" and as "Deutsche Bahn". A carrier markup (under "Advanced", see "Risk") ranks an offer; an exclusion hides it.
 - `hide_stale`: the checkbox "hide stale" above the table hides each stale offer. The badges count only the rows that show.
 When the filters hide offers, the line "Filters hide N of M offers" shows above the table. It gives the count of each filter, for example "max transfers 1 hides 3", and each filter name is a link to the page without that filter. The line "Best hidden offer" shows the cheapest offer that the filters hide, with its time, route, source and the filters that hide it. Its "Show it" link opens the page without those filters at that row.
 The cheapest, fastest and best-value rows show a badge. The badges use the rows after the filters.
