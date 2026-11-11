@@ -1769,6 +1769,11 @@ its part from the ranking. Each part shows its own label in the breakdown.
   Each source writes a carrier in its own way. A built-in table gives each carrier one name, and maps the names of the
   sources to it. For example, "DB Fernverkehr AG" from bahn.de is "Deutsche Bahn", so a slot named "Deutsche Bahn"
   matches a leg of any source that sells Deutsche Bahn trains. A carrier that is not in the table keeps its name as it is.
+- **Carrier n loyalty %**, in "Advanced", next to each carrier slot: default `0`, so no slot adds a part. A fare whose legs
+  are all of the carrier of the slot (all legs of the carrier, by the same name match) subtracts that percentage of its EUR
+  price. The breakdown shows the part `loyalty <carrier>` with the negative amount, for example `loyalty Deutsche Bahn`.
+  A fare with legs of more than one carrier gets no part, because the sources give one price for all legs. The value
+  is the percent that you earn back with the carrier, for example 5 for 5 %. The maximum is 50.
 - **Transfer place 1 to 3**, in "Advanced", fieldset "Transfer places": three slots, each with the label **Transfer place n**
   (the name) and **Transfer markup n € (negative = discount)** (the markup). This markup is not the slider **Transfer markup €**,
   which sets the markup for each transfer at any place. The default is no name and a markup of `0`, so no slot adds a part. A transfer at a place of a slot adds the markup, and the
