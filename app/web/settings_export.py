@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import require_login, verify_csrf
 from app.db import get_session
-from app.models import AccessTime, CurrencyRate, RailPass, ScoreProfile, Setting, SourceFee
+from app.models import AccessTime, CurrencyRate, DayOff, RailPass, ScoreProfile, Setting, SourceFee
 from app.notify import MAX_REMINDER_DAYS, REMINDER_BEFORE_KEY, REMINDER_DAYS_KEY, SOURCE_ALERT_KEY
 from app.profiles import to_config
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY
@@ -38,6 +38,7 @@ def settings_export(session: Session, now: datetime | None = None) -> dict:
     rates = session.scalars(select(CurrencyRate).order_by(CurrencyRate.code))
     fees = session.scalars(select(SourceFee).order_by(SourceFee.source))
     passes = session.scalars(select(RailPass).order_by(RailPass.first_day, RailPass.name))
+    days = session.scalars(select(DayOff).order_by(DayOff.first_day, DayOff.last_day, DayOff.id))
     values = session.scalars(select(Setting).where(Setting.key.in_(SETTING_KEYS)).order_by(Setting.key))
     return {
         "format": FORMAT,
@@ -49,6 +50,8 @@ def settings_export(session: Session, now: datetime | None = None) -> dict:
         "fees": [{"source": f.source, "amount": str(f.amount)} for f in fees],
         "passes": [{"name": p.name, "first_day": p.first_day.isoformat(), "last_day": p.last_day.isoformat(),
                     "day_cost": str(p.day_cost), "carriers": p.carriers} for p in passes],
+        "days_off": [{"first_day": d.first_day.isoformat(), "last_day": d.last_day.isoformat(), "note": d.note}
+                     for d in days],
         "settings": {s.key: s.value for s in values},
     }
 
@@ -98,9 +101,9 @@ def check_file(data) -> tuple[dict, list[str]]:
     if data.get("version") != VERSION:
         return {}, [f"The version must be {VERSION}."]
     errors = []
-    out = {"profiles": [], "places": [], "rates": [], "fees": [], "passes": [], "settings": {}}
+    out = {"profiles": [], "places": [], "rates": [], "fees": [], "passes": [], "days_off": [], "settings": {}}
     lists = {}
-    for key in ("profiles", "places", "rates", "fees", "passes"):
+    for key in ("profiles", "places", "rates", "fees", "passes", "days_off"):
         lists[key] = data.get(key, [])
         if not isinstance(lists[key], list) or not all(isinstance(x, dict) for x in lists[key]):
             errors.append(f"{key} must be a list of objects.")
@@ -152,6 +155,15 @@ def check_file(data) -> tuple[dict, list[str]]:
                           "of at most 300 characters.")
             continue
         out["passes"].append((name, first, last, cost, carriers.strip()))
+    for i, d in enumerate(lists["days_off"], 1):
+        note = d.get("note", "")
+        first = _day(d["first_day"]) if isinstance(d.get("first_day"), str) else None
+        last = _day(d["last_day"]) if isinstance(d.get("last_day"), str) else None
+        if first is None or last is None or last < first or not isinstance(note, str) or len(note) > 100:
+            errors.append(f"Day off {i}: it needs two ISO dates with the last day on or after the first day and a "
+                          "note of at most 100 characters.")
+            continue
+        out["days_off"].append((first, last, note.strip()))
     values = data.get("settings", {})
     if not isinstance(values, dict):
         errors.append("settings must be an object.")
@@ -210,6 +222,9 @@ def apply_file(session: Session, rows: dict) -> str:
             session.add(row)
         row.first_day, row.last_day, row.day_cost, row.carriers = first, last, cost, carriers
         row.updated_at = now
+    for first, last, note in rows["days_off"]:
+        if session.scalars(select(DayOff).where(DayOff.first_day == first, DayOff.last_day == last)).first() is None:
+            session.add(DayOff(first_day=first, last_day=last, note=note, updated_at=now))
     for key, value in rows["settings"].items():
         session.merge(Setting(key=key, value=value))
 
