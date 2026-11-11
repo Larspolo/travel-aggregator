@@ -31,7 +31,7 @@ def _nav(html):
 
 def test_the_groups_hold_all_settings_pages():
     assert [g for g, _ in SETTINGS_NAV] == ["App", "Ranking", "Capture"]
-    assert SETTINGS_PATHS == ["/settings", "/settings/messages", "/profiles", "/places", "/rates", "/fees", "/passes", "/tokens",
+    assert SETTINGS_PATHS == ["/settings", "/settings/messages", "/profiles", "/places", "/rates", "/fees", "/passes", "/days-off", "/tokens",
                               "/sources/new"]
 
 

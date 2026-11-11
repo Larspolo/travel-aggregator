@@ -112,7 +112,8 @@ SETTINGS_NAV = [
     ("Ranking", [("/profiles", "Profiles", "user"), ("/places", "Places", "map-pin"),
                  ("/rates", "Exchange rates", "arrow-right-left"),
                  ("/fees", "Booking fees", "arrow-right-left"),
-                 ("/passes", "Rail passes", "key")]),
+                 ("/passes", "Rail passes", "key"),
+                 ("/days-off", "Days off", "key")]),
     ("Capture", [("/tokens", "Userscripts", "key"), ("/sources/new", "Add a website", "plus")]),
 ]
 SETTINGS_PATHS = [href for _, items in SETTINGS_NAV for href, _, _ in items]

@@ -334,6 +334,20 @@ class RailPass(Base):
     updated_at: Mapped[datetime] = mapped_column(_tz())
 
 
+class DayOff(Base):
+    """A day off of the owner, or a span of days off (#2370). The score does not use it yet."""
+    __tablename__ = "days_off"
+    __table_args__ = (
+        CheckConstraint("last_day >= first_day", name="ck_days_off_days"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    first_day: Mapped[date] = mapped_column(Date)
+    last_day: Mapped[date] = mapped_column(Date)
+    note: Mapped[str] = mapped_column(String(100), default="", server_default="")
+    updated_at: Mapped[datetime] = mapped_column(_tz())
+
+
 class ScoreProfile(Base):
     """A named set of weights (#229). Only one row can be the default: a partial unique index."""
     __tablename__ = "score_profiles"
