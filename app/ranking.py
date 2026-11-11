@@ -103,6 +103,11 @@ class Weights:
     carrier2_markup: Decimal = Decimal("0")
     carrier3_name: str = ""
     carrier3_markup: Decimal = Decimal("0")
+    # The carrier loyalty (#2432): a fare whose legs are all of the carrier of a slot gets minus this percent of its
+    # EUR price per traveler. A percent of 0 adds no part.
+    carrier1_loyalty_pct: Decimal = Decimal("0")
+    carrier2_loyalty_pct: Decimal = Decimal("0")
+    carrier3_loyalty_pct: Decimal = Decimal("0")
     # The weekday markups (#2136): the local weekday of the first departure adds its markup (ISO: 1 = Monday).
     # A markup of 0 adds no part.
     weekday1_markup: Decimal = Decimal("0")

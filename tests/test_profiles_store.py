@@ -28,6 +28,7 @@ CHANGED = {"hour_markup": "22.5", "transfer_markup": "7", "airport_before_min": 
            "hour_tier2_markup": "15",
            "carrier1_name": "Ryanair", "carrier1_markup": "15", "carrier2_name": "KLM", "carrier2_markup": "-5",
            "carrier3_name": "Flixbus", "carrier3_markup": "8",
+           "carrier1_loyalty_pct": "5", "carrier2_loyalty_pct": "2.5", "carrier3_loyalty_pct": "10",
            "weekday1_markup": "1", "weekday2_markup": "2", "weekday3_markup": "3", "weekday4_markup": "4", "weekday5_markup": "5", "weekday6_markup": "6", "weekday7_markup": "7",
            "transfer_place1_name": "Brussels-Midi", "transfer_place1_markup": "20",
            "transfer_place2_name": "Lille-Flandres", "transfer_place2_markup": "-4",

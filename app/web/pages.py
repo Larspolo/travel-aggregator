@@ -71,7 +71,7 @@ from app.coverage import trip_coverage
 from app.sales_open import horizons as sales_horizons
 from app.sourcehealth import failing_sources
 from app.carriers import carrier_names
-from app.risk import carrier_extras, mode_extras, mode_hour_extras, reservation_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
+from app.risk import carrier_extras, loyalty_extras, mode_extras, mode_hour_extras, reservation_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -591,6 +591,9 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  carrier2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  carrier3_name: str | None = Query(None, max_length=50),
                  carrier3_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 carrier1_loyalty_pct: Decimal | None = Query(None, ge=0, le=50),  # (#2432)
+                 carrier2_loyalty_pct: Decimal | None = Query(None, ge=0, le=50),  # (#2432)
+                 carrier3_loyalty_pct: Decimal | None = Query(None, ge=0, le=50),  # (#2432)
                  weekday1_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
                  weekday2_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
                  weekday3_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
@@ -742,7 +745,8 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
         b = effective_cost(per if per is not None else Decimal(0), it.duration_min, it.transfers, weights,
                            base + night_extras(it, weights, f) + flexibility_extras(f, weights) + baggage_extras(f, it, weights, rates) + class_extras(f, it.duration_min, weights)
                                + self_transfer_extras(f, weights) + reservation_extras(f, weights)
-                               + fee_extras(f, fees, travelers) + currency_fee_extras(f, per, weights))
+                               + fee_extras(f, fees, travelers) + currency_fee_extras(f, per, weights)
+                                   + loyalty_extras(it, per, weights))
         return for_group(in_eur(b, f.latest_price, f.currency, eur), f.latest_price, f.currency, n)
     tie = (lambda b: covered) if covered is not None else (lambda b: b.price)  # the lowest price, or the pass cost
     return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, tie(fc[1])))
@@ -1430,6 +1434,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier2_markup: Decimal = Form(Weights.carrier2_markup, ge=-1000, le=1000),
                       carrier3_name: str = Form(Weights.carrier3_name, max_length=50),
                       carrier3_markup: Decimal = Form(Weights.carrier3_markup, ge=-1000, le=1000),
+                      carrier1_loyalty_pct: Decimal = Form(Weights.carrier1_loyalty_pct, ge=0, le=50),
+                      carrier2_loyalty_pct: Decimal = Form(Weights.carrier2_loyalty_pct, ge=0, le=50),
+                      carrier3_loyalty_pct: Decimal = Form(Weights.carrier3_loyalty_pct, ge=0, le=50),
                       weekday1_markup: Decimal = Form(Weights.weekday1_markup, ge=-1000, le=1000),
                       weekday2_markup: Decimal = Form(Weights.weekday2_markup, ge=-1000, le=1000),
                       weekday3_markup: Decimal = Form(Weights.weekday3_markup, ge=-1000, le=1000),
@@ -1486,6 +1493,8 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier1_name=carrier1_name, carrier1_markup=carrier1_markup,
                       carrier2_name=carrier2_name, carrier2_markup=carrier2_markup,
                       carrier3_name=carrier3_name, carrier3_markup=carrier3_markup,
+                      carrier1_loyalty_pct=carrier1_loyalty_pct, carrier2_loyalty_pct=carrier2_loyalty_pct,
+                      carrier3_loyalty_pct=carrier3_loyalty_pct,
                       weekday1_markup=weekday1_markup, weekday2_markup=weekday2_markup, weekday3_markup=weekday3_markup,
                       weekday4_markup=weekday4_markup, weekday5_markup=weekday5_markup, weekday6_markup=weekday6_markup, weekday7_markup=weekday7_markup,
                       transfer_place1_name=transfer_place1_name, transfer_place1_markup=transfer_place1_markup,
@@ -1525,6 +1534,7 @@ WEIGHT_RANGES = {
     "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),
     "hour_tier2_markup": (0, 100),
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
+    "carrier1_loyalty_pct": (0, 50), "carrier2_loyalty_pct": (0, 50), "carrier3_loyalty_pct": (0, 50),
     "weekday1_markup": (-1000, 1000), "weekday2_markup": (-1000, 1000), "weekday3_markup": (-1000, 1000), "weekday4_markup": (-1000, 1000), "weekday5_markup": (-1000, 1000), "weekday6_markup": (-1000, 1000), "weekday7_markup": (-1000, 1000),
     "transfer_place1_markup": (-1000, 1000), "transfer_place2_markup": (-1000, 1000),
     "transfer_place3_markup": (-1000, 1000),  # (#1850)
