@@ -87,6 +87,7 @@ from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY, retention_days
 from app.schemas import TripForm
 from app.travel_day import MAX_TRAVEL_DAY_HOURS, TRAVEL_DAY_HOURS_KEY
 from app.parsers import group_price
+from app.rail_pass import pass_cost
 from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group, format_breakdown, format_total, in_eur,
                          per_traveler)
 from app.timeofday import arrive_by_extras, leave_after_extras, night_extras, night_time_extras, overnight_extras, time_extras
@@ -718,7 +719,15 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
             + (leave_after_extras(it, it.trip.leave_after, weights) if weights.leave_hour_markup else ())
             + transfer_extras(it, weights) + station_change_extras(it, weights) + fallback_extras(it, weights)
                 + stale_extras(it, weights, stale_before))
+    rail_pass = getattr(it.trip, "rail_pass", None)  # #2267: the pass cost replaces the fare price
+    covered = pass_cost(it, rail_pass) if rail_pass is not None else None
     def cost(f):
+        if covered is not None:  # the owner does not pay the fare: no price, currency or group text
+            return effective_cost(Decimal(0), it.duration_min, it.transfers, weights,
+                                  ((f"pass {rail_pass.name}", covered),) + base + night_extras(it, weights, f)
+                                  + flexibility_extras(f, weights) + baggage_extras(f, it, weights, rates)
+                                  + class_extras(f, it.duration_min, weights) + self_transfer_extras(f, weights)
+                                  + reservation_extras(f, weights) + fee_extras(f, fees, travelers))
         eur, n = to_eur(f.latest_price, f.currency, rates), counts.get(f.id)
         per = per_traveler(eur, n) if eur is not None else None
         b = effective_cost(per if per is not None else Decimal(0), it.duration_min, it.transfers, weights,
@@ -726,7 +735,8 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
                                + self_transfer_extras(f, weights) + reservation_extras(f, weights)
                                + fee_extras(f, fees, travelers) + currency_fee_extras(f, per, weights))
         return for_group(in_eur(b, f.latest_price, f.currency, eur), f.latest_price, f.currency, n)
-    return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, fc[1].price))
+    tie = (lambda b: covered) if covered is not None else (lambda b: b.price)  # the lowest price, or the pass cost
+    return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, tie(fc[1])))
 
 
 def current_fares(fares, gone):
