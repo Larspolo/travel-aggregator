@@ -94,6 +94,9 @@ class Itinerary(Base):
     delay_min: Mapped[int | None] = mapped_column(Integer, nullable=True)  # the arrival delay (#1691)
     claim_paid_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the claim was paid (#1691)
     booking_code: Mapped[str | None] = mapped_column(String(40), nullable=True)  # the booking code (#1716)
+    # The last time to cancel the booking (#2311): UTC and the offset of the departure of the first leg.
+    cancel_by: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
+    cancel_by_offset_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # The row that this row is joined into (#2144, app/same_journey.py): its fares are on that row, and an ingest of
     # its fingerprint updates that row. The database deletes a joined row with the row that it is joined into.
     merged_into_id: Mapped[int | None] = mapped_column(ForeignKey("itineraries.id", ondelete="CASCADE"),

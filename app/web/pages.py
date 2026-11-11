@@ -1662,6 +1662,7 @@ def toggle_booked(request: Request, trip_id: int, itinerary_id: int, session: Se
     it.booked = not it.booked
     it.booked_fare_id = it.booked_price = it.booked_currency = it.booked_at = None
     it.cancelled_at = it.refund_price = it.booking_code = None
+    it.cancel_by = it.cancel_by_offset_min = None
     if it.booked:
         keep_paid_fare(session, it)
     session.commit()
@@ -1697,6 +1698,33 @@ PAID_PRICE_MAX = Decimal("100000")  # the paid price is below this (#1148)
 
 BOOKING_CODE_MAX = 40  # the length of the booking code column (#1716)
 DELAY_MAX_MIN = 1440  # the arrival delay is 0 to this number of minutes (#1691)
+
+
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/cancel-by",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def save_cancel_by(trip_id: int, itinerary_id: int, cancel_by: str = Form(""),
+                   session: Session = Depends(get_session)) -> RedirectResponse:
+    """The owner stores the last local time to cancel a booked journey (#2311), on the clock of the departure of the
+    first leg. A blank clears the time; a value that is not a date and time is 422 and stores nothing."""
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    if not it.booked and it.cancelled_at is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "the itinerary is not booked")
+    text = cancel_by.strip()
+    if not text:
+        it.cancel_by = it.cancel_by_offset_min = None
+    else:
+        try:
+            naive = datetime.strptime(text, "%Y-%m-%dT%H:%M")
+        except ValueError:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "the cancel time is not a date and time")
+        offset = it.legs[0].depart_offset_min if it.legs else 0
+        aware = naive.replace(tzinfo=timezone(timedelta(minutes=offset)))
+        it.cancel_by = aware.astimezone(timezone.utc)
+        it.cancel_by_offset_min = offset
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/booking-code",
