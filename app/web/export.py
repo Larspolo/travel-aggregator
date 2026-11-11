@@ -76,6 +76,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
             "target_price": str(trip.target_price) if trip.target_price is not None else None,
             "arrive_by": trip.arrive_by.strftime("%H:%M") if trip.arrive_by else None,
             "leave_after": trip.leave_after.strftime("%H:%M") if trip.leave_after else None,
+            "checked_bag": trip.checked_bag,
             "tags": trip_tags(trip.tags_text),
         },
         "itineraries": [
