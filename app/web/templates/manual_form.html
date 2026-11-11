@@ -2,11 +2,15 @@
 {% import "ui.html" as ui %}
 {% block title %}New offer – travel-aggregator{% endblock %}
 {% block content %}
-{{ ui.page_header("New offer", back=("/trips/" ~ trip_id, "Trip")) }}
+{% set back = "/trips/" ~ trip_id if trip_id else "/" %}
+{{ ui.page_header("New offer", back=(back, "Trip" if trip_id else "Trips")) }}
 {% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-<form class="card" method="post" action="/trips/{{ trip_id }}/offers/new">
+<form class="card" method="post" action="{{ '/trips/%d/offers/new' % trip_id if trip_id else '/share' }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
   <div class="form-grid">
+    {% if trips is not none %}<div class="field wide"><label for="m-trip">Trip</label><select id="m-trip" name="trip_id" required>
+      {% for t in trips %}<option value="{{ t.id }}"{% if (values.trip_id or '') == t.id|string %} selected{% endif %}>{{ t.title }}</option>{% endfor %}
+    </select></div>{% endif %}
     <div class="field"><label for="m-price">Price</label><input id="m-price" name="price_amount" required inputmode="decimal" value="{{ values.price_amount or '' }}"></div>
     <div class="field"><label for="m-currency">Currency</label><input id="m-currency" name="price_currency" maxlength="3" value="{{ values.price_currency or 'EUR' }}"></div>
     <div class="field"><label for="m-travelers">Price for N travelers</label><input id="m-travelers" name="travelers" type="number" min="1" max="9" step="1" value="{{ values.travelers or '1' }}"></div>
@@ -32,7 +36,7 @@
   {% endfor %}
   <div class="form-actions">
     <button class="btn btn-primary" type="submit">Save</button>
-    <a class="btn btn-ghost" href="/trips/{{ trip_id }}">Cancel</a>
+    <a class="btn btn-ghost" href="{{ back }}">Cancel</a>
   </div>
 </form>
 {% endblock %}

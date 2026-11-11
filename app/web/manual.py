@@ -1,19 +1,22 @@
 """The manual offer form (#118): the owner types one offer with one to four legs, and the app stores it as an offer
 of source `manual`. The Pydantic models of the ingest validate it (P4)."""
 
+import re
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from decimal import Decimal
 
 from pydantic import ValidationError, create_model
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import ingest
 from app.auth import require_login, verify_csrf
 from app.db import get_session
-from app.models import Fare, FarePrice
+from app.models import Fare, FarePrice, Trip
 from app.schemas import IngestIn, OfferIn
 from app.web.pages import _get_trip, templates
 
@@ -25,9 +28,11 @@ MODES = ("train", "bus", "flight", "ferry", "car", "other")
 CLASSES = (("", "Not set"), ("first", "1st class"), ("standard", "2nd class"))  # the value and the label (#740)
 
 
-def _page(request: Request, trip_id: int, values: dict, errors: list[str], code: int = 200) -> HTMLResponse:
+def _page(request: Request, trip_id: int | None, values: dict, errors: list[str], code: int = 200,
+          trips: list | None = None) -> HTMLResponse:
+    """The form of one trip, or with `trips` the form of the share path (#2104) with a trip dropdown."""
     return templates.TemplateResponse(request, "manual_form.html",
-                                      {"trip_id": trip_id, "values": values, "errors": errors,
+                                      {"trip_id": trip_id, "values": values, "errors": errors, "trips": trips,
                                        "legs": range(MAX_FORM_LEGS), "modes": MODES, "classes": CLASSES},
                                       status_code=code)
 
@@ -59,7 +64,11 @@ def manual_form(request: Request, trip_id: int, session: Session = Depends(get_s
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 async def manual_offer(request: Request, trip_id: int, session: Session = Depends(get_session)):
     _get_trip(session, trip_id)
-    form = await request.form()
+    return _save(request, trip_id, await request.form(), session)
+
+
+def _save(request: Request, trip_id: int, form, session: Session, trips: list | None = None):
+    """Validate and store the form as a manual offer of the trip; `trips`: the form of the share path (#2104)."""
     names = ["price_amount", "price_currency", "fare_name", "booking_url", "travel_class", "utc_offset", "travelers"]
     names += [f"leg{i}_{k}" for i in range(MAX_FORM_LEGS) for k in LEG_FIELDS]
     values = {k: str(form.get(k, "")).strip() for k in names}
@@ -74,11 +83,46 @@ async def manual_offer(request: Request, trip_id: int, session: Session = Depend
     except ValidationError as e:
         errors += [f"{'.'.join(map(str, err['loc'])) or 'form'}: {err['msg']}"
                   for err in e.errors(include_input=False, include_url=False)]
-        return _page(request, trip_id, values, errors, 422)
+        return _page(request, trip_id, values, errors, 422, trips)
     if errors:
-        return _page(request, trip_id, values, errors, 422)
+        return _page(request, trip_id, values, errors, 422, trips)
     ingest.store(session, body)
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
+
+
+# The share path (#2104): a phone shares a page with `title`, `text` and `url`. The app stores the address only (P1).
+URL_RE = re.compile(r"https?://\S+")
+BAD_URL = "The shared address is not a web address"
+
+
+def _open_trips(session: Session) -> list[Trip]:
+    return list(session.scalars(select(Trip).where(Trip.status != "archived").order_by(Trip.id.desc())))
+
+
+@router.get("/share", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def share_form(request: Request, title: str = "", text: str = "", url: str = "",
+               session: Session = Depends(get_session)) -> HTMLResponse:
+    url = url.strip()
+    if not url:
+        found = URL_RE.search(text)
+        url = found.group(0) if found else ""
+    errors = []
+    if url and urlsplit(url).scheme.lower() not in ("http", "https"):
+        url, errors = "", [BAD_URL]  # P5: no link of an other scheme
+    values = {"price_currency": "EUR", "utc_offset": "+01:00", "travelers": "1",
+              "fare_name": title.strip()[:100], "booking_url": url[:2000]}
+    return _page(request, None, values, errors, trips=_open_trips(session))
+
+
+@router.post("/share", response_class=HTMLResponse, dependencies=[Depends(require_login), Depends(verify_csrf)])
+async def share_offer(request: Request, session: Session = Depends(get_session)):
+    form = await request.form()
+    trips = _open_trips(session)
+    raw = str(form.get("trip_id", "")).strip()
+    if not raw.isdigit() or int(raw) not in {t.id for t in trips}:
+        values = {k: str(v) for k, v in form.items() if k != "csrf_token"}
+        return _page(request, None, values, ["trip_id: choose a trip"], 422, trips)
+    return _save(request, int(raw), form, session, trips)
 
 
 def _manual_fare(session: Session, trip_id: int, fare_id: int, action: str = "deleted") -> Fare:
