@@ -1,0 +1,33 @@
+From: tickets@example.com
+To: traveller@example.org
+Subject: Your booking
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============1775870768142981245=="
+
+--===============1775870768142981245==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Thank you for your booking.
+
+--===============1775870768142981245==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+
+PGh0bWw+PGJvZHk+PHNjcmlwdCB0eXBlPSJhcHBsaWNhdGlvbi9sZCtqc29uIj57CiAiQGNvbnRl
+eHQiOiAiaHR0cDovL3NjaGVtYS5vcmciLAogIkBncmFwaCI6IFsKICB7CiAgICJAdHlwZSI6ICJG
+bGlnaHRSZXNlcnZhdGlvbiIsCiAgICJyZXNlcnZhdGlvbk51bWJlciI6ICJSWEozNFAiLAogICAi
+dG90YWxQcmljZSI6IDEyMCwKICAgInByaWNlQ3VycmVuY3kiOiAiRVVSIiwKICAgInJlc2VydmF0
+aW9uRm9yIjogewogICAgIkB0eXBlIjogIkZsaWdodCIsCiAgICAiZmxpZ2h0TnVtYmVyIjogIjEx
+MCIsCiAgICAiYWlybGluZSI6IHsKICAgICAiQHR5cGUiOiAiQWlybGluZSIsCiAgICAgIm5hbWUi
+OiAiRXhhbXBsZSBBaXIiLAogICAgICJpYXRhQ29kZSI6ICJFWCIKICAgIH0sCiAgICAiZGVwYXJ0
+dXJlQWlycG9ydCI6IHsKICAgICAiQHR5cGUiOiAiQWlycG9ydCIsCiAgICAgImlhdGFDb2RlIjog
+IkFNUyIKICAgIH0sCiAgICAiYXJyaXZhbEFpcnBvcnQiOiB7CiAgICAgIkB0eXBlIjogIkFpcnBv
+cnQiLAogICAgICJuYW1lIjogIkJhcmNlbG9uYSBFbCBQcmF0IiwKICAgICAiaWF0YUNvZGUiOiAi
+QkNOIgogICAgfSwKICAgICJkZXBhcnR1cmVUaW1lIjogIjIwMjctMDQtMDJUMDc6MzA6MDBaIiwK
+ICAgICJhcnJpdmFsVGltZSI6ICIyMDI3LTA0LTAyVDA5OjQ1OjAwKzAyOjAwIgogICB9CiAgfQog
+XQp9PC9zY3JpcHQ+PC9ib2R5PjwvaHRtbD4K
+
+--===============1775870768142981245==--

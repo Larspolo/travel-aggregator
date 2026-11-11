@@ -1,0 +1,21 @@
+From: tickets@example.com
+To: traveller@example.org
+Subject: Your booking
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============0209410905685501469=="
+
+--===============0209410905685501469==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Thank you for your booking.
+
+--===============0209410905685501469==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html><body><p>Your booking is confirmed.</p></body></html>
+
+--===============0209410905685501469==--

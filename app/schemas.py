@@ -10,6 +10,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validato
 MAX_OFFERS = 500           # offers per batch
 MAX_LEGS = 20              # legs per offer
 MAX_BODY_BYTES = 5_000_000  # the whole request body, also the raw payload
+MAX_MAIL_BYTES = 2_000_000  # a saved confirmation e-mail (#2296)
 
 Mode = Literal["train", "bus", "flight", "ferry", "car", "other"]
 
