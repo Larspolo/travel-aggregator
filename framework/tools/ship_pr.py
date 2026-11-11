@@ -299,6 +299,13 @@ def ci_head(sha, head):
     return sha
 
 
+def partly_staged() -> list[str]:
+    """The files with staged and unstaged changes: a commit of the index would hold only a part of them (#2402).
+    A file that is not staged (a log, a untracked file) is not part of the commit and does not count."""
+    unstaged = set(git("diff", "--name-only").stdout.split())
+    return sorted(unstaged & set(git("diff", "--cached", "--name-only").stdout.split()))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("number", type=int, help="the ticket")
@@ -330,6 +337,10 @@ def main(argv=None):
             return 4
         return ci(a.number, pr["head"]["sha"], deadline, pr.get("number"))
     if a.message:
+        if partly := partly_staged():                   # the commit would hold a part of these files (#2402)
+            for f in partly:
+                print(f"{f}: staged with unstaged changes: git add it (or git restore it), then ship again (#2395)")
+            return 4
         c = git("commit", "-q", "-F", a.message)
         if c.returncode:
             print(f"commit failed: {(c.stdout + c.stderr).strip()}")
