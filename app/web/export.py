@@ -118,6 +118,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                 ],
             }
             for it in sorted(trip.itineraries, key=lambda i: (i.depart_at, i.id))
+            if it.merged_into_id is None  # a joined row: its fares are on the row that it is joined into (#2144)
         ],
     }
 

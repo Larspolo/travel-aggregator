@@ -92,8 +92,14 @@ class Itinerary(Base):
     delay_min: Mapped[int | None] = mapped_column(Integer, nullable=True)  # the arrival delay (#1691)
     claim_paid_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)  # the claim was paid (#1691)
     booking_code: Mapped[str | None] = mapped_column(String(40), nullable=True)  # the booking code (#1716)
+    # The row that this row is joined into (#2144, app/same_journey.py): its fares are on that row, and an ingest of
+    # its fingerprint updates that row. The database deletes a joined row with the row that it is joined into.
+    merged_into_id: Mapped[int | None] = mapped_column(ForeignKey("itineraries.id", ondelete="CASCADE"),
+                                                       nullable=True, index=True)
 
     trip: Mapped[Trip] = relationship(back_populates="itineraries")
+    # many-to-one only: the unit of work then deletes a joined row before the row that it is joined into
+    merged_into: Mapped["Itinerary | None"] = relationship(remote_side=[id], foreign_keys=[merged_into_id])
     legs: Mapped[list["Leg"]] = relationship(back_populates="itinerary", cascade="all, delete-orphan", order_by="Leg.seq")
     fares: Mapped[list["Fare"]] = relationship(back_populates="itinerary", cascade="all, delete-orphan",
                                                foreign_keys="Fare.itinerary_id")
@@ -141,6 +147,9 @@ class Fare(Base):
     currency: Mapped[str] = mapped_column(String(3))
     latest_captured_at: Mapped[datetime] = mapped_column(_tz())
     seen_price: Mapped[Decimal | None] = mapped_column(Money)  # the price at the last view of the trip page (#355)
+    # The joined row that this fare came from (#2144): split() gives the fare back to it.
+    moved_from_id: Mapped[int | None] = mapped_column(ForeignKey("itineraries.id", ondelete="SET NULL"),
+                                                      nullable=True, index=True)
 
     itinerary: Mapped[Itinerary] = relationship(back_populates="fares", foreign_keys=[itinerary_id])
     prices: Mapped[list["FarePrice"]] = relationship(back_populates="fare", cascade="all, delete-orphan")
