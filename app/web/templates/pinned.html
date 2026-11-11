@@ -17,6 +17,9 @@
             {{ dep.strftime("%a %d %b %H:%M") }}–{{ arr.strftime("%H:%M") }}</li>
         {% endfor %}
         </ul>
+        {% for c in changes.get(it.id, []) %}
+        <p class="upcoming-change"><span class="chip warn">Timetable changed: {{ c.service_no }} now {{ c.new_depart.strftime("%H:%M") }} → {{ c.new_arrive.strftime("%H:%M") }} (was {{ c.old_depart.strftime("%H:%M") }} → {{ c.old_arrive.strftime("%H:%M") }})</span></p>
+        {% endfor %}
       </div>
       <div class="journey-cost">{% if fare %}<span class="price">{{ fare.latest_price | money(fare.currency) }}</span> <span class="muted">{{ fare.source }}</span>{{ ui.seats_badge(fare) }}
           {% if low is not none %}<span class="muted">{% if fare.latest_price > low %}lowest {{ low | money(fare.currency) }}, now {{ (fare.latest_price - low) | money(fare.currency) }} above{% else %}at its lowest{% endif %}</span>{% endif %}

@@ -1162,6 +1162,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["duplicates"] = duplicate_trips(session, trip)  # the other trips in planning of this journey (#1592)
     own = {it.id for it in trip.itineraries}  # the conflicts of the booked journeys of this trip (#1655)
     context["booked_conflicts"] = [c for it_id, found in conflicts(session, now).items() if it_id in own for c in found]
+    from app.schedule_change import schedule_changes  # the timetable changes of the booked journeys (#2341)
+    context["booked_changes"] = [c for it_id, found in schedule_changes(session, now).items() if it_id in own for c in found]
     mark_seen(session, trip_id)
     trip.viewed_at = now  # only the full view; an HX-Request keeps it (#1090)
     session.commit()
