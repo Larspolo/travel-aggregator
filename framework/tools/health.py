@@ -118,13 +118,28 @@ def held(r):
             and r.get("conclusion") != "success")
 
 
+AGENT_BRANCH = ("claude/", "agent/", "ccr-")   # the branches of agent PRs (`cycle_start.py`, #3382)
+
+
+def run_rerun(r):
+    """A run started this run again: a pull_request CI run on an agent branch (autopilot step 6.9: a flake gets one
+    re-run of its failed jobs, #2349). GitHub gives the same actor for the owner and the runs."""
+    return (r.get("name") == "CI" and r.get("event") == "pull_request"
+            and (r.get("head_branch") or "").startswith(AGENT_BRANCH))
+
+
 def held_runs(runs):
     """({workflow: runs that GitHub held}, {workflow: runs that a person started again}): a held run waits for an
-    approval (#4645: GitHub held the pacer runs that read `toJSON(secrets)` as "may be malicious"); no tool starts a run
-    again, so an attempt 2 or more is owner work (lever 9)."""
+    approval (#4645: GitHub held the pacer runs that read `toJSON(secrets)` as "may be malicious"); an attempt 2 or
+    more is owner work (lever 9), but not the re-run of a flake by a run (`run_rerun`, #2349)."""
     held_ = Counter(r["name"] for r in runs if held(r))
-    again = Counter(r["name"] for r in runs if r.get("run_attempt", 1) > 1)
+    again = Counter(r["name"] for r in runs if r.get("run_attempt", 1) > 1 and not run_rerun(r))
     return dict(held_), dict(again)
+
+
+def run_reruns(runs):
+    """{workflow: runs that a run started again after a flake} (`run_rerun`, #2349)."""
+    return dict(Counter(r["name"] for r in runs if r.get("run_attempt", 1) > 1 and run_rerun(r)))
 
 
 def slow_steps(jobs, n=3):
@@ -839,6 +854,8 @@ def report(since, runs, jobs, status_comments, comments, prs, files, files_of=No
     held, again = held_runs(runs)
     out.append("Runs held by GitHub (#4645): " + (", ".join(f"{k} {v}" for k, v in sorted(held.items())) or "0")
                + " · started again by hand: " + (", ".join(f"{k} {v}" for k, v in sorted(again.items())) or "0"))
+    out.append("CI re-runs of the runs (a flake, autopilot 6.9, #2349; no owner work): "
+               + (", ".join(f"{k} {v}" for k, v in sorted(run_reruns(runs).items())) or "0"))
     out.append("Slowest CI steps (median min): " + "; ".join(f"{k} {fmt(m)}" for m, k in slow_steps(jobs)))
     setup = setup_minutes(status_comments)
     out.append(f"Setup (median min of {len(setup)} Metrics lines): {fmt(med(setup))}")
