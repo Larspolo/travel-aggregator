@@ -840,6 +840,10 @@ Some sources open their sales a fixed number of days before the trip. Set this n
 
 The first sales date of a trip is the date of the trip minus the horizon. For example, a trip on 2027-03-10 with a horizon of 90 days for a source gives "sales open on 2026-12-10" on the search status of that trip. The date shows only while the source has no capture of the trip. Until the day after that date, the link "Search on <site>" does not show. Then the link shows again.
 
+A search reminder of a trip waits while all its sources with a horizon still sell after today. A source with no horizon does not hold the reminder back. For example, a trip on 2027-03-10 with a horizon of 90 days for its only source sends no reminder before 2026-12-10.
+
+In the day view of a trip, a source whose sales for that day open today or later shows "<source>: sales not open" and has no search link for that day. For example, with a horizon of 90 days for bahn.de, a day 90 days or more after today shows "bahn.de: sales not open".
+
 ### Search links
 
 The trip page shows a link "Search on <site>" for each source that has a search template and a value for the places of the trip. The link opens the site in a new tab.
