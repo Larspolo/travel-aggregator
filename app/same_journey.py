@@ -60,6 +60,8 @@ def join(session: Session, a: Itinerary, b: Itinerary) -> None:
     a.pinned, b.pinned = a.pinned or b.pinned, False
     if _has_booking(b):
         _move_booking(b, a)
+    if a.cancel_by is None and b.cancel_by is not None:  # the cancel time stays with the row that has it (#2313)
+        a.cancel_by, a.cancel_by_offset_min = b.cancel_by, b.cancel_by_offset_min
     a.note = a.note or b.note
     a.last_seen_at = max(a.last_seen_at, b.last_seen_at)
     b.merged_into_id = a.id
