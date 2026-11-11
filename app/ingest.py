@@ -25,6 +25,7 @@ from app.notify import PriceDrop
 from app.suspect import implausible
 from app.currency import load_rates, to_eur
 from app.flexibility import tier
+from app.same_journey import fare_of, joined_into
 
 log = logging.getLogger(__name__)
 
@@ -130,12 +131,17 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         it.last_seen_at = max(it.last_seen_at, captured_at)
         if not has_real_legs(it.legs) and has_real_legs(offer.legs):
             _replace_legs(session, it, offer)
-    fare = next((f for f in it.fares if f.source == source and f.fare_name == offer.fare_name), None)
+    # #2144: the offer of a joined row goes to the row that it is joined into, on the fares that came from it
+    origin = it.id if it.merged_into_id is not None else None
+    if origin is not None:
+        it = joined_into(session, it)
+        it.last_seen_at = max(it.last_seen_at, captured_at)
+    fare = fare_of(it, source, offer.fare_name, origin)
     old = None if fare is None else (fare.latest_price, fare.currency)
     # #1823: an older capture must not replace the seats left of a newer one
     newer = fare is None or captured_at >= fare.latest_captured_at
     if fare is None:
-        fare = Fare(source=source, fare_name=offer.fare_name, latest_price=offer.price_amount,
+        fare = Fare(source=source, fare_name=offer.fare_name, moved_from_id=origin, latest_price=offer.price_amount,
                     currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers,
                     reservation_legs=offer.reservation_legs, berth=offer.berth, seats_left=offer.seats_left)
         it.fares.append(fare)
@@ -376,6 +382,9 @@ def _remove_from_old_trip(session: Session, capture_id: int, trip_id: int) -> di
         if not it.fares:
             flags[it.fingerprint] = (it.pinned, it.booked, it.hidden, it.note,
                                      (it.booked_price, it.booked_currency, it.booked_at))
+            # #2144: the database deletes the rows joined into it; their journeys in the target get the flags too
+            for fp in session.scalars(select(Itinerary.fingerprint).where(Itinerary.merged_into_id == it.id)):
+                flags.setdefault(fp, flags[it.fingerprint])
             session.delete(it)
     session.flush()
     return flags
