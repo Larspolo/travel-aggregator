@@ -1647,6 +1647,11 @@ gives the legs of that mode their own hour value. The breakdown shows the differ
 `<mode> hours` (for example `train hours`), for the minutes of the legs of that mode. A value equal to the hour markup
 adds no part. The part `airport time` of a flight uses the **Flight hour €** value too, when it is set.
 
+The **Transfer wait hour €** field (also under "Advanced", in the Modes part) gives the time between two legs of a
+row its own hour value. It is empty by default, and an empty field means the hour markup. The breakdown shows the part
+`transfer wait` for the positive waits between the legs of a row: the wait in hours times the difference between the
+field and the hour markup. A wait of zero or an overlap adds no part, and a value equal to the hour markup adds no part.
+
 ### Risk
 
 The **Advanced** section under the sliders also sets the risk extras. Each setting has a default. A value of 0 removes
