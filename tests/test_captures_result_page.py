@@ -33,7 +33,7 @@ def test_a_batch_with_a_bad_offer_shows_counts_and_reason_on_both_pages(reparse_
     for page in (f"/trips/{trip_id}/captures", "/captures"):
         text = c.get(page).text
         row = next(r for r in _rows(text) if "capture-failed" in r)
-        assert re.search(r"<td>1</td>\s*<td>1</td>\s*<td class=\"capture-failed\">", row), page
+        assert re.search(r"<td>1</td>\s*<td>[^<]*</td>\s*<td>1</td>\s*<td class=\"capture-failed\">", row), page  # #2328 Changes
         assert "offer 1: " in row and "price_currency" in row, page
 
 
