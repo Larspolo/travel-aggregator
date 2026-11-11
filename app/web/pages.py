@@ -2273,6 +2273,9 @@ MANIFEST = {
         {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png"},
         {"src": "/static/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
     ],
+    # a share from the phone opens the share path of the app (#2105, #2104)
+    "share_target": {"action": "/share", "method": "GET", "enctype": "application/x-www-form-urlencoded",
+                     "params": {"title": "title", "text": "text", "url": "url"}},
 }
 
 
