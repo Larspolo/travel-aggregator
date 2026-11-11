@@ -1667,6 +1667,8 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   removes the baggage part from the ranking, and a fare with an included bag gets no part too.
 A trip can also set the select **Checked bag** of the trip form. Its value **as the profile** uses the parts above. Its value **none (hand luggage only)** gives every flight fare of the trip the part `no checked bag (trip)` at €0, so no bag cost is added.
 
+A trip can also set its own hour value. The field **Hour value (EUR per hour)** of the trip form is empty by default, and an empty field means the hour markup of the profile. A value replaces that hour markup for the offers of this trip only. The other profiles and trips keep their hour markup. The rates under "Advanced" of the profile stay: the transfer wait, the work hours, the night and the other time parts still use their own values. The breakdown shows the time part of the trip with the label `time (trip)`, in place of `time`.
+
 ### Time of day and night
 
 The **Advanced** section under the sliders also sets the time of day. Each setting has a default. The times are local
