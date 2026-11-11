@@ -94,3 +94,17 @@ def estimate_count(rows) -> int:
 def has_place_gap(rows) -> bool:
     """Give True when a row has a "no access/egress place for" line: the trip page links to /places (#2053)."""
     return any(label.startswith(_PLACE_GAPS) for _, _, cost in rows for label, _ in cost.extras)
+
+
+def trip_places(session, trip) -> list:
+    """Give the places of a trip (#2108): its `TripAccessTime` overrides (attribute `trip` True), then each global
+    `AccessTime` whose kind and place key (`_key`) has no override."""
+    from sqlalchemy import select
+
+    from app.models import AccessTime, TripAccessTime
+
+    own = list(session.scalars(select(TripAccessTime).where(TripAccessTime.trip_id == trip.id)
+                               .order_by(TripAccessTime.id)))
+    taken = {(p.kind, _key(p.place_text)) for p in own}
+    rest = session.scalars(select(AccessTime).order_by(AccessTime.id))
+    return own + [p for p in rest if (p.kind, _key(p.place_text)) not in taken]
