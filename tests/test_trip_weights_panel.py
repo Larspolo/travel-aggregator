@@ -19,7 +19,7 @@ NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide
          "weekday1_markup", "weekday2_markup", "weekday3_markup", "weekday4_markup", "weekday5_markup", "weekday6_markup", "weekday7_markup",
          "transfer_place1_name", "transfer_place1_markup", "transfer_place2_name", "transfer_place2_markup",
          "transfer_place3_name", "transfer_place3_markup", "transfer_place1_min", "transfer_place2_min", "transfer_place3_min",
-         "train_hour_markup", "bus_hour_markup", "flight_hour_markup", "ferry_hour_markup", "transfer_wait_hour_markup",  # (#2221)
+         "train_hour_markup", "bus_hour_markup", "flight_hour_markup", "ferry_hour_markup", "transfer_wait_hour_markup", "later_transfer_markup",  # (#2221, #2302)
          "night_seat_adjust", "night_couchette_adjust", "night_sleeper_adjust"}
 
 
@@ -38,7 +38,7 @@ def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  
     assert re.findall(r"<fieldset><legend>([^<]+)</legend>", advanced) == GROUPS
     fieldsets = re.findall(r"<fieldset>.*?</fieldset>", advanced, flags=re.S)
     outside = re.sub(r"<fieldset>.*?</fieldset>", "", advanced, flags=re.S)
-    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 73  # the transfer wait hour (#2221), 7 weekday markups (#2136), 6 transfer place inputs (#1851), 3 minimums (#2073), the currency fee (#1993), the leave value (#2022)
+    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 74  # the later transfer (#2302), the transfer wait hour (#2221), 7 weekday markups (#2136), 6 transfer place inputs (#1851), 3 minimums (#2073), the currency fee (#1993), the leave value (#2022)
 
 
 def test_each_input_name_of_the_form_is_still_sent(trip):  # noqa: F811
