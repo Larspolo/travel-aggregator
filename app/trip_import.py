@@ -40,6 +40,7 @@ class TripData(_Model):
     arrive_by: time | None = None  # missing in an older export: None (#1294)
     leave_after: time | None = None  # missing in an older export: None (#2023)
     checked_bag: Literal["none"] | None = None  # missing in an older export: None (#2397)
+    bike: bool = False  # missing in an older export: False (#2477)
     hour_value: Decimal | None = Field(None, ge=0, le=100)  # missing in an older export: None (#2422)
     tags: list[str] = []  # missing in an older export: no tag (#1950)
 
@@ -87,6 +88,7 @@ class FareData(_Model):
     currency: str = Currency
     latest_captured_at: AwareDatetime
     reservation_legs: int = Field(0, ge=0, le=MAX_LEGS)  # missing in an older export: 0 (#1625)
+    bike: Literal["allowed", "reservation", "no"] | None = None  # missing in an older export: None (#2477)
     prices: list[PriceData] = Field(default_factory=list)
 
 
@@ -205,7 +207,7 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                     origin_alt_text=t.origin_alt, destination_alt_text=t.destination_alt,
                     date_from=t.date_from, date_to=t.date_to, travelers=t.travelers, status=t.status, notes=t.notes,
                     target_price=t.target_price, arrive_by=t.arrive_by, leave_after=t.leave_after,
-                    checked_bag=t.checked_bag, hour_value=t.hour_value, tags_text=", ".join(t.tags) or None)
+                    checked_bag=t.checked_bag, bike=t.bike, hour_value=t.hour_value, tags_text=", ".join(t.tags) or None)
         session.add(trip)
         session.flush()
     else:
@@ -231,7 +233,7 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                             flexibility=fd.flexibility, booking_url=fd.booking_url,
                             self_transfers=_self_transfers(d.legs), latest_price=fd.latest_price,
                             currency=fd.currency, latest_captured_at=fd.latest_captured_at,
-                            reservation_legs=fd.reservation_legs)
+                            reservation_legs=fd.reservation_legs, bike=fd.bike)
                 it.fares.append(fare)
                 result.fares_added += 1
             else:
