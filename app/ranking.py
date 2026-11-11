@@ -50,6 +50,8 @@ class Weights:
     bus_hour_markup: Decimal | None = None  # (#1567)
     flight_hour_markup: Decimal | None = None  # (#1567)
     ferry_hour_markup: Decimal | None = None  # (#1567)
+    # The wait hour value (#2220): € per hour between two legs; None = the hour markup (no part).
+    transfer_wait_hour_markup: Decimal | None = None
     # The short-transfer penalty (#173): a transfer shorter than the minimum; a penalty of 0 disables it.
     short_transfer_min: int = 10
     short_transfer_penalty: Decimal = Decimal("0")
