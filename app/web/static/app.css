@@ -694,3 +694,8 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 
 /* the days on which the best offer changed (#2166): a long carrier text wraps at a phone width */
 .best-changes { padding-left: 1.2rem; overflow-wrap: anywhere; }
+
+/* the keys panel of the trip page (#2439): fits a phone width */
+#keys {
+  max-width: min(28rem, calc(100vw - 2rem));
+}
