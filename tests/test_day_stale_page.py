@@ -62,6 +62,6 @@ def test_a_stale_source_without_a_link_shows_stale_only(monkeypatch):
     a_trip = SimpleNamespace(date_from=date(2026, 5, 3))
     days = [SimpleNamespace(day=date(2026, 5, 3))]
     cover = pages.day_cover(a_trip, itineraries, days, now - timedelta(hours=24))
-    names, missing, stale = cover["2026-05-03"]
+    names, missing, stale, _closed = cover["2026-05-03"]
     assert ("ryanair", None) in stale
     assert ("DB", "https://x/search") in stale

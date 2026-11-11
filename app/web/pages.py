@@ -66,6 +66,7 @@ from app.book_timing import book_timing
 from app.route_history import route_history
 from app.money import money
 from app.coverage import trip_coverage
+from app.sales_open import horizons as sales_horizons
 from app.sourcehealth import failing_sources
 from app.carriers import carrier_names
 from app.risk import carrier_extras, mode_extras, mode_hour_extras, reservation_extras, transfer_wait_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
@@ -158,10 +159,11 @@ def in_time_window(it, earliest_depart: time | None, latest_arrive: time | None)
     return True
 
 
-def day_cover(trip, itineraries, days, stale_before) -> dict[str, tuple[list, list, list]]:
+def day_cover(trip, itineraries, days, stale_before, today: date | None = None, horizon: dict | None = None) -> dict[str, tuple]:
     """For each day of `days`: the names of the sources with offers that day, the (name, link) of that day for each
-    other source with a link (#2058), and the (name, link or None) of each stale source of that day (#2114). A trip
-    with no date gives no entry."""
+    other source with a link (#2058), the (name, link or None) of each stale source of that day (#2114), and the
+    names of the sources whose sales of that day open today or later (#2254: no search link). A trip with no date
+    gives no entry."""
     if not trip.date_from:
         return {}
     from app.days import day_stale_sources
@@ -174,9 +176,12 @@ def day_cover(trip, itineraries, days, stale_before) -> dict[str, tuple[list, li
         links = day_links(trip, date.fromisoformat(key))
         sources = found.get(key, [])
         names = [links[s][0] if s in links else s for s in sources]
-        missing = [(name, url) for source, (name, url) in links.items() if source not in sources and url]
+        closed = [s for s, n in (horizon or {}).items()
+                  if today is not None and date.fromisoformat(key) - timedelta(days=n) >= today]
+        missing = [(name, url) for source, (name, url) in links.items()
+                   if source not in sources and url and source not in closed]
         stale_links = [(links[s][0], links[s][1]) if s in links else (s, None) for s in stale.get(key, [])]
-        cover[key] = (names, missing, stale_links)
+        cover[key] = (names, missing, stale_links, [links[s][0] if s in links else s for s in closed])
     return cover
 
 
@@ -1059,7 +1064,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     context["days"] = with_day_prices(context["days"], session.scalars(  # the day prices of bahn.de (#1198)
         select(DayPrice).where(DayPrice.trip_id == trip.id)).all())
-    context["day_cover"] = day_cover(trip, itineraries, context["days"], stale_before)  # the searched sources (#2058, #2114)
+    context["day_cover"] = day_cover(trip, itineraries, context["days"], stale_before,
+                                       now.date(), sales_horizons(session))  # the searched sources (#2058, #2114)
     # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
     context["timeline"] = timeline(rows, lambda it: depart_day(it) if it.legs else None)
     context["timeline_rows"] = {r[0].id: r for r in rows}
@@ -1111,7 +1117,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     session.commit()
     context["journey"] = journey(session, trip, weights, places, now)
     context["round_grid"] = round_trip_grid(session, trip, context["days"], places, now)
-    context["coverage"] = trip_coverage(session, trip)  # the search status and link per source (#318, #967)
+    context["coverage"] = trip_coverage(session, trip, now.astimezone(timezone.utc).date(),
+                                        sales_horizons(session))  # the search status and link per source (#318, #967)
     context["flash"] = request.session.pop("flash", None)
     context["share_link"] = request.session.pop("share_link", None)  # once after "Share" (#903)  # a message of the last action, for example an import
     context["share_ended"] = bool(trip.share_ends_on and datetime.now(timezone.utc).date() > trip.share_ends_on)  # #2027
