@@ -37,13 +37,16 @@ def _changes_station(a, b) -> bool:
     return bool(legs_a and legs_b and other_station(legs_a[-1], legs_b[0]))
 
 
-def _minimum(a, b, weights: Weights, base: timedelta) -> timedelta:
-    """The wait that a pair needs: `base`, or the minimum of a transfer-place slot of the via place (#2075)."""
+def _minimum(a, b, weights: Weights, base: timedelta, changed: bool) -> timedelta:
+    """The wait that a pair needs: `base`, or the minimum of a transfer-place slot of the via place (#2075).
+
+    The global minimum is a floor only for a change of station (#2097): without a change, the place minimum
+    alone applies, as in `short_transfers()`."""
     legs_a = getattr(a, "legs", None)
     legs_b = getattr(b, "legs", None)
     if not (legs_a and legs_b):
         return base
-    return transfer_minimum(legs_a[-1], legs_b[0], weights, base)
+    return transfer_minimum(legs_a[-1], legs_b[0], weights, base if changed else None)
 
 
 def split_pairs(first: Sequence[tuple], second: Sequence[tuple], weights: Weights, limit: int = 5) -> list[Pair]:
@@ -75,7 +78,7 @@ def split_pairs(first: Sequence[tuple], second: Sequence[tuple], weights: Weight
             if len(heap) >= limit and base > -heap[0][0]:
                 break
             changed = _changes_station(a[0], b[0])
-            earliest = a[0].arrive_at + _minimum(a[0], b[0], weights, change_minimum if changed else minimum)
+            earliest = a[0].arrive_at + _minimum(a[0], b[0], weights, change_minimum if changed else minimum, changed)
             if not earliest <= b[0].depart_at <= latest:
                 continue
             pair_extras = extras
