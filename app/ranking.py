@@ -138,6 +138,7 @@ class Breakdown:
     original: str = ""  # the price in its own currency when it is not EUR, e.g. "CHF 120" (#385)
     no_rate: str = ""  # the currency code when it has no rate: then the price and the total are Infinity (#385)
     group: str = ""  # the price of a capture for 2 or more travelers, e.g. "€180 for 2 travelers" (#767)
+    time_label: str = "time"  # "time (trip)" when the hour value of the trip gives the time part (#2423)
 
 
 def _cents(value: Decimal) -> Decimal:
@@ -227,7 +228,7 @@ def bar_parts(b: Breakdown) -> list[tuple[str, Decimal, Decimal]]:
     """
     if b.no_rate:
         return []
-    labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost)) + b.extras
+    labels = (("price", b.price), (b.time_label, b.time_cost), ("transfers", b.transfer_cost)) + b.extras
     positive = [(label, value) for label, value in labels if value > 0]
     total = sum((value for _, value in positive), Decimal(0))
     parts, x = [], Decimal(0)
@@ -252,7 +253,7 @@ def format_breakdown(b: Breakdown) -> str:
         return f"no rate for {b.no_rate}"
     shown = b.group or b.original  # the group price (#767) or the price in its own currency (#385)
     price_label = f"{shown} ({_amount(b.price)}) price" if shown else None
-    labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost)) + b.extras
+    labels = (("price", b.price), (b.time_label, b.time_cost), ("transfers", b.transfer_cost)) + b.extras
     parts = [price_label if label == "price" and price_label else f"{_amount(value)} {label}"
              for label, value in labels if value != 0 or label.endswith("(included)") or label.startswith("no checked bag")]  # #1527, #2398
     if not parts:

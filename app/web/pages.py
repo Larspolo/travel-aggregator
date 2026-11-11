@@ -666,6 +666,8 @@ def resolve_weights(session: Session, trip: Trip, overrides: dict, profile: int 
     else:
         chosen = session.get(ScoreProfile, trip.profile_id) if trip.profile_id is not None else None
     base = from_config(chosen.config_json) if chosen is not None else default_weights(session)
+    if trip.hour_value is not None:  # the hour value of the trip replaces the hour markup of the profile (#2423)
+        base = dataclasses.replace(base, hour_markup=trip.hour_value)
     blank = {k: None for k, v in overrides.items() if v == MODE_HOUR_BLANK and k in MODE_HOUR_FIELDS}  # (#1568)
     weights = active_weights(base, {k: v for k, v in overrides.items() if k not in blank})
     return dataclasses.replace(weights, **blank), chosen  # the score is computed here and never stored
@@ -745,7 +747,11 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
                                + fee_extras(f, fees, travelers) + currency_fee_extras(f, per, weights))
         return for_group(in_eur(b, f.latest_price, f.currency, eur), f.latest_price, f.currency, n)
     tie = (lambda b: covered) if covered is not None else (lambda b: b.price)  # the lowest price, or the pass cost
-    return min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, tie(fc[1])))
+    f, b = min(((f, cost(f)) for f in fares), key=lambda fc: (fc[1].total, tie(fc[1])))
+    trip_hours = getattr(it.trip, "hour_value", None)  # #2423: an itinerary of a test can have no trip
+    if trip_hours is not None and Decimal(trip_hours) == Decimal(weights.hour_markup):
+        b = dataclasses.replace(b, time_label="time (trip)")
+    return f, b
 
 
 def current_fares(fares, gone):
