@@ -24,6 +24,8 @@ Also run the `mc` tests of the files of your ticket after a merge, but only thos
 push: fix it in the next push. Do not rebase or force-push a branch that has an open PR.
 A conflict in the column "Used today in" of `docs/DESIGN.md`: take main's side (`coverage.yml` writes it).
 Two new rows of the feature table at the same place: keep both.
+A conflict in `migrations/HEAD`: another PR added a migration first. Take main's line, rename your migration to the next
+number, set its `down_revision` to main's head, and write its file name into `migrations/HEAD` (#2387).
 `docs/LEARNINGS.md` has `merge=union`: the merge keeps lines that main removed. `claim.py N --guard` fails
 and names them (#563): remove them from the branch, commit, and run the guard again.
 
