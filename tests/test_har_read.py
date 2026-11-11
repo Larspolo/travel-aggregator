@@ -16,7 +16,7 @@ SECRET = "sessionid=SECRET-COOKIE-123"
 SCRIPTS = {"bahn.de": "bahn", "nsinternational.com": "ns", "flixbus.com": "flixbus", "kiwi.com": "kiwi",
            "thetrainline.com": "trainline", "sncf-connect.com": "sncf", "eurostar.com": "eurostar",
            "oebbtickets.at": "oebb"}
-# a parser that has no userscript yet: its HAR rule is empty until the userscript ticket (#1786)
+# a parser with no HAR rule: an sbb.ch capture is a pair of HAR entries (Trips and TripPrices, #1787)
 NO_SCRIPT = {"sbb.ch"}
 
 

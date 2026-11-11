@@ -62,5 +62,8 @@
   "eurostar.user.js": {
     "1.0.0": "961ef3b655606993b88b4079fb79ca0b9400caaacf1f175277b77cfa94b39eb4",
     "1.1.0": "3b7b1caa493f4570a08bbb91b659a10fa630fac01bf5a1223c8eb4006a3dc2a0"
+  },
+  "sbb.user.js": {
+    "1.0.0": "cfe346c70ad4cd22ee0d6e7121dedbffefb7d5de0b9106f9cca59395083c799e"
   }
 }
