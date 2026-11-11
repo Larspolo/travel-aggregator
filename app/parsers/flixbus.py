@@ -6,7 +6,7 @@ time. The currency is the `currency` query parameter of the URL (the response ha
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 from urllib.parse import parse_qs, urlparse
@@ -51,9 +51,49 @@ def external_id(uid: Any) -> str | None:
     return uid if len(uid) <= 200 else "sha256:" + hashlib.sha256(uid.encode()).hexdigest()
 
 
+def _dict(value: Any) -> dict:
+    return value if isinstance(value, dict) else {}
+
+
+def _day(value: Any) -> date | None:
+    """The local date of an ISO time with an offset (`2026-12-01T07:15:00+01:00`), else None."""
+    try:
+        return aware(value).date() if isinstance(value, str) else None
+    except ValueError:
+        return None
+
+
+def _no_bikes_period(response: dict) -> tuple[date, date] | None:
+    """The `no_bikes_period` of the response (`from` and `to` as DD-MM-YYYY), else None."""
+    period = response.get("no_bikes_period")
+    if not isinstance(period, dict):
+        return None
+    try:
+        return (datetime.strptime(period["from"], "%d-%m-%Y").date(),
+                datetime.strptime(period["to"], "%d-%m-%Y").date())
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def bicycle(conn: dict, response: dict) -> str | None:
+    """The bicycle transport of a connection (#2459): "no", "reservation", or None when the values are not there (P5)."""
+    restrictions, available, departure = (_dict(conn.get(k)) for k in ("restrictions", "available", "departure"))
+    allowed = restrictions.get("bikes_allowed")
+    slots = available.get("bike_slots")
+    slots = slots if isinstance(slots, int) and not isinstance(slots, bool) else None
+    day = _day(departure.get("date"))
+    period = _no_bikes_period(response)
+    in_period = bool(day and period and period[0] <= day <= period[1])
+    if allowed is False or slots == 0 or in_period:
+        return "no"
+    if allowed is True and slots is not None and slots > 0:
+        return "reservation"
+    return None
+
+
 class FlixbusParser:
     source = "flixbus.com"
-    version = "1.1.0"
+    version = "1.2.0"
     # the personal keys beyond PERSONAL_KEYS (#1903): none in the fixtures (the `address` is already REDACTED)
     redact_keys: frozenset[str] = frozenset()
     # the query names of the search URL that the parser reads, or that name the search (#1903)
@@ -112,6 +152,7 @@ class FlixbusParser:
             price_currency=cur,
             fare_name=conn.get("transfer_type") or None,
             seats_left=seats((conn.get("available") or {}).get("seats")),
+            bike=bicycle(conn, response),
             legs=legs,
             booking_url=BOOKING_URL,
         )
