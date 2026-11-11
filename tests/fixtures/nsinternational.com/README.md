@@ -52,3 +52,7 @@ Notes for the parser:
   captures have no page of earlier or later connections.
 - **Other fields**: `newOutboundTravelOfferId` and `newOutboundOfferId` are `null`. `messages` is empty in these
   captures.
+
+`search-amsterdam-wien-nightjet.json`: Amsterdam Centraal → Wien Hbf, 2026-12-08 18:00, 1 adult (HAR of #1619, branch
+`owner/reservation-captures`; the 2 Nightjet connections of the 6). `globalReservationStatus` is null in all offers, also
+for the Nightjet (#1626): the payload does not tell a mandatory reservation, so the parser stores none.
