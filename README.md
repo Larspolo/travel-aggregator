@@ -559,6 +559,7 @@ The trip page shows a "Price trend" chart above the table. It shows the lowest p
 Each point is one day. Its title shows the date and the value, for example "2026-11-03: €90.00". The chart also shows the lowest and the highest value.
 The value of a day follows this rule: for each fare, the app takes its newest price at the end of the day (UTC). It then takes the lowest EUR value of these prices. A day with no capture keeps the value of the day before. A price with no exchange rate does not count, and a hidden offer does not count.
 The chart shows only when the trip has captures on 2 or more days.
+The chart has a second line, "Best effective cost per day", on the same scale. For each day it shows the lowest effective cost of the trip by the active score profile (see "Score profiles"), with the same days and offers as the cheapest price line. Use it to see whether the cheapest offer is also the best one for you.
 
 ### Earlier trips on the same route
 
