@@ -1703,6 +1703,9 @@ its part from the ranking. Each part shows its own label in the breakdown.
 - **Carriers**, in "Advanced": three slots, each with **Carrier n name** and **Carrier n markup €**. The default is no name
   and a markup of `0`, so no slot adds a part. A leg whose carrier is the name of a slot adds the part `carrier <name>`
   with the markup, once per itinerary. The name matches without case and outer spaces. A negative markup is a discount.
+  Each source writes a carrier in its own way. A built-in table gives each carrier one name, and maps the names of the
+  sources to it. For example, "DB Fernverkehr AG" from bahn.de is "Deutsche Bahn", so a slot named "Deutsche Bahn"
+  matches a leg of any source that sells Deutsche Bahn trains. A carrier that is not in the table keeps its name as it is.
 - **Transfer place 1 to 3**, in "Advanced", fieldset "Transfer places": three slots, each with the label **Transfer place n**
   (the name) and **Transfer markup n € (negative = discount)** (the markup). This markup is not the slider **Transfer markup €**,
   which sets the markup for each transfer at any place. The default is no name and a markup of `0`, so no slot adds a part. A transfer at a place of a slot adds the markup, and the
