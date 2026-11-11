@@ -60,7 +60,7 @@ def test_the_days_view_marks_only_the_days_after_the_horizon(monkeypatch):
     a_trip = SimpleNamespace(date_from=date(2027, 5, 8))
     days = [SimpleNamespace(day=date(2027, 5, d)) for d in range(8, 13)]
     cover = pages.day_cover(a_trip, [], days, datetime(2026, 11, 1, tzinfo=timezone.utc), TODAY, {"bahn.de": 180})
-    marked = [key[-2:] for key, entry in cover.items() if entry[3] == ["bahn.de"]]
+    marked = [key[-2:] for key, entry in cover.items() if [name for name, _ in entry[3]] == ["bahn.de"]]
     assert marked == ["10", "11", "12"]
     assert all(entry[1] == [] for key, entry in cover.items() if key[-2:] in marked)
     assert cover["2027-05-08"][1] == [("bahn.de", "https://x/search")]

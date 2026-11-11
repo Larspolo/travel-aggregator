@@ -166,8 +166,8 @@ def in_time_window(it, earliest_depart: time | None, latest_arrive: time | None)
 def day_cover(trip, itineraries, days, stale_before, today: date | None = None, horizon: dict | None = None) -> dict[str, tuple]:
     """For each day of `days`: the names of the sources with offers that day, the (name, link) of that day for each
     other source with a link (#2058), the (name, link or None) of each stale source of that day (#2114), and the
-    names of the sources whose sales of that day open today or later (#2254: no search link). A trip with no date
-    gives no entry."""
+    (name, date its sales open) of each source whose sales of that day open today or later (#2254: no search link).
+    A source with offers that day is left out. A trip with no date gives no entry."""
     if not trip.date_from:
         return {}
     from app.days import day_stale_sources
@@ -180,12 +180,14 @@ def day_cover(trip, itineraries, days, stale_before, today: date | None = None, 
         links = day_links(trip, date.fromisoformat(key))
         sources = found.get(key, [])
         names = [links[s][0] if s in links else s for s in sources]
-        closed = [s for s, n in (horizon or {}).items()
-                  if today is not None and date.fromisoformat(key) - timedelta(days=n) >= today]
+        opens = {s: date.fromisoformat(key) - timedelta(days=n) for s, n in (horizon or {}).items()}
+        closed = {s: day for s, day in opens.items()
+                  if today is not None and day >= today and s not in sources}
         missing = [(name, url) for source, (name, url) in links.items()
                    if source not in sources and url and source not in closed]
         stale_links = [(links[s][0], links[s][1]) if s in links else (s, None) for s in stale.get(key, [])]
-        cover[key] = (names, missing, stale_links, [links[s][0] if s in links else s for s in closed])
+        cover[key] = (names, missing, stale_links,
+                      [(links[s][0] if s in links else s, day) for s, day in closed.items()])
     return cover
 
 
