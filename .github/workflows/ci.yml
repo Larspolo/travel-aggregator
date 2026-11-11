@@ -184,6 +184,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      actions: write   # the gate starts ci.yml for a newer head with no run (#2175)
     concurrency:
       group: preview-image
       cancel-in-progress: false
@@ -194,8 +195,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          head=$(gh api "repos/${{ github.repository }}/commits/main" --jq .sha)
-          if [ "$head" != "$GITHUB_SHA" ]; then echo "main is at $head now: skip $GITHUB_SHA."; echo "go=false" >> "$GITHUB_OUTPUT"
+          R="${{ github.repository }}"
+          head=$(gh api "repos/$R/commits/main" --jq .sha)
+          if [ "$head" != "$GITHUB_SHA" ]; then
+            echo "main is at $head now: skip $GITHUB_SHA."; echo "go=false" >> "$GITHUB_OUTPUT"
+            # Two merges seconds apart: both dispatches can get the old ref, and then no run has the head (#2175).
+            runs=$(gh api "repos/$R/actions/workflows/ci.yml/runs?head_sha=$head" --jq .total_count)
+            if [ "$runs" = "0" ]; then echo "No CI run of $head: start one."; gh workflow run ci.yml --repo "$R" --ref main; fi
           else echo "go=true" >> "$GITHUB_OUTPUT"; fi
       - if: steps.gate.outputs.go == 'true'
         uses: docker/setup-buildx-action@v3
