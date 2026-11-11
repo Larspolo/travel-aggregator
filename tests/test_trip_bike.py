@@ -36,7 +36,7 @@ def test_the_checkbox_saves_and_shows_the_bicycle(engine, client):  # noqa: F811
     assert _post(client, tid, bike="on").status_code == 303
     assert _bike(engine, tid) is True
     assert "With a bicycle (trip)" in client.get(f"/trips/{tid}").text
-    assert 'name="bike" value="on" checked' in client.get(f"/trips/{tid}/edit").text
+    assert 'id="f-bike" type="checkbox" name="bike" value="on" checked' in client.get(f"/trips/{tid}/edit").text
     assert _post(client, tid, bike="").status_code == 303
     assert _bike(engine, tid) is False
     assert "With a bicycle (trip)" not in client.get(f"/trips/{tid}").text
