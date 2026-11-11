@@ -24,7 +24,7 @@ def _token(c, path):
 
 def test_manifest_names_the_share_target(client):
     target = client.get("/manifest.webmanifest").json()["share_target"]
-    assert target == {"action": "/share", "method": "GET",
+    assert target == {"action": "/share", "method": "GET", "enctype": "application/x-www-form-urlencoded",
                       "params": {"title": "title", "text": "text", "url": "url"}}
 
 
