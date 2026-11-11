@@ -1011,6 +1011,20 @@ When another trip in planning has the same route and dates, the trip page shows 
 - At most one profile of the file can be the default.
 - To move your instance to an empty database: export the settings and the trips, install the new instance, import the settings first, then import each trip under "Import a trip".
 
+### Place names
+
+- The settings page `/settings` has the card "Place names". Use it to add a name for a city, for example the local name of a station or a city in your language.
+- To add a name, enter the city and the name, then press "Add". The name must have 1 to 60 characters. A name that is already a place name (built-in or your own) is rejected with a message.
+- To delete a name, press "Delete" in its row. The name stops working at once.
+- The built-in names are the list "Built-in names" under the card. They are the same for every instance. Your names are added to them; the built-in names do not change.
+- A name for a city in the built-in list adds the name to that city. A name for another city makes a new group of names.
+- The place names are used in four checks:
+  - the trip match: an offer is matched to a trip when its places are the places of the trip, also under another name;
+  - the trip selection of the userscript panel: the trip that the panel selects for a capture uses the same names;
+  - the route history: the earlier trips on the same route use the same names;
+  - the duplicate check: a planning trip with the same places under another name, and dates that share a day, is shown as a possible duplicate.
+- Each place name is stored in your database. It is not in the settings file of "Export and import the settings".
+
 ### Version of the app
 
 - The settings page `/settings` has the card "Version". It shows the commit that runs, with a link to that commit on GitHub (no link when the app runs without an image), and the time when the image was built (UTC).
