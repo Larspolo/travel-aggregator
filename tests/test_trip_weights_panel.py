@@ -6,7 +6,7 @@ from tests.test_trip_hide import trip  # noqa: F401
 
 GUARDS = ("app/web/templates/trip*.html", "app/web/pages.py")   # ship_pr runs this file for these changes: no import leads to it (#730)
 
-GROUPS = ["Hour tiers", "Airport", "Time windows", "Night", "Modes", "Carriers", "Transfer places", "CO₂", "Fares", "Staleness", "Profile"]
+GROUPS = ["Hour tiers", "Airport", "Time windows", "Night", "Modes", "Carriers", "Weekday of departure", "Transfer places", "CO₂", "Fares", "Staleness", "Profile"]
 NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide_stale", "pareto", "sort", "dir", "mode", "earliest_depart",
          "latest_arrive", "day", "source", "max_transfers", "max_duration_min", "airport_before_min", "airport_after_min",
          "baggage_fee", "early_limit", "late_limit", "time_window_penalty", "night_start", "night_end", "night_min",
@@ -16,6 +16,7 @@ NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide
          "co2_bus_kg_h", "co2_flight_kg_h", "co2_ferry_kg_h", "flex_non_refundable",
          "flex_partly_refundable", "flex_flexible", "first_class_hour", "self_transfer_penalty", "reservation_fee", "currency_fee_pct", "exclude_mode", "exclude_carrier",
          "carrier1_name", "carrier1_markup", "carrier2_name", "carrier2_markup", "carrier3_name", "carrier3_markup",
+         "weekday1_markup", "weekday2_markup", "weekday3_markup", "weekday4_markup", "weekday5_markup", "weekday6_markup", "weekday7_markup",
          "transfer_place1_name", "transfer_place1_markup", "transfer_place2_name", "transfer_place2_markup",
          "transfer_place3_name", "transfer_place3_markup", "transfer_place1_min", "transfer_place2_min", "transfer_place3_min",
          "train_hour_markup", "bus_hour_markup", "flight_hour_markup", "ferry_hour_markup",
@@ -37,7 +38,7 @@ def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  
     assert re.findall(r"<fieldset><legend>([^<]+)</legend>", advanced) == GROUPS
     fieldsets = re.findall(r"<fieldset>.*?</fieldset>", advanced, flags=re.S)
     outside = re.sub(r"<fieldset>.*?</fieldset>", "", advanced, flags=re.S)
-    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 65  # 6 transfer place inputs (#1851), 3 minimums (#2073), the currency fee (#1993), the leave value (#2022)
+    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 72  # 7 weekday markups (#2136), 6 transfer place inputs (#1851), 3 minimums (#2073), the currency fee (#1993), the leave value (#2022)
 
 
 def test_each_input_name_of_the_form_is_still_sent(trip):  # noqa: F811
