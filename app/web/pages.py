@@ -69,7 +69,7 @@ from app.profiles import active_weights, default_weights, delete as delete_profi
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
 from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PushSubscription, ScoreProfile, Setting,
-                        SentMessage, SourceFee, Trip)
+                        SentMessage, SourceFee, Trip, TripAccessTime)
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
                         REMINDER_DAYS_KEY, REMINDER_NOT_SENT, SOURCE_ALERT_KEY, alert_messages, deliver, setting,
                         webpush_ready)
@@ -399,7 +399,8 @@ def _form_page(request: Request, values: dict, errors: list[str], trip_id: int |
     return templates.TemplateResponse(request, "trip_form.html",
                                       {"values": values, "errors": errors, "trip_id": trip_id, "journey": journey,
                                        "splittable": splittable, "split_error": split_error, "merge": merge,
-                                       "via_places": via,
+                                       "via_places": via, "place_kinds": PLACE_KINDS,
+                                       "trip_places": _trip_places(session, trip_id) if trip_id else [],
                                        "profiles": list_profiles(session)}, status_code=code)
 
 
@@ -1782,9 +1783,8 @@ def places_page(request: Request, session: Session = Depends(get_session)) -> HT
     return templates.TemplateResponse(request, "places.html", {"places": places, "kinds": PLACE_KINDS})
 
 
-@router.post("/places", dependencies=[Depends(require_login), Depends(verify_csrf)])
-def new_place(place_text: str = Form(""), kind: str = Form(""), minutes: str = Form(""), cost: str = Form(""),
-              session: Session = Depends(get_session)) -> RedirectResponse:
+def _place_values(place_text: str, kind: str, minutes: str, cost: str) -> tuple[str, int, Decimal]:
+    """The checked place, minutes and cost of a place form (#97), else 422."""
     place_text = place_text.strip()
     try:
         minutes_value = int(minutes)
@@ -1794,10 +1794,53 @@ def new_place(place_text: str = Form(""), kind: str = Form(""), minutes: str = F
     if (not place_text or len(place_text) > 200 or kind not in PLACE_KINDS or minutes_value < 0
             or not cost_value.is_finite() or cost_value < 0 or cost_value >= Decimal("100000000")):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "a place needs a text, a kind and values >= 0")
-    session.add(AccessTime(place_text=place_text, kind=kind, minutes=minutes_value,
-                           cost=cost_value.quantize(Decimal("0.01"))))
+    return place_text, minutes_value, cost_value.quantize(Decimal("0.01"))
+
+
+@router.post("/places", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def new_place(place_text: str = Form(""), kind: str = Form(""), minutes: str = Form(""), cost: str = Form(""),
+              session: Session = Depends(get_session)) -> RedirectResponse:
+    place_text, minutes_value, cost_value = _place_values(place_text, kind, minutes, cost)
+    session.add(AccessTime(place_text=place_text, kind=kind, minutes=minutes_value, cost=cost_value))
     session.commit()
     return RedirectResponse("/places", status_code=303)
+
+
+def _place_key(text_: str) -> str:
+    return text_.strip().lower()
+
+
+def _trip_places(session: Session, trip_id: int) -> list[tuple[TripAccessTime, AccessTime | None]]:
+    """The overrides of a trip (#2110), each with the global place of the same kind and place key."""
+    own = session.scalars(select(TripAccessTime).where(TripAccessTime.trip_id == trip_id)
+                          .order_by(TripAccessTime.kind, TripAccessTime.place_text, TripAccessTime.id)).all()
+    shared = {(p.kind, _place_key(p.place_text)): p for p in session.scalars(select(AccessTime))}
+    return [(p, shared.get((p.kind, _place_key(p.place_text)))) for p in own]
+
+
+@router.post("/trips/{trip_id}/places", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def new_trip_place(trip_id: int, place_text: str = Form(""), kind: str = Form(""), minutes: str = Form(""),
+                   cost: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+    _get_trip(session, trip_id)
+    place_text, minutes_value, cost_value = _place_values(place_text, kind, minutes, cost)
+    row = next((p for p, _ in _trip_places(session, trip_id)
+                if p.kind == kind and _place_key(p.place_text) == _place_key(place_text)), None)
+    if row is None:  # an override of the same kind and place key changes the row (#2110)
+        row = TripAccessTime(trip_id=trip_id, kind=kind)
+        session.add(row)
+    row.place_text, row.minutes, row.cost = place_text, minutes_value, cost_value
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}/edit", status_code=303)
+
+
+@router.post("/trips/{trip_id}/places/{place_id}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def delete_trip_place(trip_id: int, place_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    place = session.get(TripAccessTime, place_id)
+    if place is None or place.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "no such place of this trip")
+    session.delete(place)
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}/edit", status_code=303)
 
 
 @router.post("/places/{place_id}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
