@@ -24,4 +24,4 @@ def test_an_expanded_row_lists_legs_transfers_and_all_fares(trip):  # noqa: F811
     assert "SBB IC 61" in details and "<time>15:26</time> Zürich HB" in details
     assert "Transfer at Basel SBB: 0h 31" in details
     assert "bahn.de: Sparpreis</span> <strong>€89.90" in details and "sbb.ch: Sparpreis</span> <strong>€95.00" in details
-    assert details.count('href="https://www.bahn.de/buchung/x"') == 1 and details.count("<a ") == 1
+    assert details.count('href="https://www.bahn.de/buchung/x"') == 1 and details.count("<a ") - details.count("Open search") == 1  # "Open search": #2078
