@@ -1018,6 +1018,12 @@ example `€78.00`.
 
 The page shows one column for each ticked offer. The lines are the route, the departure and arrival times, the duration,
 the transfers, the modes, the carriers, the fare, the price and the effective cost with its breakdown.
+
+The breakdown has one row for each part of the effective cost: the price, the time, the transfers and each extra.
+Each column shows the amount of the part for its offer. A column that is not the best one also shows the difference
+to the offer with the lowest effective cost, for example "+€40" or "−€30". The best column shows no difference.
+A row with €0 in every column is left out. A price with no exchange rate shows "no rate" and no difference.
+
 The best value of each line has the mark "best": the lowest price, duration, transfers and effective cost.
 A tie marks every column with the lowest value.
 The last line is "Break-even (yours: €X/h)". Each column that is not the best shows the hour value at which it and the
