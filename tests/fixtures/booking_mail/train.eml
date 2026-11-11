@@ -1,0 +1,74 @@
+From: tickets@example.com
+To: traveller@example.org
+Subject: Your booking
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============5753666616874768111=="
+
+--===============5753666616874768111==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Thank you for your booking.
+
+--===============5753666616874768111==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html><body><p>Your journey &mdash; Amsterdam to Paris. Thank you for travell=
+ing with Example Rail, we wish you a pleasant journey on both of your trains.=
+</p><script type=3D"application/ld+json">[
+ {
+  "@context": "http://schema.org",
+  "@type": "TrainReservation",
+  "reservationNumber": "XYZ123",
+  "totalPrice": "89.90",
+  "priceCurrency": "EUR",
+  "reservationFor": {
+   "@type": "TrainTrip",
+   "departureStation": {
+    "@type": "TrainStation",
+    "name": "K\u00f6ln Hbf"
+   },
+   "arrivalStation": {
+    "@type": "TrainStation",
+    "name": "Paris Nord"
+   },
+   "departureTime": "2027-03-01T13:15:00+01:00",
+   "arrivalTime": "2027-03-01T16:35:00+01:00",
+   "trainNumber": "9425",
+   "provider": {
+    "@type": "Organization",
+    "name": "Example Rail"
+   }
+  }
+ },
+ {
+  "@context": "http://schema.org",
+  "@type": "TrainReservation",
+  "reservationNumber": "XYZ123",
+  "totalPrice": "89.90",
+  "priceCurrency": "EUR",
+  "reservationFor": {
+   "@type": "TrainTrip",
+   "departureStation": {
+    "@type": "TrainStation",
+    "name": "Amsterdam Centraal"
+   },
+   "arrivalStation": {
+    "@type": "TrainStation",
+    "name": "K\u00f6ln Hbf"
+   },
+   "departureTime": "2027-03-01T10:00:00+01:00",
+   "arrivalTime": "2027-03-01T12:40:00+01:00",
+   "trainNumber": "ICE 123",
+   "provider": {
+    "@type": "Organization",
+    "name": "Example Rail"
+   }
+  }
+ }
+]</script></body></html>
+
+--===============5753666616874768111==--

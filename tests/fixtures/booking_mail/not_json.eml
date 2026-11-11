@@ -1,0 +1,70 @@
+From: tickets@example.com
+To: traveller@example.org
+Subject: Your booking
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============7785904252912895193=="
+
+--===============7785904252912895193==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Thank you for your booking.
+
+--===============7785904252912895193==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html><body><script type=3D"application/ld+json">{"@type": "BusReservation", =
+oops</script><script type=3D"application/ld+json">{
+ "@context": "http://schema.org",
+ "@type": "BusReservation",
+ "reservationNumber": "B-777",
+ "price": "19.99",
+ "priceCurrency": "EUR",
+ "reservationFor": {
+  "@type": "BusTrip",
+  "busNumber": "N1",
+  "provider": {
+   "@type": "Organization",
+   "name": "Example Bus"
+  },
+  "departureBusStop": {
+   "@type": "BusStop",
+   "name": "Utrecht Jaarbeurs"
+  },
+  "arrivalBusStop": {
+   "@type": "BusStop",
+   "name": "Berlin ZOB"
+  },
+  "departureTime": "2027-05-03T22:00:00",
+  "arrivalTime": "2027-05-04T07:30:00+02:00"
+ }
+}</script><script type=3D"application/ld+json">{
+ "@context": "http://schema.org",
+ "@type": "BusReservation",
+ "reservationNumber": "B-777",
+ "price": "19.99",
+ "priceCurrency": "EUR",
+ "reservationFor": {
+  "@type": "BusTrip",
+  "busNumber": "N1",
+  "provider": {
+   "@type": "Organization",
+   "name": "Example Bus"
+  },
+  "departureBusStop": {
+   "@type": "BusStop",
+   "name": "Utrecht Jaarbeurs"
+  },
+  "arrivalBusStop": {
+   "@type": "BusStop",
+   "name": "Berlin ZOB"
+  },
+  "departureTime": "2027-05-03T22:00:00+02:00",
+  "arrivalTime": "2027-05-04T07:30:00+02:00"
+ }
+}</script></body></html>
+
+--===============7785904252912895193==--
