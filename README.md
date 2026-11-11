@@ -1691,6 +1691,12 @@ row its own hour value. It is empty by default, and an empty field means the hou
 `transfer wait` for the positive waits between the legs of a row: the wait in hours times the difference between the
 field and the hour markup. A wait of zero or an overlap adds no part, and a value equal to the hour markup adds no part.
 
+The **Each later transfer €** field (also under "Advanced") sets the markup for each transfer after the first one. It is empty
+by default, and an empty field gives no part. The breakdown shows the part `later transfers`: the number of transfers
+minus one, times the difference between the field and the transfer markup. For example, with a transfer markup of 10 and
+a later-transfer value of 25, an itinerary with 3 transfers adds `later transfers` 30. One transfer, or a value equal to
+the transfer markup, adds no part.
+
 ### Risk
 
 The **Advanced** section under the sliders also sets the risk extras. Each setting has a default. A value of 0 removes
