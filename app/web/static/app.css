@@ -103,7 +103,7 @@ nav.topbar .menu-links a.active { background: var(--accent-soft); color: var(--a
 .page-header .subtitle { color: var(--muted); margin: var(--space-1) 0 0; }
 /* The chart uses the colors of the page, in light and dark mode (#698). */
 .price-chart { max-width: 320px; color: var(--accent); }
-.price-chart circle { fill: currentColor; }
+.price-chart circle, .price-chart rect { fill: currentColor; }
 #table, .price-hours { overflow-anchor: none; } /* the table swap keeps the scroll position (#1858) */
 .price-chart circle.other { fill: var(--surface); stroke: currentColor; stroke-width: 1.5; }
 .price-chart text { fill: var(--muted); font-size: var(--text-sm); }
@@ -680,3 +680,7 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 #source-health th { white-space: normal; }
 #source-health th, #source-health td { padding: var(--space-2); }
 #source-health .chip.warn { height: auto; padding: 4px 9px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; margin-top: var(--space-1); }
+
+/* the legend of the price trend (#2141): a solid and a dashed line, not only a color */
+.trend-legend { list-style: none; padding: 0; margin: .25rem 0 0; display: flex; flex-wrap: wrap; gap: .25rem 1rem; font-size: .85rem; }
+.trend-legend svg { vertical-align: middle; }

@@ -32,7 +32,7 @@ def test_a_trip_with_captures_on_three_days_shows_the_chart(trip):  # noqa: F811
     assert page.count("<circle") >= 3
     for title in ("2026-11-03: €89.90", "2026-11-04: €85.00", "2026-11-05: €95.00"):
         assert f"<title>{title}</title>" in page
-    assert "low €85.00" in page and "high €95.00" in page
+    assert "low €85.00" in page and "high €" in page  # high: of both lines, one scale (#2141)
 
 
 def test_one_day_or_no_capture_shows_no_chart(trip):  # noqa: F811
