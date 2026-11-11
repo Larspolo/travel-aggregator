@@ -898,6 +898,14 @@ To travel via a place, split the trip there. Use the form "Split via" on the edi
 - The edit form `/trips/{id}/edit` of an existing trip has the button "Copy trip". It makes a new trip with the origin, destination, travelers, profile and note of the trip. Its title is the title of the trip with "(copy)". The new trip has no dates, no link to the trip and no offers. It opens its edit form. The original trip does not change.
 - The edit form of a trip of a journey with two or more trips has the button "Copy journey". It makes a copy of each trip of the journey, in the same order, and links each copy to the copy before it. The copies show in the trips list as one journey, with no offers. It opens the edit form of the first copy. The original journey does not change.
 
+### Copy the summary of a trip
+
+The trip page of `/trips/{id}` has a "Copy summary" button above the table. It copies the text of the 3 best offers that the table shows, to paste in a chat message. The offers are in the order of the effective cost, and with the same cost, the earlier departure comes first. An offer with no rate does not count. With fewer than 3 offers, the text has one line per offer. With no offer, the button is hidden.
+
+Each line has the times, the transfers, the price, the effective cost and the source of one offer, joined by " · ". For example: `Mon 02 Mar 08:05 → 10:12 · 0 transfers · €39.00 · effective €41.50 · bahn.de`.
+
+The button copies the text to the clipboard, and the status line below the button shows "Copied". A browser with no clipboard access shows the text in a box instead, with the text selected: copy it with the keyboard. The page does not open a dialog.
+
 ### Merge two trips
 
 To merge two trips, open the edit form of the trip that goes away, choose the target trip under "Merge into another trip" and click "Merge…". The offers, prices, captures, day prices and marks (pinned, booked, hidden and note) of the trip move to the target trip, and the merged trip is deleted. A trip that is linked to another trip (a return or a split) cannot be the trip that goes away.
