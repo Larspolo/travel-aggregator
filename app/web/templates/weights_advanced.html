@@ -58,6 +58,8 @@
         <input type="number" name="flight_hour_markup" min="0" max="100" step="0.01" value="{% if weights.flight_hour_markup is not none %}{{ weights.flight_hour_markup }}{% endif %}" placeholder="the hour markup"></label>
       <label>Ferry hour €
         <input type="number" name="ferry_hour_markup" min="0" max="100" step="0.01" value="{% if weights.ferry_hour_markup is not none %}{{ weights.ferry_hour_markup }}{% endif %}" placeholder="the hour markup"></label>
+      <label>Transfer wait hour €
+        <input type="number" name="transfer_wait_hour_markup" min="0" max="100" step="0.01" value="{% if weights.transfer_wait_hour_markup is not none %}{{ weights.transfer_wait_hour_markup }}{% endif %}" placeholder="the hour markup"></label>
       <label>Train markup € (negative = discount)
         <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
       <label>Bus markup €
