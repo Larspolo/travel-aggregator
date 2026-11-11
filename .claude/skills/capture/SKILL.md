@@ -177,6 +177,8 @@ request body), fix the cause before the end of the run:
   page load to `/search/uk-en?adult=1&origin=<code>&destination=<code>&outbound=<yyyy-mm-dd>`; the results come
   after the load with `POST https://site-api.eurostar.com/gateway`. It needs the capture script (step 2): set the flag
   with `--match 'site-api\.eurostar\.com/gateway'` on the start page, then search (#954).
+  The date tabs above the results ("Fri, 13 Nov") are no full page load: the capture script does not start, and
+  a date that the page showed before gives no new request. Use "Edit search" for a recorded search (#1840).
 - SNCF Connect (`www.sncf-connect.com`): no block and no login for a search (2026-11-08). Cookie banner: "Continuer
   sans accepter". The results page is a single-page app: install the hook there; a change of the arrival in its
   search bar is a new search in the same page. Keep `/bff/api/v1/itineraries` (POST, #956). In the calendar, the
