@@ -560,6 +560,7 @@ Each point is one day. Its title shows the date and the value, for example "2026
 The value of a day follows this rule: for each fare, the app takes its newest price at the end of the day (UTC). It then takes the lowest EUR value of these prices. A day with no capture keeps the value of the day before. A price with no exchange rate does not count, and a hidden offer does not count.
 The chart shows only when the trip has captures on 2 or more days.
 The chart has a second line, "Best effective cost per day", on the same scale. For each day it shows the lowest effective cost of the trip by the active score profile (see "Score profiles"), with the same days and offers as the cheapest price line. Use it to see whether the cheapest offer is also the best one for you.
+The card also has a list "Best offer changes". It shows the last 5 days on which another row became the best row of the active score profile. Each line shows the day, the new best row with its effective cost, and the old row with its effective cost on that day. The newest change comes first. When the best row never changed in the captured days, the list does not show.
 
 ### Earlier trips on the same route
 
