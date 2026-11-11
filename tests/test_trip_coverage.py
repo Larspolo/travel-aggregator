@@ -45,9 +45,10 @@ def test_the_list_shows_the_newest_capture_and_the_sources_not_searched(trips):
     client, (trip_id, _) = trips
     items = _items(client.get(f"/trips/{trip_id}").text)
 
-    # One line per parser (the ÖBB parser, #951, is the last one).
+    # One line per parser (the SBB parser, #1786, is the last one).
     assert len(items) == len(parsers.all_sources())
-    assert items[-1] == "ÖBB: not searched yet"  # no search link template for ÖBB
+    assert items[-1] == "SBB: not searched yet"  # no search link template for SBB
+    assert "ÖBB: not searched yet" in items
     assert items[0].startswith("bahn.de: 2 h ago · 14 offers · <a href=")
     ns = next(i for i in items if i.startswith("NS International"))
     assert ns.startswith("NS International: not searched yet · <a href=")

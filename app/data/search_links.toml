@@ -64,3 +64,7 @@ date_format = "%Y-%m-%dT00:00:00"
 [trainline.places]
 Amsterdam = "5894"
 Berlin = "7630"
+
+[sbb]
+source = "sbb.ch"
+name = "SBB"
