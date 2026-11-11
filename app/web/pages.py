@@ -45,6 +45,7 @@ from app.fees import load_fees
 from app.fallback import fallback_extras, no_fallback_marks
 from app.trip_summary import trip_summary
 from app.best_mode import best_per_mode
+from app.trip_routes import _places as route_places, trip_routes
 from app.days import day_sources, day_summary, return_grid, with_day_prices
 from app.timeline import timeline
 from app.filtered import hidden_counts
@@ -845,6 +846,14 @@ def split_sections(session: Session, trip: Trip, weights: Weights, places, now: 
     return sections
 
 
+def route_value(key: tuple) -> str:
+    """The `route` query value of a route key (#2225): the places joined by " > "; "Direct" for no place.
+
+    The keys are casefolded, so "Direct" never is the value of a place "direct".
+    """
+    return " > ".join(key) if key else "Direct"
+
+
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
               overrides: dict = Depends(weight_query),
@@ -863,6 +872,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               show_departed: bool = Query(False),
               hide_stale: bool = Query(False),
               pareto_only: bool = Query(False, alias="pareto"),  # "only these": the marked offers (#1857)
+              route: str = Query("", max_length=200),  # route_value() of a route; "" = all (#2225)
               profile: int | None = Query(None)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
@@ -956,6 +966,13 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             hides_of[it_id].add("only marked")
         rows = [r for r in rows if r[0].id not in dropped]
         shown = [r for r in shown if r[0].id not in dropped]
+    # the routes of the shown rows before the route filter: the other routes still show (#2225)
+    routes = trip_routes(shown)
+    if route:
+        def on_route(r):
+            return route_value(tuple(name.casefold() for name in route_places(r[0]))) == route
+        rows = [r for r in rows if on_route(r)]
+        shown = [r for r in shown if on_route(r)]
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
     if shown:
         for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[2].price),
@@ -975,7 +992,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale,
-            "pareto_only": pareto_only}
+            "pareto_only": pareto_only, "route": route}
     # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
     query = {**{k: v for k, v in to_config(weights).items() if v is not None},
              **{k: MODE_HOUR_BLANK for k in MODE_HOUR_FIELDS if getattr(weights, k) is None},  # (#1568)
@@ -996,6 +1013,13 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         query["pareto"] = True  # the sort links and the sliders keep it (#1857)
     if chosen is not None:
         query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
+    # each route line links to this page with its key; "All routes" clears it (#2225)
+    base = {**query, "sort": sort, "dir": dir}
+    view["routes"] = [(r, route_value(r.key), "?" + urlencode({**base, "route": route_value(r.key)}, doseq=True))
+                      for r in routes]
+    view["all_routes_href"] = "?" + urlencode(base, doseq=True)
+    if route:
+        query["route"] = route  # the sort links and the sliders keep it (#2225)
     # the break-even links re-rank this page with another hour value: the sort and the filters stay (#920)
     tradeoff = tradeoff_lines(rows, shown, source, places, weights, stale_before, rates,
                               trip_id, {**query, "sort": sort, "dir": dir}, counts, fees)  # #895
