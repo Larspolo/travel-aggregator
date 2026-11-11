@@ -917,6 +917,19 @@ The trip page of `/trips/{id}` shows the box "Best offer of each mode" below the
 - The box uses the offers that the filters of the page show. An offer that a hard filter hides (for example "max transfers") does not count, as in the table and in the summary.
 - The box updates when the table is filtered or sorted again, without a page reload.
 
+### Routes of a trip
+
+The trip page of `/trips/{id}` shows the section "Routes" below the box "Best offer of each mode". A route is a sequence of transfer places: "Direct" for an offer with no transfer, or "via Brussels" or "via Köln, Frankfurt". The offers with the same places are one route. The places are compared without case, and each line shows the spelling of the first offer of the route.
+
+- Each line shows the route, the count of its offers, and the effective cost of its best offer, for example `via Brussels: 3 offers, effective €48.20 (best)` or `Direct: 2 offers, effective €55.00 (+€6.80)`.
+- The best offer of a route is the one with the lowest effective cost. A tie goes to the earlier departure. The difference, in brackets, is the effective cost of the best offer of the route less the effective cost of the best offer of the whole trip. The line of the best route shows "best".
+- The lines are in the order of the effective cost of the best offer, the best first. An offer with no rate does not count.
+- The section uses the offers that the filters of the page show. A route with no shown offer does not show. The section shows only when the offers have at least two routes; otherwise it stays hidden.
+- Click a line to filter the table to the offers of that route. The page then shows only that route, and the line of the route has the mark `aria-current`. The query parameter is `route`. Its value is the places in lower case, joined by " > " (for example `via Brussels` is `brussels`, and `Direct` is the word `Direct`). The sort links and the sliders keep the route.
+- The line "All routes" clears the route filter and shows every route again. It shows only when a route is selected.
+- The routes are counted before the route filter, so the other routes stay on the list when you select one.
+- Changing a weight updates the section without a page reload.
+
 ### Merge two trips
 
 To merge two trips, open the edit form of the trip that goes away, choose the target trip under "Merge into another trip" and click "Merge…". The offers, prices, captures, day prices and marks (pinned, booked, hidden and note) of the trip move to the target trip, and the merged trip is deleted. A trip that is linked to another trip (a return or a split) cannot be the trip that goes away.
