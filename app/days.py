@@ -71,6 +71,30 @@ def day_sources(itineraries: Sequence[Any], day_of: Callable[[Any], str | None])
     return {key: sorted(sources) for key, sources in sorted(found.items())}
 
 
+def day_stale_sources(itineraries: Sequence[Any], day_of: Callable[[Any], str | None],
+                      stale_before: Any) -> dict[str, list[str]]:
+    """The stale sources of each day: for each itinerary that is not hidden and has a day, the newest capture of each
+    source of that day is kept. A source is stale when that newest capture is before `stale_before` (the rule of
+    `risk.stale_extras`). Each list is sorted."""
+    newest: dict[str, dict[str, Any]] = {}
+    for it in itineraries:
+        if it.hidden:
+            continue  # a hidden offer is in no day (#200)
+        key = day_of(it)
+        if key is None:
+            continue
+        per_source = newest.setdefault(key, {})
+        for fare in it.fares:
+            seen = per_source.get(fare.source)
+            if seen is None or fare.latest_captured_at > seen:
+                per_source[fare.source] = fare.latest_captured_at
+    return {
+        key: sorted(source for source, at in sources.items() if at < stale_before)
+        for key, sources in sorted(newest.items())
+        if any(at < stale_before for at in sources.values())
+    }
+
+
 RETURN_MAX_DAYS = 14  # the outbound days and the return days of a grid (a longer list shows its first 14 days)
 
 
