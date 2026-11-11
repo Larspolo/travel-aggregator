@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import ingest
+from app import capture_delete, ingest
 from app.failure_report import report_url
 from app.field_health import field_health
 from app.sourcehealth import add_old_script, failed_clause, old_parsed_clause, source_health
@@ -268,6 +268,30 @@ def keep_capture(capture_id: int, keep: str = Form(...), session: Session = Depe
     capture.kept = keep == "1"
     session.commit()
     return RedirectResponse(f"/captures/{capture_id}/raw", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/captures/{capture_id}/delete", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def capture_delete_form(request: Request, capture_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+    """The confirm page of a capture delete (#2187): it shows what the delete removes; it changes nothing."""
+    capture = session.get(Capture, capture_id)
+    if capture is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no capture {capture_id}")
+    counts = capture_delete.delete_counts(session, capture)
+    return templates.TemplateResponse(request, "capture_delete.html",
+                                      {"capture": capture, "trip": session.get(Trip, capture.trip_id),
+                                       "counts": counts})
+
+
+@router.post("/captures/{capture_id}/delete", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def capture_delete_page(capture_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
+    """Delete one capture with the offers only it gave (#2186, #2187); back to the captures of its trip."""
+    capture = session.get(Capture, capture_id)
+    if capture is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no capture {capture_id}")
+    trip_id = capture.trip_id
+    capture_delete.delete_capture(session, capture)
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}/captures", status_code=status.HTTP_303_SEE_OTHER)
 
 
 RAW_LIMIT = 200_000
