@@ -1,0 +1,52 @@
+{% extends "settings_base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Rail passes – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header("Rail passes", subtitle="A pass costs an amount in EUR per day from its first day to its last day.") }}{% endblock %}
+{% macro pass_form(p=None) %}
+<form method="post" action="/passes">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  {% set k = p.id if p else "new" %}
+  {% if p %}<input type="hidden" name="id" value="{{ p.id }}">{% endif %}
+  <div class="form-grid">
+    <div class="field"><label for="name-{{ k }}">Name</label>
+      <input id="name-{{ k }}" name="name" required maxlength="100" value="{{ p.name if p else '' }}" placeholder="Interrail"></div>
+    <div class="field"><label for="first-{{ k }}">First day</label>
+      <input id="first-{{ k }}" name="first_day" type="date" required value="{{ p.first_day.isoformat() if p else '' }}"></div>
+    <div class="field"><label for="last-{{ k }}">Last day</label>
+      <input id="last-{{ k }}" name="last_day" type="date" required value="{{ p.last_day.isoformat() if p else '' }}"></div>
+    <div class="field"><label for="cost-{{ k }}">Cost per day (€)</label>
+      <input id="cost-{{ k }}" name="day_cost" required inputmode="decimal" value="{{ '%.2f'|format(p.day_cost) if p else '' }}" placeholder="40.00">
+      <p class="help">From 0 to 1000, at most 2 decimals.</p></div>
+    <div class="field"><label for="carriers-{{ k }}">Carriers</label>
+      <input id="carriers-{{ k }}" name="carriers" maxlength="300" value="{{ p.carriers if p else '' }}" placeholder="NS, DB"></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">{{ "Save pass" if p else "Add pass" }}</button></div>
+</form>
+{% endmacro %}
+{% block settings %}
+{% call ui.card("Add a pass") %}
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+{{ pass_form() }}
+{% endcall %}
+{% call ui.card("Passes") %}
+{% if rows %}
+<div class="scroll">
+<table>
+  <thead><tr><th>Name</th><th>Days</th><th>Cost per day</th><th>Carriers</th><th></th></tr></thead>
+  <tbody>
+  {% for p in rows %}
+  <tr><td>{{ p.name }}</td><td>{{ p.first_day.isoformat() }} – {{ p.last_day.isoformat() }}</td>
+    <td>€{{ "%.2f"|format(p.day_cost) }}</td><td>{{ p.carriers }}</td>
+    <td><form method="post" action="/passes/{{ p.id }}/delete">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">Delete</button></form></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% for p in rows %}
+<details><summary>Change {{ p.name }}</summary>{{ pass_form(p) }}</details>
+{% endfor %}
+{% else %}<p>No passes. With no pass, the costs do not change.</p>{% endif %}
+{% endcall %}
+{% endblock %}
