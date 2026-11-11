@@ -2,7 +2,8 @@
 
 A leg of a booked journey has a change when a newer capture (a later `last_seen_at`) of another itinerary of the same
 trip has a leg with the same carrier (`carrier_names`), the same service number and the same local departure day, but
-another departure or arrival time. The newest such leg wins.
+another departure or arrival time. The newest such leg wins. A dismissed change (its `key` in
+`Itinerary.schedule_change_dismissed`, #2342) does not show until the new times change again.
 """
 
 from dataclasses import dataclass
@@ -22,6 +23,21 @@ class Change:
     old_arrive: datetime
     new_depart: datetime
     new_arrive: datetime
+
+    @property
+    def key(self) -> str:
+        """The service number and the new UTC times: the key of a dismiss (#2342)."""
+        utc = timezone.utc
+        return f"{self.service_no}|{self.new_depart.astimezone(utc).isoformat()}|{self.new_arrive.astimezone(utc).isoformat()}"
+
+
+def dismissed(it: Itinerary) -> set[str]:
+    return set((it.schedule_change_dismissed or "").splitlines())
+
+
+def dismiss(it: Itinerary, key: str) -> None:
+    keys = dismissed(it) | {key}
+    it.schedule_change_dismissed = "\n".join(sorted(keys))
 
 
 def _local(t: datetime, offset_min: int) -> datetime:
@@ -56,9 +72,11 @@ def schedule_changes(session: Session, now: datetime) -> dict[int, list[Change]]
                 if match is None:
                     continue
                 if (match.depart_at, match.arrive_at) != (leg.depart_at, leg.arrive_at):
-                    result.setdefault(it.id, []).append(Change(
+                    change = Change(
                         leg.service_no, _local(leg.depart_at, leg.depart_offset_min),
                         _local(leg.arrive_at, leg.arrive_offset_min), _local(match.depart_at, match.depart_offset_min),
-                        _local(match.arrive_at, match.arrive_offset_min)))
+                        _local(match.arrive_at, match.arrive_offset_min))
+                    if change.key not in dismissed(it):
+                        result.setdefault(it.id, []).append(change)
                 break
     return result
