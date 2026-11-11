@@ -395,3 +395,13 @@ class SentMessage(Base):
     channel: Mapped[str] = mapped_column(String(10))
     ok: Mapped[bool] = mapped_column(Boolean)
     reason: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+
+class PlaceName(Base):
+    """A place name of the owner, for one city of the built-in table of `app/tripmatch.py` (#2215, epic #2214)."""
+    __tablename__ = "place_names"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    city: Mapped[str] = mapped_column(String(60))
+    name: Mapped[str] = mapped_column(String(60))
+    created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
