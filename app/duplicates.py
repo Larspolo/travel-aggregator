@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Trip
+from app.place_names import aliases
 from app.route_history import _same_place
 
 
@@ -25,11 +26,13 @@ def duplicate_trips(session: Session, trip: Trip) -> list[Trip]:
         return []
     start, end = span
     found = []
+    names = aliases(session)
     for other in session.scalars(select(Trip).where(Trip.id != trip.id, Trip.status == "planning",
                                                     Trip.split_of_id.is_(None)).order_by(Trip.id)):
         other_span = _span(other)
         if other_span is None or not (other_span[0] <= end and start <= other_span[1]):
             continue
-        if _same_place(other.origin_text, trip.origin_text) and _same_place(other.destination_text, trip.destination_text):
+        if (_same_place(other.origin_text, trip.origin_text, names)
+                    and _same_place(other.destination_text, trip.destination_text, names)):
             found.append(other)
     return found

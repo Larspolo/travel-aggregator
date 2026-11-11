@@ -50,29 +50,30 @@ def _phrase(text: str) -> str:
     return " ".join(re.findall(r"[^\W_]+", _fold(text)))
 
 
-def _groups(text: str) -> set[str]:
+def _groups(text: str, aliases: dict[str, tuple[str, ...]] | None = None) -> set[str]:
     """The English names of the ALIASES groups that the text names (as a whole word or phrase)."""
     padded = f" {_phrase(text)} "
-    return {english for english, local in ALIASES.items()
+    return {english for english, local in (ALIASES if aliases is None else aliases).items()
             if any(f" {_phrase(name)} " in padded for name in (english, *local))}
 
 
-def _place_matches(trip_text: str | None, name: str, code: str | None) -> bool:
+def _place_matches(trip_text: str | None, name: str, code: str | None, aliases=None) -> bool:
     if not trip_text or not trip_text.strip():
         return True
     if code and _fold(trip_text.strip()) == _fold(code.strip()):
         return True
     if _words(trip_text) & _words(name):
         return True
-    return bool(_groups(trip_text) & _groups(name))
+    return bool(_groups(trip_text, aliases) & _groups(name, aliases))
 
 
-def _end_matches(trip_text: str | None, alt_text: str | None, name: str, code: str | None) -> bool:
+def _end_matches(trip_text: str | None, alt_text: str | None, name: str, code: str | None,
+                 aliases=None) -> bool:
     """True when the offer's place matches the trip's place or one of its other places (#1422, #1423). A blank
     trip place matches each offer."""
     if not trip_text or not trip_text.strip():
         return True
-    return any(_place_matches(text, name, code) for text in (trip_text, *alt_places(alt_text)))
+    return any(_place_matches(text, name, code, aliases) for text in (trip_text, *alt_places(alt_text)))
 
 
 def _date_matches(trip: Trip, day: date) -> bool:
@@ -81,16 +82,16 @@ def _date_matches(trip: Trip, day: date) -> bool:
     return trip.date_from <= day <= (trip.date_to or trip.date_from)
 
 
-def mismatch(trip: Trip, offers: list[OfferIn], travelers: int | None = None) -> str | None:
+def mismatch(trip: Trip, offers: list[OfferIn], travelers: int | None = None, aliases=None) -> str | None:
     """None when at least one offer matches the trip; else "places" (no offer goes from the origin to the
     destination), "date" (the offers that match the places depart on another day) or "travelers" (the capture is
     for another number of travelers than the trip, #765; no count gives no warning)."""
     if not offers:
         return None
     by_place = [o for o in offers
-                if _end_matches(trip.origin_text, trip.origin_alt_text, o.legs[0].from_name, o.legs[0].from_code)
+                if _end_matches(trip.origin_text, trip.origin_alt_text, o.legs[0].from_name, o.legs[0].from_code, aliases)
                 and _end_matches(trip.destination_text, trip.destination_alt_text, o.legs[-1].to_name,
-                                 o.legs[-1].to_code)]
+                                 o.legs[-1].to_code, aliases)]
     if not by_place:
         return "places"
     if not any(_date_matches(trip, o.legs[0].depart_at.date()) for o in by_place):
@@ -123,15 +124,15 @@ def _has_place(trip: Trip) -> bool:
     return any(text and text.strip() for text in places)
 
 
-def best_trip(trips: list[Trip], offers: list[OfferIn], selected: Trip) -> Trip:
+def best_trip(trips: list[Trip], offers: list[OfferIn], selected: Trip, aliases=None) -> Trip:
     """The trip for the offers of an `auto_trip` capture (#719): the selected trip when it matches; else the one
     trip with the status "planning" that matches (of 2 or more: the shortest date range, then the newest); else the
     selected trip (the caller gives the warning of #555). A trip with no origin and no destination matches each offer,
     so it is never chosen in place of the selected trip (#752)."""
-    if mismatch(selected, offers) is None:
+    if mismatch(selected, offers, aliases=aliases) is None:
         return selected
     matches = [t for t in trips if t.status == "planning" and t.id != selected.id and _has_place(t)
-               and mismatch(t, offers) is None]
+               and mismatch(t, offers, aliases=aliases) is None]
     if not matches:
         return selected
 
