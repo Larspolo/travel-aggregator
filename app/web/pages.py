@@ -176,6 +176,14 @@ def ago(t: datetime, now: datetime) -> str:
     return f"{seconds // 86400} days ago"
 
 
+def web_url(url: str | None) -> str | None:
+    """The address if it is a web page (`http://` or `https://`), else None: the one rule for "Open search" links (#2079)."""
+    if url and url.lower().startswith(("http://", "https://")):
+        return url
+    return None
+
+
+templates.env.filters["web_url"] = web_url
 templates.env.filters["money"] = money
 templates.env.filters["mode_icon"] = mode_icon
 templates.env.filters["day_gap"] = day_gap
