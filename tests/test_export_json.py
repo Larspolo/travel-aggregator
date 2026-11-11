@@ -62,7 +62,7 @@ def test_the_export_is_a_json_attachment_with_all_data(client, trip_id):
                             "destination": "Zürich", "origin_alt": None, "destination_alt": None,
                             "date_from": "2026-12-01", "date_to": None,
                             "travelers": 2, "status": "planning", "notes": "ski", "target_price": None,
-                            "arrive_by": None, "leave_after": None, "tags": []}
+                            "arrive_by": None, "leave_after": None, "checked_bag": None, "tags": []}
     a, b = data["itineraries"]
     assert (a["pinned"], a["hidden"], a["booked"], a["note"]) == (True, False, False, "best")
     assert (b["pinned"], b["hidden"], b["booked"]) == (False, True, True)

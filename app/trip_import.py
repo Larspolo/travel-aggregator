@@ -39,6 +39,7 @@ class TripData(_Model):
     target_price: Decimal | None = Field(None, gt=0, le=100000)  # missing in an older export: None (#846)
     arrive_by: time | None = None  # missing in an older export: None (#1294)
     leave_after: time | None = None  # missing in an older export: None (#2023)
+    checked_bag: Literal["none"] | None = None  # missing in an older export: None (#2397)
     tags: list[str] = []  # missing in an older export: no tag (#1950)
 
     @field_validator("tags", mode="before")
@@ -203,7 +204,7 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                     origin_alt_text=t.origin_alt, destination_alt_text=t.destination_alt,
                     date_from=t.date_from, date_to=t.date_to, travelers=t.travelers, status=t.status, notes=t.notes,
                     target_price=t.target_price, arrive_by=t.arrive_by, leave_after=t.leave_after,
-                    tags_text=", ".join(t.tags) or None)
+                    checked_bag=t.checked_bag, tags_text=", ".join(t.tags) or None)
         session.add(trip)
         session.flush()
     else:
