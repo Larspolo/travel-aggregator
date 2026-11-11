@@ -29,6 +29,7 @@ from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, 
                       require_login, session_epoch, verify_csrf)
 from app import departed
 from app.door import door_minutes
+from app.compare_parts import part_rows
 from app.pareto import pareto_ids
 from app.pareto_chart import pareto_chart
 from app.discount_cards import card_label, cards_warning, fare_cards
@@ -2282,6 +2283,20 @@ def tradeoff_lines(rows, shown, source, places, weights: Weights, stale_before, 
     return lines
 
 
+def _parts_view(columns: list, best_n: int) -> list:
+    """The part rows of the compare view (#2087): (label, [(amount, difference, is best) per column])."""
+    costs = [cost for _, _, cost in columns]
+    rows = []
+    for row in part_rows(costs):
+        cells = []
+        for n, (cell, diff) in enumerate(zip(row.cells, row.diffs)):
+            text = "no rate" if cell is None else _amount(cell)
+            dtext = "" if diff is None or diff == 0 else ("+" if diff > 0 else "−") + _amount(abs(diff))
+            cells.append((text, dtext, n == best_n and not costs[n].no_rate))
+        rows.append((row.label, cells))
+    return rows
+
+
 @router.get("/trips/{trip_id}/compare", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def compare_page(request: Request, trip_id: int, session: Session = Depends(get_session),
                  overrides: dict = Depends(weight_query), profile: int | None = Query(None),
@@ -2339,4 +2354,5 @@ def compare_page(request: Request, trip_id: int, session: Session = Depends(get_
         if Decimal(0) <= value <= 100:
             link = f"/trips/{trip_id}/compare?" + urlencode(kept + [("hour_markup", str(int(value)))])
         context["tradeoff"].append((f"Better {be.better} {_amount(be.hour_value)}/h", link))
+    context["parts"] = _parts_view(context["columns"], best_n)  # the parts side by side (#2087)
     return templates.TemplateResponse(request, "compare.html", context)
