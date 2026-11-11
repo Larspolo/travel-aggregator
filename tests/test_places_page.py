@@ -33,7 +33,7 @@ def _add(c, **values):
 
 def test_no_login_redirects():
     r = TestClient(app).get("/places", follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 303 and r.headers["location"].startswith("/login?next=%2F")  # the target of #2103
 
 
 def test_add_list_and_delete(sessions, client):

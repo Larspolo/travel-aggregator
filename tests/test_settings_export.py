@@ -65,7 +65,7 @@ def test_the_export_has_no_secret(client, filled):
 
 def test_no_login_goes_to_the_login_page():
     r = TestClient(app).get("/settings/export.json", follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 303 and r.headers["location"].startswith("/login?next=%2F")  # the target of #2103
 
 
 def test_the_settings_page_has_the_link(client, sessions):

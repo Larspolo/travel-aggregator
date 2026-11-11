@@ -45,7 +45,7 @@ def test_an_itinerary_of_another_trip_is_404(trip, sessions):  # noqa: F811
 @pytest.mark.usefixtures("sessions")
 def test_no_login_goes_to_the_login_page():
     r = TestClient(app).get("/trips/1/itineraries/1/calendar.ics", follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 303 and r.headers["location"].startswith("/login?next=%2F")  # the target of #2103
 
 
 @pytest.mark.slow

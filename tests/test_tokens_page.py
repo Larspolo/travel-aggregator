@@ -33,7 +33,7 @@ def _create(c, name="laptop"):
 
 def test_no_login_redirects():
     r = TestClient(app).get("/tokens", follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 303 and r.headers["location"].startswith("/login?next=%2F")  # the target of #2103
 
 
 def test_create_shows_value_once_and_stores_only_hash(sessions, client):
