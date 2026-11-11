@@ -101,6 +101,7 @@ jobs:
           SCREENSHOT_DIR: screenshots
       - uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true   # only for a person: a GitHub error of the upload must not fail green tests (#2488)
         with:
           name: screenshots-${{ matrix.shard }}
           path: screenshots/
