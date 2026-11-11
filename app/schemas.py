@@ -180,6 +180,7 @@ class TripForm(BaseModel):
     arrive_by: time | None = None  # the local time at the arrival place (#1294)
     leave_after: time | None = None  # the local time at the origin (#2023)
     profile_id: int | None = None  # the score profile of this trip; None = the default profile (#232)
+    rail_pass_id: int | None = None  # the rail pass of this trip; None = no pass (#2266)
 
     @model_validator(mode="before")
     @classmethod
