@@ -5,8 +5,8 @@ from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import RedirectResponse, Response
-from sqlalchemy import or_, select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.auth import require_login, verify_csrf
 from app.currency import load_rates
@@ -14,18 +14,12 @@ from app.delay_claim import claim
 from app.db import get_session
 from app.models import Itinerary, ScoreProfile, TravelBudget
 from app.profiles import default_weights
-from app.spend import budget_rest, year_rows, year_summary
+from app.spend import booked as _booked, budget_rest, year_rows, year_summary
 from app.web.export import year_csv
 from app.web.pages import templates
 
 router = APIRouter()
 
-
-def _booked(session: Session) -> list[Itinerary]:
-    """The booked and the cancelled itineraries; a cancelled booking keeps its paid price less the refund (#1687)."""
-    return session.scalars(
-        select(Itinerary).where(or_(Itinerary.booked.is_(True), Itinerary.cancelled_at.is_not(None)))
-        .options(selectinload(Itinerary.legs), selectinload(Itinerary.trip))).all()
 
 
 def _amount(text: str) -> Decimal | None:
