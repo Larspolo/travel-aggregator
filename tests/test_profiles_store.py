@@ -23,7 +23,7 @@ CHANGED = {"hour_markup": "22.5", "transfer_markup": "7", "airport_before_min": 
            "co2_price_kg": "0.10", "co2_train_kg_h": "4", "co2_bus_kg_h": "1", "co2_flight_kg_h": "70", "co2_ferry_kg_h": "5",
            "flex_non_refundable": "8", "flex_partly_refundable": "4", "flex_flexible": "-6",
            "first_class_hour": "-3",
-           "self_transfer_penalty": "15", "reservation_fee": "6", "currency_fee_pct": "2", "stale_hours": "48", "stale_penalty": "9",
+           "self_transfer_penalty": "15", "reservation_fee": "6", "bike_fee": "9", "currency_fee_pct": "2", "stale_hours": "48", "stale_penalty": "9",
            "hour_tier1_after_min": "240", "hour_tier1_markup": "8", "hour_tier2_after_min": "480",
            "hour_tier2_markup": "15",
            "carrier1_name": "Ryanair", "carrier1_markup": "15", "carrier2_name": "KLM", "carrier2_markup": "-5",
@@ -82,6 +82,17 @@ def test_a_second_save_with_the_same_name_replaces_the_config(trip, sessions):  
     rows = _profiles(sessions)
     assert len(rows) == 1
     assert from_config(rows[0][1]) == Weights(hour_markup=Decimal("30"))
+
+
+def test_the_bike_fee_saves_and_a_value_over_1000_is_rejected(trip, sessions):  # noqa: F811
+    client, trip_id = trip
+    token = csrf(client, trip_id)
+    r = client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "Bike", "bike_fee": "9"},
+                    follow_redirects=False)
+    assert r.status_code == 303
+    assert from_config(_profiles(sessions)[0][1]).bike_fee == Decimal("9")
+    r = client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "Over", "bike_fee": "1001"})
+    assert r.status_code == 422
 
 
 def test_a_save_without_the_csrf_token_or_out_of_range_stores_nothing(trip, sessions):  # noqa: F811
