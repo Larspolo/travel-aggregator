@@ -70,8 +70,9 @@
 <section class="booked-changes card" id="booked-changes" role="status">
 <h2>A booked journey has a new timetable</h2>
 <ul>
-{% for c in booked_changes %}
-<li><span class="chip warn">Timetable changed: {{ c.service_no }} now {{ c.new_depart.strftime("%H:%M") }} → {{ c.new_arrive.strftime("%H:%M") }} (was {{ c.old_depart.strftime("%H:%M") }} → {{ c.old_arrive.strftime("%H:%M") }})</span></li>
+{% for it_id, c in booked_changes %}
+<li><span class="chip warn">Timetable changed: {{ c.service_no }} now {{ c.new_depart.strftime("%H:%M") }} → {{ c.new_arrive.strftime("%H:%M") }} (was {{ c.old_depart.strftime("%H:%M") }} → {{ c.old_arrive.strftime("%H:%M") }})</span>
+  <form class="inline-form" method="post" action="/trips/{{ trip.id }}/itineraries/{{ it_id }}/schedule-change/dismiss"><input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><input type="hidden" name="key" value="{{ c.key }}"><input type="hidden" name="back" value="/trips/{{ trip.id }}"><button class="btn" type="submit">Dismiss</button></form></li>
 {% endfor %}
 </ul>
 </section>
