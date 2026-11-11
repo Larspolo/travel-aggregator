@@ -37,9 +37,9 @@ def test_excluded_carriers_hide_their_offers(trip):  # noqa: F811
     page = client.get(f"/trips/{trip_id}?exclude_carrier=Flixbus&exclude_carrier=RyanAir").text
     assert "FLX 1" not in page and "FLX 2" not in page
     assert "ICE 9" in page
-    page = client.get(f"/trips/{trip_id}?exclude_carrier=DB").text
+    page = client.get(f"/trips/{trip_id}?exclude_carrier=Deutsche+Bahn").text
     assert "ICE 9" not in page and "FLX 1" in page
-    assert 'value="Flixbus"' in page and 'value="DB" checked' in page
+    assert 'value="Flix"' in page and 'value="Deutsche Bahn" checked' in page
 
 
 def test_the_sort_links_keep_the_exclusions_and_none_hides_nothing(trip):  # noqa: F811
