@@ -144,13 +144,16 @@ def in_time_window(it, earliest_depart: time | None, latest_arrive: time | None)
     return True
 
 
-def day_cover(trip, itineraries, days) -> dict[str, tuple[list[str], list[tuple[str, str]]]]:
-    """For each day of `days`: the names of the sources with offers that day, and the (name, link) of that day for
-    each other source with a link (#2058). A trip with no date gives no entry."""
+def day_cover(trip, itineraries, days, stale_before) -> dict[str, tuple[list, list, list]]:
+    """For each day of `days`: the names of the sources with offers that day, the (name, link) of that day for each
+    other source with a link (#2058), and the (name, link or None) of each stale source of that day (#2114). A trip
+    with no date gives no entry."""
     if not trip.date_from:
         return {}
+    from app.days import day_stale_sources
     from app.search_links import day_links
     found = day_sources(itineraries, lambda it: depart_day(it) if it.legs else None)
+    stale = day_stale_sources(itineraries, lambda it: depart_day(it) if it.legs else None, stale_before)
     cover = {}
     for d in days:
         key = str(d.day)
@@ -158,7 +161,8 @@ def day_cover(trip, itineraries, days) -> dict[str, tuple[list[str], list[tuple[
         sources = found.get(key, [])
         names = [links[s][0] if s in links else s for s in sources]
         missing = [(name, url) for source, (name, url) in links.items() if source not in sources and url]
-        cover[key] = (names, missing)
+        stale_links = [(links[s][0], links[s][1]) if s in links else (s, None) for s in stale.get(key, [])]
+        cover[key] = (names, missing, stale_links)
     return cover
 
 
@@ -995,7 +999,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
     context["days"] = with_day_prices(context["days"], session.scalars(  # the day prices of bahn.de (#1198)
         select(DayPrice).where(DayPrice.trip_id == trip.id)).all())
-    context["day_cover"] = day_cover(trip, itineraries, context["days"])  # the searched sources of each day (#2058)
+    context["day_cover"] = day_cover(trip, itineraries, context["days"], stale_before)  # the searched sources (#2058, #2114)
     # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
     context["timeline"] = timeline(rows, lambda it: depart_day(it) if it.legs else None)
     context["timeline_rows"] = {r[0].id: r for r in rows}
