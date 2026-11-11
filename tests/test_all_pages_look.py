@@ -14,7 +14,7 @@ import uvicorn
 
 from app.auth import require_login
 from app.main import app
-from app.models import Itinerary
+from app.models import Capture, Itinerary
 from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a fixture)
 
 pytestmark = pytest.mark.slow
@@ -101,13 +101,15 @@ def test_all_pages_look_right(trip, sessions, tmp_path):  # noqa: F811
     ingest(client, auth, tid, [offer(f"{80 + i}.90", f"ICE {100 + i}") for i in range(3)])
     with sessions() as s:
         a, b = [i.id for i in s.query(Itinerary).filter_by(trip_id=tid).order_by(Itinerary.id).limit(2)]
+        cap = s.query(Capture).filter_by(trip_id=tid).order_by(Capture.id).first().id
     pages = [("trips", "/"), ("archive", "/?archived=1"), ("trip", f"/trips/{tid}"), ("trip-new", "/trips/new"),
              ("trip-edit", f"/trips/{tid}/edit"), ("trip-delete", f"/trips/{tid}/delete"),
              ("offer-new", f"/trips/{tid}/offers/new"), ("source-new", "/sources/new"), ("captures", "/captures"),
              ("trip-captures", f"/trips/{tid}/captures"), ("profiles", "/profiles"), ("places", "/places"),
              ("settings", "/settings"), ("messages", "/settings/messages"), ("rates", "/rates"), ("tokens", "/tokens"),
              ("compare", f"/trips/{tid}/compare?it={a}&it={b}"),
-             ("history", f"/trips/{tid}/itineraries/{a}/history"), ("login", "/login")]
+             ("history", f"/trips/{tid}/itineraries/{a}/history"), ("capture-delete", f"/captures/{cap}/delete"),
+             ("login", "/login")]
     server, thread, base = _serve()
     try:
         found = _check(base, pages, tmp_path)

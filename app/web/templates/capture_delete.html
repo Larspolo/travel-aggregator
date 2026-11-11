@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Delete capture – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Delete capture", subtitle=trip.title, back=("/trips/" ~ trip.id ~ "/captures", "Captures")) }}
+<form class="card" method="post" action="/captures/{{ capture.id }}/delete">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p>Delete the capture of {{ capture.source }} of {{ capture.captured_at.strftime('%Y-%m-%d %H:%M') }} UTC with {{ counts.prices }} price rows?
+    {{ counts.itineraries }} itineraries and {{ counts.fares }} fares that only this capture gave go too. This cannot be undone.</p>
+  <div class="form-actions">
+    <button class="btn btn-danger confirm" type="submit">Delete</button>
+    <a class="btn btn-ghost" href="/trips/{{ trip.id }}/captures">Cancel</a>
+  </div>
+</form>
+{% endblock %}

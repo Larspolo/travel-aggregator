@@ -75,7 +75,7 @@
     {% endif %}
     <td>{% if c.offer_count is none %}-{% elif suspect_counts.get(c.id) %}<span class="warn">{{ suspect_counts[c.id] }}</span>{% else %}0{% endif %}</td>
     <td>{% if c.mismatch == "travelers" %}<span class="trip-mismatch">These offers are for {{ c.travelers }} traveler{{ "s" if c.travelers != 1 }}; the trip has {{ trip_travelers.get(c.trip_id) }}</span>{% elif c.mismatch %}<span class="trip-mismatch">These offers do not match the trip</span>{% else %}-{% endif %}</td>
-    <td>{% if c.raw_gz is not none %}<a class="raw-link" href="/captures/{{ c.id }}/raw">Raw</a>{% else %}No raw payload{% endif %}{% set open_url = c.page_url | web_url %}{% if open_url %}<br><a class="open-search" href="{{ open_url }}" target="_blank" rel="noopener noreferrer">Open search</a>{% endif %}</td>
+    <td>{% if c.raw_gz is not none %}<a class="raw-link" href="/captures/{{ c.id }}/raw">Raw</a>{% else %}No raw payload{% endif %} <a class="btn btn-danger delete-capture" href="/captures/{{ c.id }}/delete">Delete</a>{% set open_url = c.page_url | web_url %}{% if open_url %}<br><a class="open-search" href="{{ open_url }}" target="_blank" rel="noopener noreferrer">Open search</a>{% endif %}</td>
     <td id="reparse-{{ c.id }}">{% if c.raw_gz is not none %}<button hx-post="/captures/{{ c.id }}/reparse" hx-target="#reparse-{{ c.id }}"
       hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>Reparse capture</button>{% endif %}</td>
     <td id="move-{{ c.id }}">{% set targets = move_trips | rejectattr("id", "equalto", c.trip_id) | list %}{% if c.raw_gz is not none and targets %}<form class="move-capture" hx-post="/captures/{{ c.id }}/move" hx-target="#move-{{ c.id }}"
