@@ -1665,6 +1665,7 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   gets the baggage fee. The **Advanced** section under the sliders sets the times and the baggage fee. The defaults are
   120 minutes before departure, 30 minutes after landing and a baggage fee of €0. A baggage fee of 0 means no bag: it
   removes the baggage part from the ranking, and a fare with an included bag gets no part too.
+A trip can also set the select **Checked bag** of the trip form. Its value **as the profile** uses the parts above. Its value **none (hand luggage only)** gives every flight fare of the trip the part `no checked bag (trip)` at €0, so no bag cost is added.
 
 ### Time of day and night
 
