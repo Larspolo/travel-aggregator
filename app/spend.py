@@ -42,6 +42,30 @@ class _Acc:
     co2: Decimal = Decimal(0)
 
 
+def booked(session) -> list:
+    """The booked and the cancelled itineraries; a cancelled booking keeps its paid price less the refund (#1687)."""
+    from sqlalchemy import or_, select
+    from sqlalchemy.orm import selectinload
+
+    from app.models import Itinerary
+    return session.scalars(
+        select(Itinerary).where(or_(Itinerary.booked.is_(True), Itinerary.cancelled_at.is_not(None)))
+        .options(selectinload(Itinerary.legs), selectinload(Itinerary.trip))).all()
+
+
+def trip_budget(session, trip, rates: dict[str, Decimal]):
+    """The budget line of the trip page and the rest of the year of `trip.date_from` (#2376); (None, None) with no budget."""
+    from app.models import TravelBudget
+    row = session.get(TravelBudget, trip.date_from.year) if trip.date_from else None
+    if row is None:
+        return None, None
+    year = trip.date_from.year
+    paid = next((y.paid_eur for y in year_summary(booked(session), rates) if y.year == year), None)
+    rest = budget_rest(paid, row.amount)
+    amount = f"€{abs(rest):,.2f}"
+    return (f"{amount} left of the budget of {year}" if rest >= 0 else f"{amount} over the budget of {year}"), rest
+
+
 def budget_rest(paid: Decimal | None, budget: Decimal) -> Decimal:
     """The rest of the budget of a year (#2375): budget less the paid sum, negative when over the budget."""
     return budget - (paid if paid is not None else Decimal(0))
