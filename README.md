@@ -1318,6 +1318,7 @@ The column "Captured" shows the age of each capture, for example "2 h ago". Poin
 Each capture on the captures pages has these columns:
 
 - "Offers": the offers that the parser read.
+- "Changes": what the capture changed on its trip. "N new" counts the itineraries that the capture showed first. "N lower" and "N higher" count the itineraries with a fare whose price went lower or higher than its row before. "no change" shows when the capture changed none of them. Click a count to open the trip page with only these itineraries. The trip page shows a line "Changes of the capture of …" with the link "Show all" to the full table. For example, "2 new, 1 lower" means that the capture showed 2 itineraries first and lowered the price of 1 itinerary.
 - "Rejected": the offers that the parser rejected.
 - "Result": "ok", or "failed". Open "failed" to see the reason: the reason when the parser cannot read the raw data,
   and "offer N: reason" for each rejected offer.
