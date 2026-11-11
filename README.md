@@ -1523,6 +1523,10 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   matching egress place adds `egress time` and `egress cost`. An offer with no matching place adds nothing, except when
   you have a place of that kind: then it adds the part `no access place for <station>` (or `no egress place for
   <station>`) at €0, so that you see the gap.
+- **Access times of one trip.** The edit page of a trip has the section "Access times of this trip". There you add an
+  access or egress time for one place (text, kind, minutes and cost), and you delete it again. The value of the trip
+  replaces the global value of the same place for that trip only; the global value is shown next to it. The other trips
+  keep the global times of `/places`. The breakdown of the trip marks such a part with "(this trip)".
 - **Estimates.** A part with the word "estimate" in its label, and a part `no access place for` or `no egress place for`,
   is an estimate, not a value from the offer. The part `baggage (estimate)` is the baggage fee of the Advanced section,
   used for a flight fare with no known bag price. The trip page shows the count of rows with an estimate in the
