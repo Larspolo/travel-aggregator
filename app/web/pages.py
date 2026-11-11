@@ -76,6 +76,7 @@ from app.profiles import active_weights, default_weights, delete as delete_profi
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
 from app.same_journey import JoinError, join, split
+from app.capture_changes import capture_changes
 from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PlaceName, PushSubscription, RailPass, ScoreProfile, Setting,
                         SentMessage, SourceFee, Trip, TripAccessTime)
 from app.place_names import aliases as place_aliases
@@ -921,6 +922,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               hide_stale: bool = Query(False),
               pareto_only: bool = Query(False, alias="pareto"),  # "only these": the marked offers (#1857)
               route: str = Query("", max_length=200),  # route_value() of a route; "" = all (#2225)
+              capture: int | None = Query(None),  # with `change`: only the changes of this capture (#2329)
+              change: str = Query("", max_length=10),
               profile: int | None = Query(None)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
@@ -1021,6 +1024,15 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             return route_value(tuple(name.casefold() for name in route_places(r[0]))) == route
         rows = [r for r in rows if on_route(r)]
         shown = [r for r in shown if on_route(r)]
+    # the changes of a capture (#2329): the same sets as the counts of the captures page; another trip or an
+    # unknown kind is no filter (P5)
+    change_cap = session.get(Capture, capture) if capture is not None and change in ("new", "lower", "higher") else None
+    change_line = None
+    if change_cap is not None and change_cap.trip_id == trip_id:
+        ids = getattr(capture_changes(session, [change_cap.id])[change_cap.id], change)
+        rows = [r for r in rows if r[0].id in ids]
+        shown = [r for r in shown if r[0].id in ids]
+        change_line = (change_cap.captured_at, len(rows), change)
     badges = {}  # the highlights of the filtered rows (#113); a tie goes to the first row in the default order
     if shown:
         for name, key in (("best value", lambda r: r[2].total), ("cheapest", lambda r: r[2].price),
@@ -1068,6 +1080,10 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     view["all_routes_href"] = "?" + urlencode(base, doseq=True)
     if route:
         query["route"] = route  # the sort links and the sliders keep it (#2225)
+    view["change_line"] = change_line
+    if change_line:
+        view["all_changes_href"] = "?" + urlencode({**query, "sort": sort, "dir": dir}, doseq=True)
+        query["capture"], query["change"] = capture, change  # the sort links and the sliders keep it (#2329)
     # the break-even links re-rank this page with another hour value: the sort and the filters stay (#920)
     tradeoff = tradeoff_lines(rows, shown, source, places, weights, stale_before, rates,
                               trip_id, {**query, "sort": sort, "dir": dir}, counts, fees)  # #895

@@ -80,6 +80,7 @@
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
   {% if sort_query.profile %}<input type="hidden" name="profile" value="{{ sort_query.profile }}">{% endif %}
   {% if view.route %}<input type="hidden" name="route" value="{{ view.route }}">{% endif %}{# the route filter stays on a weight change (#2241) #}
+  {% if view.change_line %}<input type="hidden" name="capture" value="{{ sort_query.capture }}"><input type="hidden" name="change" value="{{ sort_query.change }}">{% endif %}
   <label class="slider"><span>Hour markup €</span><output name="hour_value">{{ weights.hour_markup }}</output>
     <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
   <label class="slider"><span>Transfer markup €</span><output name="transfer_value">{{ weights.transfer_markup }}</output>
@@ -221,6 +222,7 @@
 {% endif %}
 {% with oob = false %}{% include "trip_filtered.html" %}{% endwith %}
 {% include "trip_estimates.html" %}
+{% if view.change_line %}{% set at, n, kind = view.change_line %}<p class="capture-change-filter">Changes of the capture of <time datetime="{{ at.isoformat() }}">{{ at.strftime('%Y-%m-%d %H:%M') }} UTC</time>: {{ n }} {{ kind }} · <a href="{{ view.all_changes_href }}">Show all</a></p>{% endif %}
 <div class="card table-card" id="table">
 {% include "trip_table.html" %}
 </div>

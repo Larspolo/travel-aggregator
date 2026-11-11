@@ -1,5 +1,6 @@
 """The "Changes" column of the captures page: what each capture showed new, lower or higher (#2328)."""
 
+import re
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -117,5 +118,5 @@ def test_the_changes_appear_on_the_trip_and_the_all_captures_page(sessions, trip
     for url in (f"/trips/{trip_id}/captures", "/captures"):
         page = client.get(url).text
         assert "<th>Changes</th>" in page
-        assert "1 new, 1 lower, 0 higher" in page
+        assert "1 new, 1 lower, 0 higher" in re.sub(r"<[^>]+>", "", page)  # the counts are links (#2329)
         assert "no change" in page
