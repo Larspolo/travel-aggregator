@@ -50,7 +50,7 @@ from app.split_suggest import split_skip, via_places
 from app.db import get_session
 from app.target import at_target
 from app.drops import drops_by_trip, mark_seen, trip_drops
-from app.door import baggage_extras, door_extras, flight_extras
+from app.door import baggage_extras, door_extras, flight_extras, trip_places
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
 from app.co2 import co2_extras, co2_kg
@@ -713,6 +713,7 @@ def _chosen_offer(session: Session, trip: Trip, weights: Weights, places, now: d
     its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False),
                                                   departed.not_departed(now))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
+    places = trip_places(session, trip)  # the places of this trip, not of the journey (#2109)
     rates = load_rates(session)
     counts, fees, gone = fare_travelers(session, its), load_fees(session), _gone(session, its)
     rows = [(it, *row_cost(it, current_fares(it.fares, gone), places, weights, stale_before, rates, counts, fees))
@@ -739,7 +740,7 @@ def best_for_weights(session: Session, trip: Trip, weights: Weights, now: dateti
     its = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False),
                                                   departed.not_departed(now))
                           .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
-    places = session.scalars(select(AccessTime)).all()
+    places = trip_places(session, trip)  # (#2109)
     rates = load_rates(session)
     counts, fees, gone = fare_travelers(session, its), load_fees(session), _gone(session, its)
     rows = [(it, *row_cost(it, current_fares(it.fares, gone), places, weights, stale_before, rates, counts, fees))
@@ -872,7 +873,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         hidden_filter.append(departed.not_departed(departed_now))  # "show departed" (#1391)
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, *hidden_filter)
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
-    places = session.scalars(select(AccessTime)).all()  # once per request
+    places = trip_places(session, trip)  # once per request; the overrides of the trip (#2109)
     rates = load_rates(session)  # once per request (#385)
     counts = fare_travelers(session, itineraries)  # once per request (#767)
     fees = load_fees(session)  # once per request (#1143)
@@ -1557,7 +1558,7 @@ def toggle_booked(request: Request, trip_id: int, itinerary_id: int, session: Se
     if it.booked and it.fares:  # keep the paid fare: the main fare with the weights of the trip (#1146)
         now = datetime.now(timezone.utc)
         weights, _ = resolve_weights(session, it.trip, {}, None)
-        places = session.scalars(select(AccessTime)).all()
+        places = trip_places(session, it.trip)  # (#2109)
         fare, _ = row_cost(it, it.fares, places, weights, now - timedelta(hours=weights.stale_hours),
                            load_rates(session), fare_travelers(session, [it]), load_fees(session))
         it.booked_fare_id, it.booked_price, it.booked_currency, it.booked_at = fare.id, fare.latest_price, fare.currency, now
@@ -2331,7 +2332,7 @@ def compare_page(request: Request, trip_id: int, session: Session = Depends(get_
     if not 2 <= len(ids) <= 4 or any(i not in found or not found[i].fares for i in ids):
         context["error"] = COMPARE_ERROR
         return templates.TemplateResponse(request, "compare.html", context, status_code=400)
-    places = session.scalars(select(AccessTime)).all()
+    places = trip_places(session, trip)  # (#2109)
     stale_before = datetime.now(timezone.utc) - timedelta(hours=weights.stale_hours)
     rates = load_rates(session)
     counts = fare_travelers(session, found.values())  # the same price per traveler as the trip page (#767)

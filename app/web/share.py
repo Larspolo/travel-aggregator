@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session, subqueryload
 from app.auth import require_login, token_limiter, verify_csrf
 from app.db import get_session
 from app.discount_cards import cards_warning, fare_cards
-from app.models import AccessTime, Itinerary, ShareMark, Trip
+from app.door import trip_places
+from app.models import Itinerary, ShareMark, Trip
 from app.share import new_link, revoke, trip_for_token
 from app.fees import load_fees
 from app.web.pages import fare_travelers, format_breakdown, load_rates, resolve_weights, row_cost, templates
@@ -113,7 +114,7 @@ def shared_trip(request: Request, token: str, session: Session = Depends(get_ses
     weights, _ = resolve_weights(session, trip, {}, None)  # the profile of the trip, no overrides
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip.id, Itinerary.hidden.is_(False))
                                   .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
-    places = session.scalars(select(AccessTime)).all()
+    places = trip_places(session, trip)  # the overrides of the trip (#2109)
     rates = load_rates(session)
     stale_before = datetime.now(timezone.utc) - timedelta(hours=weights.stale_hours)
     counts = fare_travelers(session, itineraries)  # the price per traveler (#767)
