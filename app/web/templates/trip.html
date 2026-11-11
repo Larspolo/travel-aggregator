@@ -45,6 +45,7 @@
 {% if trip.arrive_by %}<p class="muted">Arrive by {{ trip.arrive_by.strftime("%H:%M") }}</p>{% endif %}
 {% if trip.leave_after %}<p class="muted">Leave after {{ trip.leave_after.strftime("%H:%M") }}</p>{% endif %}
 {% if trip.checked_bag == "none" %}<p class="muted">No checked bag (trip)</p>{% endif %}
+{% if trip.hour_value is not none %}<p class="muted">Hour value €{{ trip.hour_value|int if trip.hour_value == trip.hour_value|int else "%.2f"|format(trip.hour_value) }}/h (trip)</p>{% endif %}
 {% if trip.split_of %}<p class="split-of">Part of <a href="/trips/{{ trip.split_of.id }}">{{ trip.split_of.title }}</a></p>{% endif %}
 {% if share_link %}<section class="card new-token" role="status"><h2>Share link</h2>
   <p>Keep this link: it shows only now. Each person with it sees the offers of this trip, with no login.</p>

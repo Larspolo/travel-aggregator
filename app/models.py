@@ -48,6 +48,8 @@ class Trip(Base):
     rail_pass: Mapped["RailPass | None"] = relationship()
     # None = as the profile, "none" = hand luggage only (#2397)
     checked_bag: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    # None = the hour markup of the profile (rank:trip-hours, #2422)
+    hour_value: Mapped[Decimal | None] = mapped_column(Money, nullable=True)
     # The outbound trip of a return trip, and its return trip (#340): one-to-one.
     return_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL"), unique=True)
     # The trip that this trip is a part of, split via a place (#1177); the database deletes it with that trip.

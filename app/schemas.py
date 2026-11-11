@@ -182,6 +182,7 @@ class TripForm(BaseModel):
     leave_after: time | None = None  # the local time at the origin (#2023)
     profile_id: int | None = None  # the score profile of this trip; None = the default profile (#232)
     checked_bag: Literal["none"] | None = None  # None = as the profile (#2397)
+    hour_value: Decimal | None = Field(None, ge=0, le=100)  # None = the hour markup of the profile (#2422)
     rail_pass_id: int | None = None  # the rail pass of this trip; None = no pass (#2266)
 
     @model_validator(mode="before")
