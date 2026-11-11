@@ -11,6 +11,7 @@ from app.currency import load_rates, to_eur
 from app.models import Capture, Fare, FarePrice, Itinerary, Trip
 from app.parsers import group_price
 from app.ranking import per_traveler
+from app.place_names import aliases
 from app.tripmatch import _groups, _phrase
 
 LIMIT = 5
@@ -30,11 +31,11 @@ def _start(trip: Trip) -> date:
     return trip.date_from or trip.created_at.date()
 
 
-def _same_place(a: str | None, b: str | None) -> bool:
+def _same_place(a: str | None, b: str | None, aliases=None) -> bool:
     """Two texts name the same place: their folded phrases are equal or they share an ALIASES group."""
     if not a or not b:
         return False
-    return _phrase(a) == _phrase(b) or bool(_groups(a) & _groups(b))
+    return _phrase(a) == _phrase(b) or bool(_groups(a, aliases) & _groups(b, aliases))
 
 
 def _cheapest(session: Session, trip_id: int, rates) -> Decimal | None:
@@ -66,9 +67,10 @@ def _paid(session: Session, trip: Trip, rates) -> Decimal | None:
 def route_history(session: Session, trip: Trip) -> list[RouteTrip]:
     """The older trips (not split parts) with the same origin and destination, newest first, at most LIMIT."""
     start = _start(trip)
+    names = aliases(session)
     older = [t for t in session.scalars(select(Trip).where(Trip.id != trip.id, Trip.split_of_id.is_(None)))
-             if _start(t) < start and _same_place(t.origin_text, trip.origin_text)
-             and _same_place(t.destination_text, trip.destination_text)]
+             if _start(t) < start and _same_place(t.origin_text, trip.origin_text, names)
+             and _same_place(t.destination_text, trip.destination_text, names)]
     older.sort(key=lambda t: (_start(t), t.id), reverse=True)
     rates = load_rates(session)
     return [RouteTrip(t.id, t.title, _start(t).replace(day=1), _cheapest(session, t.id, rates), _paid(session, t, rates))

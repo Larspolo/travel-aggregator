@@ -18,6 +18,7 @@ from app.derived import derive
 from app.models import Capture, DayPrice, Fare, FarePrice, Itinerary, Leg, Trip
 from app.parsers import count, get_parser
 from app.parsers.ns import CHANGE_STATION
+from app.place_names import aliases as place_aliases
 from app.tripmatch import best_trip, mismatch, suggest_trip, travelers_text
 from app.retention import delete_old_captures, retention_days
 from app.schemas import IngestIn, LegIn, OfferIn, utc_offset_min
@@ -530,13 +531,13 @@ def _choose_trip(session: Session, body: IngestIn, offers: list[OfferIn]) -> int
     if not getattr(body, "auto_trip", False) or selected is None:
         return body.trip_id
     planning = list(session.scalars(select(Trip).where(Trip.status == "planning")))
-    return best_trip(planning, offers, selected).id
+    return best_trip(planning, offers, selected, place_aliases(session)).id
 
 
 def _trip_mismatch(session: Session, trip_id: int, offers: list[OfferIn], travelers: int | None = None) -> str | None:
     """The reason of #555 (tripmatch.mismatch), or None. Stored on the capture (#556)."""
     trip = session.get(Trip, trip_id)
-    return None if trip is None else mismatch(trip, offers, travelers)
+    return None if trip is None else mismatch(trip, offers, travelers, place_aliases(session))
 
 
 def _warning_text(reason: str | None, travelers: int | None = None, trip_travelers: int | None = None) -> str | None:
