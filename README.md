@@ -612,6 +612,13 @@ A journey with a conflict shows a warning under it, on this page and on the trip
   journey of the trip before it arrives, for example a return journey that leaves before the outbound journey has arrived.
   The warning shows on the later journey only.
 
+A journey can also show "Timetable changed". The app shows it when a newer capture of the same trip has the same
+carrier and service number as a leg of the journey, on the same local day of departure, with other departure or arrival
+times. For example, a booked ICE 145 at 08:15 → 14:28 shows "Timetable changed: ICE 145 now 08:42 → 14:55 (was 08:15 → 14:28)"
+when a newer capture shows ICE 145 at 08:42 → 14:55. The same mark shows on the trip page of the journey and on the pinned
+page (`/pinned`), without the button. On this page the mark has the button "Dismiss". The button hides the mark until the
+times change again. The app does not fetch any page: it uses only the captures that you already sent.
+
 With no booked journey, the page shows the text "No booked journeys. Mark an offer as booked on its trip page."
 
 The page also works with no network, after one online visit:
