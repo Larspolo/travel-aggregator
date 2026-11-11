@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 20;
+const CORE_VERSION = 21;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -267,6 +267,11 @@ const CORE_VERSION = 20;
     try {
       let q = loadQueue();
       while (q.length) {
+        // A capture queued before a trip was chosen gets the trip of the panel now (#2200); else it blocks the queue.
+        if (!q[0].trip_id && tripId()) {
+          q = [Object.assign({}, q[0], { trip_id: tripId() }), ...q.slice(1)];
+          gm.setValue("queue", q);
+        }
         const result = await post(q[0]);
         if (result === "retry") break;
         q = loadQueue().slice(1);
