@@ -530,6 +530,9 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  transfer_place2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  transfer_place3_name: str | None = Query(None, max_length=100),
                  transfer_place3_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 transfer_place1_min: int | None = Query(None, ge=0, le=240),
+                 transfer_place2_min: int | None = Query(None, ge=0, le=240),
+                 transfer_place3_min: int | None = Query(None, ge=0, le=240),
                  train_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  bus_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  flight_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
@@ -1262,6 +1265,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       transfer_place2_markup: Decimal = Form(Weights.transfer_place2_markup, ge=-1000, le=1000),
                       transfer_place3_name: str = Form(Weights.transfer_place3_name, max_length=100),
                       transfer_place3_markup: Decimal = Form(Weights.transfer_place3_markup, ge=-1000, le=1000),
+                      transfer_place1_min: int | None = Form(None, ge=0, le=240),
+                      transfer_place2_min: int | None = Form(None, ge=0, le=240),
+                      transfer_place3_min: int | None = Form(None, ge=0, le=240),
                       train_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       bus_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       flight_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
@@ -1300,6 +1306,8 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       transfer_place1_name=transfer_place1_name, transfer_place1_markup=transfer_place1_markup,
                       transfer_place2_name=transfer_place2_name, transfer_place2_markup=transfer_place2_markup,
                       transfer_place3_name=transfer_place3_name, transfer_place3_markup=transfer_place3_markup,
+                      transfer_place1_min=transfer_place1_min, transfer_place2_min=transfer_place2_min,
+                      transfer_place3_min=transfer_place3_min,
                       train_hour_markup=train_hour_markup, bus_hour_markup=bus_hour_markup,
                       flight_hour_markup=flight_hour_markup, ferry_hour_markup=ferry_hour_markup,
                       night_seat_adjust=night_seat_adjust, night_couchette_adjust=night_couchette_adjust,
@@ -1330,6 +1338,7 @@ WEIGHT_RANGES = {
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
     "transfer_place1_markup": (-1000, 1000), "transfer_place2_markup": (-1000, 1000),
     "transfer_place3_markup": (-1000, 1000),  # (#1850)
+    "transfer_place1_min": (0, 240), "transfer_place2_min": (0, 240), "transfer_place3_min": (0, 240),  # (#2073)
     "train_hour_markup": (0, 100), "bus_hour_markup": (0, 100), "flight_hour_markup": (0, 100),
     "ferry_hour_markup": (0, 100),  # (#1567)
     "night_seat_adjust": (-1000, 1000), "night_couchette_adjust": (-1000, 1000),
