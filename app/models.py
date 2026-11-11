@@ -48,6 +48,7 @@ class Trip(Base):
     rail_pass: Mapped["RailPass | None"] = relationship()
     # None = as the profile, "none" = hand luggage only (#2397)
     checked_bag: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    bike: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=false(), default=False)  # rank:bike: the trip takes a bicycle
     # None = the hour markup of the profile (rank:trip-hours, #2422)
     hour_value: Mapped[Decimal | None] = mapped_column(Money, nullable=True)
     # The outbound trip of a return trip, and its return trip (#340): one-to-one.
