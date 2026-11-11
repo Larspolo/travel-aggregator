@@ -44,7 +44,7 @@ def test_one_epic_older_than_the_limit_or_no_ready_ticket_gets_the_check():
 
 
 def test_a_held_close_check_and_the_pacer_split():
-    deep = epic(10)
+    deep = epic(10, usage.CLOSE_BATCH_WAIT + 600)          # past the batch wait of a close check (#2178)
     deep["labels"].append({"name": "lane:deep"})
     assert usage.refill_need(3, 8, [deep], now=NOW) == ""
     assert usage.refill_need(3, 8, [deep], reviews=lambda: ["roadmap review"], now=NOW) == "close check #10"
