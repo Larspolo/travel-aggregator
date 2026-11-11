@@ -1,7 +1,7 @@
 """The travel budget per year (#2375).
 
-Revision ID: 0059
-Revises: 0058
+Revision ID: 0060
+Revises: 0059
 
 No data loss: the upgrade adds the table `travel_budgets`.
 The downgrade drops only this new table and its budgets.
@@ -10,8 +10,8 @@ The downgrade drops only this new table and its budgets.
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0059"
-down_revision = "0058"
+revision = "0060"
+down_revision = "0059"
 branch_labels = None
 depends_on = None
 
