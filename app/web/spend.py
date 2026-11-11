@@ -1,8 +1,9 @@
 """The page "Travel per year" (#1364): the booked journeys per year and per mode."""
 
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import RedirectResponse, Response
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
@@ -11,9 +12,9 @@ from app.auth import require_login, verify_csrf
 from app.currency import load_rates
 from app.delay_claim import claim
 from app.db import get_session
-from app.models import Itinerary, ScoreProfile
+from app.models import Itinerary, ScoreProfile, TravelBudget
 from app.profiles import default_weights
-from app.spend import year_rows, year_summary
+from app.spend import budget_rest, year_rows, year_summary
 from app.web.export import year_csv
 from app.web.pages import templates
 
@@ -27,8 +28,23 @@ def _booked(session: Session) -> list[Itinerary]:
         .options(selectinload(Itinerary.legs), selectinload(Itinerary.trip))).all()
 
 
+def _amount(text: str) -> Decimal | None:
+    """A budget from 0 to 1000000 with at most 2 decimals (the rule of _cost() of passes.py, #2375), else None."""
+    try:
+        value = Decimal(text.strip())
+    except InvalidOperation:
+        return None
+    if not value.is_finite() or value < 0 or value > Decimal("1000000") or value.as_tuple().exponent < -2:
+        return None
+    return value
+
+
 @router.get("/upcoming/years", dependencies=[Depends(require_login)])
 def years(request: Request, session: Session = Depends(get_session)):
+    return _page(request, session)
+
+
+def _page(request: Request, session: Session, error: tuple[int, str] | None = None, code: int = 200):
     itineraries = _booked(session)
     # the open delay claims, newest first (#1693); claim() is None for a cancelled booking (not booked)
     claims = sorted(((it, c) for it in itineraries if it.claim_paid_at is None and (c := claim(it)) is not None),
@@ -38,7 +54,31 @@ def years(request: Request, session: Session = Depends(get_session)):
     return templates.TemplateResponse(request, "spend.html", {
         "years": year_summary(itineraries, load_rates(session), default_weights(session)),
         "claims": claims,
-        "co2_profile": profile.name if profile is not None else "default"})
+        "budgets": {b.year: b.amount for b in session.scalars(select(TravelBudget))},
+        "budget_rest": budget_rest,
+        "budget_error": error,
+        "co2_profile": profile.name if profile is not None else "default"}, status_code=code)
+
+
+@router.post("/upcoming/years/{year}/budget", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def set_budget(request: Request, year: int, amount: str = Form(""), session: Session = Depends(get_session)):
+    """Store the budget of a year; an empty field deletes it (#2375)."""
+    row = session.get(TravelBudget, year)
+    if not amount.strip():
+        if row is not None:
+            session.delete(row)
+            session.commit()
+        return RedirectResponse("/upcoming/years", status_code=303)
+    value = _amount(amount)
+    if value is None:
+        return _page(request, session, (year, "The budget must be from 0 to 1000000 EUR with at most 2 decimals."), 422)
+    if row is None:
+        row = TravelBudget(year=year)
+        session.add(row)
+    row.amount = value
+    row.updated_at = datetime.now(timezone.utc)
+    session.commit()
+    return RedirectResponse("/upcoming/years", status_code=303)
 
 
 @router.get("/upcoming/years/{year}/export.csv", dependencies=[Depends(require_login)])
