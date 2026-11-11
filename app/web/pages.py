@@ -1307,7 +1307,7 @@ def make_return_trip(trip_id: int, session: Session = Depends(get_session)) -> R
         ret = Trip(title=f"{trip.title[:191]} (return)", origin_text=trip.destination_text,
                    destination_text=trip.origin_text, origin_alt_text=trip.destination_alt_text,
                    destination_alt_text=trip.origin_alt_text, travelers=trip.travelers, profile_id=trip.profile_id,
-                   rail_pass_id=trip.rail_pass_id, return_of_id=trip.id)
+                   rail_pass_id=trip.rail_pass_id, checked_bag=trip.checked_bag, return_of_id=trip.id)
         session.add(ret)
         session.commit()
     return RedirectResponse(f"/trips/{ret.id}/edit", status_code=303)
@@ -1328,7 +1328,7 @@ async def split_trip(request: Request, trip_id: int, session: Session = Depends(
     for a, b in ((origin, place), (place, destination)):
         session.add(Trip(title=f"{a} → {b}"[:200], origin_text=a or None, destination_text=b or None,
                          date_from=trip.date_from, date_to=trip.date_to, travelers=trip.travelers,
-                         profile_id=trip.profile_id, rail_pass_id=trip.rail_pass_id, split_of_id=trip.id))
+                         profile_id=trip.profile_id, rail_pass_id=trip.rail_pass_id, checked_bag=trip.checked_bag, split_of_id=trip.id))
     session.commit()
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
@@ -1339,7 +1339,7 @@ def make_next_trip(trip_id: int, session: Session = Depends(get_session)) -> Red
     journey = chain(_get_trip(session, trip_id))
     first, last = journey[0], journey[-1]
     new = Trip(title=f"{first.title[:180]} (part {len(journey) + 1})", origin_text=last.destination_text,
-               destination_text=None, travelers=last.travelers, profile_id=last.profile_id, rail_pass_id=last.rail_pass_id,
+               destination_text=None, travelers=last.travelers, profile_id=last.profile_id, rail_pass_id=last.rail_pass_id, checked_bag=last.checked_bag,
                return_of_id=last.id)
     session.add(new)
     session.commit()
@@ -1352,7 +1352,7 @@ def _copy_of(trip: Trip, return_of_id: int | None = None) -> Trip:
     return Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
                 destination_text=trip.destination_text, origin_alt_text=trip.origin_alt_text,
                 destination_alt_text=trip.destination_alt_text, travelers=trip.travelers, profile_id=trip.profile_id,
-                rail_pass_id=trip.rail_pass_id, notes=trip.notes, tags_text=trip.tags_text, target_price=trip.target_price, arrive_by=trip.arrive_by, leave_after=trip.leave_after,
+                rail_pass_id=trip.rail_pass_id, checked_bag=trip.checked_bag, notes=trip.notes, tags_text=trip.tags_text, target_price=trip.target_price, arrive_by=trip.arrive_by, leave_after=trip.leave_after,
                 return_of_id=return_of_id)
 
 
