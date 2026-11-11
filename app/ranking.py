@@ -246,7 +246,7 @@ def format_total(b: Breakdown) -> str:
 def format_breakdown(b: Breakdown) -> str:
     """Give the breakdown as short plain text, e.g. '€90 price + €62 time + €30 transfers = €182'.
 
-    A part that is 0 is left out, except an "(included)" part (#1527). The text is plain: the template escapes it (P5).
+    A part that is 0 is left out, except an "(included)" part (#1527) and the "no checked bag (trip)" part (#2398). The text is plain: the template escapes it (P5).
     """
     if b.no_rate:
         return f"no rate for {b.no_rate}"
@@ -254,7 +254,7 @@ def format_breakdown(b: Breakdown) -> str:
     price_label = f"{shown} ({_amount(b.price)}) price" if shown else None
     labels = (("price", b.price), ("time", b.time_cost), ("transfers", b.transfer_cost)) + b.extras
     parts = [price_label if label == "price" and price_label else f"{_amount(value)} {label}"
-             for label, value in labels if value != 0 or label.endswith("(included)")]  # #1527
+             for label, value in labels if value != 0 or label.endswith("(included)") or label.startswith("no checked bag")]  # #1527, #2398
     if not parts:
         return _amount(b.total)
     return f"{' + '.join(parts)} = {_amount(b.total)}"
