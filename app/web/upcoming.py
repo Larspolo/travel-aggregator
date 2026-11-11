@@ -1,6 +1,6 @@
 """The Upcoming page (#862): the booked itineraries of all trips that did not arrive yet, in the order of departure."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app import departed
 from app.auth import require_login, verify_csrf
 from app.booked_overlap import conflicts
 from app.calendar_feed import KEY, new_feed_token, revoke_feed
@@ -30,7 +31,10 @@ def upcoming(request: Request, only: int | None = None, session: Session = Depen
     ).all()
     if only is not None and not itineraries:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-    now = datetime.now(timezone.utc)
+    now = departed.clock()
+    # the cancel time within 48 hours: the chip "cancel soon or keep" (#2312); the print shows none
+    cancel_soon = {it.id for it in itineraries
+                   if it.cancel_by is not None and now < it.cancel_by <= now + timedelta(hours=48)}
     # the warnings of the booked journeys in conflict (#1654); the print of one journey shows none
     overlaps = conflicts(session, now) if only is None else {}
     total, missing = _paid_total(itineraries, load_rates(session))
@@ -38,7 +42,7 @@ def upcoming(request: Request, only: int | None = None, session: Session = Depen
     # the link shows once after "Subscribe" (#1113); the offline copy is a later GET with no link
     feed_link = request.session.pop("calendar_feed_link", None)
     response = templates.TemplateResponse(request, "upcoming.html", {
-        "itineraries": itineraries, "now": now, "only": only, "overlaps": overlaps,
+        "itineraries": itineraries, "now": now, "only": only, "overlaps": overlaps, "cancel_soon": cancel_soon,
         "paid_total": total, "paid_missing": missing, "feed_link": feed_link,
         "feed_since": datetime.fromisoformat(since.value) if since is not None else None})
     if feed_link:  # the service worker and the browser cache keep no copy of the private link (#1407)
