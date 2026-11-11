@@ -684,6 +684,14 @@ The Upcoming page shows "Booking code: <code>" in the box of each journey that h
 
 The shared page of a trip and the calendar feed do not show the booking code.
 
+### Cancel time of a booked journey
+
+A booked row of `/trips/{id}` has the field "Cancel until" with the button "Save cancel time". Type the last date and time to cancel the journey. The time is on the clock of the departure of the first leg. A blank field removes the cancel time. A value that is not a date and time shows an error (HTTP 422) and stores nothing. The row shows the time as "Cancel until 18 Dec 18:00".
+
+The Upcoming page shows "Cancel until 18 Dec 18:00" in the box of each journey that has a cancel time, while the time has not passed. In the 48 hours before the cancel time, the box also shows the chip "cancel soon or keep". The print layout of one journey (`/upcoming?only=<id>`) shows the cancel time, but no chip. A journey with no cancel time shows no cancel line.
+
+The export and the import of a trip keep the cancel time, and so do a merge of two trips and a join of two rows of one journey.
+
 ### Pinned offers
 
 The "Pinned" link in the app bar opens `/pinned`. The link shows the number of pinned offers in brackets, for example "Pinned (3)".
