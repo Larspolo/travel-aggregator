@@ -1649,6 +1649,11 @@ its part from the ranking. Each part shows its own label in the breakdown.
   A value of 0 removes the part.
 - **Self-transfer €**, default `0`. The part `self-transfer` is this amount times the count of self-transfers of the fare.
   The count comes from the `ticket` field of the legs (see "API").
+- **Reservation € per leg**, in "Advanced", default `0`. The part `reservation` is this amount times the count of legs of
+  the fare with a mandatory seat reservation that the price does not include. A value of 0 removes the part. A fare with
+  such a leg shows the mark **reservation required** on its row. bahn.de gives this status for a leg that needs a
+  reservation and where the price does not include it. Trainline gives no mark and no part: its price includes the
+  mandatory reservation. NS International stores no reservation status, so its fares add no part and no mark.
 - **Card fee for other currencies (%)**, in "Advanced", default `0`. The part `currency fee` is this percentage of the EUR
   price per traveler of a fare that is not in EUR. A EUR fare, a fare with no exchange rate and a value of 0 add no part.
 - **Weekday markups**, in "Advanced", fieldset "Weekday of departure": seven slots, one for each day, Monday to Sunday.
