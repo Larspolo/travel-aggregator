@@ -2,18 +2,29 @@
 a newer capture changes a mark, and a bahn.de fixture shows no mark (#2462, epic #2456)."""
 
 import copy
+import dataclasses
 import json
 import re
+from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from sqlalchemy import select
 from fastapi.testclient import TestClient
 
 from app import tokens
 from app.auth import require_login
 from app.main import app
-from app.models import Trip
+from app.models import CurrencyRate, Itinerary, ScoreProfile, Trip
+from app.profiles import from_config, save, to_config
+from app.ranking import Weights
 from app.parsers import parser_classes
+from tests.test_bahn_whole import post as post_bahn
+from tests.test_trip_booked import csrf
+from tests.test_carrier_loyalty_export import _import, _only_profile
+from tests.test_flixbus_whole import post as post_flixbus
+from tests.test_trainline_whole import post as post_trainline
 
 FIX = Path(__file__).parent / "fixtures"
 TRAINLINE = FIX / "thetrainline.com" / "search-london-edinburgh.json"
@@ -95,3 +106,70 @@ def test_a_bahn_fixture_shows_no_bicycle_mark(trip):
     page = client.get(f"/trips/{trip_id}").text
     assert 'class="badge bike"' not in page
     assert "bicycle" not in page
+
+
+def _bike_trip(sessions, trip_id):
+    """The trip takes a bicycle (#2477: the trip value that the import keeps) and the GBP of the Trainline fares has a rate."""
+    with sessions() as s:
+        s.get(Trip, trip_id).bike = True
+        s.add(CurrencyRate(code="GBP", eur_per_unit=Decimal("1.15"), updated_at=datetime(2026, 11, 1, tzinfo=timezone.utc)))
+        s.commit()
+
+
+def test_a_bicycle_trip_hides_the_flixbus_ride_and_shows_the_fee_and_the_unknown_bahn_fare(trip, sessions):  # noqa: F811
+    client, auth, trip_id = trip
+    _bike_trip(sessions, trip_id)
+    post_flixbus(client, auth, trip_id, load(FIX / "flixbus.com" / "search-utrecht-berlin.json"))
+    post_trainline(client, auth, trip_id, load(TRAINLINE))
+    bahn = load(BAHN)
+    bahn["response"]["verbindungen"][0]["angebotsPreis"] = {"betrag": 39.99, "waehrung": "EUR"}  # a price (#1621)
+    post_bahn(client, auth, trip_id, bahn)
+    page = client.get(f"/trips/{trip_id}?bike_fee=9").text
+    assert "hidden by bicycle" in page and "flixbus.com" in page
+    assert "GBP 83.10 (€95.56) price + €66 time + €9 bicycle = €170.56" in page  # the fee of a reservation fare
+    assert "bicycle: not known" in page
+
+
+def _set_profile_bike_fee(sessions, trip_id, fee):
+    """The trip uses a profile whose bicycle fee is `fee` euros, so every page of the trip counts the same fee."""
+    with sessions() as s:
+        profile = save(s, "Bike", dataclasses.replace(Weights(), bike_fee=Decimal(fee)))
+        s.get(Trip, trip_id).profile_id = profile.id
+        s.commit()
+
+
+def test_the_trainline_fee_is_the_same_on_the_trip_compare_and_shared_pages(trip, sessions):  # noqa: F811
+    client, auth, trip_id = trip
+    _bike_trip(sessions, trip_id)
+    _set_profile_bike_fee(sessions, trip_id, "9")
+    post_trainline(client, auth, trip_id, load(TRAINLINE))
+    with sessions() as s:
+        ids = [i.id for i in s.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id).order_by(Itinerary.id))]
+    total = "GBP 83.10 (€95.56) price + €66 time + €9 bicycle = €170.56"
+    trip_page = client.get(f"/trips/{trip_id}").text
+    compare = client.get(f"/trips/{trip_id}/compare", params={"it": ids}).text
+    shared_link = client.post(f"/trips/{trip_id}/share", data={"csrf_token": csrf(client, trip_id)})
+    shared = client.get(re.search(r'<pre class="share-link">([^<]+)</pre>', shared_link.text).group(1)
+                        .removeprefix("http://testserver")).text
+    assert total in trip_page and total in compare and total in shared
+
+
+def test_the_settings_export_keeps_the_bicycle_fee_and_an_old_export_gives_zero(trip, sessions):  # noqa: F811
+    client, _, _ = trip
+    _only_profile(sessions, to_config(Weights(bike_fee=Decimal("9"))))
+    export = client.get("/settings/export.json").json()
+    assert export["profiles"][0]["config"]["bike_fee"] == "9"
+    with sessions() as s:
+        s.query(ScoreProfile).delete()
+        s.commit()
+    assert _import(client, export, export["profiles"][0]["config"]).status_code == 200
+    with sessions() as s:
+        assert from_config(s.query(ScoreProfile).one().config_json).bike_fee == Decimal("9")
+
+    old = {k: v for k, v in export["profiles"][0]["config"].items() if k != "bike_fee"}
+    with sessions() as s:
+        s.query(ScoreProfile).delete()
+        s.commit()
+    assert _import(client, export, old).status_code == 200
+    with sessions() as s:
+        assert from_config(s.query(ScoreProfile).one().config_json).bike_fee == Decimal("0")
