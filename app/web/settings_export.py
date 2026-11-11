@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import require_login, verify_csrf
 from app.db import get_session
-from app.models import AccessTime, CurrencyRate, RailPass, ScoreProfile, Setting, SourceFee
+from app.models import AccessTime, CurrencyRate, RailPass, ScoreProfile, Setting, SourceFee, TravelBudget
 from app.notify import MAX_REMINDER_DAYS, REMINDER_BEFORE_KEY, REMINDER_DAYS_KEY, SOURCE_ALERT_KEY
 from app.profiles import to_config
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY
@@ -38,6 +38,7 @@ def settings_export(session: Session, now: datetime | None = None) -> dict:
     rates = session.scalars(select(CurrencyRate).order_by(CurrencyRate.code))
     fees = session.scalars(select(SourceFee).order_by(SourceFee.source))
     passes = session.scalars(select(RailPass).order_by(RailPass.first_day, RailPass.name))
+    budgets = session.scalars(select(TravelBudget).order_by(TravelBudget.year))
     values = session.scalars(select(Setting).where(Setting.key.in_(SETTING_KEYS)).order_by(Setting.key))
     return {
         "format": FORMAT,
@@ -49,6 +50,7 @@ def settings_export(session: Session, now: datetime | None = None) -> dict:
         "fees": [{"source": f.source, "amount": str(f.amount)} for f in fees],
         "passes": [{"name": p.name, "first_day": p.first_day.isoformat(), "last_day": p.last_day.isoformat(),
                     "day_cost": str(p.day_cost), "carriers": p.carriers} for p in passes],
+        "travel_budgets": [{"year": b.year, "amount": str(b.amount)} for b in budgets],
         "settings": {s.key: s.value for s in values},
     }
 
@@ -98,9 +100,9 @@ def check_file(data) -> tuple[dict, list[str]]:
     if data.get("version") != VERSION:
         return {}, [f"The version must be {VERSION}."]
     errors = []
-    out = {"profiles": [], "places": [], "rates": [], "fees": [], "passes": [], "settings": {}}
+    out = {"profiles": [], "places": [], "rates": [], "fees": [], "passes": [], "travel_budgets": [], "settings": {}}
     lists = {}
-    for key in ("profiles", "places", "rates", "fees", "passes"):
+    for key in ("profiles", "places", "rates", "fees", "passes", "travel_budgets"):
         lists[key] = data.get(key, [])
         if not isinstance(lists[key], list) or not all(isinstance(x, dict) for x in lists[key]):
             errors.append(f"{key} must be a list of objects.")
@@ -152,6 +154,15 @@ def check_file(data) -> tuple[dict, list[str]]:
                           "of at most 300 characters.")
             continue
         out["passes"].append((name, first, last, cost, carriers.strip()))
+    for i, b in enumerate(lists["travel_budgets"], 1):
+        year, amount = b.get("year"), _decimal(b.get("amount"), Decimal(0), False, Decimal("1000000"), places=2)
+        if isinstance(year, bool) or not isinstance(year, int) or not 2000 <= year <= 2100 or amount is None:
+            errors.append(f"Travel budget {i}: it needs a year from 2000 to 2100 and an amount from 0 to 1000000 "
+                          "with at most 2 decimals.")
+            continue
+        out["travel_budgets"].append((year, amount))
+    if len({y for y, _ in out["travel_budgets"]}) != len(out["travel_budgets"]):
+        errors.append("travel_budgets has the same year two times.")
     values = data.get("settings", {})
     if not isinstance(values, dict):
         errors.append("settings must be an object.")
@@ -210,6 +221,12 @@ def apply_file(session: Session, rows: dict) -> str:
             session.add(row)
         row.first_day, row.last_day, row.day_cost, row.carriers = first, last, cost, carriers
         row.updated_at = now
+    for year, amount in rows["travel_budgets"]:
+        row = session.get(TravelBudget, year)
+        if row is None:
+            session.add(TravelBudget(year=year, amount=amount, updated_at=now))
+        elif row.amount != amount:
+            row.amount, row.updated_at = amount, now
     for key, value in rows["settings"].items():
         session.merge(Setting(key=key, value=value))
 
