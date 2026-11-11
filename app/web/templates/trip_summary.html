@@ -1,0 +1,8 @@
+{# "Copy summary" (#2162): the text of the 3 best rows; an htmx swap of the table updates it out of band #}
+<section class="trip-summary card" id="trip-summary"{% if oob %} hx-swap-oob="true"{% endif %}{% if not view.summary %} hidden{% endif %}>
+{% if view.summary %}
+<button class="btn" type="button" data-copy-summary>Copy summary</button>
+<span class="copy-status" role="status"></span>
+<textarea readonly rows="3" aria-label="Summary of the best offers" hidden>{{ view.summary }}</textarea>
+{% endif %}
+</section>
