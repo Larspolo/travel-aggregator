@@ -7,7 +7,7 @@
     {% set carriers %}{% for leg in it.legs %}{{ leg.carrier | carrier_names }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
     {% set fare_line %}{% if fare.fare_name %}{{ fare.fare_name }} · {% endif %}{{ fare.source }}, {{ newest | ago(now) }}{% if fare.id in gone_fares %} · not in the last {{ gone_fares[fare.id].source }} search, {{ gone_fares[fare.id].captured_at | ago(now) }}{% endif %}{% endset %}
     {% set gone = it.depart_at and view.departed_now and it.depart_at < view.departed_now and not it.booked %}
-    <tr id="it-{{ it.id }}" tabindex="-1"{% if gone %} class="departed muted"{% endif %}>
+    <tr id="it-{{ it.id }}"{% if gone %} class="departed muted"{% endif %}>
       <td class="route">
         <div class="route-name">{{ first.from_name }} → {{ last.to_name }}
         {% if it.hidden %}<span class="muted">hidden</span>{% endif %}

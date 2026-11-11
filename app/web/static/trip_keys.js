@@ -9,6 +9,7 @@ document.addEventListener("keydown", function (e) {
     var next = i < 0 ? (e.key === "j" ? 0 : rows.length - 1) : i + (e.key === "j" ? 1 : -1);
     if (next < 0 || next >= rows.length) return;
     e.preventDefault();
+    rows[next].tabIndex = -1;  // in the script, not the template: the tests read <tr id="it-N"> (#2437)
     rows[next].focus();
   } else if (e.key === "Enter" && i >= 0) {
     var detail = rows[i].nextElementSibling;
