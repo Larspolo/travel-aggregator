@@ -14,7 +14,7 @@ NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide
          "stale_penalty", "hour_tier1_after_min", "hour_tier1_markup", "hour_tier2_after_min", "hour_tier2_markup",
          "train_markup", "bus_markup", "flight_markup", "ferry_markup", "co2_price_kg", "co2_train_kg_h",
          "co2_bus_kg_h", "co2_flight_kg_h", "co2_ferry_kg_h", "flex_non_refundable",
-         "flex_partly_refundable", "flex_flexible", "first_class_hour", "self_transfer_penalty", "reservation_fee", "currency_fee_pct", "exclude_mode", "exclude_carrier",
+         "flex_partly_refundable", "flex_flexible", "first_class_hour", "self_transfer_penalty", "reservation_fee", "bike_fee", "currency_fee_pct", "exclude_mode", "exclude_carrier",
          "carrier1_name", "carrier1_markup", "carrier2_name", "carrier2_markup", "carrier3_name", "carrier3_markup",
         "carrier1_loyalty_pct", "carrier2_loyalty_pct", "carrier3_loyalty_pct",
          "weekday1_markup", "weekday2_markup", "weekday3_markup", "weekday4_markup", "weekday5_markup", "weekday6_markup", "weekday7_markup",
@@ -40,7 +40,7 @@ def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  
     assert re.findall(r"<fieldset><legend>([^<]+)</legend>", advanced) == GROUPS
     fieldsets = re.findall(r"<fieldset>.*?</fieldset>", advanced, flags=re.S)
     outside = re.sub(r"<fieldset>.*?</fieldset>", "", advanced, flags=re.S)
-    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 80  # 3 carrier loyalty inputs (#2432), the work hours (#2333), the later transfer (#2302), the transfer wait hour (#2221), 7 weekday markups (#2136), 6 transfer place inputs (#1851), 3 minimums (#2073), the currency fee (#1993), the leave value (#2022)
+    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 81  # the bicycle fee (#2475), 3 carrier loyalty inputs (#2432), the work hours (#2333), the later transfer (#2302), the transfer wait hour (#2221), 7 weekday markups (#2136), 6 transfer place inputs (#1851), 3 minimums (#2073), the currency fee (#1993), the leave value (#2022)
 
 
 def test_each_input_name_of_the_form_is_still_sent(trip):  # noqa: F811

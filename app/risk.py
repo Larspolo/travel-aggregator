@@ -318,3 +318,14 @@ def reservation_extras(fare, weights: Weights) -> tuple[tuple[str, Decimal], ...
     if fee == 0 or count == 0:
         return ()
     return (("reservation", fee * count),)
+
+
+def bike_extras(fare, itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the fee per leg of a fare with a bicycle reservation on a trip with a bicycle (#2475): one part with the sum.
+    A fee of 0, a trip with no bicycle or a fare with another bicycle state adds no part."""
+    fee = Decimal(weights.bike_fee)
+    if fee == 0 or getattr(getattr(itinerary, "trip", None), "bike", False) is not True:
+        return ()
+    if getattr(fare, "bike", None) != "reservation":
+        return ()
+    return (("bicycle", fee * len(itinerary.legs)),)
