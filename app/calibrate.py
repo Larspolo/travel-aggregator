@@ -122,7 +122,9 @@ def booking_intervals(session: Session, weights: Weights, places, rates, fees) -
     its = session.scalars(select(Itinerary).where(Itinerary.trip_id.in_(trip_ids))
                           .options(selectinload(Itinerary.legs), selectinload(Itinerary.trip),
                                    selectinload(Itinerary.fares).selectinload(Fare.prices))).all()
-    bookings = sorted((it for it in its if it.booked_at is not None and (it.booked or it.cancelled_at is not None)),
+    # A trip with its own hour value (#2422) does not tell the hour value of the profile (#2426).
+    bookings = sorted((it for it in its if it.booked_at is not None and (it.booked or it.cancelled_at is not None)
+                       and getattr(it.trip, "hour_value", None) is None),
                       key=lambda it: (it.booked_at, it.id))
     higher = dataclasses.replace(weights, hour_markup=weights.hour_markup + 1)
     result = []
