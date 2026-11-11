@@ -183,6 +183,7 @@ class TripForm(BaseModel):
     leave_after: time | None = None  # the local time at the origin (#2023)
     profile_id: int | None = None  # the score profile of this trip; None = the default profile (#232)
     checked_bag: Literal["none"] | None = None  # None = as the profile (#2397)
+    bike: bool = False  # the trip takes a bicycle (#2473)
     hour_value: Decimal | None = Field(None, ge=0, le=100)  # None = the hour markup of the profile (#2422)
     rail_pass_id: int | None = None  # the rail pass of this trip; None = no pass (#2266)
 
@@ -192,6 +193,11 @@ class TripForm(BaseModel):
         if isinstance(data, dict):
             return {k: (None if isinstance(v, str) and not v.strip() and k != "title" else v) for k, v in data.items()}
         return data
+
+    @field_validator("bike", mode="before")
+    @classmethod
+    def _bike(cls, v: Any) -> Any:
+        return False if v is None else v
 
     @field_validator("tags_text")
     @classmethod
