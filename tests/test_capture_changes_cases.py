@@ -2,7 +2,7 @@
 
 The move and the delete use the stub parser of `tests/test_capture_move.py`: its raw is a list of offers."""
 
-from datetime import UTC, datetime
+from datetime import UTC
 
 from sqlalchemy import select
 
