@@ -80,13 +80,13 @@ def test_the_migration_upgrades_and_downgrades(empty_database_url):
     cfg = Config("alembic.ini")
     cfg.set_main_option("sqlalchemy.url", empty_database_url)
     cfg.attributes["configure_logger"] = False
-    command.upgrade(cfg, "0059")
+    command.upgrade(cfg, "0060")
     engine = create_engine(empty_database_url)
     try:
         assert "days_off" in inspect(engine).get_table_names()
         command.downgrade(cfg, "0058")
         assert "days_off" not in inspect(engine).get_table_names()
-        command.upgrade(cfg, "0059")
+        command.upgrade(cfg, "0060")
         assert "days_off" in inspect(engine).get_table_names()
     finally:
         engine.dispose()

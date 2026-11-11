@@ -1,6 +1,6 @@
 """The days off of the owner (#2370): the new table `days_off`.
 
-Revision ID: 0059
+Revision ID: 0060
 Revises: 0058
 
 No data loss: the upgrade adds the new table `days_off`. The downgrade drops only this new table, so the
@@ -10,8 +10,8 @@ days off that the owner stored are lost.
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0059"
-down_revision = "0058"
+revision = "0060"
+down_revision = "0059"
 branch_labels = None
 depends_on = None
 
