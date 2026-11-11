@@ -16,12 +16,13 @@ from sqlalchemy.orm import Session
 
 from app.auth import require_login, verify_csrf
 from app.db import get_session
-from app.models import AccessTime, CurrencyRate, ScoreProfile, Setting, SourceFee
+from app.models import AccessTime, CurrencyRate, RailPass, ScoreProfile, Setting, SourceFee
 from app.notify import MAX_REMINDER_DAYS, REMINDER_BEFORE_KEY, REMINDER_DAYS_KEY, SOURCE_ALERT_KEY
 from app.profiles import to_config
 from app.retention import MAX_RETENTION_DAYS, RETENTION_KEY
 from app.schemas import MAX_BODY_BYTES
 from app.web.pages import form_weights, templates
+from app.web.passes import _cost, _day
 
 router = APIRouter()
 
@@ -36,6 +37,7 @@ def settings_export(session: Session, now: datetime | None = None) -> dict:
     places = session.scalars(select(AccessTime).order_by(AccessTime.place_text, AccessTime.kind, AccessTime.id))
     rates = session.scalars(select(CurrencyRate).order_by(CurrencyRate.code))
     fees = session.scalars(select(SourceFee).order_by(SourceFee.source))
+    passes = session.scalars(select(RailPass).order_by(RailPass.first_day, RailPass.name))
     values = session.scalars(select(Setting).where(Setting.key.in_(SETTING_KEYS)).order_by(Setting.key))
     return {
         "format": FORMAT,
@@ -45,6 +47,8 @@ def settings_export(session: Session, now: datetime | None = None) -> dict:
         "places": [{"place": a.place_text, "kind": a.kind, "minutes": a.minutes, "cost": str(a.cost)} for a in places],
         "rates": [{"code": r.code, "eur_per_unit": str(r.eur_per_unit)} for r in rates],
         "fees": [{"source": f.source, "amount": str(f.amount)} for f in fees],
+        "passes": [{"name": p.name, "first_day": p.first_day.isoformat(), "last_day": p.last_day.isoformat(),
+                    "day_cost": str(p.day_cost), "carriers": p.carriers} for p in passes],
         "settings": {s.key: s.value for s in values},
     }
 
@@ -93,9 +97,10 @@ def check_file(data) -> tuple[dict, list[str]]:
         return {}, [f"The file is not a settings export (format {FORMAT!r})."]
     if data.get("version") != VERSION:
         return {}, [f"The version must be {VERSION}."]
-    errors, out = [], {"profiles": [], "places": [], "rates": [], "fees": [], "settings": {}}
+    errors = []
+    out = {"profiles": [], "places": [], "rates": [], "fees": [], "passes": [], "settings": {}}
     lists = {}
-    for key in ("profiles", "places", "rates", "fees"):
+    for key in ("profiles", "places", "rates", "fees", "passes"):
         lists[key] = data.get(key, [])
         if not isinstance(lists[key], list) or not all(isinstance(x, dict) for x in lists[key]):
             errors.append(f"{key} must be a list of objects.")
@@ -135,6 +140,18 @@ def check_file(data) -> tuple[dict, list[str]]:
             errors.append(f"Fee {i}: it needs a source and an amount of at least 0.")
             continue
         out["fees"].append((source, amount))
+    for i, p in enumerate(lists["passes"], 1):
+        name, carriers = _text(p.get("name"), 100), p.get("carriers", "")
+        first = _day(p["first_day"]) if isinstance(p.get("first_day"), str) else None
+        last = _day(p["last_day"]) if isinstance(p.get("last_day"), str) else None
+        cost = _cost(p["day_cost"]) if isinstance(p.get("day_cost"), str) else None
+        if (name is None or first is None or last is None or last < first or cost is None
+                or not isinstance(carriers, str) or len(carriers) > 300):
+            errors.append(f"Pass {i}: it needs a name of 1 to 100 characters, two ISO dates with the last day on or "
+                          "after the first day, a cost per day from 0 to 1000 with at most 2 decimals and carriers "
+                          "of at most 300 characters.")
+            continue
+        out["passes"].append((name, first, last, cost, carriers.strip()))
     values = data.get("settings", {})
     if not isinstance(values, dict):
         errors.append("settings must be an object.")
@@ -146,7 +163,7 @@ def check_file(data) -> tuple[dict, list[str]]:
             errors.append(f"The setting {key} {error}.")
         else:
             out["settings"][key] = str(int(value))
-    for key in ("profiles", "rates", "fees"):
+    for key in ("profiles", "rates", "fees", "passes"):
         names = [x[0] for x in out[key]]
         if len(names) != len(set(names)):
             errors.append(f"{key} has the same name two times.")
@@ -186,6 +203,13 @@ def apply_file(session: Session, rows: dict) -> str:
             session.add(SourceFee(source=source, amount=amount, updated_at=now))
         elif row.amount != amount:
             row.amount, row.updated_at = amount, now
+    for name, first, last, cost, carriers in rows["passes"]:
+        row = session.scalars(select(RailPass).where(RailPass.name == name)).first()
+        if row is None:
+            row = RailPass(name=name)
+            session.add(row)
+        row.first_day, row.last_day, row.day_cost, row.carriers = first, last, cost, carriers
+        row.updated_at = now
     for key, value in rows["settings"].items():
         session.merge(Setting(key=key, value=value))
 
