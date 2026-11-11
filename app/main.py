@@ -13,7 +13,7 @@ from app import metrics
 from app.api import health, ingest, trips
 from app.config import get_settings
 from app.schemas import MAX_BODY_BYTES, MAX_HAR_BYTES
-from app.web import calendar, export, manual, pages, passes, pinned, reparse, settings_export, share, sources, spend, trip_import, trip_merge, upcoming, userscripts
+from app.web import booking_upload, calendar, export, manual, pages, passes, pinned, reparse, settings_export, share, sources, spend, trip_import, trip_merge, upcoming, userscripts
 
 app = FastAPI(title="travel-aggregator")
 # With no SECRET_KEY, a random key: the sessions then end at each restart.
@@ -52,6 +52,7 @@ app.include_router(settings_export.router)  # before pages
 app.include_router(trip_merge.router)  # before pages: /trips/{trip_id}/merge
 app.include_router(metrics.router)  # before pages
 app.include_router(pages.router)
+app.include_router(booking_upload.router)
 app.include_router(share.router)
 app.include_router(manual.router)
 app.include_router(sources.router)
