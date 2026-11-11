@@ -574,6 +574,7 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  bus_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  flight_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  ferry_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
+                 transfer_wait_hour_markup: str | None = Query(None, max_length=20),  # (#2221)
                  night_seat_adjust: str | None = Query(None, max_length=20),  # (#1808)
                  night_couchette_adjust: str | None = Query(None, max_length=20),  # (#1808)
                  night_sleeper_adjust: str | None = Query(None, max_length=20)) -> dict:  # (#1808)
@@ -587,7 +588,8 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
 
 # The optional weights whose blank field in the URL means None (#1568, #1808), with their range.
 OPTIONAL_RANGES = {"train_hour_markup": (0, 100), "bus_hour_markup": (0, 100), "flight_hour_markup": (0, 100),
-                   "ferry_hour_markup": (0, 100), "night_seat_adjust": (-1000, 1000),
+                   "ferry_hour_markup": (0, 100), "transfer_wait_hour_markup": (0, 100),  # (#2221)
+                   "night_seat_adjust": (-1000, 1000),
                    "night_couchette_adjust": (-1000, 1000), "night_sleeper_adjust": (-1000, 1000),
                    "transfer_place1_min": (0, 240), "transfer_place2_min": (0, 240), "transfer_place3_min": (0, 240)}
 MODE_HOUR_FIELDS = tuple(OPTIONAL_RANGES)
