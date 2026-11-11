@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("trips", sa.Column("hour_value", sa.Numeric(12, 2), nullable=True))
+    op.add_column("trips", sa.Column("hour_value", sa.Numeric(10, 2), nullable=True))
 
 
 def downgrade() -> None:
