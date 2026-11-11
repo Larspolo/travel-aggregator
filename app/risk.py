@@ -42,6 +42,27 @@ def mode_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], 
     return tuple(parts)
 
 
+def transfer_wait_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """One part ("transfer wait", amount) for the time between the legs (#2220): the positive waits (the arrival of a
+    leg to the departure of the next one, by `seq`) times (value − hour_markup) / 60 / 60. A value of None or a
+    difference of 0 adds no part."""
+    value = weights.transfer_wait_hour_markup
+    if value is None:
+        return ()
+    diff = Decimal(value) - Decimal(weights.hour_markup)
+    if diff == 0:
+        return ()
+    legs = sorted(itinerary.legs, key=lambda leg: leg.seq)
+    seconds = 0
+    for before, after in zip(legs, legs[1:]):
+        gap = int((after.depart_at - before.arrive_at).total_seconds())
+        if gap > 0:
+            seconds += gap
+    if not seconds:
+        return ()
+    return (("transfer wait", Decimal(seconds) * diff / 3600),)
+
+
 def carrier_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """One part ("carrier <name>", amount) for each carrier slot whose name a leg of the itinerary has (#1530). The name
     matches without case and outer spaces. A slot with an empty name or a markup of 0 adds no part. A negative amount
