@@ -1,6 +1,6 @@
 """The risk extras of an offer (epic #172, docs/SPEC.md section 7.2 "Risky transfers") and the mode markup (#174)."""
 
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from decimal import Decimal
 
 from app.carriers import carrier_names
@@ -75,6 +75,35 @@ def later_transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decim
         return ()
     amount = Decimal(itinerary.transfers - 1) * diff
     return (("later transfers", amount.quantize(Decimal("0.01"))),)
+
+
+def work_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """One part ("work hours", amount) for the minutes of the legs on a local workday (#2332): the minutes between
+    work_hour_start:00 and work_hour_end:00 on Monday to Friday, times (value − hour_markup) / 60. Each leg uses the
+    local times of its own stored offsets. A value of None or a difference of 0 adds no part."""
+    value = weights.work_hour_markup
+    if value is None:
+        return ()
+    diff = Decimal(value) - Decimal(weights.hour_markup)
+    if diff == 0:
+        return ()
+    minutes = 0
+    for leg in itinerary.legs:
+        start = (leg.depart_at + timedelta(minutes=leg.depart_offset_min)).replace(tzinfo=None)
+        end = (leg.arrive_at + timedelta(minutes=leg.arrive_offset_min)).replace(tzinfo=None)
+        day = start.date()
+        while day <= end.date():
+            if day.isoweekday() <= 5:
+                w_start = datetime.combine(day, time(weights.work_hour_start))
+                w_end = datetime.combine(day, time(weights.work_hour_end))
+                overlap = min(end, w_end) - max(start, w_start)
+                if overlap > timedelta():
+                    minutes += int(overlap.total_seconds() // 60)
+            day += timedelta(days=1)
+    if not minutes:
+        return ()
+    amount = (Decimal(minutes) * diff / 60).quantize(Decimal("0.01"))
+    return (("work hours", amount),)
 
 
 def carrier_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:

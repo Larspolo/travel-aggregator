@@ -54,6 +54,11 @@ class Weights:
     transfer_wait_hour_markup: Decimal | None = None
     # The later-transfer markup (#2302): € per transfer after the first one; None = the transfer markup (no part).
     later_transfer_markup: Decimal | None = None
+    # The work-hour markup (#2332): € per hour on a local workday (Monday to Friday) between the work-hour start and
+    # end; None = the hour markup (no part). The hours are whole hours of the local clock (0 to 24).
+    work_hour_markup: Decimal | None = None
+    work_hour_start: int = 9
+    work_hour_end: int = 17
     # The short-transfer penalty (#173): a transfer shorter than the minimum; a penalty of 0 disables it.
     short_transfer_min: int = 10
     short_transfer_penalty: Decimal = Decimal("0")
