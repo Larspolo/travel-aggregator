@@ -14,7 +14,7 @@
   {% else %}
   <span class="chip day empty"><span class="day-date">{{ when }}</span> <span class="muted">no offers</span></span>
   {% endif %}
-  {% if cover and (cover[0] or cover[1] or cover[3]) %}<small class="day-sources muted">{% if cover[0] %}<span class="day-searched">{{ cover[0] | join(", ") }}</span>{% endif %}{% for name, url in cover[1] %} <a class="day-search" href="{{ url }}" target="_blank" rel="noopener">search {{ name }}</a>{% endfor %}{% for name, url in cover[2] %}{% if url %} <a class="day-stale" href="{{ url }}" target="_blank" rel="noopener">search again {{ name }}</a>{% else %} <span class="day-stale">stale {{ name }}</span>{% endif %}{% endfor %}{% for name in cover[3] %} <span class="day-sales-closed">{{ name }}: sales not open</span>{% endfor %}</small>{% endif %}
+  {% if cover and (cover[0] or cover[1] or cover[3]) %}<small class="day-sources muted">{% if cover[0] %}<span class="day-searched">{{ cover[0] | join(", ") }}</span>{% endif %}{% for name, url in cover[1] %} <a class="day-search" href="{{ url }}" target="_blank" rel="noopener">search {{ name }}</a>{% endfor %}{% for name, url in cover[2] %}{% if url %} <a class="day-stale" href="{{ url }}" target="_blank" rel="noopener">search again {{ name }}</a>{% else %} <span class="day-stale">stale {{ name }}</span>{% endif %}{% endfor %}{% for name, opens in cover[3] %} <span class="day-sales-closed">{{ name }}: sales open on {{ opens.isoformat() }}</span>{% endfor %}</small>{% endif %}
   </span>
   {% endfor %}
 {% endif %}
