@@ -1641,6 +1641,10 @@ its part from the ranking. Each part shows its own label in the breakdown.
   The count comes from the `ticket` field of the legs (see "API").
 - **Card fee for other currencies (%)**, in "Advanced", default `0`. The part `currency fee` is this percentage of the EUR
   price per traveler of a fare that is not in EUR. A EUR fare, a fare with no exchange rate and a value of 0 add no part.
+- **Weekday markups**, in "Advanced", fieldset "Weekday of departure": seven slots, one for each day, Monday to Sunday.
+  Each has a markup in € (negative = discount), default `0`. The day is the local weekday of the first departure of the
+  itinerary. The slot of that day adds the part with the day name, for example `Friday` with `+€15`, once per
+  itinerary. A markup of `0` adds no part.
 
 ### CO₂
 
