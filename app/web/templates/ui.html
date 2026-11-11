@@ -37,10 +37,12 @@
 {%- endmacro %}
 
 {# The bicycle transport of a fare (#2456, #2457): allowed, reservation or no. None shows nothing. #}
-{% macro bike_badge(fare) -%}
+{# on_trip: the trip takes a bicycle, so a fare with no value says "not known" (#2476). #}
+{% macro bike_badge(fare, on_trip=false) -%}
 {%- if fare.bike == "allowed" %} <span class="badge bike" title="the source shows that this train or bus takes a bicycle">bicycle: allowed</span>
 {%- elif fare.bike == "reservation" %} <span class="badge bike" title="a bicycle needs a reservation or a bike ticket">bicycle: reservation</span>
-{%- elif fare.bike == "no" %} <span class="badge bike" title="the source shows that this ride takes no bicycle">no bicycle</span>{% endif -%}
+{%- elif fare.bike == "no" %} <span class="badge bike" title="the source shows that this ride takes no bicycle">no bicycle</span>
+{%- elif on_trip and fare.bike is none %} <span class="badge bike" title="the capture tells nothing about a bicycle">bicycle: not known</span>{% endif -%}
 {%- endmacro %}
 
 {# A "1st" badge for a 1st class fare (#692). A fare name with "1st class" in it (bahn.de) already says it. #}
