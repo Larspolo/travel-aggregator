@@ -522,7 +522,7 @@ def _best_json(before, after) -> dict | None:
     summary = f"{head}{dep:%H:%M} → {tail}{arr:%H:%M}"
     new = before is None or before[0].id != it.id or before[2].total > cost.total
     return {"total": str(cost.total), "price": str(fare.latest_price), "currency": fare.currency,
-            "summary": summary, "new": new}
+            "summary": summary, "new": new, "itinerary_id": it.id}
 
 
 def _choose_trip(session: Session, body: IngestIn, offers: list[OfferIn]) -> int:
