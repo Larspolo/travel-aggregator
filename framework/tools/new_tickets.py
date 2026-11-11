@@ -101,6 +101,28 @@ def check(tickets):
         p = PARENT_NEW.match(t["parent"] or "")
         if p and not 1 <= int(p[1]) < k:
             raise ValueError(f"parent: #new{p[1]} in ticket {k}: only an earlier ticket of the file can be the parent")
+    for k, t in enumerate(tickets, 1):
+        if "epic" in t["labels"]:
+            cases(t, k, {j for j, c in enumerate(tickets, 1) if c["parent"] == f"new{k}"})
+
+
+def cases(epic, k, children):
+    """Raise ValueError for an epic with sub-issues in the file and no `## Cases` map (#2415). Each line `- <case>:
+    #newJ` names the sub-issue that tests the case (a sub-issue of this epic, or an issue `#N`). 5 of 6 deep close
+    checks (#2223, #2331, #2339, #2369, #2374, #2396) found a case of the whole-feature criterion that no sub-issue
+    named, so each epic needed one more ticket and one more check."""
+    if not children:
+        return
+    m = re.search(r"^## Cases\n(.*?)(?=^## |\Z)", epic["body"], re.M | re.S)
+    lines = [x for x in (m[1].splitlines() if m else []) if x.startswith("- ")]
+    if not lines:
+        raise ValueError(f"epic {k} {epic['title']!r}: add '## Cases' with one line '- <case>: #newJ' for each case "
+                         "of the whole goal (ticket skill, 'Split an L ticket')")
+    for line in lines:
+        named = {int(i) for i in NEW.findall(line)}
+        if not (named & children or (not named and re.search(r"#\d+\b", line))):
+            raise ValueError(f"epic {k}: the case {line[2:]!r} names no sub-issue #newJ of the epic "
+                             f"(its sub-issues: {', '.join(f'#new{j}' for j in sorted(children))})")
 
 
 def resolve(text, made, k, later=False):

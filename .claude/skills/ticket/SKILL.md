@@ -78,6 +78,9 @@ name each file and function that the ticket changes, and no others (tools that o
    that each item of it works, or that the owner excluded it in a comment on the epic. "All sub-issues are closed" is
    never the only criterion; it can be an extra line. Example: "Each code of the list on the wiki works in the
    program, or the owner excluded it." The epic closes when all its criteria are met.
+   Then add `## Cases` to the epic body: one line `- <case>: #newJ` for each case of that criterion (each value,
+   page, copy path, export), and put the case in the acceptance criteria of sub-issue J (#2415: 5 of 6 deep close
+   checks found a case that no sub-issue named). `new_tickets.py` stops an epic with sub-issues and no such map.
 
 ## needs-human tickets
 

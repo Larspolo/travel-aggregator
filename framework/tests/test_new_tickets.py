@@ -12,6 +12,10 @@ All of it.
 ## Acceptance criteria
 - [ ] All parts.
 
+## Cases
+- part one: #new2
+- part two: #new3
+
 # Make the first part
 labels: P2, feature, size:S, lane:haiku
 parent: #new1
