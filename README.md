@@ -907,6 +907,16 @@ Each line has the times, the transfers, the price, the effective cost and the so
 
 The button copies the text to the clipboard, and the status line below the button shows "Copied". A browser with no clipboard access shows the text in a box instead, with the text selected: copy it with the keyboard. The page does not open a dialog.
 
+### Best offer of each mode
+
+The trip page of `/trips/{id}` shows the box "Best offer of each mode" below the summary. It has one line per mode of the offers: "Train", "Bus", "Flight", "Mixed" (an offer with two or more modes), and "Ferry", "Car" or "Other" when such offers exist. Each line shows the effective cost of the best offer of that mode, for example `Train: effective €41.50 (best)` or `Bus: effective €52.00 (+€10.50)`.
+
+- The best offer of a mode is the one with the lowest effective cost of that mode. A tie goes to the earlier departure. An offer with no rate does not count.
+- The difference, in brackets, is the effective cost of the line less the effective cost of the best offer of the whole trip. The line of the best offer of the trip shows "best". The lines are in the order of the effective cost, the best first.
+- Each line is a link to its row in the table of offers. The box shows only when the offers have at least two modes; otherwise it stays hidden.
+- The box uses the offers that the filters of the page show. An offer that a hard filter hides (for example "max transfers") does not count, as in the table and in the summary.
+- The box updates when the table is filtered or sorted again, without a page reload.
+
 ### Merge two trips
 
 To merge two trips, open the edit form of the trip that goes away, choose the target trip under "Merge into another trip" and click "Merge…". The offers, prices, captures, day prices and marks (pinned, booked, hidden and note) of the trip move to the target trip, and the merged trip is deleted. A trip that is linked to another trip (a return or a split) cannot be the trip that goes away.
