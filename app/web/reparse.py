@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import capture_delete, ingest
+from app.capture_changes import capture_changes
 from app.failure_report import report_url
 from app.field_health import field_health
 from app.sourcehealth import add_old_script, failed_clause, old_parsed_clause, source_health
@@ -132,6 +133,7 @@ def _trip_captures(request: Request, session: Session, trip_id: int, failed: boo
                                        "failed_sources": _failed_sources(session) if failed else [],
                                        "upload_sources": _upload_sources(), "upload_error": upload_error,
                                        "suspect_counts": suspect_counts(session, [trip_id]),  # #1607
+                                       "capture_changes": capture_changes(session, [c.id for c in captures]),  # #2328
                                        "har_count": har_count},
                                       status_code=code)
 
@@ -172,6 +174,7 @@ def all_captures_page(request: Request, failed: bool = False, source: str | None
                                        "move_trips": _move_trips(session),
                                        "failed_sources": _failed_sources(session, source) if failed else [],
                                        "suspect_counts": suspect_counts(session, trip_ids),  # #1607
+                                       "capture_changes": capture_changes(session, [c.id for c in captures]),  # #2328
                                        "wins": [] if failed or source else _named_wins(session),  # #1941
                                        "fields": [] if failed or source else _named_fields(session)})  # #1969
 
