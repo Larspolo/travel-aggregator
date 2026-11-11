@@ -47,7 +47,7 @@ first: handle it as in step 3 (lock, answer). Do not post a request that the epi
 the same thing, and no run answered the owner's question between them). An epic without a criterion that checks that the
 whole goal is covered (owner rule, #820: never only "All sub-issues are closed") gets one first (`ticket` skill, "Split
 an L ticket"). Check that criterion against the full scope (for "all X": the full list, for example a wiki of the original) and
-name each missing item. When `steering/project/PRINCIPLES.md` has the section "Try a feature", do what it says first
+name each missing item (the `## Cases` map of the epic names the sub-issue of each case, #2415). When `steering/project/PRINCIPLES.md` has the section "Try a feature", do what it says first
 (for example a `needs-human` test ticket, or a build); the epic waits for it. Close the epic with a comment only when all criteria are met
 (name the evidence for each, then the label `close`: `owner.md`, "Close an issue", #1740).
 The close check is deep work (owner, #1513, #1595: a missed gap comes back at the next check, but a wrong close is

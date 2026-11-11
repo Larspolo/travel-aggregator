@@ -23,7 +23,7 @@ as work left and stopped with no refill, 113k eq for no ticket).
    that is no input ("Kind: outside" or "Kind: setting"), for example a decision or an owner issue with a question in a
    comment, waits for the answer: take the next one (`usage.held`, #432, #1059).
 4. Make the epic with the `ticket` skill: the goal (what the user sees), the sub-items of the feature as acceptance
-   criteria, a criterion that checks the whole feature, the criterion "`README.md` describes what this epic added, and
+   criteria, a criterion that checks the whole feature (and its `## Cases` map: `ticket` skill), the criterion "`README.md` describes what this epic added, and
    `python3 -m pytest -m readme` passes" (one README PR at the end, `steering/project/PRINCIPLES.md`, "Try a
    feature"), the line "Roadmap: `<key>`", and the labels `epic`, `feature`,
    `size:L`, `P3`. Compare it with `steering/project/PRINCIPLES.md`. A choice with no single best option, or in an
