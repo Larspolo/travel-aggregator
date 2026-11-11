@@ -41,7 +41,7 @@ def _save(c, value):
 
 def test_no_login_redirects():
     r = TestClient(app).get("/settings", follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 303 and r.headers["location"].startswith("/login?next=%2F")  # the target of #2103
 
 
 def test_default_and_saved_value(client):

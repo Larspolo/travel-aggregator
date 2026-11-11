@@ -15,6 +15,7 @@ import time
 from collections import defaultdict, deque
 from collections.abc import Callable
 from datetime import UTC, datetime
+from urllib.parse import urlencode, urlsplit
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -43,8 +44,21 @@ log = logging.getLogger(__name__)
 class LoginRequired(HTTPException):
     """A page needs a login: the app answers with a redirect to /login."""
 
-    def __init__(self) -> None:
-        super().__init__(status_code=303, headers={"Location": "/login"})
+    def __init__(self, request: Request | None = None) -> None:
+        location = "/login"
+        if getattr(request, "method", None) == "GET":  # a POST keeps no target (#2103)
+            target = request.url.path + (f"?{request.url.query}" if request.url.query else "")
+            if safe_next(target) != "/":
+                location = "/login?" + urlencode({"next": target})
+        super().__init__(status_code=303, headers={"Location": location})
+
+
+def safe_next(target: str | None) -> str:
+    """A local path to go to after the login, else "/" (P5, #2103)."""
+    if (not target or len(target) > 2000 or not target.startswith("/") or target[1:2] in ("/", "\\")
+            or any(ord(c) < 32 or ord(c) == 127 for c in target) or urlsplit(target).scheme or urlsplit(target).netloc):
+        return "/"
+    return target
 
 
 def make_password_hash(password: str, iterations: int = ITERATIONS) -> str:
@@ -154,11 +168,11 @@ def session_epoch(session: Session | None = None, request: Request | None = None
 
 def require_login(request: Request) -> None:
     if not request.session.get(SESSION_KEY):
-        raise LoginRequired()  # no database access for a request with no login
+        raise LoginRequired(request)  # no database access for a request with no login
     # A session from before #1266 has no epoch: it counts as epoch 0.
     if request.session.get(EPOCH_KEY, 0) != session_epoch(request=request):
         request.session.clear()
-        raise LoginRequired()
+        raise LoginRequired(request)
 
 
 def csrf_token(request: Request) -> str:

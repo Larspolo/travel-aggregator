@@ -26,7 +26,7 @@ from app.api.health import _built
 from app.version import revisions
 from app.web.userscripts import bundle_info, userscript_list
 from app.auth import (EPOCH_KEY, NEW_TOTP_KEY, RECOVERY_SHOWN_KEY, TOTP_SECRET, TOTP_STEP, SESSION_EPOCH, SESSION_KEY, check_password, csrf_token, login_limiter,
-                      require_login, session_epoch, verify_csrf)
+                      require_login, safe_next, session_epoch, verify_csrf)
 from app import departed
 from app.door import door_minutes
 from app.compare_parts import part_rows
@@ -207,18 +207,29 @@ def _login_page(request: Request, session: Session, error: str | None = None, st
 
 @router.get("/login", response_class=HTMLResponse)
 def login_form(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    target = safe_next(request.query_params.get("next"))
+    if target != "/":
+        request.session[LOGIN_NEXT] = target
+    else:
+        request.session.pop(LOGIN_NEXT, None)
     return _login_page(request, session)
+
+
+LOGIN_NEXT = "login_next"  # the session key: the page to open after the login (#2103)
 
 
 TOTP_PENDING = "totp_pending"  # the login session key: the time of a correct password before the code (#1315)
 TOTP_PENDING_MAX = 300
 
 
-def _log_in(request: Request, session: Session) -> None:
+def _log_in(request: Request, session: Session) -> str:
+    """Log in and give the page to go to."""
+    target = safe_next(request.session.get(LOGIN_NEXT))
     request.session.clear()
     request.session[SESSION_KEY] = True
     request.session[EPOCH_KEY] = session_epoch(session)
     csrf_token(request)  # a new token after the login
+    return target
 
 
 def _pending(request: Request) -> bool:
@@ -260,8 +271,7 @@ def login_code(request: Request, code: str = Form(""), session: Session = Depend
         login_log.record(session, request, "code")
         session.commit()
     login_limiter.success(address)
-    _log_in(request, session)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(_log_in(request, session), status_code=303)
 
 
 @router.post("/login", response_class=HTMLResponse, dependencies=[Depends(verify_csrf)])
@@ -273,7 +283,10 @@ def login(request: Request, password: str = Form(""), session: Session = Depends
         return HTMLResponse(f"Too many attempts. Try again in {minutes} minutes.", status_code=429,
                             headers={"Retry-After": str(wait)})
     if check_password(password, get_settings().owner_password_hash):
+        target = request.session.get(LOGIN_NEXT)
         request.session.clear()
+        if target:
+            request.session[LOGIN_NEXT] = target
         if session.get(Setting, TOTP_SECRET) is not None:
             # The second step (#1315): the password alone does not log in.
             request.session[TOTP_PENDING] = clock.time()
@@ -282,8 +295,7 @@ def login(request: Request, password: str = Form(""), session: Session = Depends
         login_limiter.success(address)
         login_log.record(session, request, "ok")
         session.commit()
-        _log_in(request, session)
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse(_log_in(request, session), status_code=303)
     login_limiter.failure(address)
     login_log.record(session, request, "failed")
     session.commit()
@@ -322,8 +334,7 @@ def login_passkey(request: Request, credential: dict = Body(...), session: Sessi
     login_log.record(session, request, "passkey")
     session.commit()
     login_limiter.success(address)
-    _log_in(request, session)
-    return JSONResponse({"next": "/"})
+    return JSONResponse({"next": _log_in(request, session)})
 
 
 @router.api_route("/logout", methods=["GET", "POST"])

@@ -58,7 +58,7 @@ def test_only_an_unbooked_or_unknown_id_gives_404(client, sessions):
 
 def test_only_needs_the_login(sessions):
     r = TestClient(app).get("/upcoming?only=1", follow_redirects=False)
-    assert r.status_code in (302, 303) and r.headers["location"].endswith("/login")
+    assert r.status_code in (302, 303) and r.headers["location"].startswith("/login?next=%2Fupcoming")  # the target of #2103
 
 
 def test_each_row_links_to_its_print_view(client, sessions):

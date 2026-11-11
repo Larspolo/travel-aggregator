@@ -99,4 +99,4 @@ def test_an_unknown_trip_is_404(client, sessions):
 
 def test_no_login_goes_to_the_login_page(trip_id):
     r = TestClient(app).get(f"/trips/{trip_id}/export.csv", follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 303 and r.headers["location"].startswith("/login?next=%2F")  # the target of #2103
