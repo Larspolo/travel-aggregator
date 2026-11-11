@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         travel-aggregator: oebbtickets.at
 // @namespace    https://github.com/Larspolo/travel-aggregator
-// @version      1.1.1
+// @version      1.1.2
 // @description  Send the ÖBB search results (timetable and fare responses of shop.oebbtickets.at) to travel-aggregator.
 // @match        https://shop.oebbtickets.at/*
 // @run-at       document-start
@@ -19,7 +19,7 @@
   const core = root.TACore;
   if (!core) return;
   const SOURCE = "oebbtickets.at";
-  const PARSER_VERSION = "1.1.0";
+  const PARSER_VERSION = "1.2.0";
   const HOST = "shop.oebbtickets.at";
   // The search (connections) and the fares of one connection (offers). Both are POST requests with a JSON body.
   const TIMETABLE = "/api/hafas/v4/timetable";
