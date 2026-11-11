@@ -72,13 +72,13 @@ def test_post_needs_login_and_csrf(client, sessions):  # noqa: F811
         assert s.scalars(select(TravelBudget)).all() == []
 
 
-def test_migration_0059_up_and_down(empty_database_url):
+def test_migration_0060_up_and_down(empty_database_url):
     cfg = _alembic(empty_database_url)
     command.upgrade(cfg, "head")
     engine = create_engine(empty_database_url)
     try:
         assert "travel_budgets" in inspect(engine).get_table_names()
-        command.downgrade(cfg, "0058")
+        command.downgrade(cfg, "0059")
         assert "travel_budgets" not in inspect(engine).get_table_names()
         command.upgrade(cfg, "head")
     finally:
