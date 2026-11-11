@@ -150,6 +150,15 @@
 </ul>
 {% endif %}
 {% endwith %}
+{% if best_changes %}
+{% macro it_name(it) %}{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endmacro %}
+<h3>Best offer changes</h3>
+<ul class="best-changes">
+{% for day, old, old_cost, new, new_cost in best_changes %}
+<li>{{ day.day }} {{ day.strftime("%b") }}: <a href="#it-{{ new.id }}">{{ it_name(new) }}</a> (effective {{ new_cost | money }}) is best, was <a href="#it-{{ old.id }}">{{ it_name(old) }}</a> (effective {{ old_cost | money }})</li>
+{% endfor %}
+</ul>
+{% endif %}
 </section>
 {% endif %}
 {% if duplicates %}
