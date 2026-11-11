@@ -79,8 +79,8 @@ def later_transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decim
 
 def work_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """One part ("work hours", amount) for the minutes of the legs on a local workday (#2332): the minutes between
-    work_hour_start:00 and work_hour_end:00 on Monday to Friday, times (value − hour_markup) / 60. Each leg uses the
-    local times of its own stored offsets. A value of None or a difference of 0 adds no part."""
+    work_hour_start:00 and work_hour_end:00 on Monday to Friday, times (value − hour_markup) / 60. The local times of a
+    leg use its departure offset (#2358). A value of None or a difference of 0 adds no part."""
     value = weights.work_hour_markup
     if value is None:
         return ()
@@ -90,7 +90,7 @@ def work_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], 
     minutes = 0
     for leg in itinerary.legs:
         start = (leg.depart_at + timedelta(minutes=leg.depart_offset_min)).replace(tzinfo=None)
-        end = (leg.arrive_at + timedelta(minutes=leg.arrive_offset_min)).replace(tzinfo=None)
+        end = (leg.arrive_at + timedelta(minutes=leg.depart_offset_min)).replace(tzinfo=None)
         day = start.date()
         while day <= end.date():
             if day.isoweekday() <= 5:
