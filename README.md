@@ -354,6 +354,8 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/rates` | The exchange rates: store the value in EUR of a currency, or delete a rate (see "Exchange rates" below) |
 | `/fees` | The booking fees: store the fee in EUR of a source, or set it to 0 to remove it (see "Booking fees" below) |
 | `/passes` | The rail passes: add, change or delete a pass with its days, its cost per day and its carriers (see "Rail passes" below) |
+| `/days-off` | The days off: add, change or delete a day or a span of days (see "Days off" below) |
+| `/days-off` | The days off: add, change or delete a day or a span of days (see "Days off" below) |
 | `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile. `/profiles/new` makes a profile with no trip, and `/profiles/{id}` edits its weights |
 | `/pinned` | The pinned offers of the trips in planning, in the order of departure (see "Pinned offers" below) |
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
@@ -1718,9 +1720,19 @@ on a local workday (Monday to Friday) between the work-hour start and end. It is
 means the hour markup. **Work hours from**, default `9`, is the first local hour of the work day, and **Work hours to**,
 default `17`, is the last local hour. The hours are whole hours of the local clock of the departure place of each leg.
 The breakdown shows the part `work hours` for the minutes of the legs in that window: the difference between the field
-and the hour markup, times the hours. A value equal to the hour markup, or a leg outside the window or on a weekend, adds
-no part. For example, with an hour markup of €15 and a work-hour value of €30, a train on a Friday from 14:00 to 19:00
-local time adds `work hours` €45 for the 3 hours from 14:00 to 17:00.
+and the hour markup, times the hours. A value equal to the hour markup, or a leg outside the window, on a weekend or on a
+day off (see "Days off" below), adds no part. For example, with an hour markup of €15 and a work-hour value of €30, a train
+on a Friday from 14:00 to 19:00 local time adds `work hours` €45 for the 3 hours from 14:00 to 17:00.
+
+### Days off
+
+Set the days off on `/days-off` (link "Days off" in the settings navigation). A day off is one date, or a span of dates
+from a first day to a last day, and both days are included. Add, change or delete a day off there. With no days off, the
+costs do not change.
+
+A day off counts as a weekend day for the work-hour markup: the hours of a leg on a day off cost the hour markup, not the
+**Each work hour €** value, and the breakdown shows no `work hours` part for them. The day is the local date at the
+departure place of each leg.
 
 ### Risk
 
