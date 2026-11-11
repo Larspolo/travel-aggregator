@@ -919,13 +919,13 @@ The trip page of `/trips/{id}` shows the box "Best offer of each mode" below the
 
 ### Routes of a trip
 
-The trip page of `/trips/{id}` shows the section "Routes" below the box "Best offer of each mode". A route is a sequence of transfer places: "Direct" for an offer with no transfer, or "via Brussels" or "via Köln, Frankfurt". The offers with the same places are one route. The places are compared without case, and each line shows the spelling of the first offer of the route.
+The trip page of `/trips/{id}` shows the section "Routes" below the box "Best offer of each mode". A route is a sequence of transfer places: "Direct" for an offer with no transfer, or "Via Brussels" or "Via Köln, Frankfurt". The offers with the same places are one route. The places are compared without case, and each line shows the spelling of the first offer of the route.
 
-- Each line shows the route, the count of its offers, and the effective cost of its best offer, for example `via Brussels: 3 offers, effective €48.20 (best)` or `Direct: 2 offers, effective €55.00 (+€6.80)`.
+- Each line shows the route, the count of its offers, the effective cost of its best offer, and the cheapest price of the route, for example `Via Brussels: 3 offers, effective €48.20 (best), cheapest €45.00` or `Direct: 2 offers, effective €55.00 (+€6.80), cheapest €55.00`. "Cheapest" is the lowest price of the offers of the route, which can be lower than the price of the best offer.
 - The best offer of a route is the one with the lowest effective cost. A tie goes to the earlier departure. The difference, in brackets, is the effective cost of the best offer of the route less the effective cost of the best offer of the whole trip. The line of the best route shows "best".
 - The lines are in the order of the effective cost of the best offer, the best first. An offer with no rate does not count.
 - The section uses the offers that the filters of the page show. A route with no shown offer does not show. The section shows only when the offers have at least two routes; otherwise it stays hidden.
-- Click a line to filter the table to the offers of that route. The page then shows only that route, and the line of the route has the mark `aria-current`. The query parameter is `route`. Its value is the places in lower case, joined by " > " (for example `via Brussels` is `brussels`, and `Direct` is the word `Direct`). The sort links and the sliders keep the route.
+- Click a line to filter the table to the offers of that route. The page then shows only that route, and the line of the route has the mark `aria-current`. The query parameter is `route`. Its value is the places in lower case, joined by " > " (for example `Via Brussels` is `brussels`, and `Direct` is the word `Direct`). The sort links and the sliders keep the route.
 - The line "All routes" clears the route filter and shows every route again. It shows only when a route is selected.
 - The routes are counted before the route filter, so the other routes stay on the list when you select one.
 - Changing a weight updates the section without a page reload.
