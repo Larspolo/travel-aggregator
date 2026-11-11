@@ -829,9 +829,16 @@ The trip page shows the list "Search status of each source", with one line for e
 - The time and the offer count of the newest capture of the trip, for example "bahn.de: 2 h ago · 14 offers".
 - "not searched yet" when no capture of the trip exists for the source.
 - "last search failed" when the newest capture of the source failed. A link "Failed captures" opens the failed captures of the trip.
+- "sales open on <date>" when the source has a booking horizon (see "Booking horizon per source") and its first sales date is today or later. The source has no search link until the day after that date.
 - The link "Search on <site>" when the source has a search link (see below).
 
 A new source shows in the list by itself.
+
+### Booking horizon per source
+
+Some sources open their sales a fixed number of days before the trip. Set this number of days for each source on the messages settings page (`/settings/messages`, card "Booking horizon per source"). Enter a whole number from 1 to 999, and press "Save the horizons". An empty field removes the horizon. A bad value changes nothing, and the page shows a message.
+
+The first sales date of a trip is the date of the trip minus the horizon. For example, a trip on 2027-03-10 with a horizon of 90 days for a source gives "sales open on 2026-12-10" on the search status of that trip. The date shows only while the source has no capture of the trip. Until the day after that date, the link "Search on <site>" does not show. Then the link shows again.
 
 ### Search links
 
