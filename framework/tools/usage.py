@@ -56,6 +56,7 @@ MAX_FIRE = CONFIG.get("pacing", {}).get("max_fire", 8)   # runs that the pacer s
 REFILL = CONFIG.get("pacing", {}).get("refill_runs", 3)   # the most refill runs at one time (`refill_count`, #609, #650)
 REFILL_TICKETS = CONFIG.get("pacing", {}).get("refill_tickets", 4)   # ready tickets that one refill run adds (`refill_count`)
 REFILL_MINUTES = CONFIG.get("pacing", {}).get("refill_minutes", 20)  # a refill lock this young: its run still makes tickets
+CLOSE_BATCH_WAIT = 2 * 3600   # seconds: a single close check waits this long for a second one (#2178, owner choice in #1746)
 EPIC_HOLD = CONFIG.get("pacing", {}).get("epic_hold_hours", 3) * 3600   # seconds: a single epic check waits this long for a second one (#1596)
 PENDING = 12                # minutes: a run that the pacer started and that has no claim yet counts as a claim
 CALL = ["claude", "-p", "Reply with OK.", "--model", "claude-haiku-5-5", "--output-format", "stream-json", "--verbose"]
@@ -232,6 +233,7 @@ def refill_split(ready, target, issues, refs, now, refill_lane="deep", due=lambd
     if not refill_lane:
         return refill_count(ready, target, refill_live(refs, now), epics, new, whole=whole), 0
     main, deep = epic_lanes(issues, [n for n in epic_checks(issues, now) if not closing(n)])
+    deep = close_batch(deep, issues, now)
     return (refill_count(ready, target, refill_live(refs, now, lane=refill_lane), len(deep), new, whole=whole),
             refill_count(ready, target, refill_live(refs, now, lane="main"), len(main), new, whole=False))
 
@@ -255,8 +257,8 @@ def refill_need(ready, target, issues, due=lambda: [], reviews=lambda: [], free=
     if epics and hold and epic_hold(ready, epics, issues, now) and not (
             rank or due() or reviews() or (target is not None and ready < target and free())):
         epics = []                                          # the check waits for a second epic or for other work
-    if epics:
-        main, deep = epic_lanes(issues, epics)
+    main, deep = epic_lanes(issues, epics)
+    if main or (deep := close_batch(deep, issues, now)):
         return "; ".join([f"epic check {', '.join(f'#{n}' for n in main)}"] * bool(main)
                          + [f"close check {', '.join(f'#{n}' for n in deep)}"] * bool(deep))
     if rank:
@@ -291,6 +293,18 @@ def epic_lanes(issues, epics):
     by = {i["number"]: i for i in issues}
     deep = [n for n in epics if dashboard.LANE + "deep" in dashboard.labels(by.get(n, {}))]
     return [n for n in epics if n not in deep], deep
+
+
+def close_batch(deep, issues, now=None):
+    """The epics of `deep` for a close check now (#2178, option 3 of #1746): all of them when 2 or more wait, or when
+    the one epic got `lane:deep` (its `updated_at`) CLOSE_BATCH_WAIT or more ago; else none: the check waits."""
+    if len(deep) != 1:
+        return deep
+    stamp = next((i.get("updated_at") for i in issues if i.get("number") == deep[0]), None)
+    if not stamp:                                           # no time (a partial record): an old epic
+        return deep
+    since = datetime.datetime.fromisoformat(stamp.replace("Z", "+00:00")).timestamp()
+    return deep if (time.time() if now is None else now) - since >= CLOSE_BATCH_WAIT else []
 
 
 def epic_checks(issues, now=None):

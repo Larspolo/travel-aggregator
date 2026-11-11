@@ -52,7 +52,8 @@ name each missing item. When `steering/project/PRINCIPLES.md` has the section "T
 (name the evidence for each, then the label `close`: `owner.md`, "Close an issue", #1740).
 The close check is deep work (owner, #1513, #1595: a missed gap comes back at the next check, but a wrong close is
 silent). A main run that finds all criteria met does not close: it comments the evidence for each criterion and adds
-`lane:deep` to the epic; the pacer then starts a deep run for it. A deep run with an epic with `lane:deep` reads the
+`lane:deep` to the epic; the pacer then starts a deep run for it, in batches (owner, #1746): only when 2 or more epics have
+`lane:deep`, or when one epic has had it for 2 hours (`usage.close_batch`). A deep run with an epic with `lane:deep` reads the
 criteria and the evidence again: all met, it closes the epic as above (the label `close`); a gap, it removes `lane:deep`,
 names the gap in a comment and makes its sub-issues. The epics that `close.yml` closes by itself (below) get no
 `lane:deep` and no deep check. The pacer starts no run for a single epic check (#1596): it waits for a second epic,
