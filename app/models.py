@@ -44,6 +44,8 @@ class Trip(Base):
     arrive_by: Mapped[time | None] = mapped_column(Time, nullable=True)  # local time at the arrival place (#1294)
     leave_after: Mapped[time | None] = mapped_column(Time, nullable=True)  # local time at the origin (#2023)
     profile_id: Mapped[int | None] = mapped_column(ForeignKey("score_profiles.id", ondelete="SET NULL"))  # #232
+    rail_pass_id: Mapped[int | None] = mapped_column(ForeignKey("rail_passes.id", ondelete="SET NULL"))  # #2266
+    rail_pass: Mapped["RailPass | None"] = relationship()
     # The outbound trip of a return trip, and its return trip (#340): one-to-one.
     return_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL"), unique=True)
     # The trip that this trip is a part of, split via a place (#1177); the database deletes it with that trip.

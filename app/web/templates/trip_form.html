@@ -27,6 +27,10 @@
       <option value="">Default</option>
       {% for p in profiles %}<option value="{{ p.id }}"{% if values.profile_id|string == p.id|string %} selected{% endif %}>{{ p.name }}</option>{% endfor %}
     </select></div>
+    <div class="field wide"><label for="f-rail-pass">Rail pass</label><select id="f-rail-pass" name="rail_pass_id">
+      <option value="">No pass</option>
+      {% for rp in rail_passes %}<option value="{{ rp.id }}"{% if values.rail_pass_id|string == rp.id|string %} selected{% endif %}>{{ rp.name }}</option>{% endfor %}
+    </select></div>
     <div class="field"><label for="f-tags">Tags</label><input id="f-tags" name="tags_text" maxlength="200" value="{{ values.tags_text or '' }}"><small>comma-separated, at most 5</small></div>
     <div class="field wide"><label for="f-notes">Notes</label><textarea id="f-notes" name="notes" maxlength="5000">{{ values.notes or '' }}</textarea></div>
   </div>

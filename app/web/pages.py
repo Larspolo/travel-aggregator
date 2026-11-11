@@ -76,7 +76,7 @@ from app.profiles import active_weights, default_weights, delete as delete_profi
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
 from app.same_journey import JoinError, join, split
-from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PlaceName, PushSubscription, ScoreProfile, Setting,
+from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PlaceName, PushSubscription, RailPass, ScoreProfile, Setting,
                         SentMessage, SourceFee, Trip, TripAccessTime)
 from app.place_names import aliases as place_aliases
 from app.tripmatch import ALIASES, fold
@@ -431,7 +431,10 @@ def _form_page(request: Request, values: dict, errors: list[str], trip_id: int |
                                        "splittable": splittable, "split_error": split_error, "merge": merge,
                                        "via_places": via, "place_kinds": PLACE_KINDS,
                                        "trip_places": _trip_places(session, trip_id) if trip_id else [],
-                                       "profiles": list_profiles(session)}, status_code=code)
+                                       "profiles": list_profiles(session),
+                                       "rail_passes": session.scalars(
+                                           select(RailPass).order_by(RailPass.first_day, RailPass.name)).all()},
+                                      status_code=code)
 
 
 def _split_places(session: Session, trip: Trip) -> list[tuple[str, int]]:
@@ -451,6 +454,9 @@ async def _save(request: Request, session: Session, trip: Trip | None):
         return _form_page(request, values, errors, trip.id if trip else None, session, 422)
     if data.profile_id is not None and session.get(ScoreProfile, data.profile_id) is None:
         return _form_page(request, values, [f"profile_id: no profile {data.profile_id}"], trip.id if trip else None,
+                          session, 422)
+    if data.rail_pass_id is not None and session.get(RailPass, data.rail_pass_id) is None:
+        return _form_page(request, values, [f"rail_pass_id: no pass {data.rail_pass_id}"], trip.id if trip else None,
                           session, 422)
     if trip is None:
         trip = Trip()
@@ -1255,7 +1261,7 @@ def make_return_trip(trip_id: int, session: Session = Depends(get_session)) -> R
         ret = Trip(title=f"{trip.title[:191]} (return)", origin_text=trip.destination_text,
                    destination_text=trip.origin_text, origin_alt_text=trip.destination_alt_text,
                    destination_alt_text=trip.origin_alt_text, travelers=trip.travelers, profile_id=trip.profile_id,
-                   return_of_id=trip.id)
+                   rail_pass_id=trip.rail_pass_id, return_of_id=trip.id)
         session.add(ret)
         session.commit()
     return RedirectResponse(f"/trips/{ret.id}/edit", status_code=303)
@@ -1276,7 +1282,7 @@ async def split_trip(request: Request, trip_id: int, session: Session = Depends(
     for a, b in ((origin, place), (place, destination)):
         session.add(Trip(title=f"{a} → {b}"[:200], origin_text=a or None, destination_text=b or None,
                          date_from=trip.date_from, date_to=trip.date_to, travelers=trip.travelers,
-                         profile_id=trip.profile_id, split_of_id=trip.id))
+                         profile_id=trip.profile_id, rail_pass_id=trip.rail_pass_id, split_of_id=trip.id))
     session.commit()
     return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
@@ -1287,7 +1293,8 @@ def make_next_trip(trip_id: int, session: Session = Depends(get_session)) -> Red
     journey = chain(_get_trip(session, trip_id))
     first, last = journey[0], journey[-1]
     new = Trip(title=f"{first.title[:180]} (part {len(journey) + 1})", origin_text=last.destination_text,
-               destination_text=None, travelers=last.travelers, profile_id=last.profile_id, return_of_id=last.id)
+               destination_text=None, travelers=last.travelers, profile_id=last.profile_id, rail_pass_id=last.rail_pass_id,
+               return_of_id=last.id)
     session.add(new)
     session.commit()
     return RedirectResponse(f"/trips/{new.id}/edit", status_code=303)
@@ -1299,7 +1306,7 @@ def _copy_of(trip: Trip, return_of_id: int | None = None) -> Trip:
     return Trip(title=f"{trip.title[:192]} (copy)", origin_text=trip.origin_text,
                 destination_text=trip.destination_text, origin_alt_text=trip.origin_alt_text,
                 destination_alt_text=trip.destination_alt_text, travelers=trip.travelers, profile_id=trip.profile_id,
-                notes=trip.notes, tags_text=trip.tags_text, target_price=trip.target_price, arrive_by=trip.arrive_by, leave_after=trip.leave_after,
+                rail_pass_id=trip.rail_pass_id, notes=trip.notes, tags_text=trip.tags_text, target_price=trip.target_price, arrive_by=trip.arrive_by, leave_after=trip.leave_after,
                 return_of_id=return_of_id)
 
 
