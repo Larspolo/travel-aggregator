@@ -144,7 +144,8 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
     if fare is None:
         fare = Fare(source=source, fare_name=offer.fare_name, moved_from_id=origin, latest_price=offer.price_amount,
                     currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers,
-                    reservation_legs=offer.reservation_legs, berth=offer.berth, seats_left=offer.seats_left)
+                    reservation_legs=offer.reservation_legs, berth=offer.berth, seats_left=offer.seats_left,
+                    bike=offer.bike)
         it.fares.append(fare)
     elif fare.latest_price == offer.price_amount and fare.currency == offer.price_currency:
         fare.latest_captured_at = max(fare.latest_captured_at, captured_at)  # a capture of the same price (#1404)
@@ -153,7 +154,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         fare.reservation_legs = offer.reservation_legs
         fare.travel_class, fare.berth = offer.travel_class, offer.berth
         if newer:
-            fare.seats_left = offer.seats_left
+            fare.seats_left, fare.bike = offer.seats_left, offer.bike  # #2457: bike follows the newest capture
         fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
         return result
     if captured_at >= fare.latest_captured_at:
@@ -186,7 +187,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
     fare.reservation_legs = offer.reservation_legs
     fare.travel_class, fare.berth = offer.travel_class, offer.berth
     if newer:
-        fare.seats_left = offer.seats_left
+        fare.seats_left, fare.bike = offer.seats_left, offer.bike  # #2457: bike follows the newest capture
     fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
     fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=captured_at,
                                  capture_id=capture_id))
