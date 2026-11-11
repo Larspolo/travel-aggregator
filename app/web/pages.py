@@ -1147,6 +1147,15 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                   for c in exclude_carrier}}
     context["filtered_qs"] = {label: urlencode({k: v for k, v in {**base, **change}.items() if v is not None},
                                                doseq=True) for label, change in without.items()}
+    from markupsafe import Markup
+
+    from app.spend import trip_budget  # the rest of the budget of the year (#2376)
+    context["budget_line"], rest = trip_budget(session, trip, rates)
+
+    def over_budget(f):
+        eur = to_eur(f.latest_price, f.currency, rates) if rest is not None else None
+        return Markup(' <span class="chip over-budget">over the budget</span>') if eur is not None and eur > rest else ""
+    context["over_budget"] = over_budget
     context["splits"] = split_sections(session, trip, weights, places, now, best_direct)  # #1179
     if request.headers.get("HX-Request"):  # a slider change: only the rows (htmx, #14)
         return templates.TemplateResponse(request, "trip_table.html", context)
