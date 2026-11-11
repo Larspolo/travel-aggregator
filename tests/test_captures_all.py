@@ -59,7 +59,7 @@ def test_captures_page_lists_all_trips_newest_first_with_links(client):
 def test_captures_page_needs_a_login(sessions):
     r = TestClient(app, follow_redirects=False).get("/captures")
     assert r.status_code == 303
-    assert r.headers["location"] == "/login"
+    assert r.headers["location"] == "/login?next=%2Fcaptures"  # the target of #2103
 
 
 def test_nav_of_a_page_has_the_captures_link(client):

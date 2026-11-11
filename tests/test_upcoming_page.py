@@ -55,4 +55,4 @@ def test_no_booked_itinerary_shows_the_empty_text(client):
 
 def test_no_login_goes_to_the_login_page(sessions):
     r = TestClient(app).get("/upcoming", follow_redirects=False)
-    assert r.status_code in (302, 303) and r.headers["location"].endswith("/login")
+    assert r.status_code in (302, 303) and r.headers["location"].startswith("/login?next=%2Fupcoming")  # the target of #2103

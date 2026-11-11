@@ -46,7 +46,7 @@ class LoginRequired(HTTPException):
 
     def __init__(self, request: Request | None = None) -> None:
         location = "/login"
-        if request is not None and request.method == "GET":  # a POST keeps no target (#2103)
+        if getattr(request, "method", None) == "GET":  # a POST keeps no target (#2103)
             target = request.url.path + (f"?{request.url.query}" if request.url.query else "")
             if safe_next(target) != "/":
                 location = "/login?" + urlencode({"next": target})

@@ -68,4 +68,4 @@ def test_the_page_needs_the_login(trip):
     client, _, trip_id = trip
     app.dependency_overrides.pop(require_login)
     r = client.get(f"/trips/{trip_id}", follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 303 and r.headers["location"].startswith("/login?next=%2F")  # the target of #2103
