@@ -80,6 +80,7 @@ from app.parsers import group_price
 from app.ranking import (Weights, _amount, bar_parts, effective_cost, for_group, format_breakdown, format_total, in_eur,
                          per_traveler)
 from app.timeofday import arrive_by_extras, leave_after_extras, night_extras, night_time_extras, overnight_extras, time_extras
+from app.timeofday import weekday_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trip_merge import is_linked, merge_choices
 from app.trips import archived_journeys, chain, find_journeys, list_trips, past_trips, route_text, sort_journeys, tag_journeys
@@ -550,6 +551,13 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  carrier2_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  carrier3_name: str | None = Query(None, max_length=50),
                  carrier3_markup: Decimal | None = Query(None, ge=-1000, le=1000),
+                 weekday1_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
+                 weekday2_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
+                 weekday3_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
+                 weekday4_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
+                 weekday5_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
+                 weekday6_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
+                 weekday7_markup: Decimal | None = Query(None, ge=-1000, le=1000),  # (#2136)
                  transfer_place1_name: str | None = Query(None, max_length=100),  # (#1851)
                  transfer_place1_markup: Decimal | None = Query(None, ge=-1000, le=1000),
                  transfer_place2_name: str | None = Query(None, max_length=100),
@@ -665,6 +673,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
     rates, counts, fees = rates or {}, counts or {}, fees or {}
     travelers = it.trip.travelers if fees else 1  # the trip is read only when a fee can add a part
     base = (door_extras(it, places, weights.hour_markup) + flight_extras(it, weights) + time_extras(it, weights)
+                + weekday_extras(it, weights)
             + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
                 + mode_hour_extras(it, weights)
             + carrier_extras(it, weights) + transfer_place_extras(it, weights) + co2_extras(it, weights)
@@ -1308,6 +1317,13 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier2_markup: Decimal = Form(Weights.carrier2_markup, ge=-1000, le=1000),
                       carrier3_name: str = Form(Weights.carrier3_name, max_length=50),
                       carrier3_markup: Decimal = Form(Weights.carrier3_markup, ge=-1000, le=1000),
+                      weekday1_markup: Decimal = Form(Weights.weekday1_markup, ge=-1000, le=1000),
+                      weekday2_markup: Decimal = Form(Weights.weekday2_markup, ge=-1000, le=1000),
+                      weekday3_markup: Decimal = Form(Weights.weekday3_markup, ge=-1000, le=1000),
+                      weekday4_markup: Decimal = Form(Weights.weekday4_markup, ge=-1000, le=1000),
+                      weekday5_markup: Decimal = Form(Weights.weekday5_markup, ge=-1000, le=1000),
+                      weekday6_markup: Decimal = Form(Weights.weekday6_markup, ge=-1000, le=1000),
+                      weekday7_markup: Decimal = Form(Weights.weekday7_markup, ge=-1000, le=1000),
                       transfer_place1_name: str = Form(Weights.transfer_place1_name, max_length=100),
                       transfer_place1_markup: Decimal = Form(Weights.transfer_place1_markup, ge=-1000, le=1000),
                       transfer_place2_name: str = Form(Weights.transfer_place2_name, max_length=100),
@@ -1352,6 +1368,8 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       carrier1_name=carrier1_name, carrier1_markup=carrier1_markup,
                       carrier2_name=carrier2_name, carrier2_markup=carrier2_markup,
                       carrier3_name=carrier3_name, carrier3_markup=carrier3_markup,
+                      weekday1_markup=weekday1_markup, weekday2_markup=weekday2_markup, weekday3_markup=weekday3_markup,
+                      weekday4_markup=weekday4_markup, weekday5_markup=weekday5_markup, weekday6_markup=weekday6_markup, weekday7_markup=weekday7_markup,
                       transfer_place1_name=transfer_place1_name, transfer_place1_markup=transfer_place1_markup,
                       transfer_place2_name=transfer_place2_name, transfer_place2_markup=transfer_place2_markup,
                       transfer_place3_name=transfer_place3_name, transfer_place3_markup=transfer_place3_markup,
@@ -1385,6 +1403,7 @@ WEIGHT_RANGES = {
     "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),
     "hour_tier2_markup": (0, 100),
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
+    "weekday1_markup": (-1000, 1000), "weekday2_markup": (-1000, 1000), "weekday3_markup": (-1000, 1000), "weekday4_markup": (-1000, 1000), "weekday5_markup": (-1000, 1000), "weekday6_markup": (-1000, 1000), "weekday7_markup": (-1000, 1000),
     "transfer_place1_markup": (-1000, 1000), "transfer_place2_markup": (-1000, 1000),
     "transfer_place3_markup": (-1000, 1000),  # (#1850)
     "transfer_place1_min": (0, 240), "transfer_place2_min": (0, 240), "transfer_place3_min": (0, 240),  # (#2073)

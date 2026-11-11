@@ -11,6 +11,19 @@ def _local(at, offset_min: int):
     return (at + timedelta(minutes=offset_min)).time().replace(tzinfo=None)
 
 
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+
+def weekday_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the markup of the local weekday of the first departure (#2136). A markup of 0 adds no part."""
+    if not itinerary.legs:
+        return ()
+    first = itinerary.legs[0]
+    day = (first.depart_at + timedelta(minutes=first.depart_offset_min)).isoweekday()
+    markup = Decimal(getattr(weights, f"weekday{day}_markup"))
+    return ((WEEKDAYS[day - 1], markup),) if markup != 0 else ()
+
+
 def time_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """Add the penalty when the first leg departs before the early limit or the last leg arrives after the late limit.
 

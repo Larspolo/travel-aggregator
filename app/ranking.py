@@ -94,6 +94,15 @@ class Weights:
     carrier2_markup: Decimal = Decimal("0")
     carrier3_name: str = ""
     carrier3_markup: Decimal = Decimal("0")
+    # The weekday markups (#2136): the local weekday of the first departure adds its markup (ISO: 1 = Monday).
+    # A markup of 0 adds no part.
+    weekday1_markup: Decimal = Decimal("0")
+    weekday2_markup: Decimal = Decimal("0")
+    weekday3_markup: Decimal = Decimal("0")
+    weekday4_markup: Decimal = Decimal("0")
+    weekday5_markup: Decimal = Decimal("0")
+    weekday6_markup: Decimal = Decimal("0")
+    weekday7_markup: Decimal = Decimal("0")
     # The transfer place markups (#1850): a transfer at a place whose name a slot has adds the markup once per transfer.
     # A markup of 0 or an empty name disables the slot.
     transfer_place1_name: str = ""
