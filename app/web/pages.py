@@ -1497,6 +1497,7 @@ WEIGHT_RANGES = {
     "ferry_hour_markup": (0, 100),  # (#1567)
     "transfer_wait_hour_markup": (0, 100),  # (#2220)
     "later_transfer_markup": (0, 100),  # (#2302)
+    "work_hour_markup": (0, 100), "work_hour_start": (0, 23), "work_hour_end": (1, 24),  # (#2332)
     "night_seat_adjust": (-1000, 1000), "night_couchette_adjust": (-1000, 1000),
     "night_sleeper_adjust": (-1000, 1000),  # (#1808)
 }
