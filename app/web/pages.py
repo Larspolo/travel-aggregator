@@ -67,6 +67,7 @@ from app.route_history import route_history
 from app.money import money
 from app.coverage import trip_coverage
 from app.sourcehealth import failing_sources
+from app.carriers import carrier_names
 from app.risk import carrier_extras, mode_extras, mode_hour_extras, reservation_extras, transfer_wait_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
 from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
@@ -111,6 +112,12 @@ SETTINGS_NAV = [
 SETTINGS_PATHS = [href for _, items in SETTINGS_NAV for href, _, _ in items]
 templates.env.globals["settings_nav"] = SETTINGS_NAV
 templates.env.globals["settings_paths"] = SETTINGS_PATHS
+
+
+def _has_carrier(raw, name):
+    """True when the name is one of the names of `carrier_names(raw)` or a part of the raw text, without case (#2249)."""
+    names = {n.casefold() for n in carrier_names(raw)} | {p.strip().casefold() for p in (raw or "").split(", ")}
+    return name.strip().casefold() in names - {""}
 
 
 def local(t: datetime, offset_min: int) -> datetime:
@@ -918,7 +925,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         it_modes = {m for m in (it.mode_summary or "").split("+") if m}
         modes |= it_modes
         sources |= {f.source for f in it.fares}
-        carriers |= {leg.carrier for leg in it.legs if leg.carrier}
+        carriers |= {c for leg in it.legs for c in carrier_names(leg.carrier)}
         fares = current_fares([f for f in it.fares if not source or f.source == source], gone)
         # each filter test once per row (#1452): the same tests hide the row and count it
         hides = {label for label, hit in (
@@ -937,7 +944,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         ) if hit}
         # an excluded mode or carrier hides each offer with one of its legs: each value is its own filter
         hides |= {f"excluded mode {m}" for m in exclude_mode if any(leg.mode == m for leg in it.legs)}
-        hides |= {f"excluded carrier {c}" for c in exclude_carrier if any(leg.carrier == c for leg in it.legs)}
+        hides |= {f"excluded carrier {c}" for c in exclude_carrier if any(_has_carrier(leg.carrier, c) for leg in it.legs)}
         tests.append(hides)
         hides_of[it.id] = hides
         if hides:

@@ -3,6 +3,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from app.carriers import carrier_names
 from app.ranking import Weights
 
 MODE_FIELDS = {"train": "train_markup", "bus": "bus_markup", "flight": "flight_markup", "ferry": "ferry_markup"}
@@ -65,9 +66,12 @@ def transfer_wait_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decima
 
 def carrier_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """One part ("carrier <name>", amount) for each carrier slot whose name a leg of the itinerary has (#1530). The name
-    matches without case and outer spaces. A slot with an empty name or a markup of 0 adds no part. A negative amount
+    matches without case and outer spaces, by the names of `carrier_names()` or a part of the raw name (#2249). A slot with an empty name or a markup of 0 adds no part. A negative amount
     is a discount. Each slot adds at most one part per itinerary."""
-    carriers = {(leg.carrier or "").strip().casefold() for leg in itinerary.legs}
+    carriers = set()
+    for leg in itinerary.legs:
+        carriers |= {c.casefold() for c in carrier_names(leg.carrier)}
+        carriers |= {part.strip().casefold() for part in (leg.carrier or "").split(", ") if part.strip()}
     parts = []
     for n in (1, 2, 3):
         name = getattr(weights, f"carrier{n}_name").strip()
