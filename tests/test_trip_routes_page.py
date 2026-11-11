@@ -34,7 +34,8 @@ def test_the_example_shows_the_two_routes(trip):  # noqa: F811
     client, auth, trip_id = trip
     _example(client, auth, trip_id)
     lines = _lines(client.get(f"/trips/{trip_id}?{ZERO}").text)
-    assert lines == ["via Basel SBB: 2 offers, effective €104.00 (best)", "Direct: 3 offers, effective €120.00 (+€16.00)"]
+    assert lines == ["Via Basel SBB: 2 offers, effective €104.00 (best), cheapest €104.00",
+                     "Direct: 3 offers, effective €120.00 (+€16.00), cheapest €120.00"]
 
 
 def _sort_links(page):
@@ -68,7 +69,7 @@ def test_a_weight_change_updates_the_lines_out_of_band(trip):  # noqa: F811
     _example(client, auth, trip_id)
     r = client.get(f"/trips/{trip_id}?{ZERO}", headers={"HX-Request": "true"})
     assert 'id="trip-routes" aria-label="Routes" hx-swap-oob="true"' in r.text
-    assert "via Basel SBB: 2 offers, effective €104.00 (best)" in r.text
+    assert "Via Basel SBB: 2 offers, effective €104.00 (best), cheapest €104.00" in r.text
 
 
 def test_a_trip_with_one_route_shows_no_section(trip):  # noqa: F811

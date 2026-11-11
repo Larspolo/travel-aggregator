@@ -3,7 +3,7 @@
 {% if view.routes|length >= 2 %}
 <ul>
 {% for r, key, href in view.routes %}
-<li><a href="{{ href }}"{% if view.route == key %} aria-current="true"{% endif %}>{{ r.label }}: {{ r.count }} offer{% if r.count != 1 %}s{% endif %}, effective {{ r.best[2].total|money }} ({% if r.diff == 0 %}best{% else %}+{{ r.diff|money }}{% endif %})</a></li>
+<li><a href="{{ href }}"{% if view.route == key %} aria-current="true"{% endif %}>{{ r.label }}: {{ r.count }} offer{% if r.count != 1 %}s{% endif %}, effective {{ r.best[2].total|money }} ({% if r.diff == 0 %}best{% else %}+{{ r.diff|money }}{% endif %}), cheapest {{ r.cheapest|money }}</a></li>
 {% endfor %}
 {% if view.route %}<li><a href="{{ view.all_routes_href }}">All routes</a></li>{% endif %}
 </ul>

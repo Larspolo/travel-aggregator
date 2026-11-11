@@ -75,6 +75,7 @@
 <form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-indicator="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
   {% if sort_query.profile %}<input type="hidden" name="profile" value="{{ sort_query.profile }}">{% endif %}
+  {% if view.route %}<input type="hidden" name="route" value="{{ view.route }}">{% endif %}{# the route filter stays on a weight change (#2241) #}
   <label class="slider"><span>Hour markup €</span><output name="hour_value">{{ weights.hour_markup }}</output>
     <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
   <label class="slider"><span>Transfer markup €</span><output name="transfer_value">{{ weights.transfer_markup }}</output>

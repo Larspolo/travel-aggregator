@@ -8,7 +8,7 @@ from decimal import Decimal
 class Route:
     """One route: the rows with the same transfer places.
 
-    `key` is the tuple of the casefolded transfer places in leg order; `label` is "Direct" or "via A, B" with the
+    `key` is the tuple of the casefolded transfer places in leg order; `label` is "Direct" or "Via A, B" with the
     spelling of the first row; `best` is the row with the lowest effective cost; `diff` is that cost minus the best
     cost of the trip; `cheapest` is the lowest price of the rows of the route.
     """
@@ -38,7 +38,7 @@ def trip_routes(rows) -> list[Route]:
         key = tuple(name.casefold() for name in places)
         group = groups.get(key)
         if group is None:
-            label = "via " + ", ".join(places) if places else "Direct"
+            label = "Via " + ", ".join(places) if places else "Direct"
             group = groups[key] = {"key": key, "label": label, "count": 0, "best": None, "cheapest": None}
         group["count"] += 1
         rank = (cost.total, _departure(it, local))

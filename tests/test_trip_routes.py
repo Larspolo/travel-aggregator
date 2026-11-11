@@ -39,7 +39,7 @@ def test_routes_are_ordered_by_the_best_row_with_the_difference_to_the_trip_best
     ]
     routes = trip_routes(rows)
     assert _summary(routes) == [
-        ("via Brussels", 2, Decimal("0.00"), "fp4", Decimal("104.00")),
+        ("Via Brussels", 2, Decimal("0.00"), "fp4", Decimal("104.00")),
         ("Direct", 3, Decimal("16.00"), "fp1", Decimal("120.00")),
     ]
 
@@ -47,13 +47,13 @@ def test_routes_are_ordered_by_the_best_row_with_the_difference_to_the_trip_best
 def test_the_label_uses_the_spelling_of_the_first_row():
     rows = [_row(1, "110.00", via=["brussels"]), _row(2, "104.00", via=["Brussels"])]
     routes = trip_routes(rows)
-    assert [r.label for r in routes] == ["via brussels"]
+    assert [r.label for r in routes] == ["Via brussels"]
     assert routes[0].key == ("brussels",)
 
 
 def test_two_transfer_places_are_joined_in_leg_order():
     routes = trip_routes([_row(1, "50.00", via=["Liège", "Brussels"])])
-    assert [r.label for r in routes] == ["via Liège, Brussels"]
+    assert [r.label for r in routes] == ["Via Liège, Brussels"]
 
 
 def test_no_rows_give_an_empty_list():
