@@ -16,8 +16,8 @@ WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", 
 
 def weekday_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """Add the markup of the local weekday of the first departure (#2136). A markup of 0 adds no part."""
-    if not itinerary.legs:
-        return ()
+    if not itinerary.legs or not any(getattr(weights, f"weekday{d}_markup") for d in range(1, 8)):
+        return ()  # all 0: no need to read the leg
     first = itinerary.legs[0]
     day = (first.depart_at + timedelta(minutes=first.depart_offset_min)).isoweekday()
     markup = Decimal(getattr(weights, f"weekday{day}_markup"))
