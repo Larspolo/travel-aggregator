@@ -33,7 +33,7 @@ def money(value: Any) -> Decimal:
 
 class EurostarParser:
     source = "eurostar.com"
-    version = "1.1.0"
+    version = "1.2.0"
     # no personal key beyond PERSONAL_KEYS: `passengerId` is the slot "passenger_1" (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -108,7 +108,7 @@ class EurostarParser:
                 price_currency=currency,
                 fare_name=cos["name"],
                 travel_class=CLASSES.get(cos.get("code")),
-                seats_left=seats(fare.get("seats")),
+                seats_left=seats(fare.get("availabilityOfClassOfService")),
                 legs=legs,
                 booking_url=BOOKING_URL,
             ))

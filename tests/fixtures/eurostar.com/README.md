@@ -26,7 +26,7 @@ Notes for the parser:
 - **Times**: the `timing` of a journey and of a leg has `departureTime` and `arrivalTime` as local times of the station,
   with no offset. The `isoDate` of a leg ends in `Z`, but it is the local time too: do not use it.
 - **Prices**: `prices.displayPrice` is a JSON number in GBP. It is `null` when the fare is sold out.
-- **Classes**: `fares[].classOfService.code` is `STANDARD`, `PLUS` or `PREMIER`. `seats` is the number of seats left.
+- **Classes**: `fares[].classOfService.code` is `STANDARD`, `PLUS` or `PREMIER`. `availabilityOfClassOfService` is the number of seats left in the class (the number that eurostar.com shows, only when it is 30 or less in the page; #2199). `seats` is a smaller count of the fare (the seats at this price).
 - **Legs**: `fares[].legs` lists the legs of the journey in order. Each leg has `origin`, `destination`, `serviceName`
   (the train number), `serviceType`, `timing` and `flexibilityLevel`.
 - **Passengers**: the `passengerAgeGroup.age` of each product is `REDACTED` in these files (the age of the search is
