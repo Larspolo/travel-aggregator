@@ -86,8 +86,21 @@ def transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], .
     # A change of station uses its own minimum (#1501); None keeps the short-transfer minimum for it too.
     changes = set(station_changes(itinerary)) if weights.station_change_min is not None else set()
     change_minimum = timedelta(minutes=int(weights.station_change_min)) if changes else minimum
+    # The minimum of a matched transfer place (#2073): with two matches the larger one; a change of station keeps
+    # its own minimum when it is larger.
+    slots = [(_name_key(getattr(weights, f"transfer_place{n}_name")), getattr(weights, f"transfer_place{n}_min"))
+             for n in (1, 2, 3)]
+    slots = [(name, timedelta(minutes=int(m))) for name, m in slots if name and m is not None]
+
+    def needed(i, before, after):
+        here = [m for name, m in slots
+                if name in _name_key(before.to_name or "") or name in _name_key(after.from_name or "")]
+        if not here:
+            return change_minimum if i in changes else minimum
+        return max([*here, change_minimum]) if i in changes else max(here)
+
     short = sum(1 for i, (before, after) in enumerate(zip(itinerary.legs, itinerary.legs[1:]))
-                if after.depart_at - before.arrive_at < (change_minimum if i in changes else minimum))
+                if after.depart_at - before.arrive_at < needed(i, before, after))
     if short == 0:
         return ()
     return (("short transfer", penalty * short),)

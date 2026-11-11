@@ -102,6 +102,10 @@ class Weights:
     transfer_place2_markup: Decimal = Decimal("0")
     transfer_place3_name: str = ""
     transfer_place3_markup: Decimal = Decimal("0")
+    # The minimum transfer time of each slot (#2073): None uses the short-transfer minimum.
+    transfer_place1_min: int | None = None
+    transfer_place2_min: int | None = None
+    transfer_place3_min: int | None = None
 
 
 @dataclass(frozen=True)
