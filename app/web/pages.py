@@ -611,6 +611,7 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  ferry_hour_markup: str | None = Query(None, max_length=20),  # (#1568)
                  transfer_wait_hour_markup: str | None = Query(None, max_length=20),  # (#2221)
                  later_transfer_markup: str | None = Query(None, max_length=20),  # (#2302)
+                 work_hour_markup: str | None = Query(None, max_length=20),  # (#2333)
                  night_seat_adjust: str | None = Query(None, max_length=20),  # (#1808)
                  night_couchette_adjust: str | None = Query(None, max_length=20),  # (#1808)
                  night_sleeper_adjust: str | None = Query(None, max_length=20)) -> dict:  # (#1808)
@@ -626,6 +627,7 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
 OPTIONAL_RANGES = {"train_hour_markup": (0, 100), "bus_hour_markup": (0, 100), "flight_hour_markup": (0, 100),
                    "ferry_hour_markup": (0, 100), "transfer_wait_hour_markup": (0, 100),  # (#2221)
                    "later_transfer_markup": (0, 100),  # (#2302)
+                   "work_hour_markup": (0, 100),  # (#2333)
                    "night_seat_adjust": (-1000, 1000),
                    "night_couchette_adjust": (-1000, 1000), "night_sleeper_adjust": (-1000, 1000),
                    "transfer_place1_min": (0, 240), "transfer_place2_min": (0, 240), "transfer_place3_min": (0, 240)}
@@ -1535,6 +1537,10 @@ def form_weights(form) -> tuple[Weights, str | None]:
         if not bounds[0] <= v <= bounds[1]:
             return Weights(), f"{f.name}: {raw} is not in {bounds[0]} to {bounds[1]}; nothing changed."
         values[f.name] = v
+    start = values.get("work_hour_start", Weights.work_hour_start)  # (#2333)
+    end = values.get("work_hour_end", Weights.work_hour_end)
+    if start >= end:  # a wrong pair of work hours gives the defaults, with no error (#2333)
+        values["work_hour_start"], values["work_hour_end"] = Weights.work_hour_start, Weights.work_hour_end
     return Weights(**values), None
 
 
