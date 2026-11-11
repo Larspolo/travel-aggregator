@@ -1176,6 +1176,8 @@ when the offers reached your server, or an error message.
 
 - **Trip.** The dropdown chooses the trip that receives the offers. `+ new trip` makes a trip with the title that you
   type. The app remembers the chosen trip.
+- **Open the trip.** When a trip is chosen and the server URL is set, the panel shows the link `Open the trip`. A click
+  opens the trip page on your server in a new tab. The link is hidden when no trip or no server URL is set.
 - **Auto-select trip.** This check box is on by default. With it on, the app chooses the trip of each capture. It uses
   the selected trip when the offers match it. Else it uses the one trip in planning that matches the offers (when more
   match, the one with the shortest date range, then the newest). Else it keeps the selected trip, and the trip warning
@@ -1185,7 +1187,8 @@ when the offers reached your server, or an error message.
 - **Best offer.** After a sent capture, the panel adds the best offer of the trip, for example
   `Captured 1 offers → sent ✓ · Best of trip: €182 (new)`. The best offer is the one with the lowest effective cost by
   the profile of the trip. `(new)` means that this capture made it better. Whole euros show without decimals, other
-  amounts with two decimals. A warning keeps its text and style, with the best offer after it.
+  amounts with two decimals. A warning keeps its text and style, with the best offer after it. The text is a link to
+  the row of that offer on the trip page of your server, when the app gives the offer's itinerary id.
 - **Auto-send.** This check box is on by default. With it on, the offers are sent at once. With it off, the offers wait
   in the queue until you press Send.
 - **Settings.** Set the server URL and the API token once, in the Tampermonkey menu (`Set server URL`, `Set API token`).
