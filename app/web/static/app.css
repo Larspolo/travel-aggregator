@@ -687,6 +687,8 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 /* "Copy summary" (#2162) */
 .trip-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .trip-summary textarea { flex-basis: 100%; width: 100%; box-sizing: border-box; font: inherit; }
+.trip-best-mode ul { margin: 0; padding-left: 1.2rem; }
+.trip-best-mode a { overflow-wrap: anywhere; }
 
 /* the days on which the best offer changed (#2166): a long carrier text wraps at a phone width */
 .best-changes { padding-left: 1.2rem; overflow-wrap: anywhere; }
