@@ -305,6 +305,18 @@ class SourceFee(Base):
     updated_at: Mapped[datetime] = mapped_column(_tz())
 
 
+class TravelBudget(Base):
+    """The travel budget of one year in EUR, for the page "Travel per year" (#2375). A year with no row has no budget."""
+    __tablename__ = "travel_budgets"
+    __table_args__ = (
+        CheckConstraint("amount >= 0", name="ck_travel_budgets_not_negative"),
+    )
+
+    year: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    amount: Mapped[Decimal] = mapped_column(Money)
+    updated_at: Mapped[datetime] = mapped_column(_tz())
+
+
 class RailPass(Base):
     """A rail pass of the owner: a cost per day from the first day to the last day (#2265)."""
     __tablename__ = "rail_passes"

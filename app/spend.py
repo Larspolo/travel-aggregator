@@ -42,6 +42,11 @@ class _Acc:
     co2: Decimal = Decimal(0)
 
 
+def budget_rest(paid: Decimal | None, budget: Decimal) -> Decimal:
+    """The rest of the budget of a year (#2375): budget less the paid sum, negative when over the budget."""
+    return budget - (paid if paid is not None else Decimal(0))
+
+
 def _hours(minutes: int) -> int:
     return int((Decimal(minutes) / 60).quantize(Decimal(1), rounding=ROUND_HALF_UP))
 

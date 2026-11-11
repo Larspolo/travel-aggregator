@@ -21,6 +21,13 @@
     <p class="year-export"><a href="/upcoming/years/{{ y.year }}/export.csv" download>Export CSV</a></p>
     <p><strong>{{ y.journeys }} journey{% if y.journeys != 1 %}s{% endif %} · {{ (y.paid_eur if y.paid_eur is not none else 0) | money("EUR") }} paid · {{ y.hours }} h{% if y.co2_kg %} · about {{ y.co2_kg }} kg CO₂{% endif %}</strong>{% for code, n in y.missing | dictsort %}
       <span class="muted">({{ n }} price{% if n > 1 %}s{% endif %} in {{ code }} {% if n > 1 %}have{% else %}has{% endif %} no rate)</span>{% endfor %}</p>
+    {% set budget = budgets.get(y.year) %}{% if budget is not none %}{% set rest = budget_rest(y.paid_eur, budget) %}
+    <p class="year-budget">{% if rest >= 0 %}€{{ "{:,.2f}".format(y.paid_eur or 0) }} of €{{ "{:,.2f}".format(budget) }} · €{{ "{:,.2f}".format(rest) }} left{% else %}€{{ "{:,.2f}".format(-rest) }} over the budget{% endif %}{% if y.missing %} <span class="muted">(prices with no rate are not counted)</span>{% endif %}</p>{% endif %}
+    {% if budget_error and budget_error[0] == y.year %}<p class="error" role="alert">{{ budget_error[1] }}</p>{% endif %}
+    <form method="post" action="/upcoming/years/{{ y.year }}/budget" class="inline year-budget-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <label>Budget (EUR) <input name="amount" inputmode="decimal" value="{{ budget if budget is not none else '' }}"></label>
+      <button class="btn" type="submit">Save</button></form>
     <ul>{% for m in y.modes %}
       <li class="mode-line">{{ m.mode | capitalize }}: {{ m.journeys }} journey{% if m.journeys != 1 %}s{% endif %} · {{ (m.paid_eur if m.paid_eur is not none else 0) | money("EUR") }} paid · {{ m.hours }} h{% if m.co2_kg %} · about {{ m.co2_kg }} kg CO₂{% endif %}</li>{% endfor %}
     </ul>
