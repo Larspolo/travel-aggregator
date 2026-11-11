@@ -937,6 +937,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               route: str = Query("", max_length=200),  # route_value() of a route; "" = all (#2225)
               capture: int | None = Query(None),  # with `change`: only the changes of this capture (#2329)
               change: str = Query("", max_length=10),
+              bike: bool | None = Query(None),  # None: the bicycle of the trip (#2474)
               profile: int | None = Query(None)) -> HTMLResponse:
     trip = session.get(Trip, trip_id)
     if trip is None:
@@ -953,6 +954,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if latest_arrive is None:
         latest_arrive = trip.arrive_by.strftime("%H:%M") if trip.arrive_by else ""
     limit_arrive = time.fromisoformat(latest_arrive) if latest_arrive else None
+    bike_filter = bool(trip.bike if bike is None else bike and trip.bike)  # "no bicycle" fares do not rank (#2474)
     # subqueryload: one statement per relation; selectinload adds one per 500 offers (#115)
     hidden_filter = [] if show_hidden else [Itinerary.hidden.is_(False)]  # "show hidden" (#200)
     departed_now = departed.clock()
@@ -980,10 +982,15 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         sources |= {f.source for f in it.fares}
         carriers |= {c for leg in it.legs for c in carrier_names(leg.carrier)}
         fares = current_fares([f for f in it.fares if not source or f.source == source], gone)
+        no_bike = False
+        if bike_filter and fares:
+            fares = [f for f in fares if f.bike != "no"]
+            no_bike = not fares
         # each filter test once per row (#1452): the same tests hide the row and count it
         hides = {label for label, hit in (
             (f"mode {mode}", mode and mode not in it_modes),  # #112
-            (f"source {source}", not fares),
+            (f"source {source}", not fares and not no_bike),
+            ("bicycle", no_bike),
             (f"max transfers {limit_transfers}", limit_transfers is not None and it.transfers > limit_transfers),
             (f"max duration {limit_duration} min", limit_duration is not None and it.duration_min > limit_duration),
             (f"depart after {earliest_depart}",  # the time limits (#181)
@@ -1084,6 +1091,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         query["hide_stale"] = True  # the sort links keep it (#277)
     if pareto_only:
         query["pareto"] = True  # the sort links and the sliders keep it (#1857)
+    if bike is False:
+        query["bike"] = "0"  # the sort links keep "show them" of the bicycle filter (#2474)
     if chosen is not None:
         query["profile"] = chosen.id  # a slider change or a sort keeps the profile (#231)
     # each route line links to this page with its key; "All routes" clears it (#2225)
@@ -1140,7 +1149,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         f"mode {mode}", f"source {source}", f"max transfers {limit_transfers}", f"max duration {limit_duration} min",
         f"depart after {earliest_depart}", f"arrive by {latest_arrive}",
         *(f"excluded mode {m}" for m in exclude_mode), *(f"excluded carrier {c}" for c in exclude_carrier),
-        "hide stale", "only marked", f"day {day}"])
+        "bicycle", "hide stale", "only marked", f"day {day}"])
     # the transfer places of the offers of the page (#1460): only for a trip that is no part of a split
     context["via_places"] = [] if trip.split_of_id else via_places(itineraries, split_skip(trip))
     context["best_hidden"] = hidden_best(best_hidden, best_direct, query, sort, dir, trip_id)  # #1454
@@ -1151,7 +1160,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                f"max duration {limit_duration} min": {"max_duration_min": None},
                f"depart after {earliest_depart}": {"earliest_depart": None},
                f"arrive by {latest_arrive}": {"latest_arrive": ""},  # empty: no arrive-by limit (#1296)
-               "hide stale": {"hide_stale": None}, "only marked": {"pareto": None}, f"day {day}": {"day": None},
+               "bicycle": {"bike": "0"}, "hide stale": {"hide_stale": None}, "only marked": {"pareto": None}, f"day {day}": {"day": None},
                **{f"excluded mode {m}": {"exclude_mode": [x for x in exclude_mode if x != m]} for m in exclude_mode},
                **{f"excluded carrier {c}": {"exclude_carrier": [x for x in exclude_carrier if x != c]}
                   for c in exclude_carrier}}
@@ -1208,6 +1217,8 @@ def unfilter(query: dict, labels) -> dict:
             q["exclude_carrier"] = [c for c in q.get("exclude_carrier", []) if c != label[17:]]
         elif label == "hide stale":
             q.pop("hide_stale", None)
+        elif label == "bicycle":
+            q["bike"] = "0"
         elif label == "only marked":
             q.pop("pareto", None)
         elif label.startswith("arrive by "):
@@ -1236,7 +1247,7 @@ def hidden_best(best, best_direct, query, sort, dir, trip_id):
         d = best_direct - cost.total
         diff = f"€{abs(d):.2f} {'less' if d > 0 else 'more'} than the best shown offer"
     order = ["mode", "source", "max transfers", "max duration", "depart after", "arrive by", "excluded mode",
-             "excluded carrier", "hide stale", "day"]
+             "excluded carrier", "bicycle", "hide stale", "day"]
     by = sorted(labels, key=lambda l: next((i for i, p in enumerate(order) if l.startswith(p)), 99))
     link = f"/trips/{trip_id}?" + urlencode({**unfilter(query, labels), "sort": sort, "dir": dir}, doseq=True)
     return {"total": f"€{cost.total:.2f}", "when": when, "route": route, "source": fare.source,
