@@ -1,0 +1,48 @@
+{% extends "settings_base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Days off – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header("Days off", subtitle="A day off, or a span of days off from a first day to a last day.") }}{% endblock %}
+{% macro day_form(d=None) %}
+<form method="post" action="/days-off">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  {% set k = d.id if d else "new" %}
+  {% if d %}<input type="hidden" name="id" value="{{ d.id }}">{% endif %}
+  <div class="form-grid">
+    <div class="field"><label for="first-{{ k }}">First day</label>
+      <input id="first-{{ k }}" name="first_day" type="date" required value="{{ d.first_day.isoformat() if d else '' }}"></div>
+    <div class="field"><label for="last-{{ k }}">Last day</label>
+      <input id="last-{{ k }}" name="last_day" type="date" value="{{ d.last_day.isoformat() if d else '' }}">
+      <p class="help">Empty: the same day.</p></div>
+    <div class="field"><label for="note-{{ k }}">Note</label>
+      <input id="note-{{ k }}" name="note" maxlength="100" value="{{ d.note if d else '' }}" placeholder="Christmas"></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">{{ "Save day off" if d else "Add day off" }}</button></div>
+</form>
+{% endmacro %}
+{% block settings %}
+{% call ui.card("Add a day off") %}
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+{{ day_form() }}
+{% endcall %}
+{% call ui.card("Days off") %}
+{% if rows %}
+<div class="scroll">
+<table>
+  <thead><tr><th>Days</th><th>Note</th><th></th></tr></thead>
+  <tbody>
+  {% for d in rows %}
+  <tr><td>{{ d.first_day.isoformat() }}{% if d.last_day != d.first_day %} – {{ d.last_day.isoformat() }}{% endif %}</td>
+    <td>{{ d.note }}</td>
+    <td><form method="post" action="/days-off/{{ d.id }}/delete">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">Delete</button></form></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% for d in rows %}
+<details><summary>Change {{ d.first_day.isoformat() }}</summary>{{ day_form(d) }}</details>
+{% endfor %}
+{% else %}<p>No days off. With no days off, the costs do not change.</p>{% endif %}
+{% endcall %}
+{% endblock %}
