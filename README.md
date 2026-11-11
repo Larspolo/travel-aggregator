@@ -835,6 +835,14 @@ The trip page shows a link "Search on <site>" for each source that has a search 
 - The link only opens a page in your browser: the app sends no request to the travel site. After the search, the userscript captures the offers as usual.
 - To add a source or change a value, edit `app/data/search_links.toml` (one table per source with `name`, `template`, `date_format` and a `places` table) and restart the app.
 
+### Open search
+
+The button "Open search" opens the search page on the site where the app captured an offer, in a new tab.
+- On the trip page, each fare has "Open search". It opens the page of the capture with the newest price of that fare.
+- On the captures pages (`/captures` and `/trips/{id}/captures`), each capture has "Open search" under the "Raw" link.
+- The button shows only when the stored page address starts with `http://` or `https://`.
+- The button only opens a page in your browser: the app sends no request to the travel site.
+
 ### Round trips
 
 A round trip is two trips that are linked: an outbound trip and its return trip.
