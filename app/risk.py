@@ -121,6 +121,24 @@ def work_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], 
     return (("work hours", amount),)
 
 
+def loyalty_extras(itinerary, per: Decimal | None, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """One part ("loyalty <name>", minus the percent of `per`) for each carrier slot whose name each leg of the
+    itinerary has (#2432), by the name match of `carrier_extras()`. A fare with no EUR price (`per` None), an empty
+    name or a percent of 0 adds no part."""
+    if per is None or not itinerary.legs:
+        return ()
+    legs = [{c.casefold() for c in carrier_names(leg.carrier)}
+            | {part.strip().casefold() for part in (leg.carrier or "").split(", ") if part.strip()}
+            for leg in itinerary.legs]
+    parts = []
+    for n in (1, 2, 3):
+        name = getattr(weights, f"carrier{n}_name").strip()
+        pct = Decimal(getattr(weights, f"carrier{n}_loyalty_pct"))
+        if name and pct > 0 and all(name.casefold() in c for c in legs):
+            parts.append((f"loyalty {name}", -per * pct / 100))
+    return tuple(parts)
+
+
 def carrier_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """One part ("carrier <name>", amount) for each carrier slot whose name a leg of the itinerary has (#1530). The name
     matches without case and outer spaces, by the names of `carrier_names()` or a part of the raw name (#2249). A slot with an empty name or a markup of 0 adds no part. A negative amount

@@ -101,14 +101,20 @@
         <input type="text" name="carrier1_name" maxlength="50"{% if view is defined and view.carriers %} list="carrier-names"{% endif %} value="{{ weights.carrier1_name }}"></label>
       <label>Carrier 1 markup € (negative = discount)
         <input type="number" name="carrier1_markup" min="-1000" max="1000" step="0.01" value="{{ weights.carrier1_markup }}"></label>
+      <label>Carrier 1 loyalty %
+        <input type="number" name="carrier1_loyalty_pct" min="0" max="50" step="0.1" value="{{ weights.carrier1_loyalty_pct }}"></label>
       <label>Carrier 2 name
         <input type="text" name="carrier2_name" maxlength="50"{% if view is defined and view.carriers %} list="carrier-names"{% endif %} value="{{ weights.carrier2_name }}"></label>
       <label>Carrier 2 markup € (negative = discount)
         <input type="number" name="carrier2_markup" min="-1000" max="1000" step="0.01" value="{{ weights.carrier2_markup }}"></label>
+      <label>Carrier 2 loyalty %
+        <input type="number" name="carrier2_loyalty_pct" min="0" max="50" step="0.1" value="{{ weights.carrier2_loyalty_pct }}"></label>
       <label>Carrier 3 name
         <input type="text" name="carrier3_name" maxlength="50"{% if view is defined and view.carriers %} list="carrier-names"{% endif %} value="{{ weights.carrier3_name }}"></label>
       <label>Carrier 3 markup € (negative = discount)
         <input type="number" name="carrier3_markup" min="-1000" max="1000" step="0.01" value="{{ weights.carrier3_markup }}"></label>
+      <label>Carrier 3 loyalty %
+        <input type="number" name="carrier3_loyalty_pct" min="0" max="50" step="0.1" value="{{ weights.carrier3_loyalty_pct }}"></label>
     </fieldset>
     <fieldset><legend>Weekday of departure</legend>
       <label>Monday markup € (negative = discount)
