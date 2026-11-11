@@ -44,6 +44,7 @@ from app.currency import by_eur, load_rates, to_eur
 from app.fees import load_fees
 from app.fallback import fallback_extras, no_fallback_marks
 from app.trip_summary import trip_summary
+from app.best_mode import best_per_mode
 from app.days import day_sources, day_summary, return_grid, with_day_prices
 from app.timeline import timeline
 from app.filtered import hidden_counts
@@ -968,7 +969,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     rows.sort(key=all_gone)  # stable: the rows with only gone fares after the current rows (#1386)
     rows.sort(key=lambda r: departed.is_departed(r[0], departed_now))  # the departed rows last (#1391)
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
-    view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "pareto": pareto, "price_hours": price_hours, "summary": trip_summary(shown), "show_hidden": show_hidden,
+    view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "pareto": pareto, "price_hours": price_hours, "summary": trip_summary(shown), "best_modes": best_per_mode(shown), "show_hidden": show_hidden,
             "show_departed": show_departed, "departed_now": departed_now,
             "max_transfers": limit_transfers, "max_duration_min": limit_duration,
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
