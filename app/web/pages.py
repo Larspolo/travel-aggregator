@@ -1421,6 +1421,9 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       ferry_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#1567)
                       transfer_wait_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#2220)
                       later_transfer_markup: Decimal | None = Form(None, ge=0, le=100),  # (#2302)
+                      work_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#2332)
+                      work_hour_start: int = Form(9, ge=0, le=23),  # (#2332)
+                      work_hour_end: int = Form(17, ge=1, le=24),  # (#2332)
                       night_seat_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
                       night_couchette_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
                       night_sleeper_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
@@ -1463,6 +1466,8 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       flight_hour_markup=flight_hour_markup, ferry_hour_markup=ferry_hour_markup,
                       transfer_wait_hour_markup=transfer_wait_hour_markup,
                       later_transfer_markup=later_transfer_markup,
+                      work_hour_markup=work_hour_markup, work_hour_start=work_hour_start,
+                      work_hour_end=work_hour_end,
                       night_seat_adjust=night_seat_adjust, night_couchette_adjust=night_couchette_adjust,
                       night_sleeper_adjust=night_sleeper_adjust)
     save_profile(session, name.strip(), weights)
