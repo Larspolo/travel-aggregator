@@ -1453,6 +1453,27 @@ captures page then shows "kept" in the row of that capture. The cleanup does not
 older than the period. Press "Do not keep" on the raw view to remove the mark. The cleanup deletes the capture at the next
 ingest after that, when it is older than the period.
 
+### Delete a capture
+
+Use this when a capture is wrong and you do not need its data. Open `/captures` or `/trips/{id}/captures` and press "Delete"
+in the row of the capture. The confirm page shows how many price rows, itineraries and fares the delete removes. Press
+"Delete" on that page to delete the capture. The page then shows the captures of the trip of the capture. The delete
+cannot be undone.
+
+The delete removes:
+
+- the capture and its raw data,
+- the price rows of the capture and its day prices,
+- the itineraries and fares that only this capture gave.
+
+The delete keeps:
+
+- an offer that is booked, pinned or has a note: its newest price stays, with no capture,
+- a fare that a later capture saw again at the same price: its newest price stays, with no capture,
+- the price rows of the other captures.
+
+A fare that stays shows the price of its newest remaining row.
+
 ## Ranking
 
 The trip page `/trips/{id}` ranks the offers by effective cost, lowest first:
