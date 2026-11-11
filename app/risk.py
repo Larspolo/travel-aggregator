@@ -64,6 +64,19 @@ def transfer_wait_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decima
     return (("transfer wait", Decimal(seconds) * diff / 3600),)
 
 
+def later_transfer_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """One part ("later transfers", amount) for the transfers after the first one (#2302): (transfers − 1) times
+    (value − transfer_markup), to 2 places. A value of None, fewer than 2 transfers or a difference of 0 adds no part."""
+    value = weights.later_transfer_markup
+    if value is None or itinerary.transfers < 2:
+        return ()
+    diff = Decimal(value) - Decimal(weights.transfer_markup)
+    if diff == 0:
+        return ()
+    amount = Decimal(itinerary.transfers - 1) * diff
+    return (("later transfers", amount.quantize(Decimal("0.01"))),)
+
+
 def carrier_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """One part ("carrier <name>", amount) for each carrier slot whose name a leg of the itinerary has (#1530). The name
     matches without case and outer spaces, by the names of `carrier_names()` or a part of the raw name (#2249). A slot with an empty name or a markup of 0 adds no part. A negative amount
