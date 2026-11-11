@@ -52,7 +52,7 @@ def test_a_held_close_check_and_the_pacer_split():
 
 def test_a_held_check_is_still_a_refill_source():
     assert usage.refill_need(3, 8, [epic(9)], now=NOW, hold=False) == "epic check #9"
-    assert "hold=False" in open(claim.__file__).read()                            # refill_starved: not starved
+    assert "usage.starved(" in open(claim.__file__).read()                        # refill_starved: the rule of #2239
 
 
 def test_the_limit_is_a_value_of_pacing():
