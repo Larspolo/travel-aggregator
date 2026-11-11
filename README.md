@@ -484,6 +484,8 @@ Enter opens a menu (the "Menu" button at a phone width, and "More" at a desktop 
 puts the focus back on its button. On the trip page, Enter on "Legs and fares" opens the legs and fares of a row.
 On a weight slider, the arrow keys change the value by one step, and the list of offers ranks again at once.
 
+The trip page has keys for the rows of the table. Press `j` to move the focus to the next row and `k` to the previous row. Press `Enter` to open or close the details of the focused row. Press `p` to pin or unpin the focused row, and `h` to hide it. After a pin or a hide, the focus stays on the same row, or moves to the next row, or to the last row. Press `?` to open the list of the keys, and `Escape` to close it. The list also shows at the button "Keys" on the trip page. A `?` that you type in a form field does not open the list.
+
 The pages are checked with axe-core, an automated accessibility tester, at a width of 1280 px and at 390 px. The check
 fails on each new finding of the rules "serious" and "critical". Known findings are listed in the test, and each one is
 removed when it is fixed.
