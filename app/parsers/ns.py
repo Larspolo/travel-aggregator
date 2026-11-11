@@ -106,6 +106,8 @@ class NsParser:
         offers = []
         for o in conn["offers"]:
             price = o["totalPrice"]
+            if price is None:
+                continue  # an offer with no price (the Nightjet "Comfort Class" of #1619) is not bookable here
             flex = FLEX.get(o.get("flexLevel"), (o.get("flexLevel") or "").lower().replace("_", "-"))
             offers.append(OfferIn(
                 external_id=conn.get("id"),
