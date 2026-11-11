@@ -29,7 +29,7 @@ names `repositories/ID`): add `&page=P` in a loop until a page has fewer than 10
 | Automerge sweep (step 2) | `/actions/workflows/automerge.yml/dispatches -f ref=main`: GitHub drops its cron runs, and a CI run of `GITHUB_TOKEN` gives no `workflow_run` event (#734). Still open 15 minutes after the sweep → read `/actions/workflows/automerge.yml/runs?per_page=5` and say why on the status issue |
 | Start CI on a branch | `/actions/workflows/ci.yml/dispatches -f ref=BRANCH` (CI on `main` after a merge by hand) |
 | Merge state of a PR | `/pulls/N --jq .mergeable_state` (`dirty` = merge conflict: CI does not start, merge `origin/main`) |
-| CI job log | not possible with `gh` in the cloud: use `mcp__github__get_job_logs`, or run the check locally |
+| CI job log | first the failed tests: `ship_pr.py N --ci` prints the annotations of `tests/conftest.py` (#1443); else `mcp__github__get_job_logs` (its tail is the PostgreSQL service), or run the check locally |
 
 ## Labels
 

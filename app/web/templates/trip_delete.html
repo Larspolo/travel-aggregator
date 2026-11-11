@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Delete trip – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Delete trip", subtitle=trip.title, back=("/trips/" ~ trip.id, "Trip")) }}
+<form class="card" method="post" action="/trips/{{ trip.id }}/delete">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p>Delete the trip {{ trip.title }} with {{ counts.itineraries }} itineraries and {{ counts.captures }} captures? This cannot be undone.</p>
+  <div class="form-actions">
+    <button class="btn btn-danger confirm" type="submit">Delete</button>
+    <a class="btn btn-ghost" href="/trips/{{ trip.id }}/edit">Cancel</a>
+  </div>
+</form>
+{% endblock %}

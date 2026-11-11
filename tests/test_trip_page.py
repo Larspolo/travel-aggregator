@@ -46,9 +46,9 @@ def test_the_page_shows_each_offer_with_its_price_cheapest_first(trip):
     r = client.get(f"/trips/{trip_id}")
     assert r.status_code == 200 and "text/html" in r.headers["content-type"]
     page = r.text
-    assert "EUR 89.90" in page and "EUR 119.90" in page and page.index("EUR 89.90") < page.index("EUR 119.90")
-    assert "Amsterdam Centraal → Zürich HB" in page and "Sun 20 Dec 07:34" in page and "Sun 20 Dec 15:26" in page
-    assert "DB ICE 105, SBB IC 61" in page and "Sparpreis" in page and "1 transfer," in page
+    assert "€89.90" in page and "€119.90" in page and page.index("€89.90") < page.index("€119.90")
+    assert "Amsterdam Centraal → Zürich HB" in page and "Sun 20 Dec 07:34 → 15:26" in page
+    assert "Deutsche Bahn ICE 105, SBB IC 61" in page and "Sparpreis" in page and "1 transfer" in page
 
 
 def test_captured_text_is_escaped(trip):
@@ -68,4 +68,4 @@ def test_the_page_needs_the_login(trip):
     client, _, trip_id = trip
     app.dependency_overrides.pop(require_login)
     r = client.get(f"/trips/{trip_id}", follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 303 and r.headers["location"].startswith("/login?next=%2F")  # the target of #2103

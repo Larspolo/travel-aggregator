@@ -1,0 +1,149 @@
+[
+ {
+  "part": "Autopilot runs",
+  "group": "Runs",
+  "when": "Each time the pacer starts one (no schedule)",
+  "does": "One unattended cloud session on Opus at effort low: reads your feedback, triages new issues, does tickets (one PR each) and reports each run on the branch metrics; never takes a lane:haiku or lane:deep ticket",
+  "where": "Scheduled task “travel-aggregator autopilot” (prompt /scheduled max), .claude/skills/autopilot"
+ },
+ {
+  "part": "Haiku runs",
+  "group": "Runs",
+  "when": "Only when the pacer starts one; a new session each time",
+  "does": "One unattended cloud session on Haiku: does one lane:haiku ticket (one PR) and stops; no triage, refill or review",
+  "where": "Scheduled task “travel-aggregator autopilot haiku” (/scheduled max lane haiku)"
+ },
+ {
+  "part": "Deep runs",
+  "group": "Runs",
+  "when": "Only when the pacer starts one; a new session each time",
+  "does": "One unattended cloud session on Opus at effort high: the lane:deep tickets, the epic checks (README PR and scripts/preview_check.sh at the end of an epic), the queue refill, the roadmap review and the process review",
+  "where": "Scheduled task “travel-aggregator autopilot deep” (/scheduled max lane deep), .claude/skills/autopilot/queue.md"
+ },
+ {
+  "part": "Pacer",
+  "group": "Runs",
+  "when": "A cycle every 10 minutes (one loop of about 5.5 hours, then the next)",
+  "does": "A script with no Claude session: reads the 5-hour and 7-day usage and starts runs through the API triggers of the tasks; also starts the dashboard and the dashboard site each cycle",
+  "where": ".github/workflows/pacer.yml, framework/tools/pacer.py, steering/system/system.toml [pacing]"
+ },
+ {
+  "part": "Model lanes",
+  "group": "Planning",
+  "when": "Each ticket",
+  "does": "lane:haiku for clear size:S tickets, lane:deep for hard choices; Opus runs never take a reserved lane",
+  "where": "steering/system/system.toml (weights, reserved), .claude/skills/ticket"
+ },
+ {
+  "part": "Claims",
+  "group": "Planning",
+  "when": "Each ticket a run starts",
+  "does": "A claim ref per ticket, so that two runs never do the same ticket; a run beats it while it works",
+  "where": "framework/tools/claim.py, refs claim/N"
+ },
+ {
+  "part": "Queue refill",
+  "group": "Planning",
+  "when": "When the open epics have no ready ticket",
+  "does": "A deep run makes the next epic and its first sub-issues from the roadmap (one goal after the other)",
+  "where": ".claude/skills/roadmap, steering/project/ROADMAP.md"
+ },
+ {
+  "part": "Process review",
+  "group": "Planning",
+  "when": "After a gap of merged PRs (80 at the start)",
+  "does": "A deep run reviews the agent system and makes the changes that pay",
+  "where": ".claude/skills/improve, steering/system/system.toml [review]"
+ },
+ {
+  "part": "Your steering",
+  "group": "You",
+  "when": "Any time",
+  "does": "Issues and comments, priority labels, decision tickets, and the files steering/project/PRINCIPLES.md and ROADMAP.md",
+  "where": "framework/docs/STEERING.md, steering/"
+ },
+ {
+  "part": "CI quick",
+  "group": "Checks",
+  "when": "Each PR and each merge to main",
+  "does": "Lint (ruff) and the fast tests against PostgreSQL 16; Automerge waits for it",
+  "where": ".github/workflows/ci.yml (job quick)"
+ },
+ {
+  "part": "CI docker",
+  "group": "Checks",
+  "when": "Each PR and each merge to main",
+  "does": "docker compose up --build with .env.example: migrations, /api/health with the commit, non-root user, healthcheck, login with a CSRF token up to the trips list",
+  "where": ".github/workflows/ci.yml (job docker)"
+ },
+ {
+  "part": "Preview image",
+  "group": "Deploy",
+  "when": "After green checks on main",
+  "does": "Builds and pushes ghcr.io/larspolo/travel-aggregator:preview (only the newest commit of main)",
+  "where": ".github/workflows/ci.yml (job preview)"
+ },
+ {
+  "part": "Preview server",
+  "group": "Deploy",
+  "when": "Watchtower polls every 5 minutes",
+  "does": "Runs :preview with its own database behind Traefik at travel-preview.larspolo.nl; basic auth on the pages, none on /api",
+  "where": "deploy/preview/ on your server"
+ },
+ {
+  "part": "Preview check",
+  "group": "Checks",
+  "when": "At the end of each epic",
+  "does": "Waits until the preview runs the newest main, then tests the API with the token of the network secret",
+  "where": "scripts/preview_check.sh, verify skill level 5"
+ },
+ {
+  "part": "Automerge",
+  "group": "Checks",
+  "when": "After each CI run, and every 5 minutes",
+  "does": "Merges a green agent PR (squash), closes its ticket, starts CI on main",
+  "where": ".github/workflows/automerge.yml"
+ },
+ {
+  "part": "Unconflict",
+  "group": "Checks",
+  "when": "Every 20 minutes",
+  "does": "Merges main into an agent PR with a conflict that git solves alone",
+  "where": ".github/workflows/unconflict.yml"
+ },
+ {
+  "part": "Claims cleanup",
+  "group": "Checks",
+  "when": "After merges, and once a day",
+  "does": "Deletes the claim refs of closed tickets",
+  "where": ".github/workflows/claims.yml"
+ },
+ {
+  "part": "Close",
+  "group": "Checks",
+  "when": "Each hour, and after merges",
+  "does": "Closes each issue with the label close (a run adds it after its evidence comment)",
+  "where": ".github/workflows/close.yml"
+ },
+ {
+  "part": "Dashboard issue",
+  "group": "Reports",
+  "when": "Each pacer cycle (and every 10 minutes)",
+  "does": "Writes the dashboard into the body of the status issue #1",
+  "where": ".github/workflows/dashboard.yml, framework/tools/dashboard.py"
+ },
+ {
+  "part": "Dashboard site",
+  "group": "Reports",
+  "when": "Each pacer cycle (and every 30 minutes)",
+  "does": "Builds this page and its data files and publishes them on GitHub Pages",
+  "where": ".github/workflows/dashboard-site.yml, tools/dashboard_site.py, tools/dashboard_data.py"
+ },
+ {
+  "part": "Metrics",
+  "group": "Reports",
+  "when": "Four times an hour, and each pacer cycle",
+  "does": "Copies the run reports of the status issue to the branch metrics, for the usage charts",
+  "where": ".github/workflows/metrics.yml, framework/tools/metrics_log.py"
+ }
+]

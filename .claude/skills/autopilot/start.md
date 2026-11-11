@@ -73,7 +73,8 @@ then the lowest issue number.
 Section `Candidates` shows them in this order, without held tickets (`dashboard.py --next`: all of them).
 A main run never takes a ticket of a `reserved` lane (`lane:haiku`, `lane:deep`, #1994).
 **Lane runs** (the argument names `lane haiku` or `lane deep`): read `queue.md`, section of the lane, before the pick.
-Before the pick (only deep runs while `reserved` names `deep`), check the open epics with no open sub-issue (at most 3 per run), and refill the queue when R < N
+Before the pick, check the open epics with no open sub-issue (at most 3 per run; a main run only the epics without `lane:deep`,
+a deep run only those with it, #1595), and (only deep runs while `reserved` names `deep`) refill the queue when R < N
 (N = the target and R = the ready tickets on the stderr line of `python3 framework/tools/usage.py --fire`): `queue.md`.
 If there is no candidate, go to step 8 and report "No ticket is ready".
 Claim with `python3 framework/tools/claim.py N --or M K` (the candidates in order: one call tries each). It pushes a unique

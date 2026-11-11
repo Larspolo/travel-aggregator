@@ -1,0 +1,1156 @@
+{
+  "request": {
+    "origin": "NLASC",
+    "destination": "ATWIH",
+    "travelers": [
+      {
+        "ageType": "A"
+      }
+    ],
+    "outboundDatetime": {
+      "datetime": "2026-12-08T18:00:00",
+      "timetype": "DEPARTURE"
+    }
+  },
+  "response": {
+    "data": {
+      "messages": [],
+      "travelOffers": [
+        {
+          "id": "6695daba58ec509c2b2b0cfe4963a9a957833e303066b957a9a9f173a3434c74",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "Wien Hbf",
+              "code": "ATWIH",
+              "alias": "Vienna Central Station",
+              "country": "AT",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-12-09T09:32:00",
+                "delay": "PT0S",
+                "platform": "10A-B",
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "duration": "PT15H31M",
+            "id": "6695daba58ec509c2b2b0cfe4963a9a957833e303066b957a9a9f173a3434c74",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "Nightjet",
+                "name": "Nightjet",
+                "number": "40421",
+                "features": [
+                  "nighttrain"
+                ]
+              },
+              {
+                "type": "TRAIN",
+                "code": "RAIL JET",
+                "name": "RAIL JET",
+                "number": "19969",
+                "features": []
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 1,
+            "origin": {
+              "name": "Amsterdam Centraal",
+              "code": "NLASC",
+              "alias": "Amsterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-12-08T18:01:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "2_NF_202612081801_38807aef1ae8488a113e8fb199b791f93c9e2247d1112f36c7727d7d12725b15",
+              "name": "label.comfortclass.2.DD",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 251.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 257.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 139.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.DD"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.DD"
+                }
+              ]
+            },
+            {
+              "id": "2_NF_202612081801_abc487b790e2fc7e5ec06d7baa0cf28acf77dc733cfdbad7baee86bd69ed6b52",
+              "name": "label.comfortclass.2.MS",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 251.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 257.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 139.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.MS"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.MS"
+                }
+              ]
+            },
+            {
+              "id": "2_NF_202612081801_d243490abf2e0a3353d49add6f3d884f32a6a4e46fe9199d22e8006fcc4327f6",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 171.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 177.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 59.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_MF_202612081801_592c503e4dbafb4be22d94f4500664bb9b59c2f64bc21e928321549e395e05b9",
+              "name": "label.comfortclass.2.DD",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 261.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 267.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 149.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.DD"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.DD"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202612081801_e7b53a6578c6924d2916114669c53c4d58e2c7a62929bf9ee61e03b2cd4fa76a",
+              "name": "label.comfortclass.2.MS",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 261.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 267.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 149.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.MS"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.MS"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202612081801_85ed2a9c9a27c1b781aa06ff762440d5e0a9673ee5131d4231a6013c55948c5a",
+              "name": "label.comfortclass.2.B",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 186.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 192.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 74.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.B"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.B"
+                }
+              ]
+            },
+            {
+              "id": "2_FF_202612081801_021c965fea9ea9e0aeac40d2cfd489d1a897318a04b52ebf2b345789f6fc7a0a",
+              "name": "label.comfortclass.2.MS",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 276.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 282.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 164.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.MS"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.MS"
+                }
+              ]
+            },
+            {
+              "id": "2_FF_202612081801_72eb1f2b37a9bf77797a66c9768e8bae29611590e977b81b3c97cc348ca12fe9",
+              "name": "label.comfortclass.2.DD",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 276.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 282.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 164.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.DD"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.DD"
+                }
+              ]
+            },
+            {
+              "id": "2_FF_202612081801_9b442d13cf33ce04d7f1b3e9431119add97099e934b5873c6ffab99754c3d1ef",
+              "name": "label.comfortclass.2.B",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 206.8,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 212.3,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATSAL",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 94.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                },
+                {
+                  "id": "1_ATSALATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 111.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.B"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.B"
+                }
+              ]
+            },
+            {
+              "id": "1_XX_b9ee284a-c13b-4ad1-983b-a87d2069946d",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": null,
+              "direction": null,
+              "availability": "NONE",
+              "totalPrice": null,
+              "totalPriceWithOptionalAccommodations": null,
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "Sold out"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "Comfort Class"
+                },
+                {
+                  "benefits": [
+                    "Sold out"
+                  ],
+                  "carrierCode": "RAIL JET",
+                  "carrierName": "RAIL JET",
+                  "label": ""
+                }
+              ]
+            }
+          ],
+          "messages": []
+        },
+        {
+          "id": "64459daf18fa5df751034eaf9169839212cfdfea37744f99180d56d3f99ce915",
+          "itinerary": {
+            "bookableStatus": "BOOKABLE",
+            "containsRealTimeInfo": true,
+            "delayIndicator": false,
+            "destination": {
+              "name": "Wien Hbf",
+              "code": "ATWIH",
+              "alias": "Vienna Central Station",
+              "country": "AT",
+              "departure": null,
+              "arrival": {
+                "plannedLocalDateTime": "2026-12-09T09:48:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "duration": "PT15H47M",
+            "id": "64459daf18fa5df751034eaf9169839212cfdfea37744f99180d56d3f99ce915",
+            "modalities": [
+              {
+                "type": "TRAIN",
+                "code": "Nightjet",
+                "name": "Nightjet",
+                "number": "40421",
+                "features": [
+                  "nighttrain"
+                ]
+              }
+            ],
+            "nsiNumberOfChanges": 0,
+            "numberOfChanges": 0,
+            "origin": {
+              "name": "Amsterdam Centraal",
+              "code": "NLASC",
+              "alias": "Amsterdam CS",
+              "country": "NL",
+              "departure": {
+                "plannedLocalDateTime": "2026-12-08T18:01:00",
+                "delay": "PT0S",
+                "platform": null,
+                "updatedPlatform": null
+              },
+              "arrival": null,
+              "type": null,
+              "timeZone": "GMT+01:00",
+              "sepaCode": null
+            },
+            "travel": null
+          },
+          "offers": [
+            {
+              "id": "2_NF_202612081801_3895def38efe35f327b4710fbae9387da61722c0836283f34b06bd2b6b394f63",
+              "name": "label.comfortclass.2.DD",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 139.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 139.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 139.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.DD"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.DD"
+                }
+              ]
+            },
+            {
+              "id": "2_NF_202612081801_a75d25c8764e5e23931b173c4598a81f3d30f20f860d70029170a013c6d037b6",
+              "name": "label.comfortclass.2.MS",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 139.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 139.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 139.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.MS"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.MS"
+                }
+              ]
+            },
+            {
+              "id": "2_NF_202612081801_e0db18d6b1120837f4ed0ecbcb566437b5451c7dc39f12d6d968ec604d23adfd",
+              "name": "Second Class",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "NON_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 59.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 59.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 59.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": []
+            },
+            {
+              "id": "2_MF_202612081801_f7e22f33f9f98d4163b10f183d6b6f0e65fdb55701435504ce37dcc44635e921",
+              "name": "label.comfortclass.2.DD",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 149.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 149.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 149.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.DD"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.DD"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202612081801_d81b31d98d49234c66a745e8a36d218519bfc84e441701a166c1098fbd9b69bf",
+              "name": "label.comfortclass.2.MS",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 149.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 149.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 149.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.MS"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.MS"
+                }
+              ]
+            },
+            {
+              "id": "2_MF_202612081801_62c9086def11e524ad93aba5838a60644a49602bbe4f21d868b856111605d174",
+              "name": "label.comfortclass.2.B",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "SEMI_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 74.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 74.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 74.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.B"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.B"
+                }
+              ]
+            },
+            {
+              "id": "2_FF_202612081801_f2ba2453499ed28583651dc6dd84dc6fa37965e943b606233035b2b107299460",
+              "name": "label.comfortclass.2.MS",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 164.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 164.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 164.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.MS"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.MS"
+                }
+              ]
+            },
+            {
+              "id": "2_FF_202612081801_897fac48d1c3790457e2c4a7cfa99405c28e6567f3a66cd3b1c0d0b403b4ebd8",
+              "name": "label.comfortclass.2.DD",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 164.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 164.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 164.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.DD"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.DD"
+                }
+              ]
+            },
+            {
+              "id": "2_FF_202612081801_9974e4ce29d57906e7294e2aa9e5a6f6efc59b71eb81bd46c0290887f13d7376",
+              "name": "label.comfortclass.2.B",
+              "classLevel": "2",
+              "promoOffer": false,
+              "flexLevel": "FULL_FLEXIBLE",
+              "direction": null,
+              "availability": "LIKELY",
+              "totalPrice": {
+                "amount": 94.9,
+                "currency": "EUR"
+              },
+              "totalPriceWithOptionalAccommodations": {
+                "amount": 94.9,
+                "currency": "EUR"
+              },
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [
+                {
+                  "id": "0_NLASCATWIH",
+                  "travelerReferences": [
+                    "A"
+                  ],
+                  "priceDetails": {
+                    "currency": "EUR",
+                    "total": 94.9,
+                    "totalTaxes": null,
+                    "totalFees": null,
+                    "taxes": null
+                  },
+                  "pricingMode": "INDIVIDUAL",
+                  "appliedReductions": []
+                }
+              ],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "label.firstclass.benefit.Nightjet.B"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "label.comfortclass.2.B"
+                }
+              ]
+            },
+            {
+              "id": "1_XX_c4e55315-8f1d-46a5-a4ff-fcb356017b6b",
+              "name": "Comfort Class",
+              "classLevel": "1",
+              "promoOffer": false,
+              "flexLevel": null,
+              "direction": null,
+              "availability": "NONE",
+              "totalPrice": null,
+              "totalPriceWithOptionalAccommodations": null,
+              "globalReservationStatus": null,
+              "reductionCardsApplied": null,
+              "admissions": [],
+              "travelClassLabels": [
+                {
+                  "benefits": [
+                    "Sold out"
+                  ],
+                  "carrierCode": "Nightjet",
+                  "carrierName": "Nightjet",
+                  "label": "Comfort Class"
+                }
+              ]
+            }
+          ],
+          "messages": []
+        }
+      ],
+      "scroll": {
+        "searchId": "travel_f460a74e-7395-471a-a0f0-f9551857f0b2",
+        "earlier": "PREV_DEPARTURE",
+        "later": "NEXT_DEPARTURE"
+      },
+      "newOutboundTravelOfferId": null,
+      "newOutboundOfferId": null
+    },
+    "status": "success"
+  }
+}

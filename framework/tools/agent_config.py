@@ -26,6 +26,8 @@ def load(path=None, system=None):
         if both := sorted(set(config) & set(extra)):
             raise ValueError(f"{system} and the project file both have {both}")
         config.update(extra)
+    if "owner" not in config and config.get("owners"):
+        config["owner"] = config["owners"][0]   # the tie-breaker (#4229): the first login of `owners`
     return config
 
 

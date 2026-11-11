@@ -2,8 +2,13 @@
 
 [pacing]
 max_runs = 16                   # the most runs at one time (framework/tools/usage.py)
+week_guard = false              # false: only the 5-hour window counts, not the weekly pace (owner, 2026-11-09)
 max_waiting_prs = 10            # flow brake: at this many old agent PRs the pacer starts only 1 repair run
 max_ci_queue = 5                # flow brake: at this many queued CI runs the pacer starts no run
+refill_runs = 3                 # the most refill runs at one time: one per 4 missing tickets (`usage.refill_count`)
+refill_tickets = 4              # the ready tickets that one refill run adds: more missing tickets, more refill runs
+refill_minutes = 20             # a refill lock this young: its run still makes tickets, so it counts as a refill run
+epic_hold_hours = 3             # a single epic check waits this long for a 2nd epic or other refill work, if R > 0 (#1596)
 weights = { haiku = 0.25, deep = 4.0 }   # a lane run in Opus runs (start value); deep: high effort
 reserved = ["haiku", "deep"]    # lanes whose tickets Opus runs never take; with deep, only deep runs do the reviews and the refill
 pacer = "workflow"              # pacer.yml starts the runs (framework/tools/pacer.py); another value stops its loop
@@ -11,6 +16,7 @@ trigger = "trig_01HEyJbcmgrWgkRE4dEbjL66"                 # the ID of the schedu
 
 [review]                        # the process review (`improve` skill): merged PRs, never hours
 gap = 80                        # merged PRs: the first gap, and the reset when the result of the reviews turns
-min_gap = 10                    # a review with a change halves a gap up to `gap`, down to this
+min_gap = 10                    # a review with a change halves a gap up to `gap`, down to the count of ready tickets, at least this
+max_min_gap = 40                # ... and at most this: many ready tickets, later reviews (#1597, P9)
 max_gap = 640                   # a review with no change doubles a gap from `gap` up, up to this
 owner_gap = 20                  # the gap when an owner session merged a PR since the last review

@@ -1,0 +1,11 @@
+{# The routes of the trip (trip:routes, #2225); a link filters the table to a route; an htmx swap updates it out of band #}
+<section class="trip-routes card" id="trip-routes" aria-label="Routes"{% if oob %} hx-swap-oob="true"{% endif %}{% if view.routes|length < 2 %} hidden{% endif %}>
+{% if view.routes|length >= 2 %}
+<ul>
+{% for r, key, href in view.routes %}
+<li><a href="{{ href }}"{% if view.route == key %} aria-current="true"{% endif %}>{{ r.label }}: {{ r.count }} offer{% if r.count != 1 %}s{% endif %}, effective {{ r.best[2].total|money }} ({% if r.diff == 0 %}best{% else %}+{{ r.diff|money }}{% endif %}), cheapest {{ r.cheapest|money }}</a></li>
+{% endfor %}
+{% if view.route %}<li><a href="{{ view.all_routes_href }}">All routes</a></li>{% endif %}
+</ul>
+{% endif %}
+</section>

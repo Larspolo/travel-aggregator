@@ -22,7 +22,9 @@ a second push of another claim commit is never a fast-forward. Later claims of t
                                           # or a union merge brought back LEARNINGS lines that main removed (#563)
     python3 framework/tools/claim.py N --guard --pr-branch B   # the same, but the open PR of branch B (taken over) is allowed
     python3 framework/tools/claim.py ID --comment   # lock owner comment ID (autopilot step 3); exit 1: another run handles it
-    python3 framework/tools/claim.py E --refill     # lock the sub-issues of epic E (0: the whole queue refill, autopilot step 5)
+    python3 framework/tools/claim.py E --refill     # lock the sub-issues of epic E (0: the whole queue refill, autopilot step 5;
+                                              # a main run: only an epic without `lane:deep`, #1595)
+    python3 framework/tools/claim.py E --ownercheck --state A   # lock the owner check ticket of the line `- After #A, ...` of epic E
     python3 framework/tools/claim.py 0 --fixmain --state SHA   # lock the "Fix main" ticket of the break in commit SHA (step 2)
     python3 framework/tools/claim.py 0 --review     # lock the process review after its gap of merged PRs (`improve` skill,
                                           # `[review]` of `steering/system/system.toml`; it prints the owner work since the last review)
@@ -53,7 +55,9 @@ Parallel runs read the same `runs` counter of the status issue, so "every 5th ru
 the last review (`last_review` in the state comment of #1). A review with no change doubles the gap (50, 100, 200
 merged PRs), a change sets it back to 50 (`--reviewed`). `--roadmap` locks the roadmap review the same way, 100 merged
 PRs after `last_roadmap` or its newest lock ref (#3352: a write of the body can be lost), 30 while the refill has no
-source (#3741), or the merged count (at least 10, #5818) with no live run and no ready ticket (#851), or after 60 minutes with no merged PR. A gap counts
+source (#3741), or the merged count (at least 10, #5818) with no live run and no ready ticket (#851), or after 60 minutes with no merged PR.
+With fewer than 10 merged PRs, an idle stretch (no ready ticket, no live run, starved refill) gets one review (#491): at once
+after a merge since the last lock (#1889), else after 60 minutes. A gap counts
 merged PRs, not minutes: the speed of the project changes (#2039). The other times of this tool stay in seconds: a run that stopped
 merges nothing, so only the clock finds it.
 
@@ -81,6 +85,7 @@ EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 REVIEW_CONFIG = CONFIG.get("review", {})
 REVIEW = REVIEW_CONFIG.get("gap", 80)            # the first gap, and the reset when the result of the reviews turns
 REVIEW_MIN, REVIEW_MAX = REVIEW_CONFIG.get("min_gap", 10), REVIEW_CONFIG.get("max_gap", 640)   # halve, double between
+REVIEW_MAX_MIN = REVIEW_CONFIG.get("max_min_gap", 40)   # the highest floor: the count of ready tickets, capped (#1597)
 OWNER_GAP = REVIEW_CONFIG.get("owner_gap", 20)   # the gap when an owner session merged a PR since the last review
 ROADMAP = 100               # merged PRs between two reviews of steering/project/ROADMAP.md (#2039)
 ROADMAP_EARLY = 30          # the same while the refill has no source: R < N, each roadmap feature has an epic (#3741)
@@ -93,7 +98,7 @@ RECENT = 30 * 60            # seconds: a "Started by" comment of another branch 
 CONFLICT = 10 * 60          # seconds: the stale time of a ticket whose PR has the label `conflict` (#1773)
 
 
-LOCK_DAYS = {"comment": 1, "fixmain": 1, "review": 1, "roadmap": 1, "refill": 7}   # days that `--prune` keeps a lock
+LOCK_DAYS = {"comment": 1, "fixmain": 1, "ownercheck": 7, "review": 1, "roadmap": 1, "refill": 7}   # days that `--prune` keeps a lock
 NS = "refs/travel-aggregator-prune"    # the local copies of the claim refs of `--prune`
 
 
@@ -187,6 +192,24 @@ def who():
     return git("symbolic-ref", "--short", "HEAD", check=False).stdout.strip() or "unknown"
 
 
+NAMES = "travel-aggregator.run"   # git config: the names that this run claimed or adopted with (#1800)
+
+
+def names():
+    """The names of this run: the branch of HEAD and each name of its claims and adopts. A run that changed its branch
+    after the adopt read its own beat as a takeover, and its report kept the claim: a takeover 41 minutes later (#1560).
+    A run that released its pacer claim by mistake could not claim it again: the "Started by" of the pacer name was
+    of another run (#1665)."""
+    return {who(), *git("config", "--get-all", NAMES, check=False).stdout.split()}
+
+
+def remember(*found):
+    """Add the names `found` to NAMES (not "unknown", no copies)."""
+    for name in dict.fromkeys(found):
+        if name and name != "unknown" and name not in git("config", "--get-all", NAMES, check=False).stdout.split():
+            git("config", "--add", NAMES, name, check=False)
+
+
 def lane():
     """" lane NAME" when the run set `git config travel-aggregator.lane NAME` (a Haiku run, #1727), else "": the pacer
     counts the runs of each lane (`health.lane_claims`)."""
@@ -206,6 +229,20 @@ def deep_lane():
     runs of the deep lane while `reserved` in `[pacing]` of `steering/system/system.toml` names `deep` (owner, 2026-10-28): the main runs
     work at low effort, and these steps steer many later tickets."""
     return "deep" not in CONFIG.get("pacing", {}).get("reserved", ()) or lane() == " lane deep"
+
+
+def main_check(issue):
+    """True when a main run may lock the refill of `issue` (#1595): an epic (label `epic`) without `lane:deep`. The
+    main lane does the epic check and its new sub-issues; a deep run does the close check (`lane:deep` on the epic: a
+    main run found all criteria met), the split of a `size:L` ticket and the whole refill (E = 0). A wrong close is
+    silent (no run checks a closed epic again), a missed gap is found at the next check."""
+    names = {x["name"] if isinstance(x, dict) else x for x in (issue or {}).get("labels", [])}
+    return "epic" in names and "lane:deep" not in names
+
+
+def main_may_refill(epic, remote="origin"):
+    """`main_check` of epic `epic` on GitHub; False for E = 0 (the whole refill) and with no GitHub remote."""
+    return bool(epic) and on_github(remote) and main_check(api(f"issues/{epic}"))
 
 
 def push(sha, ref, remote="origin"):
@@ -268,7 +305,7 @@ def claim_refill(epic, state, remote="origin"):
     first new sub-issue turned the state into N (#3454: #3431 and #3432 were the same ticket)."""
     if epic and "-" not in state and git("ls-remote", remote, f"refs/heads/claim/refill-{epic}-{state}-*").stdout.strip():
         return False
-    msg = f"Claim refill {epic}-{state} by {who()} ({uuid.uuid4().hex})"
+    msg = f"Claim refill {epic}-{state} by {who()} ({uuid.uuid4().hex}){account()}{lane()}"   # `usage.refill_live`
     return push(git("commit-tree", EMPTY_TREE, "-m", msg).stdout.strip(), f"claim/refill-{epic}-{state}", remote)
 
 
@@ -276,6 +313,14 @@ def claim_fixmain(sha, remote="origin"):
     """Lock the "Fix main" ticket of the break in commit `sha`: True when this run pushed `claim/fixmain-SHA` first."""
     msg = f"Claim fixmain {sha} by {who()} ({uuid.uuid4().hex})"
     return push(git("commit-tree", EMPTY_TREE, "-m", msg).stdout.strip(), f"claim/fixmain-{sha}", remote)
+
+
+def claim_ownercheck(epic, first, remote="origin"):
+    """Lock the owner check ticket of the line `- After #first, ...` of epic `epic`: True when this run pushed
+    `claim/ownercheck-E-FIRST` first (#1797: two runs made two checks of epic #1780 in 2 minutes, and the owner got two
+    requests for one check)."""
+    msg = f"Claim ownercheck {epic} {first} by {who()} ({uuid.uuid4().hex})"
+    return push(git("commit-tree", EMPTY_TREE, "-m", msg).stdout.strip(), f"claim/ownercheck-{epic}-{first}", remote)
 
 
 def agent_state(body):
@@ -341,45 +386,61 @@ def with_state(body, state):
     return body.replace(old[0], new) if old else new + "\n" + (body or "")
 
 
-def next_gap(gap, changed):
+def review_floor(ready):
+    """The least gap after a review with a change (#1597, P9): the count of ready tickets of all lanes, between REVIEW_MIN
+    and REVIEW_MAX_MIN. Many ready tickets: a review takes quota from them, so it comes later. Few: a review costs no
+    ticket. ready None (GitHub cannot be read) counts as 0."""
+    return min(max(REVIEW_MIN, ready or 0), REVIEW_MAX_MIN)
+
+
+def next_gap(gap, changed, ready=0):
     """The gap after a review (owner, 2026-10-29). A change resets a gap above REVIEW to REVIEW and halves the others
-    (at least REVIEW_MIN merged PRs), so a review that finds work comes sooner. No change resets a gap below REVIEW to
-    REVIEW and doubles the others (at most REVIEW_MAX). With 80, 10 and 640: a change each time gives 80, 40, 20, 10,
-    10 ...; no change each time gives 80, 160, 320, 640, 640 ..."""
+    (at least review_floor(ready) merged PRs), so a review that finds work comes sooner. No change resets a gap below
+    REVIEW to REVIEW and doubles the others (at most REVIEW_MAX). With 80, 10 and 640 and few ready tickets: a change
+    each time gives 80, 40, 20, 10, 10 ...; no change each time gives 80, 160, 320, 640, 640 ... With 25 ready tickets
+    a change gives 80, 40, 25, 25 ... The floor is read at `--reviewed`, not at the slot: the lock key holds the gap, and
+    a gap that moves with the queue gives two keys and two reviews (#898)."""
     if changed:
-        return REVIEW if gap > REVIEW else max(REVIEW_MIN, gap // 2)
+        return REVIEW if gap > REVIEW else max(review_floor(ready), gap // 2)
     return REVIEW if gap < REVIEW else min(2 * gap, REVIEW_MAX)
 
 
 def review_gap(state):
     """The gap of merged PRs before the next process review: `review_prs` of the state comment. A gap that next_gap
-    cannot reach from REVIEW (the state of an earlier rule, for example 200) counts as REVIEW."""
+    cannot reach from REVIEW with any floor (the state of an earlier rule, for example 200) counts as REVIEW."""
     seen, todo = set(), [REVIEW]
     while todo:
         if (gap := todo.pop()) not in seen:
             seen.add(gap)
-            todo += [next_gap(gap, True), next_gap(gap, False)]
+            todo += [next_gap(gap, True, r) for r in range(REVIEW_MIN, REVIEW_MAX_MIN + 1)] + [next_gap(gap, False)]
     return state["review_prs"] if state.get("review_prs") in seen else REVIEW
 
 
-def reviewed(body, changed, now=None):
-    """The body of the status issue after a review: `review_prs` is the next gap (next_gap). The other keys of the
-    state comment stay; `review_minutes` (the time slot before #2039) goes."""
+def reviewed(body, changed, now=None, ready=0):
+    """The body of the status issue after a review: `review_prs` is the next gap (next_gap; ready: the count of ready
+    tickets). The other keys of the state comment stay; `review_minutes` (the time slot before #2039) goes."""
     state = {k: v for k, v in agent_state(body).items() if k != "review_minutes"}
-    return with_state(body, {**state, "last_review": utc(now), "review_prs": next_gap(review_gap(state), changed)})
+    return with_state(body, {**state, "last_review": utc(now),
+                             "review_prs": next_gap(review_gap(state), changed, ready)})
 
 
 def last_lock(kind, remote="origin"):
     """The ISO time of the newest lock `claim/<kind>-<gap>pr-<last>-<k>` (the commit time of its claim), or None. A ref
     push is atomic, but a write of the status issue body can overwrite another one: a lost `last_roadmap` delayed the
     roadmap review by 100 merged PRs (#3352). The newest lock has the largest (last, k); "none" is the oldest."""
-    out = git("ls-remote", remote, f"refs/heads/claim/{kind}-*").stdout
-    keys = [(m[1] != "none", m[1], int(m[2]), ref) for line in out.splitlines() for ref in [line.split("\t")[1]]
-            for m in [re.fullmatch(rf"refs/heads/claim/{kind}-\d+pr-([0-9TZ]+|none)-(\d+)", ref)] if m]
-    if not keys:
+    if not (newest := newest_lock(kind, remote)):
         return None
-    git("fetch", "-q", remote, max(keys)[3])
+    git("fetch", "-q", remote, newest[1])
     return utc(int(git("log", "-1", "--format=%ct", "FETCH_HEAD").stdout))
+
+
+def newest_lock(kind, remote="origin"):
+    """(gap, ref) of the newest lock `claim/<kind>-<gap>pr-<last>-<k>` (the largest (last, k)), or None."""
+    out = git("ls-remote", remote, f"refs/heads/claim/{kind}-*").stdout
+    keys = [(m[2] != "none", m[2], int(m[3]), int(m[1]), ref) for line in out.splitlines()
+            for ref in [line.split("\t")[1]]
+            for m in [re.fullmatch(rf"refs/heads/claim/{kind}-(\d+)pr-([0-9TZ]+|none)-(\d+)", ref)] if m]
+    return max(keys)[3:] if keys else None
 
 
 def review_slot(kind, remote="origin", starved=None):
@@ -398,12 +459,36 @@ def review_slot(kind, remote="origin", starved=None):
     if kind == "roadmap" and on_github(remote):
         last = max(filter(None, (last, last_lock(kind, remote))), default=None)
     merged = merged_since(last, gap, remote)
-    if kind == "roadmap" and merged < gap and (merged >= ROADMAP_EARLY or merged >= ROADMAP_IDLE_MIN and
-                                               nothing_merges(last, remote)) and (starved or refill_starved)():
-        gap = min(merged, ROADMAP_EARLY)
+    if kind == "roadmap" and merged < gap:
+        early = merged >= ROADMAP_EARLY or merged >= ROADMAP_IDLE_MIN and nothing_merges(last, remote)
+        stretch = None if early or merged >= ROADMAP_IDLE_MIN else idle_stretch(last, merged, remote)
+        if (early or stretch is not None) and (starved or refill_starved)():
+            if early or stretch:
+                gap = min(merged, ROADMAP_EARLY)
+            else:
+                HELD.add(kind)                          # it waits only for the clock of the stretch (health.idle_queue)
     if kind == "review" and OWNER_GAP <= merged < gap and owner_since(last, remote):
         gap = OWNER_GAP
-    return pr_slot(last, gap, merged, max(gap, REVIEW) if kind == "review" else None), gap
+    return pr_slot(last, gap, merged, max(gap, REVIEW) if kind == "review" else max(gap, 1)), gap
+
+
+HELD = set()   # the reviews that review_slot held for the clock of an idle stretch: the pacer line names them (#491)
+
+
+def idle_stretch(last, merged, remote="origin"):
+    """For fewer than ROADMAP_IDLE_MIN merged PRs (#5818): None when the queue is not in an idle stretch that the
+    roadmap review can end, True when the review of the stretch is due, False while it waits for the clock. A stretch:
+    no ready ticket (0, not a read error), no live run, and no lock of a stretch review with no merge after it. With no
+    ready ticket no PR merges, so the merged count never reached its minimum, and the queue stood idle 6.5 h on
+    2026-11-07; a review then made 3 epics (#491). One review per stretch keeps the brake of #5818: the key of the
+    stretch is `<merged>pr-<last>-1`, and its lock is the newest lock until a PR merges. A merge after the last lock is a
+    new input: the review is due at once (#1889: the clock kept the queue idle 1.0 h, 2.9 h in sum on 2026-11-10). With
+    no merge after another lock it waits ROADMAP_IDLE minutes: that review had the same input, or its run stopped."""
+    if live_runs(remote) != 0 or ready_tickets(remote) != 0:
+        return None
+    if merged == 0 and (newest := newest_lock("roadmap", remote)) and newest[0] < ROADMAP_IDLE_MIN:
+        return None                                     # the review of this stretch ran: no new merge since its lock
+    return merged > 0 or idle_minutes(last, remote) >= ROADMAP_IDLE
 
 
 def live_runs(remote="origin"):
@@ -443,9 +528,8 @@ def refill_starved():
         target = usage.target_runs(usage_now, now, burn, burn7=burn7)
         issues = dashboard.pages("issues?state=open")
         ready = len(dashboard.candidates(issues, reserved=()))
-        return target is not None and ready < target and \
-            not usage.refill_need(ready, target, issues, usage.release_due, lambda: [], usage.free_sources,
-                                 closing=usage.autoclosing)
+        return usage.starved(ready, target, issues, usage.release_due, usage.free_sources,
+                             closing=usage.autoclosing)   # one rule with the pacer; a held epic check is a source (#1596, #2239)
     except Exception as e:                                         # a quota, GitHub or file error
         print(f"refill sources: {e}", file=sys.stderr)
         return False
@@ -466,7 +550,7 @@ def release(number, remote="origin", word="Release", by=None, adopt=None):
         return None
     ref = slot(number, max(found))
     line = subject(ref, remote)
-    if line.split(" ")[3:4] not in ([by or who()], [adopt]):  # "Claim #N by <branch> (...)", "Beat #N by <branch>"
+    if not set(line.split(" ")[3:4]) & (({by} if by else names()) | {adopt}):   # "Claim #N by <branch> (...)", "Beat #N by <branch>"
         sys.exit(f"{ref} belongs to another run: {owner(line)} took #{number} over ({line}). Stop the work on #{number}"
                  f" now: no push, no comment, no release; pick the next ticket.")
     own = account() or (m[0] if adopt and (m := re.search(r" account \S+", line)) else "")   # the account of the brief
@@ -520,7 +604,7 @@ def prunable(tips, open_numbers, now, days=LOCK_DAYS):
             continue
         kind, _, rest = name.partition("-")
         epic = rest.split("-")[0]
-        if kind == "refill" and epic.isdigit() and epic != "0" and int(epic) not in open_numbers:
+        if kind in ("refill", "ownercheck") and epic.isdigit() and epic != "0" and int(epic) not in open_numbers:
             out.append(name)
         elif kind in days and now - t > days[kind] * 86400:
             out.append(name)
@@ -575,11 +659,12 @@ def ticket_text(issue, comments):
 
 
 def started_by_other(comments, me, now, limit=RECENT):
-    """Branch of the last "Started by `X`." comment of another branch in the last `limit` seconds, else None."""
+    """Branch of the last "Started by `X`." comment of another branch in the last `limit` seconds, else None. me: a
+    name or a set of names of this run (`names`)."""
     for c in reversed(comments):
         m = re.match(r"Started by `([^`]+)`", c["body"])
         t = datetime.datetime.fromisoformat(c["created_at"].replace("Z", "+00:00")).timestamp()
-        if m and m.group(1) != me and now - t < limit:
+        if m and m.group(1) not in (me if isinstance(me, set) else {me}) and now - t < limit:
             return m.group(1)
     return None
 
@@ -713,6 +798,8 @@ def main(argv=None):
     g.add_argument("--adopt", metavar="NAME", help="take over the claim that the pacer made as NAME (the brief of the run)")
     g.add_argument("--comment", action="store_true", help="lock the owner comment with this ID")
     g.add_argument("--refill", action="store_true", help="lock the new sub-issues of this epic (0: the whole refill)")
+    g.add_argument("--ownercheck", action="store_true", help="lock the owner check ticket of this epic and the "
+                   "line `- After #A, ...` of --state A (before you make it)")
     g.add_argument("--fixmain", action="store_true", help="lock the Fix main ticket of the break in --state SHA (number 0)")
     g.add_argument("--review", action="store_true", help="lock the process review after its gap of merged PRs (number 0)")
     g.add_argument("--reviewed", choices=("change", "none"), help="after the review: set the next gap")
@@ -720,14 +807,15 @@ def main(argv=None):
     g.add_argument("--prune", action="store_true", help="delete the refs of closed tickets and old locks (number 0; "
                    "claims.yml: runs cannot delete refs)")
     ap.add_argument("--state", help="--refill: the state part of the lock (default: closed sub-issues, or the hour); "
-                    "--fixmain: the commit that broke main (default: the head of origin/main)")
+                    "--fixmain: the commit that broke main (default: the head of origin/main); "
+                    "--ownercheck: the first ticket A of the line (default 0)")
     ap.add_argument("--pr-branch", metavar="BRANCH", help="--guard: the branch of a PR that this run took over")
     ap.add_argument("--or", dest="more", type=int, nargs="+", default=[], metavar="N",
                     help="a claim: when another run has the ticket, try these tickets in this order (one call)")
     ap.add_argument("--remote", default="origin")
     a = ap.parse_args(argv)
     # A claim on a detached HEAD would be named `unknown`: the next beat of the run then calls its own claim a takeover (#155).
-    writes = a.comment or a.refill or a.review or a.roadmap or not (
+    writes = a.comment or a.ownercheck or a.refill or a.review or a.roadmap or not (
         a.release or a.show or a.beat or a.stale or a.stuck or a.guard or a.adopt or a.prune or a.fixmain or a.reviewed)
     if writes and who() == "unknown":
         print("detached HEAD: check out your branch first (`git checkout -B <branch> origin/main`)")
@@ -742,6 +830,13 @@ def main(argv=None):
             return 0
         print(f"comment {a.number}: another run handles it")
         return 1
+    if a.ownercheck:
+        first = a.state or "0"
+        if claim_ownercheck(a.number, first, a.remote):
+            print(f"claimed ownercheck {a.number} {first}")
+            return 0
+        print(f"ownercheck {a.number} {first}: another run makes the ticket")
+        return 1
     if a.fixmain:
         sha = (a.state or git("rev-parse", f"{a.remote}/main", check=False).stdout.strip())[:7]
         if claim_fixmain(sha, a.remote):
@@ -749,9 +844,10 @@ def main(argv=None):
             return 0
         print(f"fixmain {sha}: another run makes the ticket")
         return 1
-    if (a.review or a.roadmap or a.refill) and not deep_lane():
-        print(f"the deep lane does the {'process review' if a.review else 'roadmap review' if a.roadmap else 'queue refill'}"
-              " (`reserved` in agent.toml names `deep`): skip it")
+    if not deep_lane() and (a.review or a.roadmap or a.refill and not main_may_refill(a.number, a.remote)):
+        kind = ("process review" if a.review else "roadmap review" if a.roadmap
+                else "queue refill" if not a.number else "close check or split")
+        print(f"the deep lane does the {kind} (`reserved` in agent.toml names `deep`): skip it")
         return 1
     if a.review or a.roadmap:
         kind = "review" if a.review else "roadmap"
@@ -772,7 +868,7 @@ def main(argv=None):
         return 1
     if a.reviewed:
         from dashboard import api as call
-        body = reviewed(api(f"issues/{STATUS}")["body"], a.reviewed == "change")
+        body = reviewed(api(f"issues/{STATUS}")["body"], a.reviewed == "change", ready=ready_tickets(a.remote))
         call(f"issues/{STATUS}", "PATCH", {"body": body})
         print(agent_state(body))
         return 0
@@ -868,6 +964,7 @@ def adopt(number, name, remote="origin"):
         git("config", "travel-aggregator.lane", m[1])
     ref = release(number, remote, word="Beat", adopt=name)
     if ref:
+        remember(name, who())
         mark_commits()
     print(f"adopted {ref}: #{number} is yours" if ref else f"#{number}: the beat failed, follow the skill without the brief")
     return 0 if ref else 1
@@ -901,7 +998,7 @@ def claim_ticket(number, takeover=False, remote="origin"):
         return 1
     comments = api(f"issues/{number}/comments?per_page=100") if on_github(remote) else []
     if not takeover and on_github(remote):
-        other = started_by_other(comments, who(), time.time())
+        other = started_by_other(comments, names(), time.time())
         if other:
             print(f"#{number} owned by another run: `{other}` was first (\"Started by\" less than 30 minutes ago). Pick"
                   " the next candidate, do not comment.")
@@ -914,6 +1011,7 @@ def claim_ticket(number, takeover=False, remote="origin"):
             return 1
     ref = claim(number, takeover, remote, stale_limit(number, remote) if takeover else STALE)
     if ref:
+        remember(who())
         mark_commits()
         print(f"claimed {ref}")
         if on_github(remote) and not takeover:

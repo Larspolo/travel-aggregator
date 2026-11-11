@@ -13,9 +13,9 @@ The project values: `agent.toml`. Write all text in ASD-STE100 Simplified Techni
 |---|---|
 | Install | `python3 -m pip install -r requirements-dev.txt` |
 | Lint | `ruff check .` |
-| Tests of a change | `python3 -m pytest tests/test_a.py ...` (`-n auto` for many files) |
+| Tests of a change | `python3 -m pytest tests/test_a.py ...` (3 or more files run in xdist workers: `tests/conftest.py`) |
 | Fast tests (CI) | `python3 -m pytest -n auto` |
-| Slow tests | `python3 -m pytest -m slow` (Playwright browser tests of the pages and the userscripts) |
+| Slow tests | `python3 -m pytest -m slow` (Playwright browser tests of the pages and the userscripts; CI job `browser` on each PR) |
 | Development server | `docker compose up --build` (owner's computer; the cloud has no Docker daemon) |
 | App without Docker | `uvicorn app.main:app --reload` with `DATABASE_URL` set |
 
@@ -41,13 +41,14 @@ A new source is one userscript and one server parser, with its fixtures, and not
 
 - **Passive capture only** (P1): no code sends a request to a travel site, also not from CI or a cloud session.
 - **Simple first** (P2): price, hour and transfer weights are visible; each extra has a default in "Advanced".
-- **Robust sources first** (P3), **platform features first** (P4), **untrusted and private data** (P5):
-  `steering/project/PRINCIPLES.md`.
+- **Robust sources first** (P3), **platform features first** (P4), **untrusted and private data** (P5),
+  **testable with no person** (P6: no browser dialogs): `steering/project/PRINCIPLES.md`.
 - All times are timezone-aware: store UTC and the original offset. Money is `Decimal`, never `float`.
 - The score is computed at query time from the active profile; derived values (duration, transfers) at ingest.
-- `README.md` is the guide for users. Change it only at the end of an epic, never in a ticket PR (owner): the epic
-  waits for one README PR for all that it added (`steering/project/PRINCIPLES.md`, "Try a feature"). It describes only
-  what works on `main`; the status of the features is only in the roadmap. Check: `python3 -m pytest -m readme`.
+- `README.md` is the guide for users. Change it only in the README PR of an epic (owner): the sub-issue whose title starts
+  "Describe ... in the README" and depends on the last feature ticket; do it when its "Depends on" tickets are closed. A feature
+  ticket never changes it (`steering/project/PRINCIPLES.md`, "Try a feature"). It describes only what works on `main`;
+  the status of the features is only in the roadmap. Check: `python3 -m pytest -m readme`.
 - Each merge goes live: a green `main` becomes the image `:preview` at `travel-preview.larspolo.nl` within 5 minutes
   (`deploy/preview/`). Its migrations run with no person in the loop: each migration needs a working `downgrade`,
   and one that drops or changes data says so in the PR. Keep the variable names of `deploy/preview/.env.example`.

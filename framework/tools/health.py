@@ -28,13 +28,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from agent_config import CONFIG, first_account, owners  # noqa: E402
 from dashboard import api, closes, merges, owner_work, start_after  # noqa: E402
 from feedback import by_owner  # noqa: E402
-from usage import epic_key  # noqa: E402
+from usage import STRETCH, epic_key  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 CI_JOB_RUNS = 20                          # read the step times of this many CI runs (one API call each)
 DENY = (".log", ".mca", ".png")           # suffixes that do not belong in git ...
-DENY_OK = ("docs/", "samples/")           # ... except .png in these folders
+DENY_OK = tuple(CONFIG.get("git", {}).get("png_ok", ("docs/", "samples/")))  # ... except .png here (#853)
 BIG = 1 << 20
 OWNER = CONFIG["owner"]                   # a reopen by an owner is rework (#899)
 OWNERS = owners(CONFIG)                   # each login of `owners` (#4241)
@@ -90,7 +90,8 @@ def idle_queue(cycles, until):
     not idle (or `until`). The queue stood still for hours on 2026-10-31 while the pacer loop ran (#5199). A paused
     project is not idle. "No work": the hours of the idle cycles with `ready` 0 and `refill` 0, each until the next
     cycle: the queue had no ticket and the refill no source (each ticket waited for the owner, 19.7 h on 2026-11-03,
-    #854), so no fault of the pacer."""
+    #854), so no fault of the pacer. A cycle whose roadmap review waits only for the clock of the idle stretch
+    (`usage.STRETCH`, #491) is idle with work: the review can make new epics."""
     stretches, start, dry = [], None, 0.0
     rows = sorted(cycles, key=lambda c: c["at"])
     for i, c in enumerate(rows):
@@ -101,7 +102,7 @@ def idle_queue(cycles, until):
         elif not idle and start is not None:
             stretches.append((ts(c["at"]) - start).total_seconds() / 3600)
             start = None
-        if idle and not c.get("ready") and not c.get("refill"):
+        if idle and not c.get("ready") and not c.get("refill") and STRETCH not in c.get("line", ""):
             end = ts(rows[i + 1]["at"]) if i + 1 < len(rows) else until
             dry += max(0.0, (end - ts(c["at"])).total_seconds() / 3600)
     if start is not None:
@@ -127,12 +128,13 @@ def held_runs(runs):
 
 
 def slow_steps(jobs, n=3):
-    """[(median min, "job / step")] of the n slowest steps over all jobs (the `jobs` lists of several runs)."""
+    """[(median min, "job / step")] of the n slowest steps over all jobs (the `jobs` lists of several runs). The jobs of
+    a matrix (`browser (1)`, `browser (2)`, #1062) count as one job."""
     times = {}
     for job in jobs:
         for s in job.get("steps", []):
             if s.get("started_at") and s.get("completed_at"):
-                times.setdefault(f"{job['name']} / {s['name']}", []).append(
+                times.setdefault(f"{re.sub(r' [(].*[)]$', '', job['name'])} / {s['name']}", []).append(  # matrix jobs: one key
                     minutes(s["started_at"], s["completed_at"]))
     return sorted(((med(v), k) for k, v in times.items()), reverse=True)[:n]
 
@@ -171,10 +173,13 @@ def claim_to_merge(prs, comments, since):
     return out
 
 
-def bad_files(files):
-    """[(path, bytes)] of the files over 1 MB or with a denied suffix. files: [(path, bytes)]."""
+def bad_files(files, png_ok=None):
+    """[(path, bytes)] of the files over 1 MB or with a denied suffix. files: [(path, bytes)].
+
+    A .png is allowed in the folders of `png_ok` (default: `png_ok` of `[git]` in `agent.toml`, #853)."""
+    ok = DENY_OK if png_ok is None else tuple(png_ok)
     return [(p, size) for p, size in files if size > BIG
-            or (p.endswith(DENY) and not (p.endswith(".png") and p.startswith(DENY_OK)))]
+            or (p.endswith(DENY) and not (p.endswith(".png") and p.startswith(ok)))]
 
 
 # `runs N` since #635 (claim beats); the older `claims N` lines counted too few runs, so they do not count.
@@ -364,12 +369,24 @@ def phase_minutes(comments):
     return out
 
 
-def quota_per_merge(samples, merged):
-    """The rise of the 5-hour usage (0..1) over the samples, summed over consecutive samples in the same window, per
-    merged PR; None without merges or rises."""
-    rise = sum(b[1] - a[1] for a, b in zip(samples, samples[1:])
+def quota_rise(samples):
+    """The rise of the 5-hour usage (0..1) over the samples, summed over consecutive samples in the same window."""
+    return sum(b[1] - a[1] for a, b in zip(samples, samples[1:])
                if abs((b[2] - a[2]).total_seconds()) < 600 and b[1] >= a[1])
+
+
+def quota_per_merge(samples, merged):
+    """The rise of the 5-hour usage (0..1) per merged PR; None without merges or rises."""
+    rise = quota_rise(samples)
     return rise / merged if merged and rise else None
+
+
+def quota_per_dollar(samples, spent):
+    """The rise of the 5-hour usage (0..1) per $ of the API list price of the runs; None without cost or rise (#1577).
+    A rise of this number shows usage that the run reports do not explain: in one review the quota per merged PR went
+    from 0.3 % to 1.0 %, but the run cost went up only 23 %."""
+    rise = quota_rise(samples)
+    return rise / spent if spent and rise else None
 
 
 TOKENS = re.compile(r"^Tokens: (\d+(?:\.\d+)?)M eq · .*?· sinks (.*)$", re.M)
@@ -406,6 +423,13 @@ def run_costs(comments):
             lane = re.search(r"^Metrics: .*?· lane (\w+)", body, re.M)
             out.setdefault(lane[1] if lane else "opus", []).append(float(cost))
     return out
+
+
+def lane_shares(costs):
+    """{lane: ($ sum, share of the $ of all lanes)} of `run_costs` (#1508). The median cost of a run hides the count of
+    runs: the deep lane made 46 % of the cost of the runs in one period of 100 merged PRs, and 65 % in the next."""
+    total = sum(map(sum, costs.values()))
+    return {k: (sum(v), sum(v) / total if total else 0.0) for k, v in costs.items()}
 
 
 FORCE = re.compile(r"^Tokens: .*? · force (\d+) · sinks ", re.M)
@@ -690,9 +714,10 @@ def next_effect(comments):
 
 def given_back(comments):
     """{result: count} of the `Metrics:` lines whose ticket the run gave back with no PR (`none`, `blocked`,
-    `needs-human`; `report.md`): the lost tickets of the runs (#5649)."""
+    `needs-human`; `report.md`): the lost tickets of the runs (#5649). `ticket #0` is a deep run with no ticket (an
+    epic check, a refill, a review): no lost ticket."""
     return dict(Counter(m[1] for c in comments for line in (c.get("body") or "").splitlines()
-                        if line.startswith("Metrics:") and (m := re.match(r"Metrics: ticket #\d+ · [^·]+ · (none|blocked|needs-human) ·", line))))
+                        if (m := re.match(r"Metrics: ticket #[1-9]\d* · [^·]+ · (none|blocked|needs-human) ·", line))))
 
 
 def back_causes(comments):
@@ -703,7 +728,7 @@ def back_causes(comments):
     checks = 0
     for c in comments:
         for line in (c.get("body") or "").splitlines():
-            if m := re.match(r"Metrics: ticket #(\d+) · [^·]+ · (none|blocked|needs-human|checked) ·", line):
+            if m := re.match(r"Metrics: ticket #([1-9]\d*) · [^·]+ · (none|blocked|needs-human|checked) ·", line):
                 runs[int(m[1])] += 1
                 checks += m[2] == "checked"
     return checks, {n: k for n, k in sorted(runs.items(), key=lambda x: (-x[1], x[0])) if k > 1}
@@ -859,9 +884,14 @@ def report(since, runs, jobs, status_comments, comments, prs, files, files_of=No
     spent = sum(map(sum, costs.values()))
     out.append(f"API list price of the runs (the `cost` of {sum(map(len, costs.values()))} Tokens lines): ${spent:.0f}"
                + (f" · per merged PR ${spent / len(ok):.2f}" if spent and ok else ""))
+    qd = quota_per_dollar(s, spent)
+    out.append("Quota per $ of the run cost (usage that the runs do not explain, #1577): "
+               + ("-" if qd is None else f"{qd:.2%} of the 5-hour window per $"))
+    shares = lane_shares(costs)
     for name, (n, pr, mins, eq) in sorted(lanes(status_comments).items()):
         out.append(f"Lane {name}: {n} runs, {pr} PRs, median {fmt(med(mins))} min, median {fmt(med(eq))}M eq"
-                   + (f", median ${med(costs[name]):.2f} per run" if costs.get(name) else ""))
+                   + (f", median ${med(costs[name]):.2f} per run, sum ${shares[name][0]:.0f}"
+                      f" ({shares[name][1]:.0%} of the cost)" if costs.get(name) else ""))
     took, nfail, first, later = next_effect(status_comments)
     out.append(f"Next tickets (#5308): {took} runs took a next: ticket, {nfail} failed next: claims, M eq per ticket:"
                f" first {fmt(first)}, later {fmt(later)}")
@@ -915,6 +945,19 @@ def git_files():
     return [(p, os.path.getsize(os.path.join(root, p))) for p in paths if p and os.path.isfile(os.path.join(root, p))]
 
 
+def quick_ci_runs(created, seen, pages=10):
+    """The runs of the quick CI (`ci.yml`) in the time `created` that are not in `seen` (ids). The 10 pages of all
+    runs end at about 1000 runs (the Dashboard runs fill 10 pages a day): on the window of 100 merged PRs, the CI runs
+    of the first hours were cut, and 2 "red CI" takeovers counted as "after the report" (#1800)."""
+    out = []
+    for page in range(1, pages + 1):
+        rs = api(f"actions/workflows/ci.yml/runs?per_page=100&page={page}&created={created}")["workflow_runs"]
+        out += [r for r in rs if r["id"] not in seen]
+        if len(rs) < 100:
+            break
+    return out
+
+
 def fetch(since, until=None):
     iso = f"{since:%Y-%m-%dT%H:%M:%SZ}"
     created = f"{iso}..{until:%Y-%m-%dT%H:%M:%SZ}" if until else f">={iso}"   # the Dashboard runs fill 10 pages a day
@@ -924,6 +967,7 @@ def fetch(since, until=None):
         runs += rs
         if len(rs) < 100:
             break
+    runs += quick_ci_runs(created, {r["id"] for r in runs})
     ci = [r for r in runs if r["name"] == "CI" and r.get("status") == "completed"][:CI_JOB_RUNS]
     jobs = [j for r in ci for j in api(f"actions/runs/{r['id']}/jobs")["jobs"]]
     # one day more: the "Started by" comment of a ticket that merged in the period can be older

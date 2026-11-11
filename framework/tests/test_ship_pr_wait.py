@@ -5,7 +5,7 @@ from test_ship_pr import fake_github, repo
 
 
 def check(status="completed", conclusion="success"):
-    return {"id": 7, "status": status, "conclusion": conclusion}
+    return {"id": 7, "name": ship.QUICK, "status": status, "conclusion": conclusion}
 
 
 def clock():
@@ -61,7 +61,7 @@ def test_green_ci_ships(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(ship, "push", lambda n: True)
     assert ship.main(["5", "--tested"]) == 0
     head = ship.git("rev-parse", "HEAD").stdout.strip()
-    assert (f"commits/{head}/check-runs?check_name=quick", "GET", None) in calls
+    assert (f"commits/{head}/check-runs?per_page=100&filter=latest", "GET", None) in calls   # all parts of quick (#1077)
     assert "quick CI success" in capsys.readouterr().out
 
 
@@ -78,4 +78,4 @@ def test_ci_only_waits_for_the_open_pr(tmp_path, monkeypatch):
     calls = fake_ci(monkeypatch, "failure", open_prs=[{"number": 9, "head": {"sha": "abc123"}}])
     monkeypatch.setattr(ship, "push", lambda n: (_ for _ in ()).throw(AssertionError("pushed")))
     assert ship.main(["5", "--ci"]) == 5
-    assert ("commits/abc123/check-runs?check_name=quick", "GET", None) in calls
+    assert ("commits/abc123/check-runs?per_page=100&filter=latest", "GET", None) in calls   # all parts of quick (#1077)

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Import settings – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Import settings", back=("/settings", "Settings")) }}
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+{% if done %}<p class="flash" role="status">{{ done }}.</p>{% endif %}
+<p>The values of the file replace the values of the same profiles, places, rates, fees and settings. The other rows stay.</p>
+<form class="card" method="post" action="/settings/import" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field wide"><label for="s-file">Settings file</label><input id="s-file" type="file" name="file" accept=".json" required></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Import</button>
+    <a class="btn btn-ghost" href="/settings">Cancel</a>
+  </div>
+</form>
+{% endblock %}

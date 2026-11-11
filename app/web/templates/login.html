@@ -1,14 +1,31 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Log in – travel-aggregator</title></head>
-<body hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'>
-<h1>Log in</h1>
-{% if error %}<p role="alert">{{ error }}</p>{% endif %}
-<form method="post" action="/login">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-  <label>Password <input type="password" name="password" autocomplete="current-password" required autofocus></label>
-  <button type="submit">Log in</button>
-</form>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Log in – travel-aggregator{% endblock %}
+{% block body_attrs %} hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'{% endblock %}
+{% block nav %}{% endblock %}
+{% block content %}
+<div class="login">
+  <p class="login-brand"><a class="brand" href="/">travel-aggregator</a></p>
+  <section class="card login-card">
+    <header class="page-header"><div><h1>Log in</h1></div></header>
+    {% if error %}<p class="login-error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" action="/login" class="login-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" autocomplete="current-password" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary login-submit">Log in</button>
+    </form>
+    {% if passkeys %}<div id="passkey-login" data-csrf="{{ csrf_token(request) }}">
+      <button type="button" class="btn login-submit" id="passkey-login-button">Log in with a passkey</button>
+      <p class="login-error" id="passkey-login-status" role="alert" hidden></p>
+    </div>
+    <script src="/static/passkey_login.js" defer></script>{% endif %}
+  </section>
+</div>
+<script>
+  // Log out: the device keeps no copy of the Upcoming page (#964, P5). Not Clear-Site-Data: it also removes the
+  // service worker and the Web Push subscription (#514).
+  if ("caches" in window) caches.delete("upcoming-v1");
+</script>
+{% endblock %}

@@ -62,7 +62,7 @@ report of step 8, and the `Usage:` line (of the brief, else of the first `cycle_
 7. Ship in one call: `python3 framework/tools/ship_pr.py N --message MSG.txt --title "<ticket title>" --body BODY.md`
    (MSG.txt: subject in STE imperative, what and why, `Closes #<number>`; BODY.md: what changed, how you verified,
    and all that a later run needs to fix a red CI with no other context, #4187).
-   It commits, runs the lint of `agent.toml` (always) and the test files of the change (`--tested`: you ran them on this tree), runs the guard (hard rule before each
+   It commits, runs the lint of `agent.toml` (always) and the test files of the change (`--tested`: you ran them on this tree; the files whose `GUARDS` match the change still run, #1328), runs the guard (hard rule before each
    push: it fails when the claim is not yours or another branch has a PR that closes #N, #288), pushes and opens the
    PR. A PR that changes `packaging/` or a workflow with its own PR checks: add `--hold` (the label `hold` at once).
    Then it waits for the quick CI (about 6 minutes, #4784): give the Bash call `timeout: 600000`.
@@ -73,12 +73,15 @@ report of step 8, and the `Usage:` line (of the brief, else of the first `cycle_
    Do not merge by hand: CI runs only the quick checks on each PR (lint and fast tests, about 6 minutes), and the
    Automerge workflow merges the PR when CI is green, removes `in-progress` and deletes the branch. Exit 5: the quick
    CI (or a check of `[ci] gates` in `agent.toml`) is red, go to 9 now (a red PR after the run ends costs a takeover by a cold run, #4784). The CI still runs at
-   the time limit: `ship_pr.py N --ci` once, then continue. The slow and server tests run only each night on main:
-   do the levels of the `verify` skill that the change needs (slow tests, server check) before the push. Continue
+   the time limit: `ship_pr.py N --ci` once, then continue. The job `browser` runs all slow tests on each PR, and the server tests
+   run only each night on main: before the push, do the levels of the `verify` skill that the change needs (only the
+   slow test files of the change, #822). Continue
    with step 7 and the next ticket. Step 2 of a later cycle finds a red or conflicted PR.
 9. CI red → find the cause in the printed failed steps and tests, fix, commit, `ship_pr.py N --message MSG.txt`.
    After 3 failed attempts stop: comment the cause on the ticket, add `blocked` or `needs-human` and `hold`, run
    `claim.py N --release` (it removes `in-progress`), and go to step 8 of the skill (report).
+   A failed test that passes on your tree with no change is a flake: make a `bug` ticket with the test, the CI run
+   id and the assert line first, then start the failed jobs again once (#1409: 2 re-runs had no ticket).
 10. Merge conflict → as in 8.
 11. CI green → the Automerge workflow merges. Add label `hold` to the PR if it must not merge yet.
 

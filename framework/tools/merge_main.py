@@ -19,6 +19,7 @@ checked too, #5040). Exit 2: ruff or a test fails.
 Exit 3: the guard or the push fails (do not push by hand).
 """
 import argparse
+import fnmatch
 import glob
 import os
 import re
@@ -30,6 +31,7 @@ import unconflict  # noqa: E402
 
 MAX_TESTS = 30      # more test files import a conflicted module (the main module): run only the branch's, CI runs the rest
 HUNK_LINES = 40     # lines of each conflict hunk in the output
+GUARDS = re.compile(r"^GUARDS\s*=\s*\(([^)]*)\)", re.M)   # a test file that checks files no import finds (#595)
 IMPORT = re.compile(r"^\s*(?:from\s+([\w.]+)\s+)?import\s+\(?([\w., ]+)", re.M)
 
 
@@ -57,12 +59,62 @@ def imports(text):
     return out
 
 
+def guards(text):
+    """The path patterns of the line `GUARDS = ("userscripts/*.user.js", ...)` of a test file (none: empty)."""
+    m = GUARDS.search(text)
+    return re.findall(r"[\"']([^\"']+)[\"']", m.group(1)) if m else []
+
+
+def guarded(paths, tests):
+    """The test files whose `GUARDS` patterns match one of `paths` (the changed files), sorted."""
+    return sorted(f for f, text in tests.items() if any(fnmatch.fnmatchcase(p, g) for g in guards(text) for p in paths))
+
+
 def test_files(conflicted, changed, tests):
-    """(test files to run, test files left to CI). `tests`: {path: text} of the test files of the repository."""
-    own = sorted({f for f in changed + conflicted if f in tests})
+    """(test files to run, test files left to CI). `tests`: {path: text} of the test files of the repository.
+    A test file whose `GUARDS` patterns match a changed file always runs: no import leads from a `.js` or `.json`
+    file to its test (5 of 9 red fast-test runs of 100 PRs: the userscript lock test, 2026-11-07)."""
+    paths = changed + conflicted
+    own = sorted({f for f in paths if f in tests} | set(guarded(paths, tests)))
     mods = set().union(*map(modules, conflicted)) if conflicted else set()
     users = sorted(f for f, text in tests.items() if f not in own and mods & imports(text))
     return (own + users, []) if len(own) + len(users) <= MAX_TESTS else (own, users)
+
+
+TEXT = re.compile(r"'([^'\n]{4,})'|\"([^\"\n]{4,})\"|>([^<>\n]{4,})<")
+
+
+def removed_texts(diff, new):
+    """The string literals and tag texts (4 or more characters) of the removed lines of `diff` (`git diff -U0` of
+    one file) that are not in `new`, the new text of the file (#653)."""
+    out = set()
+    for line in diff.splitlines():
+        if line.startswith("-") and not line.startswith("---"):
+            for m in TEXT.finditer(line[1:]):
+                t = next(g for g in m.groups() if g).strip()
+                if len(t) >= 4 and t not in new:
+                    out.add(t)
+    return out
+
+
+def text_tests(changed, tests, base="origin/main"):
+    """The test files that contain a text that the branch removes from a template or a `.py` file of `app/` (#653):
+    no import leads from a template to the tests that get a page."""
+    texts, news = set(), []
+    for f in changed:
+        if f.startswith("app/web/templates/") or (f.startswith("app/") and f.endswith(".py")):
+            diff = git("diff", "-U0", f"{base}...HEAD", "--", f, check=False).stdout
+            new = open(f, encoding="utf-8").read() if os.path.exists(f) else ""
+            texts |= removed_texts(diff, new)
+            news.append(new)
+    return sorted(f for f, text in tests.items() if asserts_removed(text, texts, "\n".join(news)))
+
+
+def asserts_removed(test, texts, new):
+    """True when the text of a test file contains a removed text, or has a literal (`'🚌'`) that is part of a removed
+    text and is not in `new` (the new texts of the changed files)."""
+    lits = {a or b for a, b in re.findall(r"'([^'\n]+)'|\"([^\"\n]+)\"", test)}
+    return any(t in test for t in texts) or any(x in t and x not in new for x in lits for t in texts)
 
 
 def show(path, left):
@@ -86,7 +138,7 @@ def solve(files):
             shown.append(f"{f}: no conflict markers (deleted on one side, or a binary file): solve it with git")
             continue
         new, left = unconflict.solve_some(text)
-        why = "" if left else unconflict.check(f, new) or unconflict.hides(f, new)
+        why = "" if left else unconflict.check(f, new) or unconflict.hides(f, new) or unconflict.stray(f, new)
         if why:
             shown.append(f"{f}: {why}")
             continue

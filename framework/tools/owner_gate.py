@@ -44,9 +44,18 @@ def toml_at(ref):
     return base64.b64decode(got["content"]).decode() if got and got.get("content") else ""
 
 
+def merge_base(sha):
+    """The merge base of main and the PR head, or None when the compare call fails (#1097)."""
+    got = gh(f"compare/main...{sha}")
+    return (got or {}).get("merge_base_commit", {}).get("sha") or None
+
+
 def main(argv=None):
     pr, sha = (argv or sys.argv[1:])[:2]
-    if steering(toml_at(sha)) == steering(toml_at("main")):
+    # The PR changes the owners only when its head differs from where its branch started: an old branch has the old
+    # values of main, and the change of main is not the PR's change (#1097). No merge base: compare with main (doubt: closed).
+    base = merge_base(sha) or "main"
+    if steering(toml_at(sha)) == steering(toml_at(base)):
         return 0
     if approved(gh(f"pulls/{pr}/reviews") or [], owners(load())):
         print(f"#{pr}: an owner approved the change of the owners")

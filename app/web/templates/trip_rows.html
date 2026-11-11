@@ -1,0 +1,117 @@
+{% import "ui.html" as ui %}
+  {% for it, fare, cost in rows %}
+    {% set first, last = it.legs[0], it.legs[-1] %}
+    {% set dep, arr = first.depart_at | local(first.depart_offset_min), last.arrive_at | local(last.arrive_offset_min) %}
+    {% set days = arr | day_gap(dep) %}
+    {% set newest = it.fares | map(attribute="latest_captured_at") | max %}
+    {% set carriers %}{% for leg in it.legs %}{{ leg.carrier | carrier_names }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
+    {% set fare_line %}{% if fare.fare_name %}{{ fare.fare_name }} · {% endif %}{{ fare.source }}, {{ newest | ago(now) }}{% if fare.id in gone_fares %} · not in the last {{ gone_fares[fare.id].source }} search, {{ gone_fares[fare.id].captured_at | ago(now) }}{% endif %}{% endset %}
+    {% set gone = it.depart_at and view.departed_now and it.depart_at < view.departed_now and not it.booked %}
+    <tr id="it-{{ it.id }}"{% if gone %} class="departed muted"{% endif %}>
+      <td class="route">
+        <div class="route-name">{{ first.from_name }} → {{ last.to_name }}
+        {% if it.hidden %}<span class="muted">hidden</span>{% endif %}
+        {% if gone %}<span class="muted">departed</span>{% endif %}
+        {% if it.pinned %}<span class="muted">pinned</span>{% endif %}
+        {% if it.booked %}<span class="badge booked">booked</span>{% if it.booked_price is not none %}
+        {% set paid_fare = it.fares | selectattr("id", "equalto", it.booked_fare_id) | first %}
+        <span class="paid">Paid {{ it.booked_price | money(it.booked_currency) }}{% if paid_fare and paid_fare.currency == it.booked_currency and paid_fare.latest_price != it.booked_price %}{% set delta = paid_fare.latest_price - it.booked_price %}<span class="muted">, now {{ paid_fare.latest_price | money(paid_fare.currency) }} ({{ "+" if delta > 0 else "−" }}{{ (delta | abs) | money(it.booked_currency) }})</span>{% endif %}</span>{% endif %}{% endif %}{% set cl = delay_claim(it) if it.arrive_at and view.departed_now and it.arrive_at < view.departed_now else none %}{% if cl %} <span class="paid">Claim {{ cl.amount | money(cl.currency) }} ({{ cl.percent }} % for a delay of {{ it.delay_min }} min)</span>{% if it.claim_paid_at %} <span class="muted">claim paid</span>{% endif %}{% endif %}{% if it.booking_code %} <span class="paid">Booking code: {{ it.booking_code }}</span>{% endif %}{% if it.cancelled_at %}<span class="paid">Booking cancelled: paid {{ (it.booked_price or 0) | money(it.booked_currency or "EUR") }}, refund {{ (it.refund_price or 0) | money(it.booked_currency or "EUR") }}</span>{% endif %}
+        {% if new_since and it.first_seen_at and it.first_seen_at > new_since %}<span class="badge new" title="new since your last view">new</span>{% endif %}
+        {% if share_marks and it.id in share_marks %}<span class="chip partner" title="marked on the shared link">Suits partner</span>{% endif %}
+        {% for b in view.badges.get(it.id, []) %}<span class="badge {{ b | replace(" ", "-") }}">{{ b }}</span> {% endfor %}
+        {% if newest < stale_before %}<span class="badge stale" title="stale, price may have changed">stale</span>{% endif %}</div>
+        <div class="facts"><span class="times">{{ dep.strftime("%a %d %b %H:%M") }} → {{ arr.strftime("%H:%M") }}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}</span>
+          <span class="muted"><span class="modes">{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{% if m | mode_icon %}{{ ui.icon(m | mode_icon, m) }}{% else %}•{% endif %}</span>{% endfor %}</span>
+          {{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }} · {{ it.transfers }} transfer{{ "" if it.transfers == 1 else "s" }}</span>
+          {% if it.id in view.pareto %}<span class="chip info pareto" title="no other offer is cheaper and faster">no faster offer for less</span>{% endif %}</div>
+        {% if it.note %}<div class="muted">{{ it.note }}</div>{% endif %}</td>
+      <td class="carrier"><div class="clip" title="{{ carriers }}">{{ carriers }}</div><div class="clip muted" title="{{ fare_line }}">{{ fare_line }}</div></td>
+      <td class="price">{{ ui.price_change(fare, seen) }}{% if fare.id in suspect_fares %} <span class="chip suspect" title="{% if suspect_fares[fare.id].last is not none %}The last price was {{ suspect_fares[fare.id].last | money(suspect_fares[fare.id].currency) }}{% else %}A price of 0 cannot be right{% endif %}">check the price</span>{% endif %}</td>
+      <td class="cost"><div class="total">{{ "no rate" if cost.no_rate else cost.total | money }}</div>
+        {% set parts = bar_parts(cost) %}{% if parts %}<svg class="bar" width="100%" height="6" aria-hidden="true">{% for label, x, w in parts %}<rect class="part-{{ loop.index0 % 4 }}" x="{{ x }}%" width="{{ w }}%" height="6"></rect>{% endfor %}</svg>{% endif %}
+        <div class="breakdown">{{ format_breakdown(cost) }}{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</div></td>
+      <td class="actions">
+        <label class="pick"><input type="checkbox" name="it" value="{{ it.id }}" form="compare" aria-label="Compare"><span class="pick-text">Compare</span></label>
+        {% for action, label, symbol in [("pin", "Unpin" if it.pinned else "Pin", "pin"),
+                                         ("hide", "Unhide" if it.hidden else "Hide", "eye" if it.hidden else "eye-off"),
+                                         ("booked", "Not booked" if it.booked else "Mark as booked", "check")] %}
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/{{ action }}"
+              hx-post="/trips/{{ trip.id }}/itineraries/{{ it.id }}/{{ action }}?{{ sort_qs }}&amp;sort={{ view.sort }}&amp;dir={{ view.dir }}" hx-target="#table">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button type="submit" class="icon" aria-label="{{ label }}" title="{{ label }}">{{ ui.icon(symbol) }}</button>
+        </form>{% endfor %}
+        {% if it.booked %}<a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
+           aria-label="Add to calendar" title="Add to calendar">{{ ui.icon("calendar-plus") }}</a>{% endif %}
+      </td>
+    </tr>
+    <tr class="detail">
+      <td colspan="5"><details><summary>Legs and fares</summary>
+        {% if tradeoff and it.id in tradeoff %}{% set head, value, tail, link = tradeoff[it.id] %}<p class="tradeoff muted">{{ head }}{% if link %}<a href="{{ link }}">{{ value }}</a>{% else %}{{ value }}{% endif %}{{ tail }}</p>{% endif %}{% if tradeoff and tradeoff.price and it.id in tradeoff.price %}<p class="best-at muted">best at {{ tradeoff.price[it.id] }} or less</p>{% endif %}{% if tradeoff and tradeoff.best and tradeoff.best[0] == it.id %}<p class="best-range muted">{% for text, link in tradeoff.best[1] %}{% if link %}<a href="{{ link }}">{{ text }}</a>{% else %}{{ text }}{% endif %}{% endfor %}</p>{% endif %}{% if co2 and it.id in co2 %}<p class="co2 muted">CO₂ about {{ co2[it.id]|round|int }} kg per traveler (estimate)</p>{% endif %}
+        {% if share_marks and it.id in share_marks and share_marks[it.id].note %}<p class="partner-note">Partner: {{ share_marks[it.id].note }}</p>{% endif %}
+        {% set changes = station_changes(it) %}{% set lonely = no_fallback_marks(it) %}{% set short_marks = short_place_marks(it, weights) %}
+        <div class="timeline legs">
+        {% for leg in it.legs %}
+          {% if not loop.first %}{% set gap = ((leg.depart_at - loop.previtem.arrive_at).total_seconds() // 60) | int %}
+          <div class="transfer muted">{% if (loop.index0 - 1) in changes %}Change of station: {{ loop.previtem.to_name }} → {{ leg.from_name }}{% else %}Transfer at {{ leg.from_name }}{% endif %}: {{ gap // 60 }}h {{ "%02d" | format(gap % 60) }}{% if (loop.index0 - 1) in lonely %} · no later connection captured{% endif %}{% if (loop.index0 - 1) in short_marks %} · <span class="short-place">{{ short_marks[loop.index0 - 1] }}</span>{% endif %}</div>{% endif %}
+          <div class="leg">
+            <div class="service">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon) }}{% endif %} {{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}</div>
+            <div class="stop"><time>{{ (leg.depart_at | local(leg.depart_offset_min)).strftime("%H:%M") }}</time> {{ leg.from_name }}</div>
+            <div class="stop"><time>{{ (leg.arrive_at | local(leg.arrive_offset_min)).strftime("%H:%M") }}</time> {{ leg.to_name }}</div>
+          </div>
+        {% endfor %}
+        </div>
+        <div class="fares">
+        {% for f in it.fares | by_eur(rates) %}
+          <div class="fare"><span>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}{{ ui.class_badge(f) }}{% if card_label is defined and card_label(f) %} <span class="muted cards">{{ card_label(f) }}</span>{% endif %}{% if f.reservation_legs %} <span class="badge reservation" title="a seat reservation is mandatory and not in the price">reservation required</span>{% endif %}{{ ui.seats_badge(f) }}</span> <strong>{{ ui.price_change(f, seen) }}</strong>{% if f.id in suspect_fares %} <span class="chip suspect" title="{% if suspect_fares[f.id].last is not none %}The last price was {{ suspect_fares[f.id].last | money(suspect_fares[f.id].currency) }}{% else %}A price of 0 cannot be right{% endif %}">check the price</span>{% endif %}{% if f.id in gone_fares %} <span class="muted gone">not in the last {{ gone_fares[f.id].source }} search, {{ gone_fares[f.id].captured_at | ago(now) }}</span>{% endif %}
+            {% if f.booking_url %}<a class="btn" href="{{ f.booking_url }}" rel="noopener noreferrer" target="_blank">{{ ui.icon("arrow-right") }}Book</a>{% endif %}
+            {% if search_urls is defined and f.id in search_urls %}<a class="btn btn-ghost" href="{{ search_urls[f.id] }}" rel="noopener noreferrer" target="_blank">Open search</a>{% endif %}
+            {% if f.source == "manual" %}<a class="btn btn-ghost" href="/trips/{{ trip.id }}/fares/{{ f.id }}/price">Change price</a> <a class="btn btn-ghost" href="/trips/{{ trip.id }}/fares/{{ f.id }}/delete">Delete</a>{% endif %}</div>
+        {% endfor %}
+        </div>
+        {% if joined is defined and joined.get(it.id) %}<div class="joined"><p>Joined from {{ joined[it.id]|length + 1 }} rows</p>
+        {% for b_id in joined[it.id] %}<form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/split/{{ b_id }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button class="btn btn-ghost" type="submit">Not the same journey</button>
+        </form>{% endfor %}</div>{% endif %}
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/note">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <div class="field"><label for="note-{{ it.id }}">Note</label>
+          <textarea id="note-{{ it.id }}" name="note" maxlength="2000">{{ it.note or "" }}</textarea></div>
+          <button class="btn" type="submit">{{ ui.icon("check") }}Save note</button>
+        </form>
+        {% if it.booked %}
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/paid">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <div class="field"><label for="paid-fare-{{ it.id }}">Paid fare</label>
+          <select id="paid-fare-{{ it.id }}" name="fare_id">
+            {% for f in it.fares %}<option value="{{ f.id }}"{% if f.id == it.booked_fare_id %} selected{% endif %}>{{ f.source }}{% if f.fare_name %}: {{ f.fare_name }}{% endif %}</option>{% endfor %}
+          </select></div>
+          <div class="field"><label for="paid-price-{{ it.id }}">Paid price</label>
+          <input id="paid-price-{{ it.id }}" name="price" inputmode="decimal" value="{{ '' if it.booked_price is none else it.booked_price }}" required></div>
+          <button class="btn" type="submit">{{ ui.icon("check") }}Save paid price</button>
+        </form>
+        {% if it.arrive_at and view.departed_now and it.arrive_at < view.departed_now %}
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/delay">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <div class="field"><label for="delay-{{ it.id }}">Delay at arrival (min)</label>
+          <input id="delay-{{ it.id }}" name="minutes" inputmode="numeric" value="{{ '' if it.delay_min is none else it.delay_min }}"></div>
+          <button class="btn" type="submit">{{ ui.icon("check") }}Save delay</button>
+        </form>
+        {% endif %}
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/booking-code">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <div class="field"><label for="booking-code-{{ it.id }}">Booking code</label>
+          <input id="booking-code-{{ it.id }}" name="code" maxlength="40" value="{{ it.booking_code or '' }}"></div>
+          <button class="btn" type="submit">{{ ui.icon("check") }}Save code</button>
+        </form>
+        <form method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/cancel">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <div class="field"><label for="refund-{{ it.id }}">Refund</label>
+          <input id="refund-{{ it.id }}" name="refund" inputmode="decimal" value="0"></div>
+          <button class="btn" type="submit">Cancel booking</button>
+        </form>
+        {% endif %}
+        <div hx-get="/trips/{{ trip.id }}/itineraries/{{ it.id }}/history" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"></div>
+      </details></td>
+    </tr>
+  {% endfor %}

@@ -1,0 +1,22 @@
+{# The departure days of the trip above the table (#711): each day with its best effective cost and its cheapest
+   price; a click shows only the offers of that day (#709). An htmx request swaps it out of band (as compare_form). #}
+{% if oob %}<input type="hidden" id="view-day" name="day" value="{{ view.day }}" hx-swap-oob="true">{% endif %}{# the weights form keeps the day of the strip (#712) #}
+<nav id="trip-days" class="days-strip" aria-label="Departure days"{% if oob %} hx-swap-oob="true"{% endif %}{% if not days or days | length < 2 %} hidden{% endif %}>
+{% if days and days | length >= 2 %}
+  <a class="chip day{% if not view.day %} selected{% endif %}" href="/trips/{{ trip.id }}?{{ days_qs }}" hx-get="/trips/{{ trip.id }}?{{ days_qs }}" hx-target="#table" hx-push-url="true"{% if not view.day %} aria-current="true"{% endif %}>All days</a>
+  {% for d in days %}{% set label = d.day | string %}{% set when = label[8:10] ~ "-" ~ label[5:7] %}{% set cover = (day_cover or {}).get(label) %}
+  <span class="day-cell">
+  {% if d.best %}
+  <a class="chip day{% if view.day == d.day %} selected{% endif %}" href="/trips/{{ trip.id }}?{{ days_qs }}&amp;day={{ d.day }}" hx-get="/trips/{{ trip.id }}?{{ days_qs }}&amp;day={{ d.day }}" hx-target="#table" hx-push-url="true"{% if view.day == d.day %} aria-current="true"{% endif %}>
+    <span class="day-date">{{ when }}</span> <span class="day-best" title="Best effective cost">{{ format_total(d.best[2]) }}</span> <span class="day-cheapest muted" title="Cheapest price">{{ d.cheapest[2].price | money("EUR") }}</span></a>
+  {% elif d.day_price %}
+  <span class="chip day empty day-price" title="An estimate: no captured connection"><span class="day-date">{{ when }}</span> <span class="muted">from {{ d.day_price.price | money(d.day_price.currency) }} ({{ d.day_price.source }} day price)</span></span>
+  {% else %}
+  <span class="chip day empty"><span class="day-date">{{ when }}</span> <span class="muted">no offers</span></span>
+  {% endif %}
+  {% if cover and (cover[0] or cover[1] or cover[3]) %}<small class="day-sources muted">{% if cover[0] %}<span class="day-searched">{{ cover[0] | join(", ") }}</span>{% endif %}{% for name, url in cover[1] %} <a class="day-search" href="{{ url }}" target="_blank" rel="noopener">search {{ name }}</a>{% endfor %}{% for name, url in cover[2] %}{% if url %} <a class="day-stale" href="{{ url }}" target="_blank" rel="noopener">search again {{ name }}</a>{% else %} <span class="day-stale">stale {{ name }}</span>{% endif %}{% endfor %}{% for name, opens in cover[3] %} <span class="day-sales-closed">{{ name }}: sales open on {{ opens.isoformat() }}</span>{% endfor %}</small>{% endif %}
+  </span>
+  {% endfor %}
+{% endif %}
+</nav>
+{% include "trip_day_cover.html" %}

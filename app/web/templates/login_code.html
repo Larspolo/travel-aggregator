@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Log in – travel-aggregator{% endblock %}
+{% block body_attrs %} hx-headers='{"X-CSRF-Token": "{{ csrf_token(request) }}"}'{% endblock %}
+{% block nav %}{% endblock %}
+{% block content %}
+<div class="login">
+  <p class="login-brand"><a class="brand" href="/">travel-aggregator</a></p>
+  <section class="card login-card">
+    <header class="page-header"><div><h1>Log in</h1></div></header>
+    {% if error %}<p class="login-error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" action="/login/code" class="login-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <div class="field">
+        <label for="code">Code from the app</label>
+        <input id="code" type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="11" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary login-submit">Log in</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

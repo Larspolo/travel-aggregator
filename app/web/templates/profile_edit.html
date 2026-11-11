@@ -1,0 +1,43 @@
+{% extends "settings_base.html" %}
+{% import "ui.html" as ui %}
+{% set title = "Edit " ~ profile.name if profile else "New profile" %}
+{% block title %}{{ title }} – travel-aggregator{% endblock %}
+{% block header %}{{ ui.page_header(title, subtitle="The weights of the score. A trip page uses them as its start values.", back=("/profiles", "Profiles")) }}{% endblock %}
+{% block settings %}
+{% if error %}<p role="alert" class="chip danger">{{ error }}</p>{% endif %}
+{% call ui.card("Weights") %}
+<form class="profile-edit" method="post" action="/profiles/{{ profile.id if profile else 'new' }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="field">
+    <label for="profile-name">Name</label>
+    <input id="profile-name" name="name" required maxlength="100" value="{{ name }}">
+  </div>
+  <div class="field">
+    <label for="hour_markup">Hour markup €/h</label>
+    <input id="hour_markup" type="number" name="hour_markup" required min="0" max="100" step="0.01" value="{{ weights.hour_markup }}">
+  </div>
+  <div class="field">
+    <label for="transfer_markup">Transfer markup €</label>
+    <input id="transfer_markup" type="number" name="transfer_markup" required min="0" max="100" step="0.01" value="{{ weights.transfer_markup }}">
+  </div>
+  <details class="advanced"><summary>Advanced</summary>
+    {% set night_blank = true %}{% set station_blank = true %}{% include "weights_advanced.html" %}
+  </details>
+  <button class="btn btn-primary" type="submit">Save</button>
+</form>
+{% endcall %}
+{% if profile %}
+{% call ui.card("Hour value of your bookings") %}
+{% if fit %}
+{% set low, high, count, total = fit %}
+<p class="hour-fit">Your bookings fit an hour value {% if low is not none %}from €{{ low|int if low == low|int else low }}{% endif %}{% if low is not none and high is not none %} {% endif %}{% if high is not none %}{% if low is none %}up {% endif %}to €{{ high|int if high == high|int else high }}{% endif %} ({{ count }} of {{ total }} bookings)</p>
+<form method="post" action="/profiles/{{ profile.id }}/hour-value">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <button class="btn" type="submit">Use this hour value</button>
+</form>
+{% else %}
+<p class="hour-fit">No bookings to compare yet</p>
+{% endif %}
+{% endcall %}
+{% endif %}
+{% endblock %}

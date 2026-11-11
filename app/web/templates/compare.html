@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Compare · {{ trip.title }} · travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Compare: " ~ trip.title, back=("/trips/" ~ trip.id ~ "?" ~ sort_qs, "Back to the trip")) }}
+{% if error %}
+<p class="error">{{ error }}</p>
+{% else %}
+<section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Comparison table"><table class="compare">
+  <tbody>
+  <tr><th scope="row">Route</th>{% for it, fare, cost in columns %}<td>{{ it.legs[0].from_name }} → {{ it.legs[-1].to_name }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Depart</th>{% for it, fare, cost in columns %}{% set first = it.legs[0] %}<td>{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %H:%M") }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Arrive</th>{% for it, fare, cost in columns %}{% set first, last = it.legs[0], it.legs[-1] %}{% set days = (last.arrive_at | local(last.arrive_offset_min)) | day_gap(first.depart_at | local(first.depart_offset_min)) %}<td>{{ (last.arrive_at | local(last.arrive_offset_min)).strftime("%a %d %b %H:%M") }}{% if days > 0 %} <span class="muted">+{{ days }} day{{ "" if days == 1 else "s" }}</span>{% endif %}</td>{% endfor %}</tr>
+  <tr><th scope="row">Duration</th>{% for it, fare, cost in columns %}<td{% if loop.index0 in best.duration %} class="best"{% endif %}>{{ it.duration_min // 60 }}h {{ "%02d" | format(it.duration_min % 60) }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Transfers</th>{% for it, fare, cost in columns %}<td{% if loop.index0 in best.transfers %} class="best"{% endif %}>{{ it.transfers }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Modes</th>{% for it, fare, cost in columns %}<td>{% for m in (it.mode_summary or "").split("+") if m %}<span title="{{ m }}">{% if m | mode_icon %}{{ ui.icon(m | mode_icon, m) }}{% else %}•{% endif %}</span> {% endfor %}{{ it.mode_summary }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Carriers</th>{% for it, fare, cost in columns %}<td>{% for leg in it.legs %}{{ leg.carrier | carrier_names }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</td>{% endfor %}</tr>
+  <tr><th scope="row">Fare</th>{% for it, fare, cost in columns %}<td>{{ fare.fare_name or "" }}{{ ui.class_badge(fare) }}<div class="muted">{{ fare.source }}</div></td>{% endfor %}</tr>
+  <tr><th scope="row">Price</th>{% for it, fare, cost in columns %}<td class="price{{ ' best' if loop.index0 in best.price }}">{{ fare.latest_price | money(fare.currency) }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Effective cost</th>{% for it, fare, cost in columns %}<td class="cost{{ ' best' if loop.index0 in best.cost }}"><span class="breakdown">{{ format_breakdown(cost) }}</span>{% if cost.no_rate %} <a href="/rates">Add a rate</a>{% endif %}</td>{% endfor %}</tr>
+{% for label, cells in parts %}<tr><th scope="row">{{ label }}</th>{% for text, dtext, is_best in cells %}<td{% if is_best %} class="best"{% endif %}>{{ text }}{% if dtext %} <span class="muted">{{ dtext }}</span>{% endif %}</td>{% endfor %}</tr>
+{% endfor %}
+  <tr><th scope="row">Break-even <span class="muted">(yours: {{ yours }}/h)</span></th>{% for text, link in tradeoff %}<td>{% if link %}<a href="{{ link }}">{{ text }}</a>{% else %}{{ text }}{% endif %}</td>{% endfor %}</tr>
+  </tbody>
+</table></div></section>
+{% endif %}
+{% endblock %}

@@ -214,12 +214,12 @@ def ci_wait(pr, checks):
     if "conflict" in {lb["name"] for lb in pr.get("labels") or []}:
         return None
     checks = pr_checks(checks)
-    quick = [c for c in checks if c.get("name") == ship_pr.QUICK]
+    quick = ship_pr.quick_run(checks)   # the parts `quick (1)` and `quick (2)` as one run (#1077)
     if not quick or any(c.get("conclusion") in FAILED for c in checks):
         return None
-    if any(c.get("status") != "completed" for c in quick):
+    if quick.get("status") != "completed":
         return "run"
-    return "green" if all(c.get("conclusion") == "success" for c in quick) else None
+    return "green" if quick.get("conclusion") == "success" else None
 
 
 def head_checks(sha):
@@ -292,10 +292,11 @@ def brief(issue, comments, name, task, sample, limit=TEXT_MAX, context=CONTEXT, 
     after: the next tickets that the run claims itself after its PR (`Briefs.follow`, #5076), else no `next:` line."""
     import claim
     import ticket_context
+    note = idle_start(issue)
     head = "\n".join([HEAD, f"ticket: {issue['number']}", f"claim: {name}", f"lane: {task}", f"usage: {sample}",
                       f"context: {context}"] + [f"next: {' '.join(map(str, after))}"] * bool(after)
                      + [f"account: {account}"] * bool(account)
-                     + [f"takeover: {takeover}"] * bool(takeover))
+                     + [f"takeover: {takeover}"] * bool(takeover) + [f"start: {note}"] * bool(note))
     text = claim.ticket_text(issue, comments)
     places = ticket_context.context(issue.get("body"))
     out = f"{head}\n\n--- ticket (data) ---\n{text}\n\n--- code places (framework/tools/ticket_context.py) ---\n{places}"
@@ -303,6 +304,23 @@ def brief(issue, comments, name, task, sample, limit=TEXT_MAX, context=CONTEXT, 
         note = "\n[cut: run `python3 framework/tools/ticket_context.py N` for the rest]"
         out = out[:limit - len(note)] + note
     return out
+
+
+def idle_start(issue, after=None):
+    """The `start:` line of a ticket whose "Start after: N PRs after #M" count did not come: the pacer gives it only
+    because no PR merged for `claim.ROADMAP_IDLE` minutes (`dashboard.waits`, #5201). Else "". Two runs read the line
+    of #1612 ("63 of 100 PRs"), released the ticket with no report, and the queue stood still for 2 cycles each (#1800)."""
+    import claim
+    import dashboard
+    s = dashboard.start_after_prs(issue)
+    if not s:
+        return ""
+    try:
+        got = (after or dashboard.prs_after)(s[1]) or 0
+    except Exception:                                   # GitHub failed: no line, as before
+        return ""
+    return "" if got >= s[0] else (f"{got} of {s[0]} PRs merged after #{s[1]}, but no PR merged for {claim.ROADMAP_IDLE}"
+                                   " minutes, so the wait ended (#5201): do the ticket now with the PRs that merged")
 
 
 def unanswered():
@@ -350,6 +368,7 @@ class Briefs:
 
     def __init__(self, todo, out, now, found, dry=False, hour=None, reads=None):
         self.todo, self.given, self.dry, self.hour = None, [], dry, hour or {}
+        self.briefed = {}                               # {task: runs that got a brief}: their claims count them (#1801)
         self.next = {}                                  # {ticket: its `next:` tickets} for `record` (#5308)
         self.stuck, self.takeovers, self.nexts, self.feedback = [], set(), set(), 0
         self.plan = [t for t, *_ in todo or ()]         # the tasks of the runs of this cycle that have no ticket yet
@@ -461,6 +480,7 @@ class Briefs:
             claim.start(got[0], by=got[1], note=(" Stuck: its run stopped." if over else "")
                         + (f" Session: {link}" if link else ""), **({"word": "Taken over by"} if over else {}))
             self.given.append(got[0])
+            self.briefed[task] = self.briefed.get(task, 0) + 1
             if got[3]:
                 self.next[got[0]] = list(got[3])
 
@@ -499,9 +519,13 @@ def record(at, found, burn, burn7, k, runs, started, line, problems=(), github=N
     return {**rec, "problems": list(problems), "line": line}
 
 
-def recent_starts(path, now, minutes=usage.PENDING):
+def recent_starts(path, now, minutes=usage.PENDING, briefed=None):
     """{task: runs} that the cycles of the log file `path` (`--log`) started in the last `minutes` before `now` (a Unix
-    time): `usage.fire` counts those with no claim yet. An absent or broken log: none."""
+    time): `usage.fire` counts those with no claim yet. An absent or broken log: none. briefed (the default: when
+    `minutes` is PENDING): subtract the runs that got a brief (`briefed` of the record): the pacer claimed for them, so
+    `claims` counts them while they live, and a released claim does not hold the ticket for one more cycle (#1801)."""
+    if briefed is None:
+        briefed = minutes == usage.PENDING
     out = {}
     try:
         with open(path) as f:
@@ -514,9 +538,11 @@ def recent_starts(path, now, minutes=usage.PENDING):
                 if at.timestamp() >= now - minutes * 60:
                     for task, n in (r.get("started") or {}).items():
                         out[task] = out.get(task, 0) + n
+                    for task, n in (r.get("briefed") or {}).items() if briefed else ():
+                        out[task] = out.get(task, 0) - n
     except OSError:
         pass
-    return out
+    return {t: n for t, n in out.items() if n > 0}
 
 
 def switch(config=None):
@@ -641,7 +667,7 @@ def main(argv=None, env=os.environ):
                              "missing": round(missing[n], 2) if n in missing else None}
                          for n, u in reads.items()} if many else None          # the quota of each account (#4239)
                 f.write(json.dumps({**record(at, found, burn, burn7, k, runs, started, line, problems, gh, quota),
-                                    "briefs": briefs.given, "next": {str(n): t for n, t in briefs.next.items()}}
+                                    "briefs": briefs.given, "briefed": briefs.briefed, "next": {str(n): t for n, t in briefs.next.items()}}
                                    | ({"accounts": {x: sum(c for (y, _), c in count.items() if y == x) for x in envs}}
                                       if many else {})) + "\n")
         except OSError as e:

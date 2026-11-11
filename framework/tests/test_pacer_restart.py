@@ -64,7 +64,8 @@ def repo(tmp_path):
 
 def loop(run, bin_, tmp_path):
     env = {**os.environ, "PATH": f"{bin_}:{os.environ['PATH']}", "RUNNER_TEMP": str(tmp_path),
-           "GITHUB_REPOSITORY": "o/r"}
+           "GITHUB_REPOSITORY": "o/r",
+           "GITHUB_EVENT_NAME": "push", "GITHUB_ACTOR": "t"}   # not the event of the CI job: a dispatch by a person (#2177)
     return subprocess.run(["bash", "-e", "-c", loop_script()], cwd=run, env=env, capture_output=True, text=True,
                           timeout=60)
 

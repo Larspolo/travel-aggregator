@@ -1,28 +1,90 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trips – travel-aggregator</title></head>
-<body>
-<h1>Trips</h1>
-<p><a href="/logout">Log out</a></p>
-{% if trips %}
-<table>
-  <thead><tr><th>Trip</th><th>Route</th><th>Dates</th><th>Offers</th><th>Best offer</th><th>Status</th></tr></thead>
-  <tbody>
-  {% for t in trips %}
-    <tr>
-      <td>{{ t.title }}</td>
-      <td>{{ t.origin_text or "?" }} → {{ t.destination_text or "?" }}</td>
-      <td>{{ t.date_from or "" }}{% if t.date_to %} – {{ t.date_to }}{% endif %}</td>
-      <td>{{ t.offer_count }}</td>
-      <td>{% if t.best_price is not none %}{{ t.best_currency }} {{ t.best_price }}{% else %}no offers yet{% endif %}</td>
-      <td>{{ t.status }}</td>
-    </tr>
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% macro trip_grid(rows) %}
+<div class="trip-grid">
+  {% for kind, t, note in rows %}
+    {% if kind == "total" %}
+    <p class="journey-total">Journey price total: {{ note }}</p>
+    {% else %}
+    {% call ui.card(css=("trip-split" if kind == "split" else none)) %}
+    <div class="trip-card-head">
+      <div>
+        {% if kind == "return" %}<span class="muted">Return of {{ note }}</span>{% elif kind == "next" %}<span class="muted">then, after {{ note }}</span>{% elif kind == "split" %}<span class="muted">split via {{ note }}</span>{% endif %}
+        <h2><a href="/trips/{{ t.id }}">{{ t.title }}</a></h2>
+      </div>
+      <a class="btn btn-ghost btn-icon" href="/trips/{{ t.id }}/edit" title="Edit">{{ ui.icon("pencil", "Edit " ~ t.title) }}</a>
+    </div>
+    <p class="trip-route">{{ t.origin_text or "?" }} {{ ui.icon("arrow-right", "to") }} {{ t.destination_text or "?" }}</p>
+    <p class="trip-meta">
+      {% if t.date_from or t.date_to %}<span class="trip-dates">{{ t.date_from or "" }}{% if t.date_to %} – {{ t.date_to }}{% endif %}</span>{% endif %}
+      <span class="trip-count">{{ t.offer_count }} offer{{ "" if t.offer_count == 1 else "s" }}</span>{% if new.get(t.id) %}
+      <span class="drop trip-new">{{ new[t.id] }} new</span>{% endif %}
+      <span class="chip{% if t.status == "booked" %} good{% elif t.status == "planning" %} info{% endif %}">{{ t.status }}</span>
+    </p>
+    <p class="trip-best">{% if t.best_price is not none %}Best <strong>{{ t.best_price | money(t.best_currency) }}</strong>{% if t.no_rate %} no rate{% endif %}{% if t.at_target %} <span class="drop">at target</span>{% endif %}{% if t.id in drops %} <span class="drop">price dropped {{ drops[t.id][1] | money(drops[t.id][0]) }}</span>{% endif %}{% else %}<span class="muted">no offers yet</span>{% endif %}{% if t.shared %} <span class="drop">shared</span>{% endif %}</p>
+    {% if t.tags %}<p class="trip-tags">{% for g in t.tags %}<a class="chip" href="/?tag={{ g | urlencode }}">{{ g }}</a> {% endfor %}</p>{% endif %}
+    {% endcall %}
+    {% endif %}
   {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<p>You have no trips. <a href="/trips/new">Create a trip</a>.</p>
+</div>
+{% endmacro %}
+{% block title %}Trips – travel-aggregator{% endblock %}
+{% block content %}
+{% call ui.page_header("Archived trips" if archived else "Trips", back=("/", "Trips") if archived else none) %}
+  {% if not archived and archived_count %}<a class="btn" href="/?archived=1">Archived trips ({{ archived_count }})</a>{% endif %}
+  <a class="btn" href="/trips/import">{{ ui.icon("upload") }}Import trip</a>
+  <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
+{% endcall %}
+{% if past_count %}<form class="trip-past" method="post" action="/trips/archive-past">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <p>{{ past_count }} trip{{ "s are" if past_count != 1 else " is" }} in the past. <button class="btn" type="submit">Archive them</button></p>
+</form>{% endif %}
+<form class="trip-find" method="get" action="/" role="search">
+  <label for="trip-q">Find trips</label>
+  <input type="search" id="trip-q" name="q" value="{{ q }}" maxlength="200">
+  {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
+  {% if tag %}<input type="hidden" name="tag" value="{{ tag }}">{% endif %}
+  {% if sort != "date" %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+  <button class="btn" type="submit">Find</button>
+</form>
+{% if tag %}<p class="trip-tag-filter">Tag: <strong>{{ tag }}</strong> <a href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a></p>{% endif %}
+{% if failing %}
+<div class="source-warning" role="alert">
+  {% for h in failing %}
+  <p class="chip warn"><a href="/captures?{{ {"failed": 1, "source": h.source} | urlencode }}">{{ h.source }}: the last {{ h.failed_after }} capture{{ "" if h.failed_after == 1 else "s" }} failed</a></p>
+  {% endfor %}
+</div>
 {% endif %}
-</body>
-</html>
+{% if lines or archived_lines %}
+<nav class="trip-sort" aria-label="Sort the trips">Sort:
+  {% for key, label in [("date", "Date"), ("price", "Price"), ("capture", "Newest capture"), ("title", "Title")] %}
+  {% set keep = {} %}{% if archived %}{% set _ = keep.update({"archived": 1}) %}{% endif %}{% if q %}{% set _ = keep.update({"q": q}) %}{% endif %}{% if tag %}{% set _ = keep.update({"tag": tag}) %}{% endif %}{% set _ = keep.update({"sort": key}) %}
+  <a href="/?{{ keep | urlencode }}"{% if key == sort %} aria-current="true"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
+{% if lines %}
+{{ trip_grid(lines) }}
+{% if archived_lines %}
+<h2>In the archive ({{ archived_found }})</h2>
+{{ trip_grid(archived_lines) }}
+{% endif %}
+{% elif archived_lines %}
+<h2>In the archive ({{ archived_found }})</h2>
+{{ trip_grid(archived_lines) }}
+{% elif tag %}
+{% call ui.empty_state('No trips with the tag "' ~ tag ~ '".') %}
+  <a class="btn" href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a>
+{% endcall %}
+{% elif q %}
+{% call ui.empty_state('No trip matches "' ~ q ~ '".') %}
+  <a class="btn" href="{{ "/?archived=1" if archived else "/" }}">Show all trips</a>
+{% endcall %}
+{% elif archived %}
+{{ ui.empty_state("No archived trips.") }}
+{% else %}
+{% call ui.empty_state("You have no trips yet. Create a trip, then capture offers on the travel sites.") %}
+  <a class="btn btn-primary" href="/trips/new">{{ ui.icon("plus") }}New trip</a>
+{% endcall %}
+{% endif %}
+{% endblock %}

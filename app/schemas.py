@@ -1,16 +1,17 @@
 """The body of POST /api/ingest (docs/SPEC.md section 5). Captured data is untrusted: Pydantic validates each field
 and limits each size (P4, P5)."""
 
-from datetime import datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 MAX_OFFERS = 500           # offers per batch
 MAX_LEGS = 20              # legs per offer
 MAX_BODY_BYTES = 5_000_000  # the whole request body, also the raw payload
 MAX_MAIL_BYTES = 2_000_000  # a saved confirmation e-mail (#2296)
+MAX_HAR_BYTES = 30_000_000  # an uploaded HAR file on the captures page (#1563)
 
 Mode = Literal["train", "bus", "flight", "ferry", "car", "other"]
 
@@ -27,6 +28,12 @@ class LegIn(BaseModel):
     to_code: str | None = Field(None, max_length=20)
     depart_at: AwareDatetime
     arrive_at: AwareDatetime
+    # The ticket of the leg in a self-transfer offer (#176): a change of the number between two legs is a
+    # self-transfer. A leg with no number is on the ticket of the leg before it.
+    ticket: int | None = Field(None, ge=1, le=MAX_LEGS)
+    # The seat reservation of the leg (#1620): "required" is mandatory and not in the price, "included" is mandatory
+    # and in the price, None is optional or not known.
+    reservation: Literal["required", "included"] | None = None
 
     @model_validator(mode="after")
     def _arrives_after_departure(self) -> "LegIn":
@@ -43,6 +50,11 @@ class OfferIn(BaseModel):
     price_currency: str = Field(pattern=r"^[A-Z]{3}$")
     fare_name: str | None = Field(None, max_length=100)
     flexibility: str | None = Field(None, max_length=50)
+    travel_class: Literal["first", "standard"] | None = None
+    berth: Literal["seat", "couchette", "sleeper"] | None = None  # the berth of a night train (#1807)
+    checked_bags_included: int | None = Field(None, ge=0, le=9)  # #1525
+    seats_left: int | None = Field(None, ge=0, le=9999)  # #1823: seats left of the fare, when the source gives it
+    checked_bag_price: Decimal | None = Field(None, ge=0, max_digits=10, decimal_places=2)  # first bag, price currency
     legs: list[LegIn] = Field(min_length=1, max_length=MAX_LEGS)
     booking_url: str | None = Field(None, max_length=2000, pattern=r"^https?://")
 
@@ -53,9 +65,29 @@ class OfferIn(BaseModel):
                 raise ValueError("a leg departs before the leg before it arrives")
         return self
 
+    @property
+    def self_transfers(self) -> int:
+        """The count of transfers between two tickets (#176). The ingest stores it on the fare: the same journey can
+        be one ticket at one source and two tickets at another."""
+        count, current = 0, self.legs[0].ticket
+        for leg in self.legs[1:]:
+            if leg.ticket is not None and current is not None and leg.ticket != current:
+                count += 1
+            current = leg.ticket if leg.ticket is not None else current
+        return count
+
+
+    @property
+    def reservation_legs(self) -> int:
+        """The count of legs with a mandatory reservation that the price does not include (#1620). The ingest stores
+        it on the fare: the status is per source, as `self_transfers`."""
+        return sum(leg.reservation == "required" for leg in self.legs)
+
 
 class IngestIn(BaseModel):
     trip_id: int = Field(gt=0)
+    # True: the server stores the offers into the planning trip that matches them, if trip_id does not (#719).
+    auto_trip: bool = False
     source: str = Field(min_length=1, max_length=50)
     parser_version: str | None = Field(None, max_length=50)
     captured_at: AwareDatetime
@@ -63,13 +95,136 @@ class IngestIn(BaseModel):
     search_context: dict[str, Any] | None = None
     raw: Any = None
     offers: list[OfferIn] = Field(default_factory=list, max_length=MAX_OFFERS)
+    # A random key of the userscript per payload (#1868): a resend with the same key and token gets the first answer.
+    capture_key: str | None = Field(None, pattern=r"^[A-Za-z0-9-]{16,64}$")
+    # One entry {"index", "reason"} per rejected offer (#54). Set only by `_split_offers`, never by the client.
+    offer_errors: list[dict[str, Any]] = Field(default_factory=list, exclude=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _split_offers(cls, data: Any) -> Any:
+        """Validate each offer on its own: a bad offer is rejected, the other offers stay (docs/SPEC.md section 5).
+        A list that is not a list or is too long stays for the field check (422 for the envelope)."""
+        if not isinstance(data, dict):
+            return data
+        data = {**data, "offer_errors": []}
+        offers = data.get("offers")
+        if not isinstance(offers, list) or len(offers) > MAX_OFFERS:
+            return data
+        good = []
+        for i, raw in enumerate(offers):
+            if isinstance(raw, OfferIn):
+                good.append(raw)
+                continue
+            try:
+                good.append(OfferIn.model_validate(raw))
+            except ValidationError as e:
+                data["offer_errors"].append({"index": i, "reason": _short_reason(e)})
+        data["offers"] = good
+        return data
 
     @model_validator(mode="after")
     def _raw_or_offers(self) -> "IngestIn":
-        if self.raw is None and not self.offers:
+        if self.raw is None and not self.offers and not self.offer_errors:
             raise ValueError("the body needs raw or offers")
         return self
 
 
+def _short_reason(e: ValidationError) -> str:
+    """The location and message of the first error, with no input value: the offer is untrusted (P5)."""
+    err = e.errors(include_input=False, include_url=False)[0]
+    loc = ".".join(str(x) for x in err["loc"])
+    return f"{loc}: {err['msg']}"[:200] if loc else err["msg"][:200]
+
+
 def utc_offset_min(t: datetime) -> int:
     return int(t.utcoffset().total_seconds() // 60)
+
+
+TripStatus = Literal["planning", "booked", "archived"]
+
+
+def clean_tags(text: str | None) -> str | None:
+    """The tags of a trip (#1950): strip them, drop blank and repeated ones (no case, no diacritics); at most 5 of at
+    most 20 characters. Returns the comma-separated text, or None with no tag."""
+    from app.tripmatch import fold  # app.tripmatch imports this module
+
+    tags: list[str] = []
+    for t in (text or "").split(","):
+        t = t.strip()
+        if t and fold(t) not in {fold(x) for x in tags}:
+            tags.append(t)
+    if len(tags) > 5:
+        raise ValueError("at most 5 tags")
+    if any(len(t) > 20 for t in tags):
+        raise ValueError("a tag has at most 20 characters")
+    return ", ".join(tags) or None
+
+
+class TripForm(BaseModel):
+    """The fields of the create and edit forms of a trip (#22). An empty text field is None."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    title: str = Field(min_length=1, max_length=200)
+    origin_text: str | None = Field(None, max_length=200)
+    destination_text: str | None = Field(None, max_length=200)
+    origin_alt_text: str | None = Field(None, max_length=200)  # other origins, comma-separated (#1422)
+    destination_alt_text: str | None = Field(None, max_length=200)
+    date_from: date | None = None
+    date_to: date | None = None
+    travelers: int = Field(1, ge=1, le=9)
+    status: TripStatus = "planning"
+    notes: str | None = Field(None, max_length=5000)
+    tags_text: str | None = Field(None, max_length=200)  # comma-separated tags (#1950)
+    target_price: Decimal | None = Field(None, gt=0, le=100000)  # EUR; the fares at or below it (#846)
+    arrive_by: time | None = None  # the local time at the arrival place (#1294)
+    leave_after: time | None = None  # the local time at the origin (#2023)
+    profile_id: int | None = None  # the score profile of this trip; None = the default profile (#232)
+    rail_pass_id: int | None = None  # the rail pass of this trip; None = no pass (#2266)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _empty_is_none(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            return {k: (None if isinstance(v, str) and not v.strip() and k != "title" else v) for k, v in data.items()}
+        return data
+
+    @field_validator("tags_text")
+    @classmethod
+    def _tags(cls, v: str | None) -> str | None:
+        return clean_tags(v)
+
+    @model_validator(mode="after")
+    def _dates_in_order(self) -> "TripForm":
+        if self.date_from and self.date_to and self.date_to < self.date_from:
+            raise ValueError("date_to is before date_from")
+        return self
+
+
+class SilentIn(BaseModel):
+    """POST /api/silent (#1755): a results page on which the userscript saw no offers."""
+    model_config = ConfigDict(extra="forbid")
+
+    source: str = Field(min_length=1, max_length=50)
+    page_url: str = Field(min_length=1, max_length=2000)
+    seen_at: AwareDatetime
+    script_version: str = Field(min_length=1, max_length=50)
+
+    @field_validator("source")
+    @classmethod
+    def _known_source(cls, value: str) -> str:
+        from app.parsers import parser_classes
+
+        if value not in parser_classes():
+            raise ValueError(f"unknown source {value}")
+        return value
+
+    @field_validator("page_url")
+    @classmethod
+    def _path_and_query(cls, value: str) -> str:
+        """Keep only the path and the query: no host, no fragment."""
+        from urllib.parse import urlsplit
+
+        parts = urlsplit(value)
+        return (parts.path or "/") + (f"?{parts.query}" if parts.query else "")

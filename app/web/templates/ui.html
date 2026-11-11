@@ -1,0 +1,50 @@
+{# The macros of the components of DESIGN.md section 4 (#623). Import: {% import "ui.html" as ui %}. #}
+{% macro page_header(title, subtitle=none, back=none) -%}
+<header class="page-header">
+  <div>
+    {% if back %}<a class="back" href="{{ back[0] }}">← {{ back[1] }}</a>{% endif %}
+    <h1>{{ title }}</h1>
+    {% if subtitle %}<p class="subtitle">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if caller is defined %}<div class="toolbar">{{ caller() }}</div>{% endif %}
+</header>
+{%- endmacro %}
+
+{% macro card(title=none, css=none) -%}
+<section class="card{% if css %} {{ css }}{% endif %}">
+  {% if title %}<div class="card-header"><h2>{{ title }}</h2></div>{% endif %}
+  {% if caller is defined %}{{ caller() }}{% endif %}
+</section>
+{%- endmacro %}
+
+{% macro empty_state(text) -%}
+<div class="empty">
+  <p>{{ text }}</p>
+  {% if caller is defined %}<div class="toolbar">{{ caller() }}</div>{% endif %}
+</div>
+{%- endmacro %}
+
+{# A Lucide icon of static/icons.svg (#624). With no label it is decoration (aria-hidden). #}
+{% macro icon(name, label=none) -%}
+<svg class="icon"{% if label %} role="img" aria-label="{{ label }}"{% else %} aria-hidden="true"{% endif %}><use href="/static/icons.svg#{{ name }}"></use></svg>
+{%- endmacro %}
+
+{# "N seats left" on a fare with SEATS_FEW or fewer seats left (#1827). The limit is a constant, not a setting (P2). #}
+{% set SEATS_FEW = 5 %}
+{% macro seats_badge(fare) -%}
+{%- set n = fare.seats_left -%}
+{%- if n is not none and 0 < n <= SEATS_FEW %} <span class="badge seats-left" title="the source shows few seats at this price">{{ n }} seat{{ "s" if n != 1 }} left</span>{% endif -%}
+{%- endmacro %}
+
+{# A "1st" badge for a 1st class fare (#692). A fare name with "1st class" in it (bahn.de) already says it. #}
+{% macro class_badge(fare) -%}
+{%- if fare.travel_class == "first" and "1st" not in (fare.fare_name or "") %} <span class="badge first-class" title="1st class">1st</span>{% endif -%}
+{%- endmacro %}
+
+{# The price of a fare, with its change since the last view when it differs (#1092): "€95.00 → €90.00". #}
+{% macro price_change(fare, seen) -%}
+{%- set old = (seen or {}).get(fare.id, fare.seen_price) -%}
+{%- if old is not none and old != fare.latest_price -%}
+<span class="price-change {{ 'down' if fare.latest_price < old else 'up' }}" title="the price at the last view">{{ old | money(fare.currency) }} → {{ fare.latest_price | money(fare.currency) }}</span>
+{%- else -%}{{ fare.latest_price | money(fare.currency) }}{%- endif -%}
+{%- endmacro %}

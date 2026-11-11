@@ -26,10 +26,17 @@ A parser change: run its fixture tests (`tests/fixtures/<source>/`). A model cha
 
 ## Level 2: slow tests (pages and userscripts)
 
-    python3 -m pytest -m slow
+    python3 -m pytest -m slow tests/test_<topic>_browser.py ...
+
+Run only the slow test files of the change: the browser tests of the changed pages or userscripts and the new test
+files, and also `tests/test_pages_width_browser.py` for a change of `app.css` or `base.html` (they act on each page).
+The CI job `browser` runs all slow tests on each PR, and Automerge waits for it (#822: the full suite before each push
+took 108 minutes per 100 PRs).
 
 Playwright tests: the pages in a real browser, and each userscript on a local test page that replays a fixture
-(never the real travel site, P1). In a cloud session, launch Chromium with `executable_path="/opt/pw-browsers/chromium"`.
+(never the real travel site, P1). A test launches Chromium with
+`p.chromium.launch(executable_path=exe) if os.path.exists(exe) else p.chromium.launch()`, `exe = "/opt/pw-browsers/chromium"`:
+the cloud has only that browser, and the CI job `browser` has no such path (#738, `tests/test_playwright_launch.py`).
 
 ## Level 3: a run of the app
 
@@ -49,5 +56,5 @@ body and link the run: the REST API cannot upload images.
 
 It checks `/api/health` (the commit) and the API with a test trip and offer, through the network secret of the
 environment. "HTTP 401" means the environment has no network secret: say so in the epic and stop. Never ask for a
-password or a token, and never test the pages there (basic auth and the login are the owner's): levels 2 and 4 test
+password or a token, and never test the pages there (the login is the owner's): levels 2 and 4 test
 them locally.

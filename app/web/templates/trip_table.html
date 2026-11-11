@@ -1,0 +1,15 @@
+{# The table of the trip page; an htmx request gets only this part (#14, #112). A header link sorts by its column. #}
+{% if request.headers.get("HX-Request") %}{% with oob = true %}{% include "compare_form.html" %}{% include "trip_days.html" %}{% include "trip_filtered.html" %}{% include "trip_timeline.html" %}{% include "trip_split.html" %}{% include "trip_price_hours.html" %}{% include "trip_summary.html" %}{% include "trip_best_mode.html" %}{% include "trip_routes.html" %}{% endwith %}{% endif %}
+{# The route column also holds the times and the carrier column the fare (#627): their heads have more sort links. #}
+{% set columns = [("route", "Route", [("depart", "Departure"), ("arrive", "Arrival")]), ("carrier", "Carrier", [("fare", "Fare")]),
+                  ("price", "Price", []), ("cost", "Effective cost", [])] %}
+{% macro sort_link(key, name) %}{% set active = view.sort == key %}<a class="sort" href="/trips/{{ trip.id }}?{{ sort_qs }}&amp;sort={{ key }}&amp;dir={{ "desc" if active and view.dir == "asc" else "asc" }}">{{ name }}{% if active %} {{ "▲" if view.dir == "asc" else "▼" }}{% endif %}</a>{% endmacro %}
+<table>
+  <thead>
+    <tr>{% for key, name, more in columns %}{% set active = view.sort in [key] + more | map("first") | list %}
+      <th{% if active %} aria-sort="{{ "ascending" if view.dir == "asc" else "descending" }}"{% endif %}>{{ sort_link(key, name) }}{% for k, n in more %} · {{ sort_link(k, n) }}{% endfor %}</th>{% endfor %}<th><span class="muted">Actions</span></th></tr>
+  </thead>
+  <tbody id="rows">
+  {% include "trip_rows.html" %}
+  </tbody>
+</table>

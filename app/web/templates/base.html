@@ -1,20 +1,33 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8">{% include "favicon.html" %}
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}travel-aggregator{% endblock %}</title>
-  <style>
-    :root { color-scheme: light dark; --line: #8884; }
-    body { font-family: system-ui, sans-serif; margin: 0 auto; max-width: 70rem; padding: 1rem; line-height: 1.4; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border-bottom: 1px solid var(--line); padding: .4rem .5rem; text-align: left; vertical-align: top; }
-    td.price { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .muted { opacity: .7; font-size: .9em; }
-    .scroll { overflow-x: auto; }
-  </style>
+  <script src="/static/htmx.min.js"></script>
+  <script src="/static/keys.js" defer></script>
+  <link rel="stylesheet" href="/static/app.css">
 </head>
-<body>
+<body{% block body_attrs %}{% endblock %}>
+  {% block nav %}{% set here = request.url.path if request is defined else "" %}
+  {% set pinned_n = pinned_count(request) if request is defined else 0 %}
+  {% import "ui.html" as ui_nav %}
+  <nav class="topbar" aria-label="Main">
+    <a class="brand" href="/">{{ ui_nav.icon("plane") }}<span>travel-aggregator</span></a>
+    {% macro links(current) %}
+      {% for href, label, ic in [("/", "Trips", "calendar-plus"), ("/upcoming", "Upcoming", "check"), ("/pinned", "Pinned" ~ (" (" ~ pinned_n ~ ")" if pinned_n else ""), "pin"), ("/captures", "Captures", "upload"), ("/settings", "Settings", "settings")] %}
+      <a href="{{ href }}"{% if here == href or (href != "/" and here.startswith(href)) or (href == "/" and here.startswith("/trips")) or (href == "/settings" and here in settings_paths) %} class="active"{% if current %} aria-current="page"{% endif %}{% endif %}>{{ ui_nav.icon(ic) }}{{ label }}</a>
+      {% endfor %}
+      <a class="logout" href="/logout">{{ ui_nav.icon("log-out") }}Log out</a>
+    {% endmacro %}
+    <div class="nav-links">{{ links(true) }}</div>
+    <details class="menu">
+      <summary>{{ ui_nav.icon("menu") }}Menu</summary>
+      <div class="menu-links">{{ links(false) }}</div>
+    </details>
+  </nav>{% endblock %}
+  <main>
   {% block content %}{% endblock %}
+  </main>
 </body>
 </html>

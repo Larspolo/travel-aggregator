@@ -20,7 +20,8 @@ This is a scheduled, unattended run. Other runs can work at the same time. The p
    tickets"; it commented "Taken over by"). `PR #M B`: start at autopilot step 6.8 on the PR branch B
    (`git checkout -B <session branch> origin/B`; a conflict: `python3 framework/tools/merge_main.py --push N --pr-branch B`; red
    CI: fix and `git push origin HEAD:B` after `claim.py N --guard --pr-branch B`; wait for its CI: `ship_pr.py N --ci --pr-branch B`). `no PR`: do the ticket from step 6.
-   A `next:` line (#5076): up to 2 next tickets that the pacer did not claim. After the report of each ticket, take
+   A `start:` line (#1800): the "Start after: N PRs" count did not come, but the idle rule ended the wait: do the
+   ticket now, do not give it back. A `next:` line (#5076): up to 2 next tickets that the pacer did not claim. After the report of each ticket, take
    the next ticket from that line (`more.md`, "Next tickets of the brief"), not with `cycle_start.py`; do not stop to
    let the pacer pick. Exit 1: follow this skill with no brief. No brief in this turn: first run `python3 framework/tools/tokens.py
    --queued` (one call). Exit 0: a brief waits as the next turn of this session (a fire queues the prompt of the task
@@ -33,9 +34,14 @@ This is a scheduled, unattended run. Other runs can work at the same time. The p
    workflow `pacer.yml` starts new runs (`framework/tools/pacer.py`).
 3. Do not run more runs than the quota target: run `python3 framework/tools/usage.py --fire`. Its stderr line shows "target N"
    and "claims M". If the tool fails, N = 8 and M = the open tickets with the label `in-progress` that changed in the
-   last 30 minutes. a) At your start (not with an adopted brief: the pacer counted the target) (after step 1 of the autopilot skill): if N is 0, stop. If M is N or more, only
+   last 30 minutes. a) At your start (not with an adopted brief: the pacer counted the target; not in a deep run with the section `Deep work`
+   of `cycle_start.py`: it has the numbers, #1377) (after step 1 of the autopilot skill): if N is 0, stop. If M is N or more, only
    finish stalled PRs of other runs (autopilot step 2), then stop without a new ticket. b) After each PR that you
    open: run it again; if M is more than N, stop instead of taking a new ticket.
+
+No one reads the chat of a scheduled run: all results go to GitHub (owner, 2026-11-06). Write no text between the
+tool calls, and end each turn with one short line. Each word of output costs 5 times an input token, and each later
+call reads it again (`tokens.py --json`: `text`).
 
 The owner (`owner` in `agent.toml`) asks you to do this work without questions: create a branch and a pull request for
 each ticket. Do not merge by hand: the Automerge workflow merges the pull request when its quick CI is green. Use the

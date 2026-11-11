@@ -1,0 +1,8 @@
+{# The offers that the filters hide (#1452): one line above the table. An htmx request swaps it out of band (as trip_days). #}
+<p id="trip-filtered" class="filtered muted"{% if oob %} hx-swap-oob="true"{% endif %}{% if not filtered or not filtered.total %} hidden{% endif %}>
+{%- if filtered and filtered.total %}Filters hide {{ filtered.total }} of {{ filtered.shown_of }} offers: {% for label, n in filtered.counts %}<a href="/trips/{{ trip.id }}?{{ filtered_qs[label] }}">{{ label }}</a> hides {{ n }}{% if not loop.last %} · {% endif %}{% endfor %} <button class="btn btn-ghost" type="submit" form="compare" formmethod="post" name="csrf_token" value="{{ csrf_token(request) }}" formaction="/trips/{{ trip.id }}/itineraries/hide-filtered?{{ sort_qs }}">Hide all {{ filtered.total }}</button>{% endif -%}
+</p>
+{# The best offer that the filters hide (#1454), with a link to the page without those filters. #}
+<p id="trip-best-hidden" class="filtered muted"{% if oob %} hx-swap-oob="true"{% endif %}{% if not best_hidden %} hidden{% endif %}>
+{%- if best_hidden %}Best hidden offer: {{ best_hidden.total }}, {{ best_hidden.when }} {{ best_hidden.route }} ({{ best_hidden.source }}), hidden by {{ best_hidden.by }}{% if best_hidden.diff %} · {{ best_hidden.diff }}{% endif %} <a href="{{ best_hidden.link }}">Show it</a>{% endif -%}
+</p>

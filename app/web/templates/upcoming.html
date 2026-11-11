@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Upcoming – travel-aggregator{% endblock %}
+{% block content %}
+{% if only %}{% call ui.page_header("Journey: " ~ itineraries[0].trip.title) %}{% endcall %}{% else %}{% call ui.page_header("Upcoming") %}{% endcall %}{% endif %}
+  <p class="muted offline-note" hidden data-saved-at="{{ now.isoformat() }}"></p>
+  {% if not itineraries %}
+  <p class="muted">No booked journeys. Mark an offer as booked on its trip page.</p>
+  {% else %}
+  <ol class="journey-parts upcoming">
+  {% for it in itineraries %}{% set trip = it.trip %}
+    <li class="journey-part">
+      <div class="journey-what">
+        <strong><a href="/trips/{{ trip.id }}">{{ trip.title }}</a></strong>
+        {% if it.legs %}{% set first = it.legs[0] %}<span class="muted">{{ (first.depart_at | local(first.depart_offset_min)).strftime("%a %d %b %Y") }}</span>{% endif %}
+        <ul class="upcoming-legs">
+        {% for leg in it.legs %}{% set dep = leg.depart_at | local(leg.depart_offset_min) %}{% set arr = leg.arrive_at | local(leg.arrive_offset_min) %}{% set gap = arr | day_gap(dep) %}
+          <li class="journey-when">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon, leg.mode) }}{% endif %}
+            {{ leg.carrier or "" }} {{ leg.service_no or "" }} · {{ leg.from_name }} → {{ leg.to_name }} ·
+            {{ dep.strftime("%H:%M") }}–{{ arr.strftime("%H:%M") }}{% if gap > 0 %} <span class="chip">+{{ gap }} day{% if gap > 1 %}s{% endif %}</span>{% endif %}</li>
+        {% endfor %}
+        </ul>
+        {% if it.booking_code %}<p class="muted">Booking code: {{ it.booking_code }}</p>{% endif %}
+        {% if not only %}{% for c in overlaps.get(it.id, []) %}
+        <p class="upcoming-conflict"><span class="chip warn">{% if c.kind == "order" %}This journey departs before the journey before it arrives{% else %}This journey overlaps another booked journey{% endif %}</span> · <a href="/trips/{{ c.other_trip_id }}">Open the other trip</a></p>
+        {% endfor %}{% endif %}
+      </div>
+      <div class="journey-cost">{% if it.booked_price is not none %}<span class="paid">Paid {{ it.booked_price | money(it.booked_currency or "EUR") }}</span>{% endif %}<a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
+           aria-label="Add to calendar" title="Add to calendar">{{ ui.icon("calendar-plus") }}</a><a class="icon" href="/upcoming?only={{ it.id }}" aria-label="Print" title="Print">{{ ui.icon("printer") }}</a></div>
+    </li>
+  {% endfor %}
+  </ol>
+  {% if paid_total is not none or paid_missing %}<p class="paid-total"><strong>Total paid: {{ (paid_total if paid_total is not none else 0) | money("EUR") }}</strong>{% for code, n in paid_missing | dictsort %}
+    <span class="muted">({{ n }} price{% if n > 1 %}s{% endif %} in {{ code }} {% if n > 1 %}have{% else %}has{% endif %} no rate)</span>{% endfor %}</p>{% endif %}
+  {% endif %}
+  {% if only %}<p><a href="/upcoming">All upcoming journeys</a></p>{% else %}
+  <p><a href="/upcoming/years">Travel per year</a></p>
+  <section class="card calendar-feed"><h2>Calendar</h2>
+  {% if feed_link %}{% set webcal = "webcal://" ~ feed_link.split("://", 1)[1] %}
+    <div class="new-token" role="status">
+      <p>Keep this link: it shows only now. Each person with it sees your booked journeys, with no login.</p>
+      <p><a class="btn" href="{{ webcal }}">{{ ui.icon("calendar-plus") }}Open in the calendar app</a></p>
+      <label>Link to copy <input class="share-link" type="text" readonly value="{{ feed_link }}" onfocus="this.select()"></label>
+    </div>
+  {% endif %}
+  {% if feed_since %}<p class="muted">Subscribed since {{ feed_since.strftime("%d %b %Y") }}</p>
+  {% else %}<p class="muted">No calendar link</p>{% endif %}
+    <form method="post" action="/upcoming/calendar">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("calendar-plus") }}{% if feed_since %}Make a new link{% else %}Subscribe in a calendar{% endif %}</button>
+    </form>
+  {% if feed_since %}
+    <form method="post" action="/upcoming/calendar/revoke">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button class="btn" type="submit">{{ ui.icon("eye-off") }}Revoke</button>
+    </form>
+  {% endif %}
+  </section>
+  {% endif %}
+<script src="/static/offline.js" defer></script>
+{% endblock %}

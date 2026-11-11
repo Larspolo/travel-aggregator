@@ -45,7 +45,7 @@ def test_query_one_statement(engine):
     event.listen(engine, "before_cursor_execute", lambda *a: statements.append(a[2]))
     with Session(engine) as s:
         rows = list_trips(s)
-    assert len(statements) == 1
+    assert len(statements) <= 5  # the list, 2 of gone_fares (#1387) and 2 of suspect_fares (#1606), not one per trip
     by_title = {r.title: r for r in rows}
     berlin = by_title["Berlin"]
     assert berlin.offer_count == 2
@@ -65,9 +65,9 @@ def _client(monkeypatch):
 def test_page(engine, monkeypatch):
     _seed(engine)
     html = _client(monkeypatch).get("/").text
-    assert "Utrecht → Berlin" in html and "2026-12-01 – 2026-12-05" in html
-    assert "EUR 45.50" in html and "active" in html
-    assert "no offers yet" in html and "<td>0</td>" in html
+    assert "Utrecht <svg" in html and "Berlin</p>" in html and "2026-12-01 – 2026-12-05" in html
+    assert "€45.50" in html and "planning" in html
+    assert "no offers yet" in html and "0 offers" in html
     assert "<script>alert" not in html and "&lt;script&gt;alert(1)&lt;/script&gt;" in html
 
 

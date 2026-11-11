@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Raw payload of capture {{ capture.id }} · travel-aggregator{% endblock %}
+{% block content %}
+{% call ui.page_header("Raw payload of capture " ~ capture.id, back=("/trips/" ~ capture.trip_id ~ "/captures", "Back to the captures")) %}{% endcall %}
+<p>Source: {{ capture.source }} · <a href="/captures/{{ capture.id }}/raw.json">Download JSON</a> · <a href="/captures/{{ capture.id }}/report.json">Download for a bug report</a></p>
+<form method="post" action="/captures/{{ capture.id }}/keep" class="keep-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <input type="hidden" name="keep" value="{{ '0' if capture.kept else '1' }}">
+  <button class="btn" type="submit">{{ "Do not keep" if capture.kept else "Keep" }}</button>
+</form>
+{% if text is none %}
+{{ ui.empty_state("No raw payload") }}
+{% else %}
+<section class="card data-card"><pre class="raw-payload" tabindex="0">{{ text }}</pre></section>
+{% if truncated %}<p class="raw-size-note">The payload is {{ size_kb }} KB; download it to see all of it.</p>{% endif %}
+{% endif %}
+{% endblock %}

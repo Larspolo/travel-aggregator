@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}{% if trip_id %}Edit trip{% else %}New trip{% endif %} – travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Edit trip" if trip_id else "New trip", back=("/trips/" ~ trip_id, "Trip") if trip_id else ("/", "Trips")) }}
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<form class="card" method="post" action="{% if trip_id %}/trips/{{ trip_id }}/edit{% else %}/trips/new{% endif %}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field wide"><label for="f-title">Title</label><input id="f-title" name="title" required maxlength="200" value="{{ values.title or '' }}"></div>
+    <div class="field"><label for="f-origin">Origin</label><input id="f-origin" name="origin_text" maxlength="200" value="{{ values.origin_text or '' }}"></div>
+    <div class="field"><label for="f-destination">Destination</label><input id="f-destination" name="destination_text" maxlength="200" value="{{ values.destination_text or '' }}"></div>
+    <div class="field"><label for="f-origin-alt">Other origins (comma-separated)</label><input id="f-origin-alt" name="origin_alt_text" maxlength="200" value="{{ values.origin_alt_text or '' }}"></div>
+    <div class="field"><label for="f-destination-alt">Other destinations (comma-separated)</label><input id="f-destination-alt" name="destination_alt_text" maxlength="200" value="{{ values.destination_alt_text or '' }}"></div>
+    <div class="field"><label for="f-date-from">From</label><input id="f-date-from" type="date" name="date_from" value="{{ values.date_from or '' }}"></div>
+    <div class="field"><label for="f-date-to">To</label><input id="f-date-to" type="date" name="date_to" value="{{ values.date_to or '' }}"></div>
+    <div class="field"><label for="f-travelers">Travelers</label><input id="f-travelers" type="number" name="travelers" min="1" max="9" value="{{ values.travelers or 1 }}"></div>
+    <div class="field"><label for="f-target-price">Target price (EUR)</label><input id="f-target-price" type="number" name="target_price" min="0.01" max="100000" step="0.01" value="{{ values.target_price or '' }}"><small>Mark the fares at or below this price</small></div>
+    <div class="field"><label for="f-arrive-by">Arrive by</label><input id="f-arrive-by" type="time" name="arrive_by" value="{{ (values.arrive_by|string)[:5] if values.arrive_by else '' }}"><small>The local time at the destination</small></div>
+    <div class="field"><label for="f-leave-after">Leave after</label><input id="f-leave-after" type="time" name="leave_after" value="{{ (values.leave_after|string)[:5] if values.leave_after else '' }}"><small>The local time at the origin</small></div>
+    <div class="field"><label for="f-status">Status</label><select id="f-status" name="status">
+      {% for s in ["planning", "booked", "archived"] %}
+      <option value="{{ s }}"{% if values.status == s %} selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select></div>
+    <div class="field wide"><label for="f-profile">Profile</label><select id="f-profile" name="profile_id">
+      <option value="">Default</option>
+      {% for p in profiles %}<option value="{{ p.id }}"{% if values.profile_id|string == p.id|string %} selected{% endif %}>{{ p.name }}</option>{% endfor %}
+    </select></div>
+    <div class="field wide"><label for="f-rail-pass">Rail pass</label><select id="f-rail-pass" name="rail_pass_id">
+      <option value="">No pass</option>
+      {% for rp in rail_passes %}<option value="{{ rp.id }}"{% if values.rail_pass_id|string == rp.id|string %} selected{% endif %}>{{ rp.name }}</option>{% endfor %}
+    </select></div>
+    <div class="field"><label for="f-tags">Tags</label><input id="f-tags" name="tags_text" maxlength="200" value="{{ values.tags_text or '' }}"><small>comma-separated, at most 5</small></div>
+    <div class="field wide"><label for="f-notes">Notes</label><textarea id="f-notes" name="notes" maxlength="5000">{{ values.notes or '' }}</textarea></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-ghost" href="{% if trip_id %}/trips/{{ trip_id }}{% else %}/{% endif %}">Cancel</a>
+    {% if trip_id %}<a class="btn btn-danger" href="/trips/{{ trip_id }}/delete">Delete trip</a>{% endif %}
+  </div>
+</form>
+{% if trip_id %}
+<form class="card" method="post" action="/trips/{{ trip_id }}/copy">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <button class="btn" type="submit">{{ ui.icon("plus") }}Copy trip</button>
+</form>
+{% if splittable %}
+<form class="card" method="post" action="/trips/{{ trip_id }}/split">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  {% if split_error %}<p class="error" role="alert">{{ split_error }}</p>{% endif %}
+  <div class="field"><label for="f-via">Split via</label><input id="f-via" type="text" name="via" maxlength="200" placeholder="Köln"{% if via_places %} list="via-places"{% endif %}></div>
+  {% if via_places %}<datalist id="via-places">{% for place, n in via_places %}<option value="{{ place }}">{% endfor %}</datalist>{% endif %}
+  <button class="btn" type="submit">Split trip</button>
+</form>
+{% if trip_id %}
+<section class="card" id="trip-places">
+  <div class="card-header"><h2>Access times of this trip</h2></div>
+  {% if trip_places %}
+  <ul class="item-list">
+    {% for p, g in trip_places %}
+    <li class="item">
+      <div class="item-main">
+        <strong>{{ p.place_text }}</strong> <span class="chip">{{ p.kind }}</span>
+        <p class="item-facts">{{ p.minutes }} min · €{{ p.cost }}{% if g %} · global: {{ g.minutes }} min · €{{ g.cost }}{% else %} · no global value{% endif %}</p>
+      </div>
+      <div class="item-actions">
+        <form class="inline-form" method="post" action="/trips/{{ trip_id }}/places/{{ p.id }}/delete">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+          <button class="btn btn-ghost" type="submit">Delete</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p>This trip uses the global places.</p>{% endif %}
+  <form method="post" action="/trips/{{ trip_id }}/places">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    <div class="form-grid">
+      <div class="field wide"><label for="tp-place">Place</label><input id="tp-place" name="place_text" required maxlength="200"></div>
+      <div class="field"><label for="tp-kind">Kind</label><select id="tp-kind" name="kind">{% for k in place_kinds %}<option value="{{ k }}">{{ k }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="tp-minutes">Minutes</label><input id="tp-minutes" name="minutes" type="number" min="0" step="1" required></div>
+      <div class="field"><label for="tp-cost">Cost (€)</label><input id="tp-cost" name="cost" type="number" min="0" step="0.01" value="0"></div>
+    </div>
+    <div class="form-actions"><button class="btn" type="submit">Add access time</button></div>
+  </form>
+</section>
+{% endif %}
+{% if via_places %}
+<section class="card">
+  <div class="card-header"><h2>Transfer places of your offers</h2></div>
+  {% for place, n in via_places %}
+  <form method="post" action="/trips/{{ trip_id }}/split">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    <input type="hidden" name="via" value="{{ place }}">
+    <button class="btn" type="submit">Split via {{ place }} ({{ n }} offer{{ "s" if n != 1 }})</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+{% endif %}
+{% if merge %}
+<section class="card">
+  <div class="card-header"><h2>Merge into another trip</h2></div>
+  {% if merge.linked %}
+  <p>This trip is linked to another trip (a return or a split), so it cannot be merged.</p>
+  {% elif merge.choices %}
+  <form method="get" action="/trips/{{ trip_id }}/merge">
+    <div class="field"><label for="f-merge-into">Target trip</label><select id="f-merge-into" name="into">
+      {% for t in merge.choices %}<option value="{{ t.id }}">{{ t.title }}{% if t.status == "archived" %} (archived){% endif %} – {{ t.origin_text or "" }} → {{ t.destination_text or "" }}{% if t.date_from %}, {{ t.date_from }}{% endif %}{% if t.date_to %} to {{ t.date_to }}{% endif %}</option>{% endfor %}
+    </select></div>
+    <button class="btn" type="submit">Merge…</button>
+  </form>
+  {% else %}
+  <p>There is no other trip to merge into.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% if journey > 1 %}
+<form class="card" method="post" action="/trips/{{ trip_id }}/copy-journey">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <button class="btn" type="submit">{{ ui.icon("plus") }}Copy journey</button>
+</form>
+{% endif %}
+{% endif %}
+{% endblock %}

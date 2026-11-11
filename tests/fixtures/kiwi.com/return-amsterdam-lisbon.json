@@ -1,0 +1,273 @@
+{
+  "currency": "gbp",
+  "response": {
+    "data": {
+      "returnItineraries": {
+        "itineraries": [
+          {
+            "__typename": "ItineraryReturn",
+            "outbound": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-01T06:35:00",
+                      "utcTimeIso": "2026-12-01T05:35:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-01T08:40:00",
+                      "utcTimeIso": "2026-12-01T08:40:00Z"
+                    },
+                    "code": "5951",
+                    "carrier": {
+                      "code": "HV",
+                      "name": "Transavia"
+                    },
+                    "guarantee": null
+                  },
+                  "guarantee": null
+                }
+              ]
+            },
+            "inbound": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-08T16:45:00",
+                      "utcTimeIso": "2026-12-08T16:45:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-08T20:50:00",
+                      "utcTimeIso": "2026-12-08T19:50:00Z"
+                    },
+                    "code": "5954",
+                    "carrier": {
+                      "code": "HV",
+                      "name": "Transavia"
+                    },
+                    "guarantee": null
+                  },
+                  "guarantee": null
+                }
+              ]
+            },
+            "price": {
+              "amount": "127"
+            },
+            "pnrCount": 2,
+            "bookingOptions": {
+              "edges": [
+                {
+                  "node": {
+                    "price": {
+                      "amount": "127"
+                    },
+                    "itineraryProvider": {
+                      "code": "KIWI-BASIC"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=return&searchBags=0.0"
+                  }
+                },
+                {
+                  "node": {
+                    "price": {
+                      "amount": "144.024781"
+                    },
+                    "itineraryProvider": {
+                      "code": "KIWI"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=return&searchBags=0.0"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "__typename": "ItineraryReturn",
+            "outbound": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-01T06:35:00",
+                      "utcTimeIso": "2026-12-01T05:35:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-01T08:40:00",
+                      "utcTimeIso": "2026-12-01T08:40:00Z"
+                    },
+                    "code": "5951",
+                    "carrier": {
+                      "code": "HV",
+                      "name": "Transavia"
+                    },
+                    "guarantee": null
+                  },
+                  "guarantee": null
+                }
+              ]
+            },
+            "inbound": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-08T05:00:00",
+                      "utcTimeIso": "2026-12-08T05:00:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-08T09:00:00",
+                      "utcTimeIso": "2026-12-08T08:00:00Z"
+                    },
+                    "code": "1578",
+                    "carrier": {
+                      "code": "KL",
+                      "name": "KLM Royal Dutch Airlines"
+                    },
+                    "guarantee": null
+                  },
+                  "guarantee": null
+                }
+              ]
+            },
+            "price": {
+              "amount": "146"
+            },
+            "pnrCount": 2,
+            "bookingOptions": {
+              "edges": [
+                {
+                  "node": {
+                    "price": {
+                      "amount": "146"
+                    },
+                    "itineraryProvider": {
+                      "code": "KIWI"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=return&searchBags=0.0"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "__typename": "ItineraryReturn",
+            "outbound": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-01T07:00:00",
+                      "utcTimeIso": "2026-12-01T06:00:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-01T09:10:00",
+                      "utcTimeIso": "2026-12-01T09:10:00Z"
+                    },
+                    "code": "675",
+                    "carrier": {
+                      "code": "TP",
+                      "name": "TAP Portugal"
+                    },
+                    "guarantee": null
+                  },
+                  "guarantee": null
+                }
+              ]
+            },
+            "inbound": {
+              "sectorSegments": [
+                {
+                  "segment": {
+                    "source": {
+                      "station": {
+                        "code": "LIS"
+                      },
+                      "localTime": "2026-12-08T12:50:00",
+                      "utcTimeIso": "2026-12-08T12:50:00Z"
+                    },
+                    "destination": {
+                      "station": {
+                        "code": "AMS"
+                      },
+                      "localTime": "2026-12-08T17:00:00",
+                      "utcTimeIso": "2026-12-08T16:00:00Z"
+                    },
+                    "code": "672",
+                    "carrier": {
+                      "code": "TP",
+                      "name": "TAP Portugal"
+                    },
+                    "guarantee": null
+                  },
+                  "guarantee": null
+                }
+              ]
+            },
+            "price": {
+              "amount": "151"
+            },
+            "pnrCount": 1,
+            "bookingOptions": {
+              "edges": [
+                {
+                  "node": {
+                    "price": {
+                      "amount": "151"
+                    },
+                    "itineraryProvider": {
+                      "code": "KIWI-BASIC"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=return&searchBags=0.0"
+                  }
+                },
+                {
+                  "node": {
+                    "price": {
+                      "amount": "170.503243"
+                    },
+                    "itineraryProvider": {
+                      "code": "KIWI"
+                    },
+                    "bookingUrl": "/en/booking/?direct=true&locale=en&currency=gbp&passengers=1-0-0&token=REDACTED&searchType=return&searchBags=0.0"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

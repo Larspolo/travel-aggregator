@@ -10,7 +10,8 @@ The first push of a ticket took 2 to 6 tool calls in each run on 2026-10-28, and
 
 Steps: `git commit -F MSG.txt` of the staged files (without `--message`: the commits that are there), the lint command of `agent.toml` (also with `--tested`),
 the tests (the test files of the branch and the test files that import its changed modules, never the full
-suite: the quick CI runs it, owner #4187; `--tested`: you ran them on this tree), `claim.py N --guard` and the push (`merge_main.push`), the PR (a new
+suite: the quick CI runs it, owner #4187; `--tested`: you ran them on this tree, and only the test files whose
+`GUARDS` match a changed file run, #1328), `claim.py N --guard` and the push (`merge_main.push`), the PR (a new
 one with `Closes #N` in its body; or the open PR of the branch), and `mergeable_state` (`dirty`: run
 `python3 framework/tools/merge_main.py --push N`). Then it waits for the quick CI of the pushed commit, up to `WAIT`
 minutes after its start (#4784): a red quick CI after the end of its run cost a takeover and a cold run 30 to 40
@@ -43,6 +44,7 @@ from agent_config import CONFIG  # noqa: E402
 
 push = merge_main.push
 QUICK = "quick"                                     # the check of ci.yml that Automerge waits for
+QUICK_PARTS = 2   # the matrix `shard` of the job quick of ci.yml (#1077): the check runs `quick (1)` and `quick (2)`
 GATES = tuple(CONFIG.get("ci", {}).get("gates", ()))   # `[ci] gates` of agent.toml: the other checks of ci.yml
 #                         that Automerge needs green (#221; none: only `quick`). Red after a green quick CI, the
 #                         wait for the merge ended at the time limit with "Automerge merges it", and a cold run took
@@ -81,17 +83,41 @@ def lint():
     return True
 
 
+def branch_tests():
+    """(the changed files of the branch, {path: text} of the test files of the repository)."""
+    changed = git("diff", "--name-only", f"origin/{CONFIG['branch']}...HEAD").stdout.split()
+    return changed, {f: open(f, encoding="utf-8").read() for f in glob.glob("tests/test_*.py") + glob.glob("framework/tests/test_*.py")}
+
+
+def guard_checks():
+    """`--tested`: only the test files whose `GUARDS` match a changed file. True when they pass (#1328: the run ran the
+    tests of its topic, and 6 of 16 red quick CI runs of 100 merged PRs were whole-app tests, for example a new route
+    that missed `tests/test_pages_need_login.py`; these files take about 10 s)."""
+    changed, tests = branch_tests()
+    return run_tests(merge_main.guarded(changed, tests), "")
+
+
 def checks():
     """The test files of the branch and of its changed modules (more than `MAX_TESTS`: only the branch's).
     Never the full fast suite: the quick CI runs it on each push (owner, #4187). True when all pass."""
-    changed = git("diff", "--name-only", f"origin/{CONFIG['branch']}...HEAD").stdout.split()
-    tests = {f: open(f, encoding="utf-8").read() for f in glob.glob("tests/test_*.py") + glob.glob("framework/tests/test_*.py")}
+    changed, tests = branch_tests()
     run = merge_main.test_files(changed, changed, tests)[0]
+    texts = [f for f in merge_main.text_tests(changed, tests) if f not in run]   # no import leads to them (#682)
+    if texts:
+        print("tests of a removed page text: " + " ".join(texts))
+        run = sorted(set(run) | set(texts))
     if any(f.endswith(".jsonl") or f.startswith(DATA_CHECKS) for f in changed):   # no import finds their tests (#4614)
         run = sorted(set(run) | {f for f in DATA_TESTS if f in tests})
+    return run_tests(run, "no test file of the branch: the quick CI runs the fast suite")
+
+
+def run_tests(run, none):
+    """True when the pytest run of the test files `run` passes (none: print `none`, True)."""
     if not run:
-        print("no test file of the branch: the quick CI runs the fast suite")
+        if none:
+            print(none)
         return True
+    print("tests: " + " ".join(run))
     par = ["-n", "auto"] if len(run) > 8 else []           # a few files start faster without xdist (verify)
     r = subprocess.run([sys.executable, "-m", "pytest", "-q", *par, *run], capture_output=True, text=True)
     print("\n".join((r.stdout + r.stderr).strip().splitlines()[-15:]))
@@ -130,15 +156,52 @@ def state(number, tries=6, wait=5):
     return "unknown"
 
 
-def quick(sha, name=QUICK):
-    """The check run `name` (default `quick`) of commit `sha`, or None (not queued yet)."""
-    return next(iter(dashboard.api(f"commits/{sha}/check-runs?check_name={name}").get("check_runs", [])), None)
+def quick(sha):
+    """The check run `quick` of commit `sha` (its parts as one run: `quick_run`), or None (not queued yet)."""
+    return quick_run(dashboard.api(f"commits/{sha}/check-runs?per_page=100&filter=latest").get("check_runs", []))
+
+
+def quick_run(runs):
+    """One check run for the parts of the job `quick` in `runs` (newest first, the check runs of one commit), or None
+    (not queued yet). The job is a matrix of QUICK_PARTS jobs, `quick (1)` and `quick (2)` (#1077); an older commit
+    has one check run `quick`. A failed part first (its id gives the failed steps), then a part that still runs, then
+    a part with another conclusion than success (for example cancelled), else a green part. A missing part of the
+    matrix is "not queued yet": the result is green only when all parts are green."""
+    newest = {}
+    for c in runs:                                  # the first run of each name counts (a re-run is newer)
+        if gate(c.get("name")) == QUICK:
+            newest.setdefault(c.get("name"), c)
+    parts = list(newest.values())
+    if not parts or (QUICK not in newest and len(parts) < QUICK_PARTS):
+        return None
+    rank = lambda c: (0 if c.get("status") == "completed" and c.get("conclusion") == "failure" else
+                      1 if c.get("status") != "completed" else 2 if c.get("conclusion") != "success" else 3)
+    return min(parts, key=rank)
+
+
+def quick_green(runs):
+    """True when all parts of the job `quick` in `runs` passed (`quick_run`)."""
+    c = quick_run(runs)
+    return bool(c) and c.get("status") == "completed" and c.get("conclusion") == "success"
 
 
 def red_gate(sha):
-    """The first failed check run of GATES of commit `sha`, or None (green, still running or not queued)."""
-    return next((c for c in (quick(sha, name) for name in GATES)
-                 if c and c["status"] == "completed" and c["conclusion"] == "failure"), None)
+    """The first failed check run of GATES of commit `sha`, or None (green, still running or not queued). One call for
+    all gates: a call per gate in each poll cost about 20 calls per PR with 3 gates (process review 2026-11-07)."""
+    if not GATES:
+        return None
+    runs = dashboard.api(f"commits/{sha}/check-runs?per_page=100").get("check_runs", [])
+    newest = {}
+    for c in runs:                                  # newest first: the first run of each name counts, as in quick()
+        newest.setdefault(c.get("name"), c)
+    return next((c for name, c in newest.items() if gate(name) in GATES
+                 and c["status"] == "completed" and c["conclusion"] == "failure"), None)
+
+
+def gate(name):
+    """The job of a check run: `browser (2)`, a job of a matrix, is the gate `browser` (#1062), and `quick (1)` is
+    the job `quick` (#1077)."""
+    return re.sub(r" \(.*\)$", "", name or "")
 
 
 def failures(check):
@@ -150,12 +213,25 @@ def failures(check):
     return [f"failed step: {s}" for s in steps] + notes
 
 
-def wait_ci(sha, deadline, get=quick, now=time.monotonic, sleep=time.sleep):
-    """The completed check run `quick` of `sha`, or None at the deadline (a `now` time)."""
+LOST = {"status": "completed", "conclusion": "lost"}   # the CI run ended with no job quick (#1599)
+
+
+def ci_ended(sha):
+    """True when the workflow run `CI` (event pull_request) of commit `sha` is completed (#1599)."""
+    runs = dashboard.api(f"actions/runs?head_sha={sha}&event=pull_request&per_page=20").get("workflow_runs", [])
+    return any(r.get("name") == "CI" and r.get("status") == "completed" for r in runs)
+
+
+def wait_ci(sha, deadline, get=quick, now=time.monotonic, sleep=time.sleep, ended=None):
+    """The completed check run `quick` of `sha` (all its parts, `quick_run`), LOST when the `CI` run of `sha` ended
+    with no job quick (`ended`, #1599), or None at the deadline (a `now` time)."""
+    ended = ended or (ci_ended if get is quick else lambda s: False)
     while True:
         c = get(sha)
         if c and c["status"] == "completed":
             return c
+        if c is None and ended(sha):
+            return LOST
         if now() + POLL > deadline:
             return None
         sleep(POLL)
@@ -193,6 +269,9 @@ def ci(number, sha, deadline, pr=None):
     if c is None:
         print(f"the quick CI still runs: run `python3 framework/tools/ship_pr.py {number} --ci` to wait again")
         return 0
+    if c is LOST:
+        print(f"the CI run ended with no job quick: run `merge_main.py --push {number}`")
+        return 5
     print(f"quick CI {c['conclusion']}")
     if c["conclusion"] != "failure":
         if pr is None:
@@ -255,7 +334,7 @@ def main(argv=None):
     if bad := data_only_tests(changed):                  # also with --tested
         print(f"a change of data files only must not add or change tests: remove {' '.join(bad)} (docs/extend.md)")
         return 2
-    if not lint() or (not a.tested and not checks()):
+    if not lint() or not (guard_checks() if a.tested else checks()):   # --tested: the GUARDS files still run (#1328)
         return 2
     if not push(a.number):
         return 3

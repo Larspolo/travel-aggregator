@@ -62,10 +62,13 @@ jobs:
           AGENT='(.head.ref | test("^(agent/|claude/|ccr-)")) or ([.labels[].name] | index("automerge") != null)'
           # The check runs of the PR's own CI decide, not a `full` dispatch on the head (its job `slow` ran): the slow
           # and server tests do not gate a PR, and the red jobs of a dispatch on a `hold` PR kept #5410 out of each
-          # sweep for 5 hours (#5462, as `pacer.pr_checks`).
+          # sweep for 5 hours (#5462, as `pacer.pr_checks`). The job quick has 2 parts, `quick (1)` and `quick (2)`
+          # (#1077): green only when each part is green and no part is missing (an older head has one check `quick`).
           GREEN='[.[] | select(.name == "slow" and .conclusion != "skipped") | .check_suite.id] as $full
             | [.[] | select(.check_suite.id as $s | $full | index($s) | not)]
-            | any(.[]; .name == "quick" and .conclusion == "success") and all(.[]; .conclusion != "failure")'
+            | [.[] | select(.name | test("^quick( [(][0-9]+[)])?$"))] as $quick
+            | ($quick | length) >= (if any($quick[]; .name == "quick") then 1 else 2 end)   # 2: QUICK_PARTS (#1077)
+              and all($quick[]; .conclusion == "success") and all(.[]; .conclusion != "failure")'
           # GitHub computes "mergeable" without merge=jsonl and merge=union. A PR that only our drivers can merge
           # waited for Unconflict and a new CI run, and main moved again in that time: 396 failed merges in 24 hours,
           # 383 of them solved by the drivers (#3199). land() merges main with the drivers, pushes the merge commit

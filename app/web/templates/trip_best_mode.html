@@ -1,0 +1,11 @@
+{# The best offer of each mode (trip:best-mode, #2192); an htmx swap of the table updates it out of band #}
+{% set mode_names = {"train": "Train", "bus": "Bus", "flight": "Flight", "ferry": "Ferry", "car": "Car", "mixed": "Mixed", "other": "Other"} %}
+<section class="trip-best-mode card" id="trip-best-mode" aria-label="Best offer of each mode"{% if oob %} hx-swap-oob="true"{% endif %}{% if view.best_modes|length < 2 %} hidden{% endif %}>
+{% if view.best_modes|length >= 2 %}
+<ul>
+{% for m, row, diff in view.best_modes %}
+<li><a href="#it-{{ row[0].id }}">{{ mode_names.get(m, m|capitalize) }}: effective {{ row[2].total|money }} ({% if diff == 0 %}best{% else %}+{{ diff|money }}{% endif %})</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+</section>

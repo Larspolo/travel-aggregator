@@ -1,0 +1,16 @@
+{
+  "offers": [
+    {
+      "connectionId": "d6d3207650082f35276a64cc8bfb35eb6cf47fb397fcce23f38c9542efa919f3",
+      "price": 59.8,
+      "offerError": false,
+      "firstClass": false
+    },
+    {
+      "connectionId": "9dfa4e9a7a9b0102c5067784204ba1acc6cab7a371ac57a67f8067081958e746",
+      "price": 49.9,
+      "offerError": false,
+      "firstClass": false
+    }
+  ]
+}

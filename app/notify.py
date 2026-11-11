@@ -1,0 +1,243 @@
+"""Push messages for price drops of pinned fares (#512). The first channel is ntfy: one POST of plain text to the
+topic URL that the owner sets on the settings page. The second channel is e-mail (#513), by the SMTP server
+of the environment (P5: no password in the database). The third channel is Web Push (#514): one encrypted message
+to each browser that the owner subscribed on the settings page (RFC 8291 with `pywebpush`: the standard library has
+no ECDH or AES-GCM). `messages()` reads the settings in the request; `deliver()` runs after the response (a
+background task with a new database session, only to delete the subscriptions that the push service no longer
+knows). A failure is logged and never raised, so the userscript gets the same response.
+`python3 -m app.notify` prints a new VAPID key pair for the environment."""
+
+import base64
+import json
+import logging
+import smtplib
+import urllib.error
+import urllib.request
+from collections.abc import Callable
+from contextlib import AbstractContextManager
+from dataclasses import dataclass, field
+from decimal import Decimal
+from email.message import EmailMessage
+
+from pywebpush import WebPushException, webpush
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
+
+from app.config import get_settings
+from app.models import PushSubscription, SentMessage, Setting, Trip
+
+log = logging.getLogger(__name__)
+
+CHANNEL_KEY = "notify_channel"
+NTFY_URL_KEY = "ntfy_url"
+EMAIL_KEY = "notify_email"
+REMINDER_DAYS_KEY = "reminder_days"  # #1117: the age N of the newest offers for a reminder; 0 = off
+REMINDER_BEFORE_KEY = "reminder_before_days"  # #1117: the reminder comes D days before the departure
+MAX_REMINDER_DAYS = 365
+REMINDER_NOT_SENT = "not sent"  # the form default: a field that the form did not send is kept
+SOURCE_ALERT_KEY = "source_alert_on"  # #1174: "0" turns off the messages of failing sources; the default is on
+CHANNELS = ("none", "ntfy", "email", "webpush")
+GONE = (404, 410)  # the push service no longer knows the subscription
+TIMEOUT_S = 5
+KEEP_SENT = 100  # #1812: the newest rows of `sent_messages`
+
+
+@dataclass(frozen=True)
+class PriceDrop:
+    trip_id: int
+    fare_name: str | None
+    source: str
+    currency: str
+    old_price: Decimal | None  # None: a new fare, or the old price was in another currency
+    new_price: Decimal
+    target: bool = False  # the new price crosses the target price of the trip (#848)
+    paid: Decimal | None = None  # the paid price of a booked fare (#1429)
+    service: str | None = None  # the carrier and the number of the legs, "DB ICE 105, SBB IC 61"
+    tier: str | None = None  # the flexibility tier of the booked fare
+
+
+@dataclass(frozen=True)
+class Message:
+    channel: str
+    url: str  # the ntfy topic URL, the e-mail address, or the endpoint of the push subscription
+    title: str
+    text: str
+    click: str
+    keys: dict[str, str] = field(default_factory=dict)  # webpush: p256dh and auth of the subscription
+
+
+def setting(session: Session, key: str, default: str = "") -> str:
+    row = session.get(Setting, key)
+    return row.value if row is not None else default
+
+
+def _money(amount: Decimal) -> str:
+    """An amount with 2 decimals: the ingest body gives Decimal("78.0") for JSON 78.00 (#868)."""
+    return f"{amount:.2f}"
+
+
+def _line(d: PriceDrop) -> str:
+    if d.paid is not None:
+        from app.flexibility import LABELS
+        return (f"Booked {d.service or '-'}: now {d.currency} {_money(d.new_price)}, paid {d.currency} "
+                f"{_money(d.paid)} (−{d.currency} {_money(d.paid - d.new_price)}), {LABELS.get(d.tier, d.tier)} fare")
+    if d.old_price is None:
+        return f"{d.fare_name or '-'} ({d.source}): {d.currency} {_money(d.new_price)}"
+    return (f"{d.fare_name or '-'} ({d.source}): {d.currency} {_money(d.old_price)} → "
+            f"{d.currency} {_money(d.new_price)}")
+
+
+def webpush_ready() -> bool:
+    s = get_settings()
+    return bool(s.vapid_public_key and s.vapid_private_key and s.vapid_subject)
+
+
+def _targets(session: Session, channel: str) -> list[tuple[str, dict[str, str]]]:
+    if channel == "ntfy":
+        url = setting(session, NTFY_URL_KEY)
+        return [(url, {})] if url.startswith("https://") else []
+    if channel == "email":
+        address = setting(session, EMAIL_KEY)
+        return [(address, {})] if "@" in address else []
+    if channel == "webpush" and webpush_ready():
+        return [(p.endpoint, {"p256dh": p.p256dh, "auth": p.auth})
+                for p in session.scalars(select(PushSubscription).order_by(PushSubscription.id))]
+    return []
+
+
+def messages(session: Session, drops: list[PriceDrop], base_url: str) -> list[Message]:
+    """One message per trip (and per subscription of webpush) with all the drops of one ingest; none for the
+    channel `none`."""
+    out = []
+    for trip_id in dict.fromkeys(d.trip_id for d in drops):
+        trip = session.get(Trip, trip_id)
+        title = trip.title if trip is not None else f"trip {trip_id}"
+        mine = [d for d in drops if d.trip_id == trip_id]
+        text = "\n".join(_line(d) for d in mine)
+        kind = "Booked fare cheaper" if any(d.paid is not None for d in mine) else "Target price" if any(d.target for d in mine) else "Price drop"
+        msgs = alert_messages(session, f"{kind}: {title}", text, f"{base_url.rstrip('/')}/trips/{trip_id}")
+        if not msgs:
+            break
+        out += msgs
+    return out
+
+
+def alert_messages(session: Session, title: str, text: str, click: str) -> list[Message]:
+    """One message per target of the active channel; none for the channel `none` (#1086)."""
+    channel = setting(session, CHANNEL_KEY, "none")
+    return [Message(channel=channel, url=url, title=title, text=text, click=click, keys=keys)
+            for url, keys in _targets(session, channel)]
+
+
+def post(url: str, text: str, headers: dict[str, str]) -> None:
+    """The ntfy sender: one POST of the text. The tests replace it with a double (no request from CI)."""
+    req = urllib.request.Request(url, data=text.encode(), method="POST", headers=headers)
+    with urllib.request.urlopen(req, timeout=TIMEOUT_S):  # noqa: S310 (save_messages accepts only https://)
+        pass
+
+
+def send_email(m: Message) -> None:
+    """The e-mail sender: SSL on port 465, else STARTTLS. The tests replace `smtplib.SMTP` with a double."""
+    cfg = get_settings()
+    mail = EmailMessage()
+    mail["Subject"], mail["From"], mail["To"] = m.title, cfg.smtp_from or cfg.smtp_user, m.url
+    mail.set_content(f"{m.text}\n\n{m.click}\n")
+    if cfg.smtp_port == 465:
+        server = smtplib.SMTP_SSL(cfg.smtp_host, cfg.smtp_port, timeout=TIMEOUT_S * 2)
+    else:
+        server = smtplib.SMTP(cfg.smtp_host, cfg.smtp_port, timeout=TIMEOUT_S * 2)
+    with server:
+        if cfg.smtp_port != 465:
+            server.starttls()
+        if cfg.smtp_user:
+            server.login(cfg.smtp_user, cfg.smtp_password)
+        server.send_message(mail)
+
+
+def push(m: Message) -> None:
+    """The webpush sender: `webpush()` encrypts the message for the browser and posts it to its push service."""
+    s = get_settings()
+    webpush({"endpoint": m.url, "keys": m.keys}, json.dumps({"title": m.title, "body": m.text, "url": m.click}),
+            vapid_private_key=s.vapid_private_key, vapid_claims={"sub": s.vapid_subject}, timeout=TIMEOUT_S, ttl=86400)
+
+
+def reason(m: Message, e: Exception) -> str:
+    """A short reason of a failed send with no address (P5, #1812)."""
+    if isinstance(e, urllib.error.HTTPError):
+        return f"ntfy HTTP {e.code}"
+    if isinstance(e, WebPushException):
+        return f"webpush HTTP {getattr(e.response, 'status_code', None)}"
+    if isinstance(e, smtplib.SMTPException):
+        code = getattr(e, "smtp_code", None)
+        return f"email {type(e).__name__}" + (f" {code}" if code is not None else "")
+    return f"{m.channel} {type(e).__name__}"[:200]
+
+
+def send(m: Message) -> None:
+    if m.channel == "email":
+        send_email(m)
+    elif m.channel == "webpush":
+        push(m)
+    else:  # an HTTP header is latin-1: ntfy reads a UTF-8 title from the raw bytes
+        post(m.url, m.text, {"Title": m.title.encode().decode("latin-1"), "Click": m.click})
+
+
+def store(session: Session, msgs: list[Message], results: list[str | None]) -> None:
+    """One row per message, then delete the rows older than the newest KEEP_SENT (#1812)."""
+    for m, r in zip(msgs, results, strict=True):
+        session.add(SentMessage(title=m.title[:200], click=m.click, channel=m.channel[:10], ok=r is None, reason=r))
+    session.flush()
+    keep = select(SentMessage.id).order_by(SentMessage.id.desc()).limit(KEEP_SENT).scalar_subquery()
+    session.execute(delete(SentMessage).where(SentMessage.id.not_in(keep)))
+
+
+def deliver(msgs: list[Message], new_session: Callable[[], AbstractContextManager[Session]] | None = None,
+            session: Session | None = None) -> list[str | None]:
+    """Send each message. The result per message: None (sent) or a short reason. Never raises."""
+    gone, results = [], []
+    for m in msgs:
+        try:
+            send(m)
+            results.append(None)
+        except Exception as e:  # noqa: BLE001 (a failed send must not break the ingest)
+            results.append(reason(m, e))
+            if isinstance(e, WebPushException) and getattr(e.response, "status_code", None) in GONE:
+                gone.append(m.url)
+            else:
+                log.warning("price drop message not sent: %s", results[-1])
+    if not msgs:
+        return results
+    try:
+        if session is not None:
+            _save(session, msgs, results, gone)
+        elif new_session is not None:
+            with new_session() as s:
+                _save(s, msgs, results, gone)
+    except Exception as e:  # noqa: BLE001
+        log.warning("message results not stored: %s", e)
+    return results
+
+
+def _save(session: Session, msgs: list[Message], results: list[str | None], gone: list[str]) -> None:
+    if gone:
+        session.execute(delete(PushSubscription).where(PushSubscription.endpoint.in_(gone)))
+        log.info("deleted %d push subscriptions that the push service no longer knows", len(set(gone)))
+    store(session, msgs, results)
+    session.commit()
+
+
+def vapid_keys() -> tuple[str, str]:
+    """A new VAPID key pair (P-256) as base64url: the raw public point and the raw private value."""
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+
+    def b64(raw: bytes) -> str:
+        return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+    key = ec.generate_private_key(ec.SECP256R1())
+    public = key.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+    return b64(public), b64(key.private_numbers().private_value.to_bytes(32, "big"))
+
+
+if __name__ == "__main__":
+    public_key, private_key = vapid_keys()
+    print(f"VAPID_PUBLIC_KEY={public_key}\nVAPID_PRIVATE_KEY={private_key}")

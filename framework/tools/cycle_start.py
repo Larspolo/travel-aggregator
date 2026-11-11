@@ -17,7 +17,10 @@ a conflict, a closed ticket, green and not merged after 10 minutes, a `hold` or 
 tickets that wait for nothing, #4553), `Triage` (open issues without a priority label), `Candidates` (the pick order of
 `dashboard.py --next`, without the tickets that a run holds; the first 8 of the top priority group turned by the
 branch name, so that parallel runs try other first picks, #3832; and the `claim.py N --or M ...` command of the first 5) and `Release checks` (only when a check can start and has
-no ticket, `release.due()`). The skill says what to do with each line.
+no ticket, `release.due()`), and `Deep work` (only for `--lane deep` with no candidate: the target, the claims and the
+refill reason of `usage.py --fire` with the lock command of each kind of work, `deep_work`, #1377), and `Epic check`
+(the same for a main run with no candidate: the epic checks of the main lane, #1595). The skill says
+what to do with each line.
 """
 import argparse
 import datetime
@@ -69,6 +72,13 @@ def pr_ticket(pr, held):
     return next((n for n, (_, s) in held.items() if s.split(" ")[3:4] == [pr["head"]["ref"]]), None)
 
 
+def quick_green(checks):
+    """True when all parts of the job `quick` passed (`quick (1)` and `quick (2)`, #1077). checks: [(name, status,
+    conclusion)]."""
+    import ship_pr
+    return ship_pr.quick_green([dict(name=n, status=s, conclusion=c) for n, s, c in checks])
+
+
 def pr_work(pr, open_issues, checks, beat, now, me="", ticket=None):
     """The work that an open agent PR needs, or None. pr: an entry of /pulls; checks: [(name, status, conclusion)] of
     its head commit; beat: (minutes, subject) of its ticket claim, or None; me: the current branch; ticket: `pr_ticket`. The PRs of this run
@@ -88,7 +98,7 @@ def pr_work(pr, open_issues, checks, beat, now, me="", ticket=None):
     if "hold" in dashboard.labels(pr):     # nothing removes `hold`: a run that stopped left it for ever (#4553)
         if live or idle < STALE:
             return None
-        quick = any(n == "quick" and c == "success" for n, _, c in checks)
+        quick = quick_green(checks)
         state = "checks red: " + ", ".join(red) if red else "checks green" if quick else "checks not finished"
         if red or not quick:   # the auto mode denies a removal of `hold` on a PR of another run: the owner removes it (#581)
             return f"`hold`, no live claim, no change for {idle:.0f} min, {state}: add `needs-human` to #{ticket} with the reason"
@@ -98,7 +108,7 @@ def pr_work(pr, open_issues, checks, beat, now, me="", ticket=None):
         return f"no CI run on its head for {idle:.0f} min: start CI on its branch (`github.md`)"
     if not conflict and not red:
         age = (now - dashboard.ts(pr["created_at"])).total_seconds() / 60
-        quick = any(n == "quick" and c == "success" for n, _, c in checks)
+        quick = quick_green(checks)
         done = all(s == "completed" for _, s, _ in checks)   # #606: Automerge can need other checks, so wait for every check
         return f"green and open {age:.0f} min: start the Automerge sweep (`github.md`)" if quick and done and age > SWEEP else None
     what = "conflict" if conflict else "red CI: " + ", ".join(red)
@@ -230,6 +240,35 @@ def claim_lines(picks):
             + (" --or " + " ".join(str(i["number"]) for i in picks[1:SHOW]) if len(picks) > 1 else "")] if picks else []
 
 
+def deep_work(text, lane="deep"):
+    """The lines of the section `Deep work` from the stderr line of `usage.py --fire` (#1377). A refill run gets no brief
+    of the pacer, so each deep run tried the locks one by one (`--refill`, a list of the epics, `--review`, `--roadmap`):
+    28 of 133 runs were deep runs, and their phase `read` was about half of their tokens (2026-11-09). The pacer
+    started the run for the reason of `usage.refill_need`; this names it and the lock of each kind of work.
+    lane "main": only the epic checks, the work of a main run with no candidate (#1595); "deep": the close checks
+    (`lane:deep` on the epic), the reviews and the whole refill."""
+    m = re.search(r"target (\d+) runs · claims (\d+)", text)
+    r = re.search(r" · refill (\d+) \((.*)\) · paused ", text)
+    if not (m and r):
+        return [f"- (no refill line in `usage.py --fire`: {text[-200:]})"]
+    reason, out = r[2], [f"target {m[1]} · claims {m[2]} · refill {r[1]}: {r[2]}"]
+    kind = "epic" if lane == "main" else "close"
+    if e := re.search(rf"\b{kind} check ((?:#\d+(?:, )?)+)", reason):
+        out += [f"{kind} check: `python3 framework/tools/claim.py {n} --refill`, then `queue.md`, \"Epics and refill\""
+                for n in re.findall(r"#(\d+)", e[1])]
+    if lane == "main":
+        return out + ["no epic check: go to step 8 (report)"] * (len(out) == 1)
+    if re.search(r"process review (?:and roadmap review )?due", reason):
+        out.append("process review: `python3 framework/tools/claim.py 0 --review`, then the `improve` skill")
+    if "roadmap review due" in reason:
+        out.append("roadmap review: `python3 framework/tools/claim.py 0 --roadmap`, then the `roadmap` skill")
+    if re.match(r"rank |\d+ release checks|ready \d+ < target", reason):
+        out.append("refill: `python3 framework/tools/claim.py 0 --refill`, then `queue.md`, \"Epics and refill\"")
+    if len(out) == 1:
+        out.append("no deep work: go to step 8 (report)")
+    return out
+
+
 def section(title, lines):
     print(f"{title}: " + ("none" if not lines else lines[0] if len(lines) == 1 else "\n  " + "\n  ".join(lines)))
 
@@ -256,6 +295,38 @@ def checkout(remote="origin", branch=None):
         return f"Checkout: {behind} commits behind {up}: update before you work", False
     sha = git("rev-parse", "--short", "HEAD").stdout.strip()
     return f"Checkout: moved to {sha} ({behind} commits behind)", True
+
+
+OWNER_CHECK = re.compile(r"^\s*[-*]\s*After\s+((?:#\d+[,\s]*(?:and\s+)?)+):\s*(.+)$", re.I)
+
+
+def _owner_check_sub(sub):
+    """True for a sub-issue that is an owner check: `needs-human`, `owner-sample`, or an open `check` (#1547)."""
+    labels = dashboard.labels(sub)
+    return "needs-human" in labels or "owner-sample" in labels or ("check" in labels and sub.get("state") == "open")
+
+
+def owner_check_missing(issues, sub_issues_of):
+    """Lines for the open epics with an `## Owner checks` line `- After #a, #b: ...` whose tickets are all closed
+    (not in `issues`, the open issues) and that have no owner check sub-issue (#1342: `report.md`). An owner check sub-issue
+    has `needs-human`, or the label `owner-sample` (closed on the evidence of an agent, #1547), or is an open `check`."""
+    out = []
+    for n, i in sorted(issues.items()):
+        if "epic" not in dashboard.labels(i):
+            continue
+        m = re.search(r"^##\s*Owner checks\s*$(.*?)(?=^##\s|\Z)", i.get("body") or "", re.M | re.S)
+        if not m:
+            continue
+        ready = []
+        for line in m[1].splitlines():
+            c = OWNER_CHECK.match(line)
+            if c and not any(int(t) in issues for t in re.findall(r"#(\d+)", c[1])):
+                ready.append((line.strip().lstrip("-* ").strip(), re.findall(r"#(\d+)", c[1])[0]))
+        if not ready or any(_owner_check_sub(s) for s in sub_issues_of(n) or []):
+            continue
+        out += [f"#{n} {i['title']}: no owner check ticket for \"{r}\": make it after `claim.py {n} --ownercheck "
+                f"--state {a}` (exit 1: another run makes it, #1797; `report.md`)" for r, a in ready]
+    return out
 
 
 def main(argv=None):
@@ -298,7 +369,7 @@ def main(argv=None):
     work = []
     for p in prs:
         checks = [(c["name"], c["status"], c["conclusion"]) for c in
-                  dashboard.api(f"commits/{p['head']['sha']}/check-runs").get("check_runs", [])]
+                  dashboard.api(f"commits/{p['head']['sha']}/check-runs?per_page=100").get("check_runs", [])]
         t = pr_ticket(p, held)
         w = pr_work(p, issues, checks, held.get(t), now, me, t)
         if w:
@@ -310,7 +381,8 @@ def main(argv=None):
     code, text = tool("feedback.py")
     section("Feedback (lock each with `claim.py ID --comment`)", [t for t in text.splitlines() if re.match(r"\d+ #\d+ ", t)])
     section("Orphans (no run, workflow or owner list takes them up, #4553)",
-            [f"#{n} {issues[n]['title']}: {why}" for n, why in dashboard.orphans(open_all)])
+            [f"#{n} {issues[n]['title']}: {why}" for n, why in dashboard.orphans(open_all)]
+            + owner_check_missing(issues, lambda e: dashboard.pages(f"issues/{e}/sub_issues")))
     section("Triage (no priority label)", [f"#{n} {i['title']}" for n, i in sorted(issues.items())
                                            if not dashboard.labels(i) & (set(dashboard.PRIORITY) | {dashboard.STATUS})])
     pr_numbers = [i["number"] for i in open_all if "pull_request" in i]
@@ -327,6 +399,10 @@ def main(argv=None):
         + claim_lines(picks))
     if checks := due_checks():
         section("Release checks (no ticket, make them in the refill)", checks)
+    if a.lane == "deep" and not picks:                  # the work of a refill run in one call (#1377)
+        section("Deep work (act on it; no second `usage.py --fire`)", deep_work(tool("usage.py", "--fire")[1]))
+    elif not a.lane and not picks:                      # the main runs do the epic checks (#1595)
+        section("Epic check (act on it; no second `usage.py --fire`)", deep_work(tool("usage.py", "--fire")[1], "main"))
     return 0
 
 
