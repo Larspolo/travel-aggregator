@@ -684,3 +684,6 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 /* the legend of the price trend (#2141): a solid and a dashed line, not only a color */
 .trend-legend { list-style: none; padding: 0; margin: .25rem 0 0; display: flex; flex-wrap: wrap; gap: .25rem 1rem; font-size: .85rem; }
 .trend-legend svg { vertical-align: middle; }
+
+/* the days on which the best offer changed (#2166): a long carrier text wraps at a phone width */
+.best-changes { padding-left: 1.2rem; overflow-wrap: anywhere; }
