@@ -353,6 +353,7 @@ The counts of the request limit live in the memory of the app: a restart of the 
 | `/places` | The access and egress places: add a place (text, kind, minutes, cost) or delete one |
 | `/rates` | The exchange rates: store the value in EUR of a currency, or delete a rate (see "Exchange rates" below) |
 | `/fees` | The booking fees: store the fee in EUR of a source, or set it to 0 to remove it (see "Booking fees" below) |
+| `/passes` | The rail passes: add, change or delete a pass with its days, its cost per day and its carriers (see "Rail passes" below) |
 | `/profiles` | The score profiles: list the profiles, set the default, rename a profile or delete a profile. `/profiles/new` makes a profile with no trip, and `/profiles/{id}` edits its weights |
 | `/pinned` | The pinned offers of the trips in planning, in the order of departure (see "Pinned offers" below) |
 | `/captures` | The captures of all trips, newest first, with the trip of each capture. The link "Captures" at the top of each page opens it |
@@ -1816,6 +1817,34 @@ fare is the main fare.
 
 The fees apply on all pages that rank the offers: the trip page, the compare page, the shared trip, the CSV export and
 the best offer of the userscript panel.
+
+### Rail passes
+
+A rail pass covers the train legs of a trip for a number of travel days. Set the passes on `/passes` (link "Rail
+passes" on `/settings`):
+
+- Enter a "Name", a "First day" and a "Last day", and a "Cost per day (€)". Optionally enter "Carriers": the names of
+  the train carriers that the pass covers, separated by commas. Leave "Carriers" empty for all train legs. Then press
+  "Add pass". Press "Save pass" on a row to change it, or "Delete" to remove it.
+- The table "Passes" shows each pass with its days, its cost per day and its carriers.
+- A name must have 1 to 100 characters and be unique. The last day must be on or after the first day. The cost per day
+  must be a number from 0 to 1000 with at most 2 decimals. A value that is not correct shows an error and stores
+  nothing.
+- A pass is not used by any trip until you select it.
+
+To use a pass on a trip, choose it in the list "Rail pass" of the trip form (`/trips/new` or `/trips/{id}/edit`). The
+choice "No pass" is the default. The return trip and the split trip of a trip copy its pass.
+
+A pass covers an itinerary when all of its legs are trains of the pass carriers, and each leg departs and arrives on
+a day of the pass. The travel days of the itinerary are the days from the local date of the first departure to the
+local date of the last arrival, both days counted. The pass then costs the travel days times the cost per day. The
+cost of the pass replaces the price of the fare, and the breakdown of the offer shows the part "pass <name>", for
+example "pass Interrail €40.00". The reservations of the legs stay in the breakdown. An itinerary with a leg that the
+pass does not cover, for example a bus, keeps its fare price.
+
+Example: the pass "Interrail" runs from 2026-12-01 to 2026-12-31, costs €40.00 per day and covers all trains. On a
+trip from Amsterdam to Zürich that departs on 2026-12-20 and arrives on 2026-12-21, an ICE itinerary has 2 travel
+days and costs €80.00 with the pass. A Flixbus of €49.00 is not covered, so it keeps its price of €49.00.
 
 ## Development
 
