@@ -1062,6 +1062,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     from app.trend_score import trip_score_trend  # the best effective cost per day (#2141): the second line
     scores = trip_score_trend(session, trip, weights, places, rates, counts, fees) if len(trend) >= 2 else []
     context["trend"] = trend_chart(trend, scores=scores) if len(trend) >= 2 else None
+    from app.trend_score import best_changes  # the days on which another offer became the best (#2166)
+    context["best_changes"] = best_changes(session, trip, weights, places, rates, counts, fees) if scores else []
     context["at_target"] = at_target(session, trip)  # the fares at or below the target price (#847)
     context["route_history"] = route_history(session, trip)  # the older trips on the same route (#1522)
     context["book_timing"] = book_timing(session, [trip.id] + [r.trip_id for r in context["route_history"]])  # #1916
