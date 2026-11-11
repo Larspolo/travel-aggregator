@@ -106,6 +106,9 @@ class ItineraryData(_Model):
     claim_paid_at: AwareDatetime | None = None
     # The booking code (#1716): missing in an older export, so None.
     booking_code: str | None = Field(None, max_length=40)
+    # The cancel time of the booking (#2313): missing in an older export, so None.
+    cancel_by: AwareDatetime | None = None
+    cancel_by_offset_min: int | None = None
     legs: list[LegData] = Field(min_length=1, max_length=MAX_LEGS)
     fares: list[FareData] = Field(default_factory=list)
 
@@ -186,6 +189,8 @@ def _restore_paid(it: Itinerary, d: ItineraryData, fare_objs: list[Fare]) -> Non
         it.claim_paid_at = d.claim_paid_at.astimezone(UTC) if d.claim_paid_at is not None else None
     if it.booking_code is None and d.booking_code is not None:
         it.booking_code = d.booking_code
+    if it.cancel_by is None and d.cancel_by is not None:
+        it.cancel_by, it.cancel_by_offset_min = d.cancel_by.astimezone(UTC), d.cancel_by_offset_min
 
 
 def import_trip(session: Session, data: dict, trip_id: int | None = None) -> ImportResult:
