@@ -22,6 +22,8 @@ def baggage_extras(fare, itinerary, weights: Weights, rates=None) -> tuple[tuple
     (per traveler), else the flat baggage fee. No flight leg or a baggage fee of 0 gives no extra."""
     if not weights.baggage_fee or not any(leg.mode == FLIGHT for leg in itinerary.legs):
         return ()
+    if getattr(getattr(itinerary, "trip", None), "checked_bag", None) == "none":  # the trip has no checked bag (#2398)
+        return (("no checked bag (trip)", Decimal(0)),)
     if (getattr(fare, "checked_bags_included", None) or 0) >= 1:
         return (("baggage (included)", Decimal(0)),)
     price = getattr(fare, "checked_bag_price", None)
