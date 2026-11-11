@@ -5,7 +5,7 @@ later, its newest capture is older than N days (or it has none), and its last re
 it has none). N = 0 turns the reminders off. All times are UTC.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import exists, func, or_, select
 from sqlalchemy.orm import Session
@@ -19,6 +19,22 @@ def _days(session: Session, key: str, default: str) -> int:
         return max(0, int(setting(session, key, default)))
     except ValueError:
         return int(default)
+
+
+def sales_held(session: Session, trip: Trip, today: date) -> bool:
+    """True when the sources of `trip` with a booking horizon all sell after `today` (#2275).
+
+    A source without a horizon does not hold the reminder back. A trip with no dated source is not held.
+    """
+    from app.search_links import load_sources
+    from app.sales_open import horizons, sales_open_on
+
+    hz = horizons(session)
+    if not hz:
+        return False
+    sources = {s.get("source") or key for key, s in load_sources().items()}
+    dates = [sales_open_on(trip.date_from, hz[src]) for src in sources if src in hz]
+    return bool(dates) and all(opens > today for opens in dates)
 
 
 def due_reminders(session: Session, now: datetime) -> list[Trip]:
@@ -39,7 +55,7 @@ def due_reminders(session: Session, now: datetime) -> list[Trip]:
         or_(newest.is_(None), newest < cutoff),
         or_(Trip.reminded_at.is_(None), Trip.reminded_at < cutoff),
     ).order_by(Trip.date_from, Trip.id)
-    return list(session.scalars(query))
+    return [trip for trip in session.scalars(query) if not sales_held(session, trip, today)]
 
 
 def mark_reminded(trip: Trip, now: datetime) -> None:
