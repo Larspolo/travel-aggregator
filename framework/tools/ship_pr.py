@@ -290,6 +290,15 @@ def ci(number, sha, deadline, pr=None):
     return 5
 
 
+def ci_head(sha, head):
+    """The sha to wait for: `origin/<head>` when the PR head of GitHub is an older commit of it (a stale answer just
+    after a push, #2338), else the sha of GitHub."""
+    local = git("rev-parse", "-q", "--verify", f"refs/remotes/origin/{head}").stdout.strip()
+    if local and local != sha and not git("merge-base", "--is-ancestor", sha, local).returncode:
+        return local
+    return sha
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("number", type=int, help="the ticket")
