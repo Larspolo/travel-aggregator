@@ -241,6 +241,30 @@ class AccessTime(Base):
     cost: Mapped[Decimal] = mapped_column(Money)
 
 
+class TripAccessTime(Base):
+    """An access or egress place of one trip (#2108): it replaces the global `AccessTime` of the same kind and place."""
+    __tablename__ = "trip_access_times"
+    __table_args__ = (
+        CheckConstraint("kind IN ('access', 'egress')", name="ck_trip_access_times_kind"),
+        CheckConstraint("minutes >= 0", name="ck_trip_access_times_minutes"),
+        CheckConstraint("cost >= 0", name="ck_trip_access_times_cost"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"))
+    place_text: Mapped[str] = mapped_column(String(200))
+    kind: Mapped[str] = mapped_column(String(10))
+    minutes: Mapped[int] = mapped_column(Integer)
+    cost: Mapped[Decimal] = mapped_column(Money)
+
+    trip = True  # the label of #2109: an override of the trip
+
+
+# The text is the form that PostgreSQL gives back, so that autogenerate finds no change (test_models.py).
+Index("uq_trip_access_times_place", TripAccessTime.trip_id, TripAccessTime.kind,
+      text("lower(TRIM(BOTH FROM place_text))"), unique=True)
+
+
 class CurrencyRate(Base):
     """The rate of one currency to EUR: `eur_per_unit` EUR for one unit of `code` (#383)."""
     __tablename__ = "currency_rates"
