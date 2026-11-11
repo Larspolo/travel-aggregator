@@ -270,6 +270,15 @@ def refill_need(ready, target, issues, due=lambda: [], reviews=lambda: [], free=
     return f"ready {ready} < target {target}: " + ", ".join(sources) if ready < target and (sources := free()) else ""
 
 
+def starved(ready, target, issues, due=lambda: [], free=lambda: [], now=None, closing=lambda e: False):
+    """True when R < N and the refill has no source (#3741): no epic check (also a held one, `hold=False`), no `rank`
+    ticket, no release check, no free source. The roadmap review is then due early. `fire()` (the pacer) and
+    `claim.refill_starved()` (the lock) use this one rule (#2239): `fire()` used only `not free()`, so the pacer
+    started deep runs for a roadmap review that `claim.py 0 --roadmap` did not give while an epic check waited."""
+    return target is not None and ready < target and \
+        not refill_need(ready, target, issues, due, lambda: [], free, now=now, closing=closing, hold=False)
+
+
 def epic_hold(ready, epics, issues, now=None):
     """True when the epic check of `epics` waits (owner, option B of #1513, #1596): only 1 epic, ready tickets for the
     runs (R > 0), and its last change (`updated_at`, else `created_at`) is less than EPIC_HOLD ago. Each run pays the base
@@ -609,8 +618,8 @@ def fire(usage, now, burn=BURN, burn7=None, skip=(), status=None, started=None, 
     eq = claims if lanes is None else health.opus_equivalent(claims, lanes, weights)   # in Opus runs (#1727)
     target = target_runs(usage, now, burn, burn7=burn7) if target is None else target
     free, due, closing = functools.cache(free_sources), functools.cache(release_due), functools.cache(autoclosing)
-    reviews = functools.cache(lambda: due_reviews(starved=lambda: target is not None and ready < target
-                                                  and not free()))
+    reviews = functools.cache(lambda: due_reviews(starved=lambda: starved(ready, target, open_all, due, free,
+                                                                          now=stamp, closing=closing)))
     stamp = now.timestamp() if hasattr(now, "timestamp") else now
     need = refill_need(ready, target, open_all, due, free=free, reviews=reviews, now=stamp, closing=closing)   # reviews after checks
     live, refill_lane = refill_live(refs, stamp), "deep" if "deep" in dashboard.RESERVED else None
