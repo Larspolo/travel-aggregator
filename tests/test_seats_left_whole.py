@@ -44,13 +44,13 @@ def load(path):
 
 
 def with_plus_seats(raw, seats):
-    """A copy of the payload where the Eurostar Plus fare of the 06:40 train has `seats` seats left."""
+    """A copy of the payload where the Eurostar Plus fare of the 06:40 train has `seats` seats left in its class (#2199)."""
     out = copy.deepcopy(raw)
     outbound = out["response"]["data"]["journeySearch"]["outbound"]
     journey = next(j for j in outbound["journeys"] if j["timing"]["departureTime"] == "06:40")
     fare = next(f for f in journey["fares"] if f["classOfService"]["code"] == "PLUS")
     assert fare["prices"]["displayPrice"] == 82.5
-    fare["seats"] = seats
+    fare["availabilityOfClassOfService"] = seats
     return out
 
 
@@ -58,8 +58,8 @@ def test_seats_left_mark_follows_the_newest_capture(trip):
     client, auth, trip_id = trip
     raw = load(AMS_LON)
 
-    # the first capture: the Plus fare has 2 seats left, the Standard fare has 28 (no mark)
-    post(client, auth, trip_id, raw, "2026-11-08T09:00:00Z")
+    # the first capture: the Plus fare has 2 seats left, the Standard fare has 161 (no mark)
+    post(client, auth, trip_id, with_plus_seats(raw, 2), "2026-11-08T09:00:00Z")
     page = client.get(f"/trips/{trip_id}").text
     assert "2 seats left" in page
     assert page.count('class="badge seats-left"') == 1
