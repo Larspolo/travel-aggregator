@@ -1,0 +1,1064 @@
+{
+ "url": "https://graphql.www.sbb.ch/",
+ "method": "POST",
+ "request": {
+  "method": "POST",
+  "body": {
+   "variables": {
+    "input": {
+     "places": [
+      {
+       "type": "ID",
+       "value": "8500010"
+      },
+      {
+       "type": "ID",
+       "value": "8503000"
+      }
+     ],
+     "time": {
+      "date": "2026-12-08",
+      "time": "08:00",
+      "type": "DEPARTURE"
+     },
+     "includeEconomic": false,
+     "directConnection": false,
+     "includeAccessibility": "NONE",
+     "includeNoticeAttributes": [],
+     "includeTransportModes": [
+      "HIGH_SPEED_TRAIN",
+      "INTERCITY",
+      "INTERREGIO",
+      "REGIO",
+      "URBAN_TRAIN",
+      "SPECIAL_TRAIN",
+      "SHIP",
+      "BUS",
+      "TRAMWAY",
+      "CABLEWAY_GONDOLA_CHAIRLIFT_FUNICULAR"
+     ],
+     "includeUnsharp": false,
+     "occupancy": "ALL",
+     "walkSpeed": 100
+    },
+    "language": "EN"
+   }
+  }
+ },
+ "response": {
+  "data": {
+   "trips": {
+    "trips": [
+     {
+      "id": "3HA.eNpVUktvolAUTjvpNOnSxSTTlZlrZmMa7wO40MREQBG0gCJVcTMRbQUVrCC-0t_lalbOT5hkfs-AtfO4JzmPe77vnOTku_l1lft5dTyoTe14sAtiGVXMsjSMn-b5jiRV-mXK8gLLcRWnzFCWoQzkKw9lnoUQIlgZlhHmK2fW4Mf3yB95eTWj8SwDMUInGqE8ovSNRlLiOw1DzCEM-dTo30KAsKDJeZKnHCkUUOH0joemfDyAbg1gICsAQQhkEaROT11Hk22AgKgDhFg2HZHlOG2INhQNYFYBsGxAQTbkPAWCmlVPOapmZLncBCyGBNPXfwIP30NmHMuRcxu-ovSDQYg5de4wSu_CE47hsxXW-w6UVp00R99UJtbEtyeLGLf6sFjVJVtZ8ythu-wpzoO01n17EPuepM52epUni8Zy0KYNYe61quO101sEhh-Gq9ZzYiPiaev2RpMSOtO0trJZ-ckIksf2tuPD4sQh7cR2VGXyXJxNtKnY8UIdM0rs1xounmu1l6mxDAKhYzVliSN2y6zXpVV1x5Vcoart_dJQd0dBiMTxNJJVd_E8bC_CvaavmhEerp8Yq696MJwrHWsqKa3dRkDdLg1LnseO0LRuBisys0v10suE6RkcSVgjiCxVsLZLpxpH8WBRC4yIC2M3wbv-npoMWhe30H2Y9ktO7CqD3qa5xc58qMwWRmz6ltlvRAreJaG5r892YQ_1bP6RSNNBvZWMFTjujnTkevrgJYgYUR7TkC4ZKb1zObfIFW6uz0LNfc7kdYfwHeRtyN9Deg9hEaLU565vPiDK5i9yX0_wTKC3_8GFFPUHnr-8_XRzqcm5C3L7IVXol48w24Dg5W8i7OxN.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "legs": [
+       {
+        "duration": 53,
+        "id": "0",
+        "__typename": "PTRideLeg",
+        "start": {
+         "__typename": "StopPlace",
+         "id": "8500010",
+         "name": "Basel SBB"
+        },
+        "end": {
+         "__typename": "StopPlace",
+         "id": "8503000",
+         "name": "Zürich HB"
+        },
+        "arrival": {
+         "time": "2026-12-08T09:00:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "9",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "departure": {
+         "time": "2026-12-08T08:07:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "9",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "serviceJourney": {
+         "id": "eNoVyzEKgDAQRNG7TJ3A7qpJ2KuIlSJqIxgRJMndXaf5zZuCCwquKVLfcaWahppYhCTAIUPHgsfEvClrPt59USYbawydt5paoeRwQ6VNDqfp_-5ZPCW0D86nF-8",
+         "stopPoints": [
+          {
+           "place": {
+            "id": "8500010",
+            "name": "Basel SBB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "175",
+            "name": "Hauenstein-Basistunnel"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8503000",
+            "name": "Zürich HB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          }
+         ],
+         "serviceProducts": [
+          {
+           "name": "IC 3 763",
+           "line": "3",
+           "number": "763",
+           "vehicleMode": "TRAIN",
+           "vehicleSubModeShortName": "IC",
+           "corporateIdentityIcon": "ic-3",
+           "corporateIdentityPictogram": "train-right",
+           "routeIndexFrom": 0,
+           "routeIndexTo": 2
+          }
+         ],
+         "direction": "Chur"
+        }
+       }
+      ],
+      "valid": true,
+      "isBuyable": true,
+      "summary": {
+       "duration": 53,
+       "arrival": {
+        "time": "2026-12-08T09:00:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "9",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "arrivalWalk": 0,
+       "lastStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8503000",
+        "name": "Zürich HB",
+        "canton": "ZH"
+       },
+       "tripStatus": {
+        "alternative": false,
+        "alternativeText": null,
+        "cancelled": false,
+        "cancelledText": null,
+        "partiallyCancelled": false,
+        "delayed": false,
+        "delayedUnknown": false,
+        "quayChanged": false,
+        "cancelledExpected": false
+       },
+       "departure": {
+        "time": "2026-12-08T08:07:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "9",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "departureWalk": 0,
+       "firstStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8500010",
+        "name": "Basel SBB",
+        "canton": "BS"
+       },
+       "product": {
+        "name": "IC 3 763",
+        "line": "3",
+        "number": "763",
+        "vehicleMode": "TRAIN",
+        "vehicleSubModeShortName": "IC",
+        "corporateIdentityIcon": "ic-3",
+        "corporateIdentityPictogram": "train-right"
+       },
+       "direction": "Chur",
+       "international": false
+      }
+     },
+     {
+      "id": "3HA.eNpVUklv2lAQVtIsUnrj1OZk9aFeUMS8xVskJGyDsSFmMQ7bpWJJsFlMwOzK7-LUE_0VlfpjagcS2jfSzHxv3jff02hu_lzGfl_ud0bB3O-cuJLC6VJKbQdPI66qqulGSuQlmReEdDPFRJ6JDKT0Q0riAQBDup3CREofWa1fP2de1-WMiCbxDAjGbzQqSlgUDzQaEt9pBIiACUihiScgExY3bY4KHJYFGo_j-NvZ7wrafodqWUSQpiMMgDQFhc4KXdXUHISRYiGMeT5sEuUkLCgOKEVUyiBkO0hEUZNjF0BZO4cIBpkxjAyzGN1oBcQToER8_SdIEAUG7BVCw4APRXglIWQgC2_3dwSH05GowKRIxn7XwSGqhjn-YbDAVA5HUwgpNyCRsVRHX0pzeT2t680HdWl5TivwXNUYbqyMRCf5aasi5uWRW870ls36ZFz0fH9efl44mLrmsrIy1YU4NM2Kvpp7iy7Qx8q66kGi36SVhdM09P5zYtg3B0rV9S3C9MDL5jtkZGZfBsXpeCxX7YKmCtQpl3I5dZ7ZCMmOnDG3XrJtdbpjHyu9wUwzOpPndmXib01rXpiR9vKJ2Q3DBX-kV-2Bqpc3KxnXaqKfdF2-iwe50nhOh04yl3zps3pRoAu-OJ7Zhmyvp81MMAtak-y4OBP8oLMgm8ZWLDG8TKyh8zBoJJtBR2_VV4U1aY7a-nBSDEqeXWrkZzrZLPzSNjfc-HVcd6RHqg5aufKip0Ov1rVwx7VaL-MZU7Se6ItTpoZzTsV2Z7H4zfVxX2Nfoy27w-QOJAekexDvARKAQx_7fHhFAXNnJ0C48w9AgPt0qvDcxQnI3OURUB4YdxX7fgCh6u1_mvI9YR-a3PXtl5tz046dU-H2Itr2b1cQfRTD9V-ce_fO.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "legs": [
+       {
+        "duration": 77,
+        "id": "0",
+        "__typename": "PTRideLeg",
+        "start": {
+         "__typename": "StopPlace",
+         "id": "8500010",
+         "name": "Basel SBB"
+        },
+        "end": {
+         "__typename": "StopPlace",
+         "id": "8503000",
+         "name": "Zürich HB"
+        },
+        "arrival": {
+         "time": "2026-12-08T09:24:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "17",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "departure": {
+         "time": "2026-12-08T08:07:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "11",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "serviceJourney": {
+         "id": "eNoVyzEKgDAQRNG7TJ3ATkQT9ypipYjaCCqCJLm761S_eJNxQsHCFGOUwpLakhiChA4OF3TIeExMq1Kv_d1mpdio7LvGWxhboOJwQ2MdHQ7j_98zeEmoH-kjGC8",
+         "stopPoints": [
+          {
+           "place": {
+            "id": "8500010",
+            "name": "Basel SBB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500301",
+            "name": "Rheinfelden"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500302",
+            "name": "Möhlin"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500320",
+            "name": "Stein-Säckingen"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500305",
+            "name": "Frick"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500309",
+            "name": "Brugg AG"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8503504",
+            "name": "Baden"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8503000",
+            "name": "Zürich HB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          }
+         ],
+         "serviceProducts": [
+          {
+           "name": "IR 36 1963",
+           "line": "36",
+           "number": "1963",
+           "vehicleMode": "TRAIN",
+           "vehicleSubModeShortName": "IR",
+           "corporateIdentityIcon": "ir-36",
+           "corporateIdentityPictogram": "train-right",
+           "routeIndexFrom": 0,
+           "routeIndexTo": 7
+          }
+         ],
+         "direction": "Zürich HB"
+        }
+       }
+      ],
+      "valid": true,
+      "isBuyable": true,
+      "summary": {
+       "duration": 77,
+       "arrival": {
+        "time": "2026-12-08T09:24:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "17",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "arrivalWalk": 0,
+       "lastStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8503000",
+        "name": "Zürich HB",
+        "canton": "ZH"
+       },
+       "tripStatus": {
+        "alternative": false,
+        "alternativeText": null,
+        "cancelled": false,
+        "cancelledText": null,
+        "partiallyCancelled": false,
+        "delayed": false,
+        "delayedUnknown": false,
+        "quayChanged": false,
+        "cancelledExpected": false
+       },
+       "departure": {
+        "time": "2026-12-08T08:07:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "11",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "departureWalk": 0,
+       "firstStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8500010",
+        "name": "Basel SBB",
+        "canton": "BS"
+       },
+       "product": {
+        "name": "IR 36 1963",
+        "line": "36",
+        "number": "1963",
+        "vehicleMode": "TRAIN",
+        "vehicleSubModeShortName": "IR",
+        "corporateIdentityIcon": "ir-36",
+        "corporateIdentityPictogram": "train-right"
+       },
+       "direction": "Zürich HB",
+       "international": false
+      }
+     },
+     {
+      "id": "3HA.eNpVUtuK2lAURYfpgI95KHSgECZSCjJ4LrkOCCbRmOgk0ZhR40vxMmOiJo6J8cZ8Qz_Hpz7ZDyj0h9rEGTt0H9h77bP3WgcOK_f7kvh1eTyoDe14sPNiCZbNkjSIHudkW5LKvRLH8ALDsmWnRHMMzdGAL9-XeAYAAEF5UIKIL7-x-j9_hN7IJdWUxjM0QBCeaJjjIce90nBCPNMQQCxEgAc8xu-NgNi8JpOYZFicz8P8KY6Hhnw8UJ0qhShZoSAAlCxSSdKT1NZkm4KUqFMQMkwikWKUDEQbiAZlVijKsimOSkXeVABVtWoJR9WMFMsNikEAM_jlvdCAPReQHOY0QvwLThoaQvp0e4tg8ic8Zmk-lbfO-jDp2gmG31Q60sTXkEWEmj1QqOiSraz5lbBddhXnXlrrnt2PPFdSZzu9wuNFfdlvcXVh7jYr47XTXfiGFwSr5lNsQ-xq69ZGk2JupmktZbPy4hHAD61t2wOFiYNbse2oyuSpMJtoU7HtBjqilcir1odorlWfp8bS94W21ZAlFttNs1aTVpUdWxwKFW3vFQf6cOQHUBxPQ1kdLp4GrUWw1_RVI0SD9SNt9VQXBHOlbU0lpbnbCLDT4YKi6zIjOK2Z_grP7GKt-DyhuwaLY8bwQ0sVrO3SqURh1F9UfSNkg2gYo11vz5k0XBe2YHg_7RWdaKj0u5vGFjnzgTJbGJHpWWavHipoFwfmvjbbBV3YtfkHLE37tWY8VsC4M9Lh0NX7z35Ii_KYC7glLSX_XCK-Z4h87urNpcSn1Fu3EN0C3gb8HcZ3ABQATDJxlbuAHENmiC-n9dSd1_-tC3eI_bdOZq8_5rKaTGTw9UViz5sPIH0BguzN51xGJLIWSf45R-brO_wLkL3-6A.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "legs": [
+       {
+        "duration": 53,
+        "id": "0",
+        "__typename": "PTRideLeg",
+        "start": {
+         "__typename": "StopPlace",
+         "id": "8500010",
+         "name": "Basel SBB"
+        },
+        "end": {
+         "__typename": "StopPlace",
+         "id": "8503000",
+         "name": "Zürich HB"
+        },
+        "arrival": {
+         "time": "2026-12-08T09:26:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "4",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "departure": {
+         "time": "2026-12-08T08:33:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "11",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "serviceJourney": {
+         "id": "eNoVy0EKgDAMRNG7zLqFJNIScxVxpYi6EawI0np342z-5k3FCQO33CXVvlHT1JRFSDICCmyouF1Mq7GV_dlmY_KxpdxFr6sFRgEXTN4x4HD93yNLJMX7AdOpF_0",
+         "stopPoints": [
+          {
+           "place": {
+            "id": "8500010",
+            "name": "Basel SBB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "175",
+            "name": "Hauenstein-Basistunnel"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8503000",
+            "name": "Zürich HB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          }
+         ],
+         "serviceProducts": [
+          {
+           "name": "IC 3 563",
+           "line": "3",
+           "number": "563",
+           "vehicleMode": "TRAIN",
+           "vehicleSubModeShortName": "IC",
+           "corporateIdentityIcon": "ic-3",
+           "corporateIdentityPictogram": "train-right",
+           "routeIndexFrom": 0,
+           "routeIndexTo": 2
+          }
+         ],
+         "direction": "Chur"
+        }
+       }
+      ],
+      "valid": true,
+      "isBuyable": true,
+      "summary": {
+       "duration": 53,
+       "arrival": {
+        "time": "2026-12-08T09:26:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "4",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "arrivalWalk": 0,
+       "lastStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8503000",
+        "name": "Zürich HB",
+        "canton": "ZH"
+       },
+       "tripStatus": {
+        "alternative": false,
+        "alternativeText": null,
+        "cancelled": false,
+        "cancelledText": null,
+        "partiallyCancelled": false,
+        "delayed": false,
+        "delayedUnknown": false,
+        "quayChanged": false,
+        "cancelledExpected": false
+       },
+       "departure": {
+        "time": "2026-12-08T08:33:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "11",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "departureWalk": 0,
+       "firstStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8500010",
+        "name": "Basel SBB",
+        "canton": "BS"
+       },
+       "product": {
+        "name": "IC 3 563",
+        "line": "3",
+        "number": "563",
+        "vehicleMode": "TRAIN",
+        "vehicleSubModeShortName": "IC",
+        "corporateIdentityIcon": "ic-3",
+        "corporateIdentityPictogram": "train-right"
+       },
+       "direction": "Chur",
+       "international": false
+      }
+     },
+     {
+      "id": "3HA.eNpVUs1u2kAQVtIkldIbpzYnq0a9oIj9sb12JCRsg7EhtsE4AXOpMCTYgE2wMX_KC_UFOPVEn6FSH6c2IUWdlWbm29lvZjX6rv9c5n5f7ndqQ9vv7LxYgmWzJPXjpynVlqRyt0RYXmA5ruyUGMIyhAF8-b7EswAACMr9EkR8-cjq_foZ-QOPUjMazzIAQXigYcJDQt5oOCW-0xBAHESABzyDT0BgUV6zKEwohDicz8P8wfa7hrzf0Y9VGtGyQkMAaFmkU6enrq3JNg1pUachZNm0SZajtCDaQDRos0LTlk0TOmty7ALoqlVLOapmZLncoFkEMIdfT4HB6D2A9HAsAfBQZskrm14wQOAPlVsE083wmGP4bIT1PgOmqJ3m8LvKxJr4ZrKIULMLChVdspUlvxDW847i3EtL3bd7se9J6mSjV3g8q897LVIXpl6zMlw6nVlg-GG4aD4nNsSetmytNCkhE01rKauFnwwAfmit2z4ojBzcSmxHVUbPhclIG4ttL9QRo8R-te6iqVZ9GRvzIBDaVkOWOGw3zVpNWlQ2XNEVKtrWL_Z1dxCEUByOI1l1Z8_91izcavqiEaH-8omxuqoHwqnStsaS0tysBPj4SMKi57EDOK6ZwQJP7GKt-DJiOgaHE9YIIksVrPXcqcRR3JtVAyPiwthN0Ka7JSYDl4U1cO_H3aITu0qvs2qskTPtK5OZEZu-ZXbrkYI2SWhua5NN2IEdm3_A0rhXayZDBQwfBzp0Pb33EkSMKA9JSOaMlO65lPtxlstffzxqNfclU9gtRLeAtwF_x-A7AAoApj736fgKYersBDjq_AQI9eEIUlVj6uIEBOoy9-0AMm3f_DdGuGPRvzHU1c3n63PNyp1jcnORifvrFcj-BsHVXy1m9UU.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "legs": [
+       {
+        "duration": 69,
+        "id": "0",
+        "__typename": "PTRideLeg",
+        "start": {
+         "__typename": "StopPlace",
+         "id": "8500010",
+         "name": "Basel SBB"
+        },
+        "end": {
+         "__typename": "StopPlace",
+         "id": "8503000",
+         "name": "Zürich HB"
+        },
+        "arrival": {
+         "time": "2026-12-08T09:52:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "16",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "departure": {
+         "time": "2026-12-08T08:43:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "9",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "serviceJourney": {
+         "id": "eNoVyzEKgDAQRNG7TJ3A7prEsFcRK0XURjAiSOLdXaf6xZuKEwpuEnIfQ6OWY8ssQpLgUKBDxW1iWpW17M82K5ONVSR13sLYAiWHC5re0eEw_v89i6eM9wPnwRgn",
+         "stopPoints": [
+          {
+           "place": {
+            "id": "8500010",
+            "name": "Basel SBB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500023",
+            "name": "Liestal"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500026",
+            "name": "Sissach"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500027",
+            "name": "Gelterkinden"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8502113",
+            "name": "Aarau"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8502119",
+            "name": "Lenzburg"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8503000",
+            "name": "Zürich HB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          }
+         ],
+         "serviceProducts": [
+          {
+           "name": "IR 37 2263",
+           "line": "37",
+           "number": "2263",
+           "vehicleMode": "TRAIN",
+           "vehicleSubModeShortName": "IR",
+           "corporateIdentityIcon": "ir-37",
+           "corporateIdentityPictogram": "train-right",
+           "routeIndexFrom": 0,
+           "routeIndexTo": 6
+          }
+         ],
+         "direction": "Zürich HB"
+        }
+       }
+      ],
+      "valid": true,
+      "isBuyable": true,
+      "summary": {
+       "duration": 69,
+       "arrival": {
+        "time": "2026-12-08T09:52:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "16",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "arrivalWalk": 0,
+       "lastStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8503000",
+        "name": "Zürich HB",
+        "canton": "ZH"
+       },
+       "tripStatus": {
+        "alternative": false,
+        "alternativeText": null,
+        "cancelled": false,
+        "cancelledText": null,
+        "partiallyCancelled": false,
+        "delayed": false,
+        "delayedUnknown": false,
+        "quayChanged": false,
+        "cancelledExpected": false
+       },
+       "departure": {
+        "time": "2026-12-08T08:43:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "9",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "departureWalk": 0,
+       "firstStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8500010",
+        "name": "Basel SBB",
+        "canton": "BS"
+       },
+       "product": {
+        "name": "IR 37 2263",
+        "line": "37",
+        "number": "2263",
+        "vehicleMode": "TRAIN",
+        "vehicleSubModeShortName": "IR",
+        "corporateIdentityIcon": "ir-37",
+        "corporateIdentityPictogram": "train-right"
+       },
+       "direction": "Zürich HB",
+       "international": false
+      }
+     },
+     {
+      "id": "3HA.eNqdU8lu40YQhTyGM-PceJoYCEBMC8EAgqFe2OymAQEiKVGkZWqhONZyCbSMTWqhLFKUJcM_kFM-I3_g05w8PxMgH5GQkjxyJrcUge567Hqvqpc6_etE-PPk-cmsWs9PblYtoGK9oPWjz1OxpWnFToFRrlBZLnYLEqMSkyAvXhU4hRAiWOwXEObFPUvth_04YXBIEWZ8yyAKIrK0Y2CEyAsDQywjDDnkEjkABaOs5YiEiRjLJJtF2a09_-H-jxQ7Ru_rl9AfeqKZ7oVTKQ3Z0RhHjO1oJNnNfypTCHoFqJy1dJGKFL2q66mqPz-B6zLAQDcAghDoKkgGOxlalu4CBFQbIERpIpH6OFlQXajWQL0EgOMCBlKRvQoEZacCJAopB6ZVS7FeBRRDIpPHwyQRvJvkR5h8SKbbRcoe5S3c_j3HKLksnpwMT1M4LzlQglqJj341pchSd6arGDc6MFeyNddY8aWyXrSN7pW2sn23F_meZk42domT-eWi12SXytRrlEarbns-q_lBsGzcxC4inrVq3ltazCaW1TTul348hORTc93yYe62S5qx2zWN25vc5NYaqy0vsLFkRH75coCnVvluXFvMZkrLqeqaTNxGvVLRlqWNnB8oJevBz_ftwXAWIHU0DnVzML_pN-fBg2UvqyHurz5LTsf0YDA1Ws5YMxqbewVdX7Mg73l0iMaV-mxJJm6-kr-7ldo1mcS0NgsdU3HWi24pCqPevDyrhXIQDWK86TywuoRWuTUcXI07-W40MHrt--oad6d9YzKvRXXfqXcuQwNv4qD-UJlsgjZqu_wT0ca9SiMeGXB0PbTRwLN7d7NQUvURC9hC0pJzLgi_Z4Ts6Q_79hF-St_XOcLnkLuQX0jkAsIcRMko_LiPwkTMHIAsHh0AE98Iv2xB-uzP_iWmXGD0TUw8Pnt_emQ5whFhZ8dpa304gWkFCB4Lv2VeiQjfiZBXIm_3cWmzfJ-Myoe4d9tkupChZ2-SbnlJ9fEtfPfh59OMKhw5ovj3i2U-Htx_AHw2Oac.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "legs": [
+       {
+        "duration": 38,
+        "id": "0",
+        "__typename": "PTRideLeg",
+        "start": {
+         "__typename": "StopPlace",
+         "id": "8500010",
+         "name": "Basel SBB"
+        },
+        "end": {
+         "__typename": "StopPlace",
+         "id": "8502113",
+         "name": "Aarau"
+        },
+        "arrival": {
+         "time": "2026-12-08T09:21:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "3",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "departure": {
+         "time": "2026-12-08T08:43:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "9",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "serviceJourney": {
+         "id": "eNoVyzEKgDAQRNG7TJ3A7prEsFcRK0XURjAiSOLdXaf6xZuKEwpuEnIfQ6OWY8ssQpLgUKBDxW1iWpW17M82K5ONVSR13sLYAiWHCxre0eEw_v89i6eM9wPnlxgl",
+         "stopPoints": [
+          {
+           "place": {
+            "id": "8500010",
+            "name": "Basel SBB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500023",
+            "name": "Liestal"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500026",
+            "name": "Sissach"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8500027",
+            "name": "Gelterkinden"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8502113",
+            "name": "Aarau"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          }
+         ],
+         "serviceProducts": [
+          {
+           "name": "IR 37 2263",
+           "line": "37",
+           "number": "2263",
+           "vehicleMode": "TRAIN",
+           "vehicleSubModeShortName": "IR",
+           "corporateIdentityIcon": "ir-37",
+           "corporateIdentityPictogram": "train-right",
+           "routeIndexFrom": 0,
+           "routeIndexTo": 4
+          }
+         ],
+         "direction": "Zürich HB"
+        }
+       },
+       {
+        "duration": 25,
+        "id": "1",
+        "__typename": "PTRideLeg",
+        "start": {
+         "__typename": "StopPlace",
+         "id": "8502113",
+         "name": "Aarau"
+        },
+        "end": {
+         "__typename": "StopPlace",
+         "id": "8503000",
+         "name": "Zürich HB"
+        },
+        "arrival": {
+         "time": "2026-12-08T09:56:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "33",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "departure": {
+         "time": "2026-12-08T09:31:00+01:00",
+         "delay": 0,
+         "delayText": null,
+         "quayFormatted": "3",
+         "quayChanged": false,
+         "quayChangedText": null
+        },
+        "serviceJourney": {
+         "id": "eNoVyzEKgDAQRNG7TJ1Adk3CulcRK0XURjAiSOLdXaf5zZuKEwpqSWKU3EKT1ISYA2c4FOhQcZuYViUt-7PNSsFGmqjzVlMLVBwuaP-ODofp_-6JfRC8H9MBGAM",
+         "stopPoints": [
+          {
+           "place": {
+            "id": "8502113",
+            "name": "Aarau"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          },
+          {
+           "place": {
+            "id": "8503000",
+            "name": "Zürich HB"
+           },
+           "stopStatus": "PLANNED",
+           "stopStatusFormatted": null,
+           "delayUndefined": false
+          }
+         ],
+         "serviceProducts": [
+          {
+           "name": "IC 5 513",
+           "line": "5",
+           "number": "513",
+           "vehicleMode": "TRAIN",
+           "vehicleSubModeShortName": "IC",
+           "corporateIdentityIcon": "ic-5",
+           "corporateIdentityPictogram": "train-right",
+           "routeIndexFrom": 8,
+           "routeIndexTo": 9
+          }
+         ],
+         "direction": "Rorschach"
+        }
+       }
+      ],
+      "valid": true,
+      "isBuyable": true,
+      "summary": {
+       "duration": 73,
+       "arrival": {
+        "time": "2026-12-08T09:56:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "33",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "arrivalWalk": 0,
+       "lastStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8503000",
+        "name": "Zürich HB",
+        "canton": "ZH"
+       },
+       "tripStatus": {
+        "alternative": false,
+        "alternativeText": null,
+        "cancelled": false,
+        "cancelledText": null,
+        "partiallyCancelled": false,
+        "delayed": false,
+        "delayedUnknown": false,
+        "quayChanged": false,
+        "cancelledExpected": false
+       },
+       "departure": {
+        "time": "2026-12-08T08:43:00+01:00",
+        "delay": 0,
+        "delayText": null,
+        "quayFormatted": "9",
+        "quayChanged": false,
+        "quayChangedText": null
+       },
+       "departureWalk": 0,
+       "firstStopPlace": {
+        "__typename": "StopPlace",
+        "id": "8500010",
+        "name": "Basel SBB",
+        "canton": "BS"
+       },
+       "product": {
+        "name": "IR 37 2263",
+        "line": "37",
+        "number": "2263",
+        "vehicleMode": "TRAIN",
+        "vehicleSubModeShortName": "IR",
+        "corporateIdentityIcon": "ir-37",
+        "corporateIdentityPictogram": "train-right"
+       },
+       "direction": "Zürich HB",
+       "international": false
+      }
+     }
+    ]
+   }
+  }
+ },
+ "prices": {
+  "url": "https://graphql.www.sbb.ch/",
+  "method": "POST",
+  "request": {
+   "method": "POST",
+   "body": {
+    "variables": {
+     "input": {
+      "fromPlace": "8500010",
+      "toPlace": "8503000",
+      "travelClass": "ANY_CLASS",
+      "tripIds": [
+       "3HA.eNpVUktvolAUTjvpNOnSxSTTlZlrZmMa7wO40MREQBG0gCJVcTMRbQUVrCC-0t_lalbOT5hkfs-AtfO4JzmPe77vnOTku_l1lft5dTyoTe14sAtiGVXMsjSMn-b5jiRV-mXK8gLLcRWnzFCWoQzkKw9lnoUQIlgZlhHmK2fW4Mf3yB95eTWj8SwDMUInGqE8ovSNRlLiOw1DzCEM-dTo30KAsKDJeZKnHCkUUOH0joemfDyAbg1gICsAQQhkEaROT11Hk22AgKgDhFg2HZHlOG2INhQNYFYBsGxAQTbkPAWCmlVPOapmZLncBCyGBNPXfwIP30NmHMuRcxu-ovSDQYg5de4wSu_CE47hsxXW-w6UVp00R99UJtbEtyeLGLf6sFjVJVtZ8ythu-wpzoO01n17EPuepM52epUni8Zy0KYNYe61quO101sEhh-Gq9ZzYiPiaev2RpMSOtO0trJZ-ckIksf2tuPD4sQh7cR2VGXyXJxNtKnY8UIdM0rs1xounmu1l6mxDAKhYzVliSN2y6zXpVV1x5Vcoart_dJQd0dBiMTxNJJVd_E8bC_CvaavmhEerp8Yq696MJwrHWsqKa3dRkDdLg1LnseO0LRuBisys0v10suE6RkcSVgjiCxVsLZLpxpH8WBRC4yIC2M3wbv-npoMWhe30H2Y9ktO7CqD3qa5xc58qMwWRmz6ltlvRAreJaG5r892YQ_1bP6RSNNBvZWMFTjujnTkevrgJYgYUR7TkC4ZKb1zObfIFW6uz0LNfc7kdYfwHeRtyN9Deg9hEaLU565vPiDK5i9yX0_wTKC3_8GFFPUHnr-8_XRzqcm5C3L7IVXol48w24Dg5W8i7OxN.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+       "3HA.eNpVUklv2lAQVtIsUnrj1OZk9aFeUMS8xVskJGyDsSFmMQ7bpWJJsFlMwOzK7-LUE_0VlfpjagcS2jfSzHxv3jff02hu_lzGfl_ud0bB3O-cuJLC6VJKbQdPI66qqulGSuQlmReEdDPFRJ6JDKT0Q0riAQBDup3CREofWa1fP2de1-WMiCbxDAjGbzQqSlgUDzQaEt9pBIiACUihiScgExY3bY4KHJYFGo_j-NvZ7wrafodqWUSQpiMMgDQFhc4KXdXUHISRYiGMeT5sEuUkLCgOKEVUyiBkO0hEUZNjF0BZO4cIBpkxjAyzGN1oBcQToER8_SdIEAUG7BVCw4APRXglIWQgC2_3dwSH05GowKRIxn7XwSGqhjn-YbDAVA5HUwgpNyCRsVRHX0pzeT2t680HdWl5TivwXNUYbqyMRCf5aasi5uWRW870ls36ZFz0fH9efl44mLrmsrIy1YU4NM2Kvpp7iy7Qx8q66kGi36SVhdM09P5zYtg3B0rV9S3C9MDL5jtkZGZfBsXpeCxX7YKmCtQpl3I5dZ7ZCMmOnDG3XrJtdbpjHyu9wUwzOpPndmXib01rXpiR9vKJ2Q3DBX-kV-2Bqpc3KxnXaqKfdF2-iwe50nhOh04yl3zps3pRoAu-OJ7Zhmyvp81MMAtak-y4OBP8oLMgm8ZWLDG8TKyh8zBoJJtBR2_VV4U1aY7a-nBSDEqeXWrkZzrZLPzSNjfc-HVcd6RHqg5aufKip0Ov1rVwx7VaL-MZU7Se6ItTpoZzTsV2Z7H4zfVxX2Nfoy27w-QOJAekexDvARKAQx_7fHhFAXNnJ0C48w9AgPt0qvDcxQnI3OURUB4YdxX7fgCh6u1_mvI9YR-a3PXtl5tz046dU-H2Itr2b1cQfRTD9V-ce_fO.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+       "3HA.eNpVUtuK2lAURYfpgI95KHSgECZSCjJ4LrkOCCbRmOgk0ZhR40vxMmOiJo6J8cZ8Qz_Hpz7ZDyj0h9rEGTt0H9h77bP3WgcOK_f7kvh1eTyoDe14sPNiCZbNkjSIHudkW5LKvRLH8ALDsmWnRHMMzdGAL9-XeAYAAEF5UIKIL7-x-j9_hN7IJdWUxjM0QBCeaJjjIce90nBCPNMQQCxEgAc8xu-NgNi8JpOYZFicz8P8KY6Hhnw8UJ0qhShZoSAAlCxSSdKT1NZkm4KUqFMQMkwikWKUDEQbiAZlVijKsimOSkXeVABVtWoJR9WMFMsNikEAM_jlvdCAPReQHOY0QvwLThoaQvp0e4tg8ic8Zmk-lbfO-jDp2gmG31Q60sTXkEWEmj1QqOiSraz5lbBddhXnXlrrnt2PPFdSZzu9wuNFfdlvcXVh7jYr47XTXfiGFwSr5lNsQ-xq69ZGk2JupmktZbPy4hHAD61t2wOFiYNbse2oyuSpMJtoU7HtBjqilcir1odorlWfp8bS94W21ZAlFttNs1aTVpUdWxwKFW3vFQf6cOQHUBxPQ1kdLp4GrUWw1_RVI0SD9SNt9VQXBHOlbU0lpbnbCLDT4YKi6zIjOK2Z_grP7GKt-DyhuwaLY8bwQ0sVrO3SqURh1F9UfSNkg2gYo11vz5k0XBe2YHg_7RWdaKj0u5vGFjnzgTJbGJHpWWavHipoFwfmvjbbBV3YtfkHLE37tWY8VsC4M9Lh0NX7z35Ii_KYC7glLSX_XCK-Z4h87urNpcSn1Fu3EN0C3gb8HcZ3ABQATDJxlbuAHENmiC-n9dSd1_-tC3eI_bdOZq8_5rKaTGTw9UViz5sPIH0BguzN51xGJLIWSf45R-brO_wLkL3-6A.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+       "3HA.eNpVUs1u2kAQVtIkldIbpzYnq0a9oIj9sb12JCRsg7EhtsE4AXOpMCTYgE2wMX_KC_UFOPVEn6FSH6c2IUWdlWbm29lvZjX6rv9c5n5f7ndqQ9vv7LxYgmWzJPXjpynVlqRyt0RYXmA5ruyUGMIyhAF8-b7EswAACMr9EkR8-cjq_foZ-QOPUjMazzIAQXigYcJDQt5oOCW-0xBAHESABzyDT0BgUV6zKEwohDicz8P8wfa7hrzf0Y9VGtGyQkMAaFmkU6enrq3JNg1pUachZNm0SZajtCDaQDRos0LTlk0TOmty7ALoqlVLOapmZLncoFkEMIdfT4HB6D2A9HAsAfBQZskrm14wQOAPlVsE083wmGP4bIT1PgOmqJ3m8LvKxJr4ZrKIULMLChVdspUlvxDW847i3EtL3bd7se9J6mSjV3g8q897LVIXpl6zMlw6nVlg-GG4aD4nNsSetmytNCkhE01rKauFnwwAfmit2z4ojBzcSmxHVUbPhclIG4ttL9QRo8R-te6iqVZ9GRvzIBDaVkOWOGw3zVpNWlQ2XNEVKtrWL_Z1dxCEUByOI1l1Z8_91izcavqiEaH-8omxuqoHwqnStsaS0tysBPj4SMKi57EDOK6ZwQJP7GKt-DJiOgaHE9YIIksVrPXcqcRR3JtVAyPiwthN0Ka7JSYDl4U1cO_H3aITu0qvs2qskTPtK5OZEZu-ZXbrkYI2SWhua5NN2IEdm3_A0rhXayZDBQwfBzp0Pb33EkSMKA9JSOaMlO65lPtxlstffzxqNfclU9gtRLeAtwF_x-A7AAoApj736fgKYersBDjq_AQI9eEIUlVj6uIEBOoy9-0AMm3f_DdGuGPRvzHU1c3n63PNyp1jcnORifvrFcj-BsHVXy1m9UU.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+       "3HA.eNqdU8lu40YQhTyGM-PceJoYCEBMC8EAgqFe2OymAQEiKVGkZWqhONZyCbSMTWqhLFKUJcM_kFM-I3_g05w8PxMgH5GQkjxyJrcUge567Hqvqpc6_etE-PPk-cmsWs9PblYtoGK9oPWjz1OxpWnFToFRrlBZLnYLEqMSkyAvXhU4hRAiWOwXEObFPUvth_04YXBIEWZ8yyAKIrK0Y2CEyAsDQywjDDnkEjkABaOs5YiEiRjLJJtF2a09_-H-jxQ7Ru_rl9AfeqKZ7oVTKQ3Z0RhHjO1oJNnNfypTCHoFqJy1dJGKFL2q66mqPz-B6zLAQDcAghDoKkgGOxlalu4CBFQbIERpIpH6OFlQXajWQL0EgOMCBlKRvQoEZacCJAopB6ZVS7FeBRRDIpPHwyQRvJvkR5h8SKbbRcoe5S3c_j3HKLksnpwMT1M4LzlQglqJj341pchSd6arGDc6MFeyNddY8aWyXrSN7pW2sn23F_meZk42domT-eWi12SXytRrlEarbns-q_lBsGzcxC4inrVq3ltazCaW1TTul348hORTc93yYe62S5qx2zWN25vc5NYaqy0vsLFkRH75coCnVvluXFvMZkrLqeqaTNxGvVLRlqWNnB8oJevBz_ftwXAWIHU0DnVzML_pN-fBg2UvqyHurz5LTsf0YDA1Ws5YMxqbewVdX7Mg73l0iMaV-mxJJm6-kr-7ldo1mcS0NgsdU3HWi24pCqPevDyrhXIQDWK86TywuoRWuTUcXI07-W40MHrt--oad6d9YzKvRXXfqXcuQwNv4qD-UJlsgjZqu_wT0ca9SiMeGXB0PbTRwLN7d7NQUvURC9hC0pJzLgi_Z4Ts6Q_79hF-St_XOcLnkLuQX0jkAsIcRMko_LiPwkTMHIAsHh0AE98Iv2xB-uzP_iWmXGD0TUw8Pnt_emQ5whFhZ8dpa304gWkFCB4Lv2VeiQjfiZBXIm_3cWmzfJ-Myoe4d9tkupChZ2-SbnlJ9fEtfPfh59OMKhw5ovj3i2U-Htx_AHw2Oac.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw"
+      ],
+      "passengers": [
+       {
+        "reductions": [
+         "NONE"
+        ]
+       }
+      ]
+     }
+    }
+   }
+  },
+  "response": {
+   "data": {
+    "tripPrices": [
+     {
+      "tripId": "3HA.eNpVUktvolAUTjvpNOnSxSTTlZlrZmMa7wO40MREQBG0gCJVcTMRbQUVrCC-0t_lalbOT5hkfs-AtfO4JzmPe77vnOTku_l1lft5dTyoTe14sAtiGVXMsjSMn-b5jiRV-mXK8gLLcRWnzFCWoQzkKw9lnoUQIlgZlhHmK2fW4Mf3yB95eTWj8SwDMUInGqE8ovSNRlLiOw1DzCEM-dTo30KAsKDJeZKnHCkUUOH0joemfDyAbg1gICsAQQhkEaROT11Hk22AgKgDhFg2HZHlOG2INhQNYFYBsGxAQTbkPAWCmlVPOapmZLncBCyGBNPXfwIP30NmHMuRcxu-ovSDQYg5de4wSu_CE47hsxXW-w6UVp00R99UJtbEtyeLGLf6sFjVJVtZ8ythu-wpzoO01n17EPuepM52epUni8Zy0KYNYe61quO101sEhh-Gq9ZzYiPiaev2RpMSOtO0trJZ-ckIksf2tuPD4sQh7cR2VGXyXJxNtKnY8UIdM0rs1xounmu1l6mxDAKhYzVliSN2y6zXpVV1x5Vcoart_dJQd0dBiMTxNJJVd_E8bC_CvaavmhEerp8Yq696MJwrHWsqKa3dRkDdLg1LnseO0LRuBisys0v10suE6RkcSVgjiCxVsLZLpxpH8WBRC4yIC2M3wbv-npoMWhe30H2Y9ktO7CqD3qa5xc58qMwWRmz6ltlvRAreJaG5r892YQ_1bP6RSNNBvZWMFTjujnTkevrgJYgYUR7TkC4ZKb1zObfIFW6uz0LNfc7kdYfwHeRtyN9Deg9hEaLU565vPiDK5i9yX0_wTKC3_8GFFPUHnr-8_XRzqcm5C3L7IVXol48w24Dg5W8i7OxN.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "tripPrices": [
+       {
+        "price": {
+         "amount": 2460,
+         "currency": "CHF"
+        },
+        "travelClass": "SECOND",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       },
+       {
+        "price": {
+         "amount": 3920,
+         "currency": "CHF"
+        },
+        "travelClass": "FIRST",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       }
+      ],
+      "bookingSystem": "NOVA"
+     },
+     {
+      "tripId": "3HA.eNpVUklv2lAQVtIsUnrj1OZk9aFeUMS8xVskJGyDsSFmMQ7bpWJJsFlMwOzK7-LUE_0VlfpjagcS2jfSzHxv3jff02hu_lzGfl_ud0bB3O-cuJLC6VJKbQdPI66qqulGSuQlmReEdDPFRJ6JDKT0Q0riAQBDup3CREofWa1fP2de1-WMiCbxDAjGbzQqSlgUDzQaEt9pBIiACUihiScgExY3bY4KHJYFGo_j-NvZ7wrafodqWUSQpiMMgDQFhc4KXdXUHISRYiGMeT5sEuUkLCgOKEVUyiBkO0hEUZNjF0BZO4cIBpkxjAyzGN1oBcQToER8_SdIEAUG7BVCw4APRXglIWQgC2_3dwSH05GowKRIxn7XwSGqhjn-YbDAVA5HUwgpNyCRsVRHX0pzeT2t680HdWl5TivwXNUYbqyMRCf5aasi5uWRW870ls36ZFz0fH9efl44mLrmsrIy1YU4NM2Kvpp7iy7Qx8q66kGi36SVhdM09P5zYtg3B0rV9S3C9MDL5jtkZGZfBsXpeCxX7YKmCtQpl3I5dZ7ZCMmOnDG3XrJtdbpjHyu9wUwzOpPndmXib01rXpiR9vKJ2Q3DBX-kV-2Bqpc3KxnXaqKfdF2-iwe50nhOh04yl3zps3pRoAu-OJ7Zhmyvp81MMAtak-y4OBP8oLMgm8ZWLDG8TKyh8zBoJJtBR2_VV4U1aY7a-nBSDEqeXWrkZzrZLPzSNjfc-HVcd6RHqg5aufKip0Ov1rVwx7VaL-MZU7Se6ItTpoZzTsV2Z7H4zfVxX2Nfoy27w-QOJAekexDvARKAQx_7fHhFAXNnJ0C48w9AgPt0qvDcxQnI3OURUB4YdxX7fgCh6u1_mvI9YR-a3PXtl5tz046dU-H2Itr2b1cQfRTD9V-ce_fO.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "tripPrices": [
+       {
+        "price": {
+         "amount": 1940,
+         "currency": "CHF"
+        },
+        "travelClass": "SECOND",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       },
+       {
+        "price": {
+         "amount": 3280,
+         "currency": "CHF"
+        },
+        "travelClass": "FIRST",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       }
+      ],
+      "bookingSystem": "NOVA"
+     },
+     {
+      "tripId": "3HA.eNpVUtuK2lAURYfpgI95KHSgECZSCjJ4LrkOCCbRmOgk0ZhR40vxMmOiJo6J8cZ8Qz_Hpz7ZDyj0h9rEGTt0H9h77bP3WgcOK_f7kvh1eTyoDe14sPNiCZbNkjSIHudkW5LKvRLH8ALDsmWnRHMMzdGAL9-XeAYAAEF5UIKIL7-x-j9_hN7IJdWUxjM0QBCeaJjjIce90nBCPNMQQCxEgAc8xu-NgNi8JpOYZFicz8P8KY6Hhnw8UJ0qhShZoSAAlCxSSdKT1NZkm4KUqFMQMkwikWKUDEQbiAZlVijKsimOSkXeVABVtWoJR9WMFMsNikEAM_jlvdCAPReQHOY0QvwLThoaQvp0e4tg8ic8Zmk-lbfO-jDp2gmG31Q60sTXkEWEmj1QqOiSraz5lbBddhXnXlrrnt2PPFdSZzu9wuNFfdlvcXVh7jYr47XTXfiGFwSr5lNsQ-xq69ZGk2JupmktZbPy4hHAD61t2wOFiYNbse2oyuSpMJtoU7HtBjqilcir1odorlWfp8bS94W21ZAlFttNs1aTVpUdWxwKFW3vFQf6cOQHUBxPQ1kdLp4GrUWw1_RVI0SD9SNt9VQXBHOlbU0lpbnbCLDT4YKi6zIjOK2Z_grP7GKt-DyhuwaLY8bwQ0sVrO3SqURh1F9UfSNkg2gYo11vz5k0XBe2YHg_7RWdaKj0u5vGFjnzgTJbGJHpWWavHipoFwfmvjbbBV3YtfkHLE37tWY8VsC4M9Lh0NX7z35Ii_KYC7glLSX_XCK-Z4h87urNpcSn1Fu3EN0C3gb8HcZ3ABQATDJxlbuAHENmiC-n9dSd1_-tC3eI_bdOZq8_5rKaTGTw9UViz5sPIH0BguzN51xGJLIWSf45R-brO_wLkL3-6A.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "tripPrices": [
+       {
+        "price": {
+         "amount": 2460,
+         "currency": "CHF"
+        },
+        "travelClass": "SECOND",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       },
+       {
+        "price": {
+         "amount": 3720,
+         "currency": "CHF"
+        },
+        "travelClass": "FIRST",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       }
+      ],
+      "bookingSystem": "NOVA"
+     },
+     {
+      "tripId": "3HA.eNpVUs1u2kAQVtIkldIbpzYnq0a9oIj9sb12JCRsg7EhtsE4AXOpMCTYgE2wMX_KC_UFOPVEn6FSH6c2IUWdlWbm29lvZjX6rv9c5n5f7ndqQ9vv7LxYgmWzJPXjpynVlqRyt0RYXmA5ruyUGMIyhAF8-b7EswAACMr9EkR8-cjq_foZ-QOPUjMazzIAQXigYcJDQt5oOCW-0xBAHESABzyDT0BgUV6zKEwohDicz8P8wfa7hrzf0Y9VGtGyQkMAaFmkU6enrq3JNg1pUachZNm0SZajtCDaQDRos0LTlk0TOmty7ALoqlVLOapmZLncoFkEMIdfT4HB6D2A9HAsAfBQZskrm14wQOAPlVsE083wmGP4bIT1PgOmqJ3m8LvKxJr4ZrKIULMLChVdspUlvxDW847i3EtL3bd7se9J6mSjV3g8q897LVIXpl6zMlw6nVlg-GG4aD4nNsSetmytNCkhE01rKauFnwwAfmit2z4ojBzcSmxHVUbPhclIG4ttL9QRo8R-te6iqVZ9GRvzIBDaVkOWOGw3zVpNWlQ2XNEVKtrWL_Z1dxCEUByOI1l1Z8_91izcavqiEaH-8omxuqoHwqnStsaS0tysBPj4SMKi57EDOK6ZwQJP7GKt-DJiOgaHE9YIIksVrPXcqcRR3JtVAyPiwthN0Ka7JSYDl4U1cO_H3aITu0qvs2qskTPtK5OZEZu-ZXbrkYI2SWhua5NN2IEdm3_A0rhXayZDBQwfBzp0Pb33EkSMKA9JSOaMlO65lPtxlstffzxqNfclU9gtRLeAtwF_x-A7AAoApj736fgKYersBDjq_AQI9eEIUlVj6uIEBOoy9-0AMm3f_DdGuGPRvzHU1c3n63PNyp1jcnORifvrFcj-BsHVXy1m9UU.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "tripPrices": [
+       {
+        "price": {
+         "amount": 2180,
+         "currency": "CHF"
+        },
+        "travelClass": "SECOND",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       },
+       {
+        "price": {
+         "amount": 3300,
+         "currency": "CHF"
+        },
+        "travelClass": "FIRST",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       }
+      ],
+      "bookingSystem": "NOVA"
+     },
+     {
+      "tripId": "3HA.eNqdU8lu40YQhTyGM-PceJoYCEBMC8EAgqFe2OymAQEiKVGkZWqhONZyCbSMTWqhLFKUJcM_kFM-I3_g05w8PxMgH5GQkjxyJrcUge567Hqvqpc6_etE-PPk-cmsWs9PblYtoGK9oPWjz1OxpWnFToFRrlBZLnYLEqMSkyAvXhU4hRAiWOwXEObFPUvth_04YXBIEWZ8yyAKIrK0Y2CEyAsDQywjDDnkEjkABaOs5YiEiRjLJJtF2a09_-H-jxQ7Ru_rl9AfeqKZ7oVTKQ3Z0RhHjO1oJNnNfypTCHoFqJy1dJGKFL2q66mqPz-B6zLAQDcAghDoKkgGOxlalu4CBFQbIERpIpH6OFlQXajWQL0EgOMCBlKRvQoEZacCJAopB6ZVS7FeBRRDIpPHwyQRvJvkR5h8SKbbRcoe5S3c_j3HKLksnpwMT1M4LzlQglqJj341pchSd6arGDc6MFeyNddY8aWyXrSN7pW2sn23F_meZk42domT-eWi12SXytRrlEarbns-q_lBsGzcxC4inrVq3ltazCaW1TTul348hORTc93yYe62S5qx2zWN25vc5NYaqy0vsLFkRH75coCnVvluXFvMZkrLqeqaTNxGvVLRlqWNnB8oJevBz_ftwXAWIHU0DnVzML_pN-fBg2UvqyHurz5LTsf0YDA1Ws5YMxqbewVdX7Mg73l0iMaV-mxJJm6-kr-7ldo1mcS0NgsdU3HWi24pCqPevDyrhXIQDWK86TywuoRWuTUcXI07-W40MHrt--oad6d9YzKvRXXfqXcuQwNv4qD-UJlsgjZqu_wT0ca9SiMeGXB0PbTRwLN7d7NQUvURC9hC0pJzLgi_Z4Ts6Q_79hF-St_XOcLnkLuQX0jkAsIcRMko_LiPwkTMHIAsHh0AE98Iv2xB-uzP_iWmXGD0TUw8Pnt_emQ5whFhZ8dpa304gWkFCB4Lv2VeiQjfiZBXIm_3cWmzfJ-Myoe4d9tkupChZ2-SbnlJ9fEtfPfh59OMKhw5ovj3i2U-Htx_AHw2Oac.eNqrVirLTCxWsoqO1VHyV7JSsjA1MDAwNFDSUXKB8IyBfCAvBcgzMjAy0zU00jWwAAqUAAUMLKzAkolAth-QzgHSjkA6T8kqrzQnpxYAyLQUvw",
+      "tripPrices": [
+       {
+        "price": {
+         "amount": 2140,
+         "currency": "CHF"
+        },
+        "travelClass": "SECOND",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       },
+       {
+        "price": {
+         "amount": 3500,
+         "currency": "CHF"
+        },
+        "travelClass": "FIRST",
+        "afterSaleFlexibility": "FULL_FLEXIBLE"
+       }
+      ],
+      "bookingSystem": "NOVA"
+     }
+    ]
+   }
+  }
+ }
+}

@@ -16,6 +16,8 @@ SECRET = "sessionid=SECRET-COOKIE-123"
 SCRIPTS = {"bahn.de": "bahn", "nsinternational.com": "ns", "flixbus.com": "flixbus", "kiwi.com": "kiwi",
            "thetrainline.com": "trainline", "sncf-connect.com": "sncf", "eurostar.com": "eurostar",
            "oebbtickets.at": "oebb"}
+# a parser that has no userscript yet: its HAR rule is empty until the userscript ticket (#1786)
+NO_SCRIPT = {"sbb.ch"}
 
 
 def fixture(source, name):
@@ -87,7 +89,7 @@ def consts(js):
 
 @pytest.mark.parametrize("source", list(SCRIPTS))
 def test_the_url_rule_of_each_parser_matches_its_userscript(source):
-    assert set(SCRIPTS) == set(parser_classes())
+    assert set(SCRIPTS) | NO_SCRIPT == set(parser_classes())
     cls = parser_classes()[source]
     js = (ROOT / "userscripts" / f"{SCRIPTS[source]}.user.js").read_text()
     c = consts(js)
@@ -99,3 +101,4 @@ def test_the_url_rule_of_each_parser_matches_its_userscript(source):
     assert set(cls.paths) == paths
     hosts = {c["HOST"]} if "HOST" in c else set(re.findall(r"// @match +https://([^/*]+)/", js))
     assert set(cls.hosts) == hosts
+
