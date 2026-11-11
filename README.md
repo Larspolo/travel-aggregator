@@ -1705,6 +1705,15 @@ minus one, times the difference between the field and the transfer markup. For e
 a later-transfer value of 25, an itinerary with 3 transfers adds `later transfers` 30. One transfer, or a value equal to
 the transfer markup, adds no part.
 
+The **Advanced** section has three fields for the work hours. **Each work hour €** sets the markup for each hour of travel
+on a local workday (Monday to Friday) between the work-hour start and end. It is empty by default, and an empty field
+means the hour markup. **Work hours from**, default `9`, is the first local hour of the work day, and **Work hours to**,
+default `17`, is the last local hour. The hours are whole hours of the local clock of the departure place of each leg.
+The breakdown shows the part `work hours` for the minutes of the legs in that window: the difference between the field
+and the hour markup, times the hours. A value equal to the hour markup, or a leg outside the window or on a weekend, adds
+no part. For example, with an hour markup of €15 and a work-hour value of €30, a train on a Friday from 14:00 to 19:00
+local time adds `work hours` €45 for the 3 hours from 14:00 to 17:00.
+
 ### Risk
 
 The **Advanced** section under the sliders also sets the risk extras. Each setting has a default. A value of 0 removes
