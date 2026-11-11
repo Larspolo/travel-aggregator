@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 21;
+const CORE_VERSION = 22;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -76,6 +76,7 @@ const CORE_VERSION = 21;
     const controls = document.createElement("div");
     controls.className = "controls";
     controls.innerHTML = `<label>Attach to trip: <select class="trip"></select></label>
+      <a class="open-trip" target="_blank" rel="noopener" hidden>Open the trip</a>
       <button type="button" class="new-trip">+ new trip</button>
       <label><input type="checkbox" class="autosend"> auto-send</label>
       <label><input type="checkbox" class="autotrip"> auto-select trip</label>
@@ -120,6 +121,7 @@ const CORE_VERSION = 21;
     return {
       host,
       select: controls.querySelector(".trip"),
+      openTrip: controls.querySelector(".open-trip"),
       newTrip: controls.querySelector(".new-trip"),
       autosend: controls.querySelector(".autosend"),
       autotrip: controls.querySelector(".autotrip"),
@@ -323,6 +325,7 @@ const CORE_VERSION = 21;
     list.forEach(addOption);
     const id = tripId();
     panel.select.value = id && list.some((t) => t.id === id) ? String(id) : "";
+    showTripLink();
   }
 
   async function newTrip() {
@@ -335,9 +338,27 @@ const CORE_VERSION = 21;
     addOption(trip);
     panel.select.value = String(trip.id);
     gm.setValue("trip", trip.id);
+    showTripLink();
   }
 
-  panel.select.addEventListener("change", () => gm.setValue("trip", Number(panel.select.value) || 0));
+  // "Open the trip" (#2366): a link to the trip page on the server, shown with a server URL and a selected trip.
+  const showTripLink = () => {
+    const server = config().server;
+    const id = tripId();
+    if (/^https?:\/\//.test(server) && id) {
+      panel.openTrip.href = `${server}/trips/${id}`;
+      panel.openTrip.hidden = false;
+    } else {
+      panel.openTrip.removeAttribute("href");
+      panel.openTrip.hidden = true;
+    }
+  };
+  showTripLink();
+
+  panel.select.addEventListener("change", () => {
+    gm.setValue("trip", Number(panel.select.value) || 0);
+    showTripLink();
+  });
   panel.newTrip.addEventListener("click", newTrip);
   panel.autotrip.checked = autoTrip();
   panel.autotrip.addEventListener("change", () => gm.setValue("autotrip", panel.autotrip.checked));
@@ -465,6 +486,7 @@ const CORE_VERSION = 21;
         }
         panel.select.value = String(id);
         gm.setValue("trip", id);
+        showTripLink();
         panel.setStatus(`Captured ${n} offers → sent to ${resp.trip_title || `trip ${id}`} ✓${bestOf(resp)}`, "ok");
         return;
       }
@@ -577,7 +599,7 @@ const CORE_VERSION = 21;
   // The panel has the settings too (#536): the Tampermonkey menu is hidden in the extension popup.
   const setServer = async () => {
     const v = await panel.ask("travel-aggregator server URL", config().server, "url");
-    if (v !== null) { gm.setValue("server", v.trim()); loadTrips(); }
+    if (v !== null) { gm.setValue("server", v.trim()); showTripLink(); loadTrips(); }
   };
   const setToken = async () => {
     const v = await panel.ask("travel-aggregator API token", "", "password");
