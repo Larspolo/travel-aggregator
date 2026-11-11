@@ -48,7 +48,7 @@ def test_the_page_shows_each_offer_with_its_price_cheapest_first(trip):
     page = r.text
     assert "€89.90" in page and "€119.90" in page and page.index("€89.90") < page.index("€119.90")
     assert "Amsterdam Centraal → Zürich HB" in page and "Sun 20 Dec 07:34 → 15:26" in page
-    assert "DB ICE 105, SBB IC 61" in page and "Sparpreis" in page and "1 transfer" in page
+    assert "Deutsche Bahn ICE 105, SBB IC 61" in page and "Sparpreis" in page and "1 transfer" in page
 
 
 def test_captured_text_is_escaped(trip):

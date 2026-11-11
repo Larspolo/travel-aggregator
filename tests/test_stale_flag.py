@@ -17,7 +17,7 @@ def _ingest_hours_ago(client, auth, trip_id, hours_ago, service_no):
 
 
 def _row(page, service_no):
-    return next(part for part in page.split("<tr") if f"DB {service_no}" in part)
+    return next(part for part in page.split("<tr") if f"Deutsche Bahn {service_no}" in part)
 
 
 def test_an_old_offer_is_flagged_and_a_new_one_is_not(trip):  # noqa: F811

@@ -4,7 +4,7 @@
     {% set dep, arr = first.depart_at | local(first.depart_offset_min), last.arrive_at | local(last.arrive_offset_min) %}
     {% set days = arr | day_gap(dep) %}
     {% set newest = it.fares | map(attribute="latest_captured_at") | max %}
-    {% set carriers %}{% for leg in it.legs %}{{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
+    {% set carriers %}{% for leg in it.legs %}{{ leg.carrier | carrier_names }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
     {% set fare_line %}{% if fare.fare_name %}{{ fare.fare_name }} · {% endif %}{{ fare.source }}, {{ newest | ago(now) }}{% if fare.id in gone_fares %} · not in the last {{ gone_fares[fare.id].source }} search, {{ gone_fares[fare.id].captured_at | ago(now) }}{% endif %}{% endset %}
     {% set gone = it.depart_at and view.departed_now and it.depart_at < view.departed_now and not it.booked %}
     <tr id="it-{{ it.id }}"{% if gone %} class="departed muted"{% endif %}>

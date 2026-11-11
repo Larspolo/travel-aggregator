@@ -32,7 +32,7 @@ def _ingest_hours_ago(client, auth, trip_id, hours_ago, service_no, price):
 
 
 def _row(page, service_no):
-    return next(part for part in page.split("<tr") if f"DB {service_no}" in part)
+    return next(part for part in page.split("<tr") if f"Deutsche Bahn {service_no}" in part)
 
 
 def test_a_stale_offer_adds_the_penalty_as_a_stale_part():
@@ -58,7 +58,7 @@ def test_the_trip_page_shows_the_stale_part_and_the_cheaper_stale_offer_ranks_be
     page = client.get(f"/trips/{trip_id}", params={"stale_penalty": "25"}).text
     assert "€25 stale" in _row(page, "ICE 105")
     assert "€25 stale" not in _row(page, "ICE 123")
-    assert page.index("DB ICE 123") < page.index("DB ICE 105")
+    assert page.index("Deutsche Bahn ICE 123") < page.index("Deutsche Bahn ICE 105")
 
 
 def test_the_default_penalty_changes_nothing(trip):  # noqa: F811
