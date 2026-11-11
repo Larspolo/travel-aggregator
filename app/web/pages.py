@@ -1681,6 +1681,22 @@ def delete_profile_page(profile_id: int, session: Session = Depends(get_session)
     return RedirectResponse("/profiles", status_code=303)
 
 
+@router.post("/trips/{trip_id}/itineraries/{itinerary_id}/schedule-change/dismiss",
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def dismiss_schedule_change(trip_id: int, itinerary_id: int, key: str = Form(...), back: str = Form("/upcoming"),
+                            session: Session = Depends(get_session)) -> RedirectResponse:
+    """Hide a timetable change until its new times change again (#2342)."""
+    from app.schedule_change import dismiss
+    it = session.get(Itinerary, itinerary_id)
+    if it is None or it.trip_id != trip_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no itinerary {itinerary_id} in trip {trip_id}")
+    dismiss(it, key.strip()[:200])
+    session.commit()
+    # only a local page: no open redirect (P5)
+    target = back if back in ("/upcoming", f"/trips/{trip_id}") else "/upcoming"
+    return RedirectResponse(target, status_code=303)
+
+
 @router.post("/trips/{trip_id}/itineraries/{itinerary_id}/booked",
              dependencies=[Depends(require_login), Depends(verify_csrf)])
 def toggle_booked(request: Request, trip_id: int, itinerary_id: int, session: Session = Depends(get_session),

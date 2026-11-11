@@ -25,7 +25,8 @@
         {% if not only %}{% for c in overlaps.get(it.id, []) %}
         <p class="upcoming-conflict"><span class="chip warn">{% if c.kind == "order" %}This journey departs before the journey before it arrives{% else %}This journey overlaps another booked journey{% endif %}</span> · <a href="/trips/{{ c.other_trip_id }}">Open the other trip</a></p>
         {% endfor %}{% for c in changes.get(it.id, []) %}
-        <p class="upcoming-change"><span class="chip warn">Timetable changed: {{ c.service_no }} now {{ c.new_depart.strftime("%H:%M") }} → {{ c.new_arrive.strftime("%H:%M") }} (was {{ c.old_depart.strftime("%H:%M") }} → {{ c.old_arrive.strftime("%H:%M") }})</span></p>
+        <p class="upcoming-change"><span class="chip warn">Timetable changed: {{ c.service_no }} now {{ c.new_depart.strftime("%H:%M") }} → {{ c.new_arrive.strftime("%H:%M") }} (was {{ c.old_depart.strftime("%H:%M") }} → {{ c.old_arrive.strftime("%H:%M") }})</span>
+          <form class="inline-form" method="post" action="/trips/{{ trip.id }}/itineraries/{{ it.id }}/schedule-change/dismiss"><input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><input type="hidden" name="key" value="{{ c.key }}"><input type="hidden" name="back" value="/upcoming"><button class="btn" type="submit">Dismiss</button></form></p>
         {% endfor %}{% endif %}
       </div>
       <div class="journey-cost">{% if it.booked_price is not none %}<span class="paid">Paid {{ it.booked_price | money(it.booked_currency or "EUR") }}</span>{% endif %}<a class="icon" href="/trips/{{ trip.id }}/itineraries/{{ it.id }}/calendar.ics" download
