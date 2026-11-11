@@ -298,6 +298,23 @@ class SourceFee(Base):
     updated_at: Mapped[datetime] = mapped_column(_tz())
 
 
+class RailPass(Base):
+    """A rail pass of the owner: a cost per day from the first day to the last day (#2265)."""
+    __tablename__ = "rail_passes"
+    __table_args__ = (
+        CheckConstraint("last_day >= first_day", name="ck_rail_passes_days"),
+        CheckConstraint("day_cost >= 0", name="ck_rail_passes_not_negative"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    first_day: Mapped[date] = mapped_column(Date)
+    last_day: Mapped[date] = mapped_column(Date)
+    day_cost: Mapped[Decimal] = mapped_column(Money)
+    carriers: Mapped[str] = mapped_column(String(300), default="", server_default="")
+    updated_at: Mapped[datetime] = mapped_column(_tz())
+
+
 class ScoreProfile(Base):
     """A named set of weights (#229). Only one row can be the default: a partial unique index."""
     __tablename__ = "score_profiles"
