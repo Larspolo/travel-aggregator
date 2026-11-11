@@ -19,7 +19,7 @@ def _file_source_and_version(path: Path) -> tuple[str, str]:
 def test_every_site_file_is_in_the_map():
     versions = served_versions()
     files = site_files()
-    assert len(files) == 8
+    assert len(files) == 9  # sbb.user.js (#1787)
     for path in files:
         source, _ = _file_source_and_version(path)
         assert source in versions, path.name
