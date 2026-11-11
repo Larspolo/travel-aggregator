@@ -19,6 +19,8 @@ import os
 import re
 import subprocess
 import sys
+import time
+import urllib.error
 import urllib.request
 
 from agent_config import CONFIG
@@ -501,7 +503,30 @@ def render(old_body, issues, comments, open_prs, closed_issues, closed_prs, now,
 
 
 # ---- GitHub REST ----------------------------------------------------------------------------
+RETRY_WAITS = (2, 4)    # seconds before the 2nd and the 3rd try of a GET after a 5xx error (#2348)
+
+
 def api(path, method="GET", data=None):
+    """The JSON of one REST call. A GET is tried again after a 5xx error of GitHub (#2348: one 502 in about 450 calls
+    stopped `health.py --compare` after 2 minutes). A write is not tried again: it can be done two times."""
+    for wait in RETRY_WAITS if method == "GET" else ():
+        try:
+            return _api(path, method, data)
+        except (urllib.error.HTTPError, subprocess.CalledProcessError) as e:
+            if not server_error(e):
+                raise
+        time.sleep(wait)
+    return _api(path, method, data)
+
+
+def server_error(e):
+    """True for a 5xx status: urllib gives the code, `gh api` writes "(HTTP 502)" on stderr."""
+    if isinstance(e, urllib.error.HTTPError):
+        return e.code >= 500
+    return re.search(r"\(HTTP 5\d\d\)", e.stderr or "") is not None
+
+
+def _api(path, method, data):
     token = os.environ.get("GITHUB_TOKEN")
     if not token:                                  # cloud sessions: gh has the credentials
         cmd = ["gh", "api", f"repos/{REPO}/{path}", "-X", method]
