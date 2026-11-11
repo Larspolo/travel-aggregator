@@ -235,6 +235,7 @@
 {% include "trip_estimates.html" %}
 {% if view.change_line %}{% set at, n, kind = view.change_line %}<p class="capture-change-filter">Changes of the capture of <time datetime="{{ at.isoformat() }}">{{ at.strftime('%Y-%m-%d %H:%M') }} UTC</time>: {{ n }} {{ kind }} · <a href="{{ view.all_changes_href }}">Show all</a></p>{% endif %}
 <div class="card table-card" id="table">
+{% if budget_line %}<p class="budget-left">{{ budget_line }}</p>{% endif %}
 {% include "trip_table.html" %}
 </div>
 {% with oob = false %}{% include "trip_price_hours.html" %}{% include "trip_summary.html" %}{% include "trip_best_mode.html" %}{% include "trip_routes.html" %}{% endwith %}

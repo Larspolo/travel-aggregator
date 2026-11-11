@@ -1,6 +1,6 @@
 """The days off of the owner (#2370): the new table `days_off`.
 
-Revision ID: 0060
+Revision ID: 0059
 Revises: 0058
 
 No data loss: the upgrade adds the new table `days_off`. The downgrade drops only this new table, so the
