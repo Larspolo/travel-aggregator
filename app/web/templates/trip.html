@@ -66,6 +66,16 @@
 </ul>
 </section>
 {% endif %}
+{% if booked_changes %}
+<section class="booked-changes card" id="booked-changes" role="status">
+<h2>A booked journey has a new timetable</h2>
+<ul>
+{% for c in booked_changes %}
+<li><span class="chip warn">Timetable changed: {{ c.service_no }} now {{ c.new_depart.strftime("%H:%M") }} → {{ c.new_arrive.strftime("%H:%M") }} (was {{ c.old_depart.strftime("%H:%M") }} → {{ c.old_arrive.strftime("%H:%M") }})</span></li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.pareto_only or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <div class="trip-layout">
 <aside class="panel card" tabindex="0" aria-label="Weights and filters"><details class="panel-toggle"><summary>Weights and filters</summary>

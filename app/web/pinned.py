@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.auth import SESSION_KEY, require_login
 from app.db import get_session
 from app.models import FarePrice, Itinerary, Trip
+from app.schedule_change import schedule_changes
 from app.web.pages import templates
 
 router = APIRouter()
@@ -42,8 +43,10 @@ def pinned(request: Request, session: Session = Depends(get_session)):
         drop = fare.seen_price - fare.latest_price if fare is not None and fare.seen_price is not None \
             and fare.latest_price < fare.seen_price else None  # the same drop as trip_drops() (#355)
         rows.append((it, fare, low, drop))
+    now = datetime.now(timezone.utc)
+    changes = schedule_changes(session, now)  # the timetable changes of the booked journeys (#2341)
     return templates.TemplateResponse(request, "pinned.html", {
-        "rows": rows, "now": datetime.now(timezone.utc)})
+        "rows": rows, "changes": changes, "now": now})
 
 
 def pinned_count(request: Request) -> int:
