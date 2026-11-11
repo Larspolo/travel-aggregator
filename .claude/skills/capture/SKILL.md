@@ -160,8 +160,11 @@ request body), fix the cause before the end of the run:
   in the same tab is no new page load: open the start page first, then the results URL.
 - NS International: the search page `/en/traintickets-v3/#/search/<from code>/<to code>/<yyyymmdd>?pax=A` is 1
   adult; `?pax=A,A` is 2 adults (the site made it, 2026-11-08). `pax=AA` is invalid and gave an Akamai block (#763).
-  The start-page form has no travelers: search, then "1 passenger" → "Add passenger" → "Continue" (one more search).
-  The "Continue" button of that drawer is under the panel of the userscript: click the visible strip below it.
+  The start-page form has "Travel party" (default 1 adult 26–59, no card, 2026-11-11) but no time. "Search" is a
+  full page load to the search page (the capture script records it) at 07:00; for another time, use "Filter" →
+  "Departure" on the results page (a native time field: type `0600P` for 18:00; one more search) (#1619).
+  "Continue" buttons of the drawers are under the panel of the userscript: click the visible strip at their left.
+  `globalReservationStatus` was null in all offers, also of a Nightjet (#1619).
 - Flixbus (`shop.flixbus.nl`): the results URL `/search?departureCity=<uuid>&arrivalCity=<uuid>&rideDate=<dd.mm.yyyy>&adult=<n>`
   opens the search. The search is `GET global.api.flixbus.com/search/service/v4/search` with `products={"adult":n}`.
   When the destination is chosen in the start-page form, the site searches at once for today: that counts. Chrome
@@ -188,6 +191,12 @@ request body), fix the cause before the end of the run:
   `/api/hafas/v4/timetable` (connections), `/api/offer/v1/prices` ("from" prices) and `/api/offer/v6/offers` (the
   fares of one connection after a click on its price: Nightjet types `SEAT`, `COUCHETTE`, `BERTH`). Type the time in
   the hour field; the date needs the calendar button. "Back" from the offer page loads the timetable again (a search).
+- SBB (`www.sbb.ch`): no block and no login for a search (2026-11-11). Cookie banner: "Reject All". A single-page
+  app with no full page load: install the hook on the start page. The choice of the destination searches at once
+  for today with the Half Fare card (one search); "Price display" → "Full fare" (one search) and "Date of travel" →
+  "Apply" (one search) do the rest. All data is `POST https://graphql.www.sbb.ch/` (queries `Trips` and
+  `TripPrices`; `operationName` is empty). `Keep: sbb\.ch` also matches New Relic analytics (`nr-data.net`, by a
+  query string) and icons: scrub with `--match '^https://(?!icons\.)[a-z0-9.-]*sbb\.ch/'` (#1776).
 
 The travel-aggregator userscript of the person also runs during a capture and sends the offers to the server (with
 "auto-select trip" to the trip that matches). That does not change the HAR.
