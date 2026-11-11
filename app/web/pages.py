@@ -962,6 +962,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     # the "Suits me" marks of the shared link (#1783): a chip and the note; no change of the score or the order (P2)
     context["share_marks"] = {m.itinerary_id: m for m in session.scalars(
         select(ShareMark).where(ShareMark.trip_id == trip_id))}
+    context["search_urls"] = search_urls(session, itineraries)  # "Open search" (#2078)
     cards = fare_cards(session, itineraries)  # the discount cards of the fares (#1751)
     context["cards_warning"] = cards_warning(itineraries, cards, gone_marks, departed_now)
     context["card_label"] = lambda f: card_label(f, cards)
@@ -1083,6 +1084,22 @@ def trip_view(**params) -> dict:
 
 trip_view.__signature__ = inspect.signature(trip_page).replace(parameters=[
     p for name, p in inspect.signature(trip_page).parameters.items() if name not in ("request", "trip_id", "session")])
+
+
+def search_urls(session: Session, itineraries) -> dict[int, str]:
+    """The page address of the capture of the newest price of each fare, in one query (#2078). Only an http or https
+    address: a stored address is untrusted (P5)."""
+    from app.models import Capture, FarePrice
+    ids = [f.id for it in itineraries for f in it.fares]
+    if not ids:
+        return {}
+    newest = (select(FarePrice.fare_id, FarePrice.capture_id,
+                     func.row_number().over(partition_by=FarePrice.fare_id,
+                                            order_by=(FarePrice.captured_at.desc(), FarePrice.id.desc())).label("n"))
+              .where(FarePrice.fare_id.in_(ids)).subquery())
+    rows = session.execute(select(newest.c.fare_id, Capture.page_url)
+                           .join(Capture, Capture.id == newest.c.capture_id).where(newest.c.n == 1))
+    return {fid: url for fid, url in rows if url and url.lower().startswith(("http://", "https://"))}
 
 
 def _rows_or_redirect(request: Request, trip_id: int, session: Session, view: dict) -> Response:
