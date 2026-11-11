@@ -219,7 +219,7 @@
 <div class="card table-card" id="table">
 {% include "trip_table.html" %}
 </div>
-{% with oob = false %}{% include "trip_price_hours.html" %}{% endwith %}
+{% with oob = false %}{% include "trip_price_hours.html" %}{% include "trip_summary.html" %}{% endwith %}
 {# Shows only when a row is ticked (#664): CSS :has() and a counter, no JavaScript. Outside #compare, so the
    out-of-band swap of that form keeps it. #}
 <div class="compare-bar card" role="region" aria-label="Compare selected">
@@ -240,4 +240,5 @@
 {% with oob = false %}{% include "trip_day_cover.html" %}{% include "trip_split.html" %}{% endwith %}{# the split tickets also with no direct offer (#1179) #}
 {% endif %}
 <script src="/static/row_link.js" defer></script>
+<script src="/static/copy_summary.js" defer></script>
 {% endblock %}
