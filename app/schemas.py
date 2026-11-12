@@ -88,6 +88,7 @@ class OfferIn(BaseModel):
     berth: Literal["seat", "couchette", "sleeper"] | None = None  # the berth of a night train (#1807)
     checked_bags_included: int | None = Field(None, ge=0, le=9)  # #1525
     seats_left: int | None = Field(None, ge=0, le=9999)  # #1823: seats left of the fare, when the source gives it
+    part_price: bool = False  # #2655: the price is for a part of the journey only (bahn.de `hasTeilpreis`)
     bike: Literal["allowed", "reservation", "no"] | None = None  # #2457: bicycle transport; None = not given
     checked_bag_price: Decimal | None = Field(None, ge=0, max_digits=10, decimal_places=2)  # first bag, price currency
     legs: list[LegIn] = Field(min_length=1, max_length=MAX_LEGS)
