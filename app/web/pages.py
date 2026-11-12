@@ -922,6 +922,28 @@ def route_value(key: tuple) -> str:
     return " > ".join(key) if key else "Direct"
 
 
+TRIPS_COMPARE_ERROR = "Select 2 to 4 trips to compare."
+
+
+@router.get("/trips/compare", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def trips_compare_page(request: Request, id: list[int] = Query([]),
+                       session: Session = Depends(get_session)) -> HTMLResponse:
+    """2 to 4 trips side by side with the values of #2554; the lowest best effective cost is marked (#2555)."""
+    from app.trip_compare import trip_values  # app.trip_compare imports this module
+
+    ids = list(dict.fromkeys(id))  # distinct, in the order of the URL
+    if not 2 <= len(ids) <= 4:
+        return templates.TemplateResponse(request, "trips_compare.html",
+                                          {"error": TRIPS_COMPARE_ERROR, "columns": []}, status_code=400)
+    trips = [_get_trip(session, i) for i in ids]  # an unknown id gives 404
+    columns = [(t, trip_values(session, t)) for t in trips]
+    totals = [v.best[2].total for _, v in columns if v.best and not v.best[2].no_rate]
+    lowest = min(totals) if totals else None
+    return templates.TemplateResponse(request, "trips_compare.html",
+                                      {"error": None, "columns": columns, "lowest": lowest,
+                                       "format_total": format_total})
+
+
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
               overrides: dict = Depends(weight_query),

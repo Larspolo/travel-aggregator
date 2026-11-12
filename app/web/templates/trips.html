@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "ui.html" as ui %}
-{% macro trip_grid(rows) %}
+{% macro trip_grid(rows, compare=false) %}
 <div class="trip-grid">
   {% for kind, t, note in rows %}
     {% if kind == "total" %}
@@ -10,6 +10,7 @@
     <div class="trip-card-head">
       <div>
         {% if kind == "return" %}<span class="muted">Return of {{ note }}</span>{% elif kind == "next" %}<span class="muted">then, after {{ note }}</span>{% elif kind == "split" %}<span class="muted">split via {{ note }}</span>{% elif kind == "series" %}<a class="muted trip-series" href="/series/{{ t.series_id }}">{{ note }}</a>{% endif %}
+        {% if compare %}<input type="checkbox" name="id" value="{{ t.id }}" form="trips-compare" aria-label="Compare {{ t.title }}">{% endif %}
         <h2><a href="/trips/{{ t.id }}">{{ t.title }}</a></h2>
       </div>
       <a class="btn btn-ghost btn-icon" href="/trips/{{ t.id }}/edit" title="Edit">{{ ui.icon("pencil", "Edit " ~ t.title) }}</a>
@@ -64,7 +65,8 @@
 </nav>
 {% endif %}
 {% if lines %}
-{{ trip_grid(lines) }}
+<form id="trips-compare" class="trips-compare-form" method="get" action="/trips/compare"><button class="btn" type="submit">Compare trips</button></form>
+{{ trip_grid(lines, compare=true) }}
 {% if archived_lines %}
 <h2>In the archive ({{ archived_found }})</h2>
 {{ trip_grid(archived_lines) }}
