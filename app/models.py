@@ -116,6 +116,8 @@ class Itinerary(Base):
     cancel_by_offset_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # the keys of the dismissed timetable changes, one per line (#2342, app/schedule_change.py)
     schedule_change_dismissed: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # the capture time of the newest capture that showed the connection as cancelled by the operator (#2629)
+    operator_cancelled_at: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
     # The row that this row is joined into (#2144, app/same_journey.py): its fares are on that row, and an ingest of
     # its fingerprint updates that row. The database deletes a joined row with the row that it is joined into.
     merged_into_id: Mapped[int | None] = mapped_column(ForeignKey("itineraries.id", ondelete="CASCADE"),

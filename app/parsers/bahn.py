@@ -33,6 +33,12 @@ DISCOUNTS = {"BAHNCARD25": "BahnCard 25", "BAHNCARD50": "BahnCard 50", "BAHNCARD
 BOOKING_URL = "https://www.bahn.de/buchung/fahrplan/suche"
 
 
+def _cancelled(conn: dict) -> bool:
+    """True when bahn.de shows the connection as cancelled (#2629)."""
+    return any(isinstance(n, dict) and n.get("key") == "text.realtime.connection.cancelled"
+               for n in conn.get("risNotizen") or [])
+
+
 class NoPrice(ValueError):
     pass
 
@@ -79,7 +85,7 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.6.0"
+    version = "1.7.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have no BahnCard number and no traveler name (#1903)
     redact_keys: frozenset[str] = frozenset()
     # the station codes and the date of the search are in the body, not in a URL: no query name to keep (#1903)
@@ -103,6 +109,9 @@ class BahnParser:
         result = ParseResult(travelers=travelers(request), discounts=discounts(request))
         for i, conn in enumerate(conns):
             try:
+                if _cancelled(conn):  # #2629: a cancelled connection is no rejected offer
+                    result.cancelled.append(self._legs(conn))
+                    continue
                 result.offers.extend(self._offers(conn, extra))
             except NoPrice as e:
                 result.errors.append({"index": i, "reason": str(e)})
@@ -153,6 +162,20 @@ class BahnParser:
                 raise NoPrice("no price (angebotsPreis)")
             klasse = conn.get("angebotsPreisKlasse")
             fares = [(price, [CLASSES.get(klasse, "")], klasse)]
+        legs = self._legs(conn)
+        return [OfferIn(
+            external_id=conn.get("tripId"),
+            # str() first: a JSON float such as 130.99 must not become a long binary Decimal
+            price_amount=Decimal(str(price["betrag"])).quantize(Decimal("0.01")),
+            price_currency=price.get("waehrung") or "EUR",
+            fare_name=", ".join(x for x in fare + extra if x) or None,
+            legs=legs,
+            booking_url=BOOKING_URL,
+            travel_class=TRAVEL_CLASSES.get(klasse),
+        ) for price, fare, klasse in fares]
+
+    def _legs(self, conn: dict) -> list[LegIn]:
+        """The legs of a connection; a walk is no leg."""
         legs = []
         for a in conn["verbindungsAbschnitte"]:
             vm = a.get("verkehrsmittel") or {}
@@ -184,13 +207,4 @@ class BahnParser:
                 load_first=load.get("KLASSE_1"),
                 load_second=load.get("KLASSE_2"),
             ))
-        return [OfferIn(
-            external_id=conn.get("tripId"),
-            # str() first: a JSON float such as 130.99 must not become a long binary Decimal
-            price_amount=Decimal(str(price["betrag"])).quantize(Decimal("0.01")),
-            price_currency=price.get("waehrung") or "EUR",
-            fare_name=", ".join(x for x in fare + extra if x) or None,
-            legs=legs,
-            booking_url=BOOKING_URL,
-            travel_class=TRAVEL_CLASSES.get(klasse),
-        ) for price, fare, klasse in fares]
+        return legs

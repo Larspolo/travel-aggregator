@@ -6,7 +6,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from app.schemas import OfferIn
+from app.schemas import LegIn, OfferIn
 
 
 @dataclass
@@ -21,6 +21,8 @@ class ParseResult:
     discounts: list[str] | None = None
     # The cheapest price of each day of a day price response (#1196); a day price is not an offer.
     day_prices: list["DayPrice"] = field(default_factory=list)
+    # The legs of each connection that the site shows as cancelled by the operator (#2629); it is no offer.
+    cancelled: list[list[LegIn]] = field(default_factory=list)
 
 
 @dataclass

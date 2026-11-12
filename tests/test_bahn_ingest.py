@@ -48,10 +48,17 @@ def test_raw_capture_stores_the_offers_of_the_parser(setup, sessions):
         assert s.scalar(select(func.count()).select_from(Itinerary).where(Itinerary.trip_id == trip_id)) == 3
 
 
+def priced_but_one():
+    """The fixture with no cancel notice (#2629): connection 1 is then an error, as it has no price."""
+    raw = raw_fixture("fahrplan-koeln-muenchen.json")
+    raw["response"]["verbindungen"][1].pop("risNotizen")
+    return raw
+
+
 def test_bad_connection_is_an_error_and_the_others_are_stored(setup, sessions, caplog):
     client, auth, trip_id = setup
     caplog.set_level(logging.WARNING, logger="app.ingest")
-    r = client.post("/api/ingest", json=body(trip_id, raw_fixture("fahrplan-koeln-muenchen.json")), headers=auth)
+    r = client.post("/api/ingest", json=body(trip_id, priced_but_one()), headers=auth)
     assert r.status_code == 200, r.text
     out = r.json()
     assert out["created"] == 2
@@ -64,7 +71,7 @@ def test_bad_connection_is_an_error_and_the_others_are_stored(setup, sessions, c
 def test_each_failure_is_logged_with_the_capture_id(setup, sessions, caplog):
     client, auth, trip_id = setup
     caplog.set_level(logging.WARNING, logger="app.ingest")
-    r = client.post("/api/ingest", json=body(trip_id, raw_fixture("fahrplan-koeln-muenchen.json")), headers=auth)
+    r = client.post("/api/ingest", json=body(trip_id, priced_but_one()), headers=auth)
     assert r.status_code == 200, r.text
     with sessions() as s:
         capture_id = s.scalar(select(Capture.id).order_by(Capture.id.desc()))

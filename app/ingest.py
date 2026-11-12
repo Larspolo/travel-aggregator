@@ -167,6 +167,8 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
     if origin is not None:
         it = joined_into(session, it)
         it.last_seen_at = max(it.last_seen_at, captured_at)
+    if it.operator_cancelled_at is not None and captured_at > it.operator_cancelled_at:
+        it.operator_cancelled_at = None  # #2629: a newer offer of the connection ends the cancel mark
     fare = fare_of(it, source, offer.fare_name, origin)
     old = None if fare is None else (fare.latest_price, fare.currency)
     # #1823: an older capture must not replace the seats left of a newer one
@@ -225,6 +227,23 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
     return "created" if result == "created" else "updated"
 
 
+def mark_cancelled(session: Session, trip_id: int, cancelled: list[list[LegIn]], captured_at: datetime) -> None:
+    """Mark the stored itinerary of each cancelled connection (#2629) with the capture time; a joined row marks the
+    row that it is joined into. A connection with no stored itinerary makes no row. The caller commits."""
+    for legs in cancelled:
+        if not legs:
+            continue
+        it = session.scalar(select(Itinerary).where(Itinerary.trip_id == trip_id,
+                                                    Itinerary.fingerprint == fingerprint(legs)))
+        if it is None:
+            continue
+        if it.merged_into_id is not None:
+            it = joined_into(session, it)
+        if it.operator_cancelled_at is None or captured_at > it.operator_cancelled_at:
+            it.operator_cancelled_at = captured_at
+    session.flush()
+
+
 def upsert_offers(session: Session, trip_id: int, capture_id: int | None, offers: list[OfferIn], *, source: str,
                   captured_at: datetime, drops: list | None = None) -> dict[str, int]:
     """Upsert the offers, one transaction per offer: one failure does not roll back the others. An itinerary is
@@ -275,19 +294,22 @@ def store_day_prices(session: Session, trip_id: int, capture_id: int | None, day
     session.flush()
 
 
-def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None, int | None, list, list[str] | None]:
+def parse_raw(body: IngestIn) -> tuple[list[OfferIn], list[dict], str | None, int | None, list, list[str] | None,
+                                       list[list[LegIn]]]:
     """The offers and the rejected connections of the raw payload, by the parser of the source (none when the source
     has no parser). The third value is the reason when the parser cannot read the payload as a whole (P3): the
     capture is stored anyway, with the offers of the body. The fourth value is the traveler count (#764), the fifth
-    the day prices (#1197), the sixth the discount cards (#1750; None = not known)."""
+    the day prices (#1197), the sixth the discount cards (#1750; None = not known), the seventh the legs of the
+    cancelled connections (#2629)."""
     parser = get_parser(body.source)
     if body.raw is None or parser is None:
-        return [], [], None, None, [], None
+        return [], [], None, None, [], None, []
     try:
         result = parser.parse(body.raw)
     except ValueError as e:
-        return [], [], str(e)[:200], None, [], None
-    return result.offers, result.errors, None, result.travelers, result.day_prices, result.discounts
+        return [], [], str(e)[:200], None, [], None, []
+    return (result.offers, result.errors, None, result.travelers, result.day_prices, result.discounts,
+            result.cancelled)
 
 
 def _parsed_with(source: str, raw) -> str | None:
@@ -335,6 +357,7 @@ def reparse(session: Session, capture: Capture) -> dict | None:
         return {**counts, "rejected": 0, "unreadable": str(e)[:200]}
     counts = upsert_offers(session, capture.trip_id, capture.id, result.offers, source=capture.source,
                            captured_at=capture.captured_at)
+    mark_cancelled(session, capture.trip_id, result.cancelled, capture.captured_at)
     store_day_prices(session, capture.trip_id, capture.id, result.day_prices, source=capture.source,
                      captured_at=capture.captured_at)
     set_result(capture, counts, result.errors, None)
@@ -483,7 +506,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None, token_id:
     the errors and the others are stored. Returns {"created", "updated", "unchanged", "rejected", "errors", "warning", "trip_id", "trip_title"}: the
     errors are the offers that the schema or the parser rejected, with their index (#54). Each failure is logged
     with the capture id (P3). With a token and a `capture_key`, the answer is also kept on the capture (#1868)."""
-    raw_offers, raw_errors, unreadable, travelers, day_prices, discounts = parse_raw(body)
+    raw_offers, raw_errors, unreadable, travelers, day_prices, discounts, cancelled = parse_raw(body)
     trip_id = _choose_trip(session, body, list(body.offers) + raw_offers)
     before = _best(session, trip_id)
     try:
@@ -504,6 +527,7 @@ def store(session: Session, body: IngestIn, drops: list | None = None, token_id:
                     body.parser_version or "-", err.get("index"), err.get("reason"))
     counts = upsert_offers(session, trip_id, capture.id, offers, source=body.source,
                            captured_at=body.captured_at, drops=drops)
+    mark_cancelled(session, trip_id, cancelled, body.captured_at)
     store_day_prices(session, trip_id, capture.id, day_prices, source=body.source,
                      captured_at=body.captured_at)
     set_result(capture, counts, errors, unreadable)

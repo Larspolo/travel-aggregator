@@ -15,6 +15,7 @@ def koeln_muenchen():
     raw = json.loads(FIX.read_text(encoding="utf-8"))
     conns = raw["response"]["verbindungen"]
     conns[1]["angebotsPreis"] = conns[0]["angebotsPreis"]
+    conns[1].pop("risNotizen")  # #2629: with the cancel notice the connection is no offer
     return raw
 
 

@@ -19,7 +19,7 @@ def load(name):
 
 
 @pytest.mark.parametrize("name,offers,errors", [
-    ("fahrplan-koeln-muenchen.json", 2, 1),
+    ("fahrplan-koeln-muenchen.json", 2, 0),
     ("fahrplan-amsterdam-zuerich.json", 2, 1),
     ("fahrplan-amsterdam-bern-night.json", 3, 0),
     ("fahrplan-koeln-muenchen-bahncard25.json", 3, 0),
@@ -36,7 +36,9 @@ def test_all_fixtures_give_offers(name, offers, errors):
 
 
 def test_no_price_is_rejected_with_reason():
-    r = BahnParser().parse(load("fahrplan-koeln-muenchen.json"))
+    raw = load("fahrplan-koeln-muenchen.json")
+    raw["response"]["verbindungen"][1].pop("risNotizen")  # #2629: with the cancel notice it is no error
+    r = BahnParser().parse(raw)
     assert r.errors == [{"index": 1, "reason": "no price (angebotsPreis)"}]
 
 
