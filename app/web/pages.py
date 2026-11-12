@@ -830,7 +830,7 @@ def best_for_weights(session: Session, trip: Trip, weights: Weights, now: dateti
     rates = load_rates(session)
     counts, fees, gone = fare_travelers(session, its), load_fees(session), _gone(session, its)
     rows = [(it, *row_cost(it, current_fares(it.fares, gone), places, weights, stale_before, rates, counts, fees))
-            for it in its if it.fares]
+            for it in its if it.fares and it.operator_cancelled_at is None]  # (#2630)
     rows = current_rows(rows, gone)
     if not rows:
         return None
@@ -1059,6 +1059,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     rows.sort(key=lambda r: (all_gone(r), r[2].total, r[0].depart_at))  # the default order and the tie order
     # a hidden or departed row gets no highlight (#200, #1391)
     shown = [r for r in rows if not r[0].hidden and not departed.is_departed(r[0], departed_now)
+             and r[0].operator_cancelled_at is None  # (#2630)
              and not all_gone(r)]  # a row with only gone fares gets no highlight (#1386)
     # no other shown offer is cheaper and faster (#1856): the price and the door-to-door minutes, not the weights
     pareto = pareto_ids([(r[0].id, r[2].price, door_minutes(r[0], places, weights)) for r in shown])
@@ -1096,6 +1097,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     rows.sort(key=all_gone)  # stable: the rows with only gone fares after the current rows (#1386)
+    rows.sort(key=lambda r: r[0].operator_cancelled_at is not None)  # the operator cancelled rows last (#2630)
     rows.sort(key=lambda r: departed.is_departed(r[0], departed_now))  # the departed rows last (#1391)
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
     view = {"sort": sort, "dir": dir, "mode": mode, "source": source, "badges": badges, "pareto": pareto, "price_hours": price_hours, "summary": trip_summary(shown), "best_modes": best_per_mode(shown), "show_hidden": show_hidden,
