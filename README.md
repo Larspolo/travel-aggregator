@@ -934,6 +934,13 @@ To travel via a place, split the trip there. Use the form "Split via" on the edi
 - The edit form `/trips/{id}/edit` of an existing trip has the button "Copy trip". It makes a new trip with the origin, destination, travelers, profile and note of the trip. Its title is the title of the trip with "(copy)". The new trip has no dates, no link to the trip and no offers. It opens its edit form. The original trip does not change.
 - The edit form of a trip of a journey with two or more trips has the button "Copy journey". It makes a copy of each trip of the journey, in the same order, and links each copy to the copy before it. The copies show in the trips list as one journey, with no offers. It opens the edit form of the first copy. The original journey does not change.
 
+### Repeat a trip
+
+- The edit form `/trips/{id}/edit` of a trip with a date has the card "Repeat". Choose "Repeat every" 1 or 2 weeks, and "Dates in total" from 2 to 12 (4 by default). The button "Repeat" makes the copies: each copy has the title, the places, the travelers, the profile, the note and the target price of the trip, and a date that is 1 or 2 weeks after the copy before it. The copies have no offers. The form opens the edit form of the trip again.
+- The trip and its copies form one series. A trip of a series cannot repeat again. A trip with no date, a return trip and a split trip cannot repeat. The card shows the reason as an error message.
+- The trips list shows a series in one line, "every 2 weeks · next Fri 18 Dec · 4 trips", at the place of its first trip. The line shows the next date that is not past, or the last trip when all dates are past. The archive shows each trip of a series in its own line.
+- The series line links to the series page `/series/{id}`. The page lists each date with its link to the trip, its best effective cost ("no offers yet" when there is none), and the links "Open the search" for that date. The links open a new tab.
+
 ### Copy the summary of a trip
 
 The trip page of `/trips/{id}` has a "Copy summary" button above the table. It copies the text of the 3 best offers that the table shows, to paste in a chat message. The offers are in the order of the effective cost, and with the same cost, the earlier departure comes first. An offer with no rate does not count. With fewer than 3 offers, the text has one line per offer. With no offer, the button is hidden.
