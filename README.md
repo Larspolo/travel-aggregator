@@ -543,6 +543,10 @@ A fare with 5 or fewer seats left shows the badge "N seats left" (or "1 seat lef
 
 The expanded row of a fare shows if its train or bus takes a bicycle. The mark is "bicycle: allowed" (the source shows that a bicycle is allowed, with no reservation known), "bicycle: reservation" (a bicycle needs a reservation or a bike ticket) or "no bicycle". The sources that give the mark are Trainline, FlixBus and ÖBB. A fare from another source, or a fare where the source gives no value, shows no mark. The mark comes from the newest capture of the fare: an older capture does not change it.
 
+### Services of a leg
+
+The expanded row of a fare shows the on-board services of each leg: "Wi-Fi" and "power sockets". The sources that give the services are FlixBus, bahn.de and SNCF Connect. A leg with no mark: the source gave no value, so its services are not known. The services come from the newest capture of the leg.
+
 ### Departure days
 
 Above the table, the trip page shows a strip of the departure days. A trip with a date range shows each day of the range, up to the first 31 days. A day with no offer shows "no offers". Without a range, the strip shows each day that has an offer. The strip is hidden when it has fewer than two days.
