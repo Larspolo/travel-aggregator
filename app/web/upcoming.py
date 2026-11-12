@@ -14,7 +14,7 @@ from app.booked_overlap import conflicts
 from app.calendar_feed import KEY, new_feed_token, revoke_feed
 from app.currency import load_rates, to_eur
 from app.db import get_session
-from app.models import Itinerary, Setting
+from app.models import Itinerary, Leg, Setting
 from app.schedule_change import schedule_changes
 from app.web.pages import templates
 
@@ -27,7 +27,7 @@ def upcoming(request: Request, only: int | None = None, session: Session = Depen
     if only is not None:  # one journey to print (#1350)
         query = query.where(Itinerary.id == only)
     itineraries = session.scalars(
-        query.options(selectinload(Itinerary.legs), selectinload(Itinerary.trip))
+        query.options(selectinload(Itinerary.legs).selectinload(Leg.stops), selectinload(Itinerary.trip))
         .order_by(Itinerary.depart_at, Itinerary.id)
     ).all()
     if only is not None and not itineraries:
