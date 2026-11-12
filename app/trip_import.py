@@ -129,6 +129,8 @@ class ItineraryData(_Model):
     booking_code: str | None = Field(None, max_length=40)
     # The notices of the connection (#2624): missing in an older export, so None.
     notices: list[dict] | None = None
+    # The operator cancel time (#2629): missing in an older export, so None.
+    operator_cancelled_at: AwareDatetime | None = None
     # The cancel time of the booking (#2313): missing in an older export, so None.
     cancel_by: AwareDatetime | None = None
     cancel_by_offset_min: int | None = None
@@ -189,7 +191,8 @@ def _new_itinerary(trip_id: int, d: ItineraryData, fp: str, now: datetime) -> It
     it = Itinerary(trip_id=trip_id, fingerprint=fp, mode_summary=der.mode_summary, depart_at=d.legs[0].depart_at.astimezone(UTC),
                    arrive_at=d.legs[-1].arrive_at.astimezone(UTC), transfers=der.transfers, duration_min=der.duration_min,
                    first_seen_at=now, last_seen_at=now, pinned=d.pinned, hidden=d.hidden, booked=d.booked,
-                   note=d.note, notices=d.notices)
+                   note=d.note, notices=d.notices,
+                   operator_cancelled_at=d.operator_cancelled_at.astimezone(UTC) if d.operator_cancelled_at else None)
     it.legs.extend(Leg(seq=seq, mode=leg.mode, carrier=leg.carrier, service_no=leg.service_no,
                        from_name=leg.from_name, from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code,
                        depart_at=leg.depart_at.astimezone(UTC), depart_offset_min=utc_offset_min(leg.depart_at),

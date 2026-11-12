@@ -94,6 +94,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                 "delay_min": it.delay_min, "claim_paid_at": _iso(it.claim_paid_at),
                 "booking_code": it.booking_code,
                 "notices": it.notices,
+                "operator_cancelled_at": _iso(it.operator_cancelled_at),
                 "cancel_by": _local(it.cancel_by, it.cancel_by_offset_min or 0) if it.cancel_by else None,
                 "cancel_by_offset_min": it.cancel_by_offset_min,
                 "legs": [
