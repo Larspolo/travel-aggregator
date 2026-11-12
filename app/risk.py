@@ -359,7 +359,8 @@ def load_extras(fare, itinerary, weights: Weights) -> tuple[tuple[str, Decimal],
     high, very_high = Decimal(weights.load_high_markup), Decimal(weights.load_very_high_markup)
     sums: dict[str, Decimal] = {}
     for leg in itinerary.legs:
-        level = leg.load_first if getattr(fare, "travel_class", None) == "first" else leg.load_second
+        attr = "load_first" if getattr(fare, "travel_class", None) == "first" else "load_second"
+        level = getattr(leg, attr, None)
         if level == 2 and high != 0:
             sums["expected load high"] = sums.get("expected load high", Decimal("0")) + high
         elif level == 3 and very_high != 0:
