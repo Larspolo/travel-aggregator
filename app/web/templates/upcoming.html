@@ -16,7 +16,7 @@
         <ul class="upcoming-legs">
         {% for leg in it.legs %}{% set dep = leg.depart_at | local(leg.depart_offset_min) %}{% set arr = leg.arrive_at | local(leg.arrive_offset_min) %}{% set gap = arr | day_gap(dep) %}
           <li class="journey-when">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon, leg.mode) }}{% endif %}
-            {{ leg.carrier or "" }} {{ leg.service_no or "" }} · {{ leg.from_name }} → {{ leg.to_name }} ·
+            {{ leg.carrier or "" }} {{ leg.service_no or "" }} · {{ leg.from_name }} → {{ leg.to_name }}{% if leg.from_platform or leg.to_platform %} <span class="leg-platforms muted">planned platform {{ leg.from_platform or "?" }} → {{ leg.to_platform or "?" }}</span>{% endif %} ·
             {{ dep.strftime("%H:%M") }}–{{ arr.strftime("%H:%M") }}{% if gap > 0 %} <span class="chip">+{{ gap }} day{% if gap > 1 %}s{% endif %}</span>{% endif %}</li>
         {% endfor %}
         </ul>
