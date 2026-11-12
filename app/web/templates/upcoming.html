@@ -21,6 +21,7 @@
         {% endfor %}
         </ul>
         {% set whole_notices = (it.notices or []) | selectattr("leg", "none") | list %}{% if whole_notices %}<div class="notices">{% for n in whole_notices %}<p>{{ n.text }}</p>{% endfor %}</div>{% endif %}
+        {% if it.operator_cancelled_at %}<p class="upcoming-cancelled"><span class="chip warn">Cancelled by the operator: check the booking</span></p>{% endif %}
         {% if it.booking_code %}<p class="muted">Booking code: {{ it.booking_code }}</p>{% endif %}
         {% if it.cancel_by and it.cancel_by > now %}<p class="muted">Cancel until {{ (it.cancel_by | local(it.cancel_by_offset_min or 0)).strftime("%-d %b %H:%M") }}{% if not only and it.id in cancel_soon %} <span class="chip warn">cancel soon or keep</span>{% endif %}</p>{% endif %}
         {% if not only %}{% for c in overlaps.get(it.id, []) %}
