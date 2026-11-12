@@ -69,5 +69,5 @@ def test_sncf_drops_codes_other_than_wifi():
 
 
 def test_parser_versions_are_bumped():
-    assert BahnParser.version == "1.4.0"
+    assert tuple(map(int, BahnParser.version.split("."))) >= (1, 4, 0)  # later tickets bump it again (#2590)
     assert SncfParser.version == "1.1.0"
