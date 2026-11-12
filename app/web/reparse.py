@@ -54,11 +54,14 @@ def _source_from_name(filename: str | None) -> str | None:
 
 @router.post("/trips/{trip_id}/captures/upload", response_class=HTMLResponse,
              dependencies=[Depends(require_login), Depends(verify_csrf)])
-async def upload_capture(request: Request, trip_id: int, file: UploadFile | None = File(None),
+async def upload_capture(request: Request, trip_id: int, file: list[UploadFile] = File([]),
                          source: str = Form(""), session: Session = Depends(get_session)):
     """Store an uploaded payload file as a capture of the trip and parse it (#1338), as a capture of a userscript.
-    With no source the source comes from the file name (#1339)."""
+    With no source the source comes from the file name (#1339). Several files give one result each (#2528)."""
     _get_trip(session, trip_id)
+    if len(file) > 1:
+        return await _upload_many(request, session, trip_id, file, source)
+    file = file[0] if file else None
     raw = await file.read(MAX_HAR_BYTES + 1) if file is not None else b""
     if file is not None and (file.filename or "").lower().endswith(".har"):
         return _upload_har(request, session, trip_id, raw)
@@ -85,6 +88,67 @@ async def upload_capture(request: Request, trip_id: int, file: UploadFile | None
                     captured_at=datetime.now(timezone.utc), raw=data)
     ingest.store(session, body)
     return RedirectResponse(f"/trips/{trip_id}/captures", status_code=303)
+
+
+MAX_UPLOAD_FILES = 20
+
+
+async def _upload_many(request: Request, session: Session, trip_id: int, files: list[UploadFile],
+                       source: str) -> HTMLResponse:
+    """Check all files first, then store each good file; one result line per file (#2528)."""
+    if len(files) > MAX_UPLOAD_FILES:
+        return _trip_captures(request, session, trip_id, False, f"Select at most {MAX_UPLOAD_FILES} files.", 400)
+    raws, total = [], 0
+    for f in files:
+        raw = await f.read(MAX_HAR_BYTES + 1)
+        total += len(raw)
+        if total > MAX_HAR_BYTES:
+            return _trip_captures(request, session, trip_id, False,
+                                  f"The files together are larger than {MAX_HAR_BYTES} bytes.", 400)
+        raws.append((f.filename or "", raw))
+    results = [_store_one(session, trip_id, name, raw, source) for name, raw in raws]
+    code = 200 if any(stored for _, stored, _, _ in results) else 400
+    return _trip_captures(request, session, trip_id, False, None, code, upload_results=results)
+
+
+def _offer_count(answer: dict) -> int:
+    return sum(answer.get(k) or 0 for k in ("created", "updated", "unchanged"))
+
+
+def _store_one(session: Session, trip_id: int, name: str, raw: bytes,
+               source: str) -> tuple[str, bool, int, str | None]:
+    """Store one file of a multi-file upload: (filename, stored, offers, reason) (#2528)."""
+    if name.lower().endswith(".har") or _is_har(raw):
+        if len(raw) > MAX_HAR_BYTES:
+            return name, False, 0, f"The HAR file is larger than {MAX_HAR_BYTES} bytes."
+        try:
+            result = read_har(raw)
+        except (HarError, UnicodeDecodeError) as e:
+            return name, False, 0, f"The HAR file cannot be read: {e}"[:300]
+        items = [(src, data) for src, data in result.items
+                 if len(json.dumps(data, ensure_ascii=False).encode("utf-8")) <= MAX_BODY_BYTES]
+        if not items:
+            return name, False, 0, "The HAR file has no search entry of a supported source."
+        offers = 0
+        for src, data in items:
+            body = IngestIn(trip_id=trip_id, source=src, parser_version=parser_classes()[src].version,
+                            captured_at=datetime.now(timezone.utc), raw=data)
+            offers += _offer_count(ingest.store(session, body))
+        return name, True, offers, f"{len(items)} capture{'' if len(items) == 1 else 's'} from the HAR file"
+    src = source or _source_from_name(name) or ""
+    if src not in _upload_sources():
+        return name, False, 0, "Select a source that has a parser." if source else FILE_NAME_ERROR
+    if not raw:
+        return name, False, 0, "The file is empty."
+    if len(raw) > MAX_BODY_BYTES:
+        return name, False, 0, f"The file is larger than {MAX_BODY_BYTES} bytes."
+    try:
+        data = json.loads(raw)
+    except (ValueError, UnicodeDecodeError):
+        return name, False, 0, "The file is not JSON."
+    body = IngestIn(trip_id=trip_id, source=src, parser_version=parser_classes()[src].version,
+                    captured_at=datetime.now(timezone.utc), raw=data)
+    return name, True, _offer_count(ingest.store(session, body)), None
 
 
 def _is_har(raw: bytes) -> bool:
@@ -120,7 +184,8 @@ def _upload_har(request: Request, session: Session, trip_id: int, raw: bytes) ->
 
 
 def _trip_captures(request: Request, session: Session, trip_id: int, failed: bool, upload_error: str | None = None,
-                   code: int = 200, har_count: int | None = None) -> HTMLResponse:
+                   code: int = 200, har_count: int | None = None,
+                   upload_results: list | None = None) -> HTMLResponse:
     trip = _get_trip(session, trip_id)
     query = select(Capture).where(Capture.trip_id == trip_id)
     if failed:
@@ -134,7 +199,7 @@ def _trip_captures(request: Request, session: Session, trip_id: int, failed: boo
                                        "upload_sources": _upload_sources(), "upload_error": upload_error,
                                        "suspect_counts": suspect_counts(session, [trip_id]),  # #1607
                                        "capture_changes": capture_changes(session, [c.id for c in captures]),  # #2328
-                                       "har_count": har_count},
+                                       "har_count": har_count, "upload_results": upload_results},
                                       status_code=code)
 
 
