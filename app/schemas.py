@@ -36,6 +36,8 @@ class LegIn(BaseModel):
     reservation: Literal["required", "included"] | None = None
     # The on-board services of the leg (#2548): empty is not known.
     services: list[Literal["wifi", "power"]] = Field(default_factory=list, max_length=2)
+    # The CO2 of the leg in grams per traveler (#2586): None is not known.
+    co2_g: int | None = Field(None, ge=0, le=10_000_000)
     # The planned departure and arrival platform (#2590): None is not known.
     from_platform: str | None = Field(None, max_length=10)
     to_platform: str | None = Field(None, max_length=10)

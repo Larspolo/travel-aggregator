@@ -76,12 +76,14 @@ def services_text(leg) -> str | None:
 
 
 def _update_services(it: Itinerary, offer: OfferIn) -> None:
-    """A capture that knows the services of the legs replaces the stored services (#2548)."""
+    """A capture that knows the services of the legs replaces the stored services (#2548) and CO2 (#2586)."""
     if len(it.legs) != len(offer.legs):
         return
     for stored, leg in zip(sorted(it.legs, key=lambda x: x.seq), offer.legs):
         if leg.services:
             stored.services = services_text(leg)
+        if leg.co2_g is not None:
+            stored.co2_g = leg.co2_g
         # a capture with a platform replaces the stored platform (#2590)
         if leg.from_platform:
             stored.from_platform = leg.from_platform
@@ -100,7 +102,7 @@ def _legs(offer: OfferIn) -> list[Leg]:
                 depart_offset_min=utc_offset_min(leg.depart_at), arrive_at=leg.arrive_at,
                 arrive_offset_min=utc_offset_min(leg.arrive_at), services=services_text(leg),
                 load_first=leg.load_first, load_second=leg.load_second,
-                from_platform=leg.from_platform, to_platform=leg.to_platform)
+                from_platform=leg.from_platform, to_platform=leg.to_platform, co2_g=leg.co2_g)
             for seq, leg in enumerate(offer.legs, 1)]
 
 
