@@ -25,7 +25,7 @@ PG_BIN = Path("/usr/lib/postgresql/16/bin")
 # The clock of the tests in tests/ (#2543): the fixtures have fixed trip dates in the near future, and the app compares
 # them with `datetime.now()`. With the real clock, each test with a date fails on the day that the real date passes it.
 # The clock of each test process starts at FIXED_START (also in each xdist worker) and moves on (tick=True: timeouts and
-# waits work). It runs only for the items in tests/ (pytest_runtest_protocol: their fixtures too): the tests of
+# waits work). It runs only for the modules and items in tests/ (their import and their fixtures too): the tests of
 # framework/tests compare times with git and GitHub, which have the real clock.
 # PostgreSQL follows it too: each database of the tests has `testclock.now()` (the real now() plus the shift of the
 # test clock) before pg_catalog in the search_path, so a `server_default=func.now()` column has the time of the test.
@@ -58,7 +58,7 @@ def _db_clock(dbapi_connection, connection_record):
     if not type(dbapi_connection).__module__.startswith("psycopg"):
         return
     cursor = dbapi_connection.cursor()
-    cursor.execute(f"SET search_path = testclock, \"$user\", public, pg_catalog; SET testclock.shift = '{_db_shift:.6f} s'")
+    cursor.execute(f"SET search_path = \"$user\", public, testclock, pg_catalog; SET testclock.shift = '{_db_shift:.6f} s'")
     cursor.close()
     dbapi_connection.commit()
 
@@ -70,10 +70,21 @@ def pytest_configure(config):
     _db_shift = FIXED_START.timestamp() - (hatch.time.time() if hatch.is_travelling() else time.time())
 
 
+def _in_tests(node) -> bool:
+    return Path(node.path).resolve().is_relative_to(TESTS_DIR)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_make_collect_report(collector):
+    """The test clock for the import of a module of tests/: a module-level `datetime.now()` has the test time too."""
+    _clock_on(_in_tests(collector))
+    yield
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_protocol(item, nextitem):
     """The test clock for an item of tests/ (its setup, call and teardown), the real clock for the other items."""
-    _clock_on(Path(item.path).resolve().is_relative_to(TESTS_DIR))
+    _clock_on(_in_tests(item))
     yield
 
 

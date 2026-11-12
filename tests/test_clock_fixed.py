@@ -50,3 +50,20 @@ def test_a_new_empty_database_has_the_clock(empty_database_url):
         db_now = c.scalar(text("SELECT now()"))
     engine.dispose()
     assert FIXED_START <= db_now < FIXED_START + timedelta(hours=3)
+
+
+MODULE_NOW = datetime.now(timezone.utc)   # at the import of the module (the collection)
+
+
+def test_the_import_of_a_test_module_has_the_clock():
+    """A module-level `datetime.now()` (for example NOW of tests/test_departed_places.py) has the test time too."""
+    assert FIXED_START <= MODULE_NOW < FIXED_START + timedelta(hours=3)
+
+
+def test_the_tables_are_in_the_public_schema(sessions):
+    """The schema of the clock is after public in the search_path: the migrations make no table in it."""
+    from sqlalchemy import text
+
+    with sessions() as s:
+        schemas = set(s.scalars(text("SELECT table_schema FROM information_schema.tables WHERE table_name = 'trips'")))
+    assert schemas == {"public"}
