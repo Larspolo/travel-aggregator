@@ -551,6 +551,10 @@ The expanded row of a fare shows the on-board services of each leg: "Wi-Fi" and 
 
 The expanded row of a fare shows the expected load of each class of a leg: "expected load: 1st class <level>, 2nd class <level>". The levels are "low", "high", "very high" and "fully booked". The source for the expected load is bahn.de only. A class with no value is not shown, and a leg with no value for any class shows no mark.
 
+### Planned platforms of a leg
+
+A leg shows its planned platforms: "planned platform <departure> → <arrival>". The trip page, the Upcoming page and the calendar event of a leg show them. The calendar event shows the platform after the name of the place. The sources that give the planned platforms are bahn.de and ÖBB. A leg with no value shows no platform, and a missing side shows "?".
+
 ### Departure days
 
 Above the table, the trip page shows a strip of the departure days. A trip with a date range shows each day of the range, up to the first 31 days. A day with no offer shows "no offers". Without a range, the strip shows each day that has an offer. The strip is hidden when it has fewer than two days.
