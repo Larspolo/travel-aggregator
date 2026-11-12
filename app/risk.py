@@ -369,3 +369,13 @@ def load_extras(fare, itinerary, weights: Weights) -> tuple[tuple[str, Decimal],
             sums["expected load fully booked"] = sums.get("expected load fully booked", Decimal("0")) + very_high
     return tuple((label, sums[label]) for label in ("expected load high", "expected load very high",
                                                     "expected load fully booked") if label in sums)
+
+
+def recheck_extras(fare, itinerary, weights: Weights, trip=None) -> tuple[tuple[str, Decimal], ...]:
+    """Add the bag recheck fee (#2661) for each leg with `bag_recheck` true: one part per leg, named by its start.
+    A fee of 0 or a trip with "Checked bag: none" adds no part."""
+    fee = Decimal(weights.recheck_fee)
+    trip = trip if trip is not None else getattr(itinerary, "trip", None)
+    if fee == 0 or getattr(trip, "checked_bag", None) == "none":
+        return ()
+    return tuple((f"bag recheck at {leg.from_name}", fee) for leg in itinerary.legs if getattr(leg, "bag_recheck", None) is True)
