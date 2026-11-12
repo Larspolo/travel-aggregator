@@ -78,7 +78,7 @@ from app.profiles import rename as rename_profile, save as save_profile, set_def
 from app.profiles import update_weights as update_profile
 from app.same_journey import JoinError, join, split
 from app.capture_changes import capture_changes
-from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PlaceName, PushSubscription, RailPass, ScoreProfile, Setting,
+from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Leg, Passkey, PlaceName, PushSubscription, RailPass, ScoreProfile, Setting,
                         SentMessage, SourceFee, Trip, TripAccessTime, TripSeries)
 from app.place_names import aliases as place_aliases
 from app.tripmatch import ALIASES, fold
@@ -993,7 +993,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if not show_departed:
         hidden_filter.append(departed.not_departed(departed_now))  # "show departed" (#1391)
     itineraries = session.scalars(select(Itinerary).where(Itinerary.trip_id == trip_id, *hidden_filter)
-                                  .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
+                                  .options(subqueryload(Itinerary.legs).subqueryload(Leg.stops), subqueryload(Itinerary.fares))).all()
     places = trip_places(session, trip)  # once per request; the overrides of the trip (#2109)
     rates = load_rates(session)  # once per request (#385)
     counts = fare_travelers(session, itineraries)  # once per request (#767)
