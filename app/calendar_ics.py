@@ -67,12 +67,19 @@ def _summary(leg: Leg) -> str:
     return route
 
 
+def _place(name: str, platform: str | None) -> str:
+    """The place of a leg, with its planned platform when it is known (#2593)."""
+    return f"{name}, platform {platform}" if platform else name
+
+
 def _description(trip: Trip, leg: Leg) -> str:
+    from_text = f"{leg.from_name} (platform {leg.from_platform})" if leg.from_platform else leg.from_name
+    to_text = f"{leg.to_name} (platform {leg.to_platform})" if leg.to_platform else leg.to_name
     lines = [
         f"Departs {_local_time(leg.depart_at, leg.depart_offset_min)} "
-        f"({_offset_text(leg.depart_offset_min)}) at {leg.from_name}",
+        f"({_offset_text(leg.depart_offset_min)}) at {from_text}",
         f"Arrives {_local_time(leg.arrive_at, leg.arrive_offset_min)} "
-        f"({_offset_text(leg.arrive_offset_min)}) at {leg.to_name}",
+        f"({_offset_text(leg.arrive_offset_min)}) at {to_text}",
         f"Trip: {trip.title}",
     ]
     return "\n".join(lines)
@@ -86,7 +93,7 @@ def _vevent(trip: Trip, leg: Leg, now: datetime) -> list[str]:
         f"DTSTART:{_utc(leg.depart_at)}",
         f"DTEND:{_utc(leg.arrive_at)}",
         f"SUMMARY:{_escape(_summary(leg))}",
-        f"LOCATION:{_escape(leg.from_name)}",
+        f"LOCATION:{_escape(_place(leg.from_name, leg.from_platform))}",
         f"DESCRIPTION:{_escape(_description(trip, leg))}",
         "END:VEVENT",
     ]
