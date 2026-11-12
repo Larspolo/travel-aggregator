@@ -149,6 +149,8 @@ class Leg(Base):
     arrive_offset_min: Mapped[int] = mapped_column(Integer)
     # The on-board services (#2548): the names joined with a comma ("wifi,power"); None is not known.
     services: Mapped[str | None] = mapped_column(String(50))
+    # The CO2 in grams per traveler (#2586); None is not known.
+    co2_g: Mapped[int | None] = mapped_column(Integer)
 
     itinerary: Mapped[Itinerary] = relationship(back_populates="legs")
 

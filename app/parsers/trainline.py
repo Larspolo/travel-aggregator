@@ -51,7 +51,7 @@ def fare_name(type_name: str, class_name: str) -> str:
 
 class TrainlineParser:
     source = "thetrainline.com"
-    version = "1.3.0"
+    version = "1.4.0"
     # no personal key beyond PERSONAL_KEYS: `dateOfBirth` is in PERSONAL_KEYS (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -116,6 +116,8 @@ class TrainlineParser:
                 arrive_at=aware(leg["arriveAt"]),
                 # Trainline books the mandatory reservation with the ticket: the price is the full price (#1622)
                 reservation="included" if leg.get("isReservationMandatory") is True else None,
+                co2_g=co2 if isinstance(co2 := leg.get("co2EmissionInGramsPerPassenger"), int)
+                and not isinstance(co2, bool) and co2 >= 0 else None,
             ))
         best: dict[str, tuple[Decimal, str, str | None, int | None]] = {}
         for section_id in journey.get("sections") or []:
