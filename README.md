@@ -1032,6 +1032,25 @@ When another trip in planning has the same route and dates, the trip page shows 
 - The sort works with the search (`q`), the tag filter (`tag`) and the archived list (`archived=1`). Each sort link keeps these values, and the search form keeps the sort.
 - An unknown value of `sort` gives the default order, not an error.
 
+### Compare trips
+
+To compare 2 to 4 trips side by side:
+1. On the trips list `/`, tick the box next to the title of each trip (its label is "Compare" and the trip title). Tick 2 to 4 trips.
+2. Click "Compare trips" above the list. The page `/trips/compare` opens with one column for each ticked trip.
+
+The page shows these lines, one column for each trip:
+- "Trip": the title of the trip, with a link to its page, and its origin and destination.
+- "Dates": the first and the last day of the trip.
+- "Best offer": the effective cost of the best offer, with its price and its source below it. The text "no offers yet" shows when the trip has no offer.
+- "Cheapest": the lowest price of the offers of the trip, in its own currency.
+- "Fastest": the duration of the fastest offer, for example "2h 05".
+- "Offers": the number of offers of the trip.
+- "Newest capture": the date and time (UTC) of the newest capture of the trip.
+
+The column with the lowest effective cost of the best offers is marked as the best. A trip with no rate for its best offer is not marked. A "–" shows when a trip has no value for the lines "Cheapest", "Fastest" or "Newest capture".
+
+The compare page needs 2 to 4 trips. Any other number of trips gives the message "Select 2 to 4 trips to compare." and no table. An unknown trip gives HTTP 404.
+
 ### Export a trip
 
 - The trip page `/trips/{id}` has the links "Export CSV" and "Export JSON". They are in the "More" menu of the page.
