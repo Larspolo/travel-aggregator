@@ -1673,6 +1673,17 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   removes the baggage part from the ranking, and a fare with an included bag gets no part too.
 A trip can also set the select **Checked bag** of the trip form. Its value **as the profile** uses the parts above. Its value **none (hand luggage only)** gives every flight fare of the trip the part `no checked bag (trip)` at €0, so no bag cost is added.
 
+A trip can also set the checkbox **With a bicycle** of the trip form. Then the trip has these bicycle rules:
+
+- The filter **by bicycle** hides each fare with the mark "no bicycle". The trip page counts the hidden offers by bicycle,
+  and a link shows them again. The filter does not hide a fare with no bicycle mark.
+- The **Advanced** section under the sliders sets **Bicycle € per leg**, default `0`. A fare with the mark "bicycle:
+  reservation" gets the part `bicycle` at this fee for each leg. A value of 0 removes the part.
+- A fare whose source gives no bicycle value shows "bicycle: not known" on a trip with a bicycle. That fare is not hidden
+  and gets no `bicycle` part, because the source tells nothing about a bicycle.
+
+A trip with no checkbox set has no bicycle rules: the fee and the filter do not apply to it.
+
 A trip can also set its own hour value. The field **Hour value (EUR per hour)** of the trip form is empty by default, and an empty field means the hour markup of the profile. A value replaces that hour markup for the offers of this trip only. The other profiles and trips keep their hour markup. The rates under "Advanced" of the profile stay: the transfer wait, the work hours, the night and the other time parts still use their own values. The breakdown shows the time part of the trip with the label `time (trip)`, in place of `time`.
 
 ### Time of day and night
