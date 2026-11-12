@@ -95,6 +95,9 @@ def _update_services(it: Itinerary, offer: OfferIn) -> None:
             stored.from_platform = leg.from_platform
         if leg.to_platform:
             stored.to_platform = leg.to_platform
+        # a capture with a known bag recheck replaces the stored value (#2660)
+        if leg.bag_recheck is not None:
+            stored.bag_recheck = leg.bag_recheck
         # The load of a class (#2582): a newer known value replaces the stored value.
         if leg.load_first is not None:
             stored.load_first = leg.load_first
@@ -120,7 +123,7 @@ def _legs(offer: OfferIn) -> list[Leg]:
                 depart_offset_min=utc_offset_min(leg.depart_at), arrive_at=leg.arrive_at,
                 arrive_offset_min=utc_offset_min(leg.arrive_at), services=services_text(leg),
                 load_first=leg.load_first, load_second=leg.load_second,
-                from_platform=leg.from_platform, to_platform=leg.to_platform, co2_g=leg.co2_g,
+                from_platform=leg.from_platform, to_platform=leg.to_platform, bag_recheck=leg.bag_recheck, co2_g=leg.co2_g,
                 stops=_stops(leg))
             for seq, leg in enumerate(offer.legs, 1)]
 
