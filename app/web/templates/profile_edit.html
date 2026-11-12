@@ -5,6 +5,11 @@
 {% block header %}{{ ui.page_header(title, subtitle="The weights of the score. A trip page uses them as its start values.", back=("/profiles", "Profiles")) }}{% endblock %}
 {% block settings %}
 {% if error %}<p role="alert" class="chip danger">{{ error }}</p>{% endif %}
+{% if not profile %}
+<p class="presets">Start from:
+  {% for key, (label, _) in presets.items() %}<a href="/profiles/new?preset={{ key }}"{% if key == preset %} aria-current="true"{% endif %}>{{ label }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+</p>
+{% endif %}
 {% call ui.card("Weights") %}
 <form class="profile-edit" method="post" action="/profiles/{{ profile.id if profile else 'new' }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">

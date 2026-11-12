@@ -56,6 +56,20 @@ def save(session: Session, name: str, weights: Weights) -> ScoreProfile:
     return profile
 
 
+# The "Start from" presets of a new profile (#2520): the key, its label and the weights that differ from the defaults.
+PRESETS = {
+    "budget": ("Budget", {"hour_markup": Decimal("5"), "transfer_markup": Decimal("5")}),
+    "balanced": ("Balanced", {}),
+    "time": ("Time is money", {"hour_markup": Decimal("40"), "transfer_markup": Decimal("25")}),
+}
+
+
+def preset_weights(key: str) -> Weights:
+    """The `Weights` of the preset `key`; an unknown key gives the `Weights` defaults (#2520)."""
+    entry = PRESETS.get(key)
+    return dataclasses.replace(Weights(), **entry[1]) if entry else Weights()
+
+
 def default_weights(session: Session) -> Weights:
     """The weights of the default profile (#230); with no default profile, the `Weights` defaults."""
     profile = session.scalars(select(ScoreProfile).where(ScoreProfile.is_default.is_(True))).first()
