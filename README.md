@@ -1898,6 +1898,7 @@ CO₂ per hour of its mode. The defaults are 3 kg per hour for train and ferry, 
 **Advanced** section under the sliders sets these values and **CO₂ price € per kg**, which has the default `0`.
 
 - With a price of 0, the CO₂ adds no part to the effective cost. The row still shows "CO₂ about N kg per traveler (estimate)".
+- The CO₂ of a train, bus or flight leg uses the grams that the source gives when the source gives them: Trainline does. A leg with no grams uses the estimate. The row shows "(from the capture)" when every leg of the offer has captured grams, and "(estimate)" otherwise.
 - With a price above 0, the breakdown shows the part `CO₂ <n> kg`, for example `CO₂ 180 kg`. Its amount is the kg times
   the price per kg.
 
