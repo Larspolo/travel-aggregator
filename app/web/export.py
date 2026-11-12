@@ -102,6 +102,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                         "to_name": leg.to_name, "to_code": leg.to_code,
                         "depart_at": _local(leg.depart_at, leg.depart_offset_min),
                         "arrive_at": _local(leg.arrive_at, leg.arrive_offset_min),
+                        "services": leg.services,
                     }
                     for leg in it.legs
                 ],
