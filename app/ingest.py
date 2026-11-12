@@ -75,8 +75,14 @@ def services_text(leg) -> str | None:
     return ",".join(dict.fromkeys(leg.services)) or None
 
 
+def _notices(offer: OfferIn) -> list | None:
+    return None if offer.notices is None else [n.model_dump() for n in offer.notices]
+
+
 def _update_services(it: Itinerary, offer: OfferIn) -> None:
     """A capture that knows the services of the legs replaces the stored services (#2548) and CO2 (#2586)."""
+    if offer.notices is not None:  # #2624: [] removes the notices; None keeps them
+        it.notices = _notices(offer)
     if len(it.legs) != len(offer.legs):
         return
     for stored, leg in zip(sorted(it.legs, key=lambda x: x.seq), offer.legs):
@@ -124,7 +130,7 @@ def _new_itinerary(trip_id: int, offer: OfferIn, fp: str) -> Itinerary:
     d = derive([DerivedLeg(leg.depart_at, leg.arrive_at, leg.mode) for leg in offer.legs])
     it = Itinerary(trip_id=trip_id, fingerprint=fp, mode_summary=d.mode_summary, depart_at=first.depart_at,
                    arrive_at=last.arrive_at, transfers=d.transfers, duration_min=d.duration_min,
-                   first_seen_at=datetime.now(UTC), last_seen_at=datetime.now(UTC))
+                   first_seen_at=datetime.now(UTC), last_seen_at=datetime.now(UTC), notices=_notices(offer))
     it.legs.extend(_legs(offer))
     return it
 

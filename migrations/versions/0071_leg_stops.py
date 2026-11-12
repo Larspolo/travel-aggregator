@@ -1,7 +1,7 @@
 """The stops of a leg (#2634).
 
-Revision ID: 0070
-Revises: 0069
+Revision ID: 0071
+Revises: 0070
 
 No data loss: the upgrade adds the new table `leg_stops` (empty). The downgrade drops only this new table.
 """
@@ -9,8 +9,8 @@ No data loss: the upgrade adds the new table `leg_stops` (empty). The downgrade 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0070"
-down_revision = "0069"
+revision = "0071"
+down_revision = "0070"
 branch_labels = None
 depends_on = None
 

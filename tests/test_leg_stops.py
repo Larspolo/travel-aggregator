@@ -82,7 +82,7 @@ def test_81_stops_reject_the_offer(setup):  # noqa: F811
     assert r.json()["rejected"] == 1 and r.json()["created"] == 0
 
 
-def test_the_migration_upgrades_and_downgrades_to_0069(empty_database_url):
+def test_the_migration_upgrades_and_downgrades_to_0070(empty_database_url):
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine
@@ -95,7 +95,7 @@ def test_the_migration_upgrades_and_downgrades_to_0069(empty_database_url):
     try:
         tables = lambda: set(inspect(engine).get_table_names())  # noqa: E731
         assert "leg_stops" in tables()
-        command.downgrade(cfg, "0069")
+        command.downgrade(cfg, "0070")
         assert "leg_stops" not in tables()
         command.upgrade(cfg, "head")
         assert "leg_stops" in tables()

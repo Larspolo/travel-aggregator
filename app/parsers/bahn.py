@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from pydantic import ValidationError
 
 from app.parsers import DayPrice, ParseResult, count
-from app.schemas import LegIn, OfferIn, StopIn, _short_reason
+from app.schemas import LegIn, NoticeIn, OfferIn, StopIn, _short_reason
 
 DEFAULT_TZ = "Europe/Berlin"
 # UIC country code -> timezone
@@ -90,7 +90,7 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.7.0"
+    version = "1.8.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have no BahnCard number and no traveler name (#1903)
     redact_keys: frozenset[str] = frozenset()
     # the station codes and the date of the search are in the body, not in a URL: no query name to keep (#1903)
@@ -165,10 +165,13 @@ class BahnParser:
             klasse = conn.get("angebotsPreisKlasse")
             fares = [(price, [CLASSES.get(klasse, "")], klasse)]
         legs = []
+        notices = _notices(conn, None, {})
         for a in conn["verbindungsAbschnitte"]:
             vm = a.get("verkehrsmittel") or {}
             if vm.get("typ") in SKIP_TYPES:
+                _notices(a, None, notices)
                 continue
+            _notices(a, len(legs), notices)
             attrs = {z.get("key"): z.get("value") for z in vm.get("zugattribute") or []}
             # RP: a mandatory reservation; GP: the price includes it (#1621). RE alone is only a recommendation.
             reservation = None
@@ -205,4 +208,25 @@ class BahnParser:
             legs=legs,
             booking_url=BOOKING_URL,
             travel_class=TRAVEL_CLASSES.get(klasse),
+            notices=[NoticeIn(text=t, level=lv, leg=leg) for (t, leg), lv in notices.items()],
         ) for price, fare, klasse in fares]
+
+
+NOTICE_CLASSES = {"KLASSE_1": " (1st class)", "KLASSE_2": " (2nd class)"}
+CANCELLED = "text.realtime.connection.cancelled"
+
+
+def _notices(part: dict, leg: int | None, out: dict) -> dict:
+    """Add the notices of a connection or section to `out` ({(text, leg): level}, #2624); one per text and leg."""
+    skip = {n.get("value") for n in part.get("risNotizen") or [] if n.get("key") == CANCELLED}
+    items = [(m.get("text"), m) for m in part.get("priorisierteMeldungen") or []]
+    items += [(n.get("value"), n) for n in part.get("risNotizen") or [] if n.get("key") != CANCELLED]
+    items += [(m.get("text"), m) for m in part.get("himMeldungen") or []]
+    for text, m in items:
+        if not isinstance(text, str) or not text.strip() or text in skip:
+            continue
+        text = (text.strip() + NOTICE_CLASSES.get(m.get("fahrscheinklasse"), ""))[:300]
+        level = "high" if m.get("prioritaet") in ("HOCH", "SEHR HOCH") else "low"
+        if out.get((text, leg)) != "high":
+            out[(text, leg)] = level
+    return out
