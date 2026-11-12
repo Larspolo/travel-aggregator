@@ -91,9 +91,13 @@ def bicycle(conn: dict, response: dict) -> str | None:
     return None
 
 
+# The amenities of a leg that the trip page shows (#2548); the parser drops the others.
+SERVICES = {"WIFI": "wifi", "POWER_SOCKETS": "power"}
+
+
 class FlixbusParser:
     source = "flixbus.com"
-    version = "1.2.0"
+    version = "1.3.0"
     # the personal keys beyond PERSONAL_KEYS (#1903): none in the fixtures (the `address` is already REDACTED)
     redact_keys: frozenset[str] = frozenset()
     # the query names of the search URL that the parser reads, or that name the search (#1903)
@@ -144,6 +148,7 @@ class FlixbusParser:
                 to_code=None,
                 depart_at=aware(dep["date"]),
                 arrive_at=aware(arr["date"]),
+                services=[SERVICES[a] for a in leg.get("amenities") or [] if a in SERVICES],
             ))
         return OfferIn(
             external_id=external_id(conn.get("uid")),
