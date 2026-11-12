@@ -49,6 +49,7 @@ from app.trip_summary import trip_summary
 from app.best_mode import best_per_mode
 from app.trip_routes import _places as route_places, trip_routes
 from app.days import day_sources, day_summary, return_grid, with_day_prices
+from app.nearby_days import add_day_span, nearby_days
 from app.timeline import timeline
 from app.filtered import hidden_counts
 from app.split_suggest import split_skip, via_places
@@ -1137,8 +1138,13 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context["estimate_places"] = has_place_gap(shown)
     context["days"] = day_summary(current, trip.date_from, trip.date_to,
                                   lambda it: depart_day(it) if it.legs else None)  # the days (#710)
-    context["days"] = with_day_prices(context["days"], session.scalars(  # the day prices of bahn.de (#1198)
-        select(DayPrice).where(DayPrice.trip_id == trip.id)).all())
+    day_prices = session.scalars(select(DayPrice).where(DayPrice.trip_id == trip.id)).all()  # bahn.de (#1198)
+    context["days"] = with_day_prices(context["days"], day_prices)
+    # the cheaper days next to the span, against the cheapest shown price in EUR (#2525, #2524)
+    eur_of = lambda amount, currency: to_eur(amount, currency, rates)  # noqa: E731
+    shown_eur = [eur for r in shown if (eur := eur_of(r[1].latest_price, r[1].currency)) is not None]
+    context["nearby"] = nearby_days(day_prices, trip.date_from, trip.date_to, min(shown_eur, default=None),
+                                    now.date(), eur_of) if day_prices else []
     context["day_cover"] = day_cover(trip, itineraries, context["days"], stale_before,
                                        now.date(), sales_horizons(session))  # the searched sources (#2058, #2114)
     # the timeline of the shown rows (#815): one block per departure day; a bar links to its row
@@ -1320,6 +1326,20 @@ def toggle_pin(request: Request, trip_id: int, itinerary_id: int, session: Sessi
     it.pinned = not it.pinned
     session.commit()
     return _rows_or_redirect(request, trip_id, session, view)
+
+
+@router.post("/trips/{trip_id}/add-day", dependencies=[Depends(require_login), Depends(verify_csrf)])
+def add_day(trip_id: int, day: str = Form(""), session: Session = Depends(get_session)) -> RedirectResponse:
+    """"Add this day" of a cheaper day next to the span (#2525): the first or the last date moves to that day."""
+    trip = _get_trip(session, trip_id)
+    if trip.date_from is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "the trip has no dates")
+    try:
+        trip.date_from, trip.date_to = add_day_span(trip.date_from, trip.date_to, date.fromisoformat(day))
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}", status_code=303)
 
 
 @router.post("/trips/{trip_id}/return", dependencies=[Depends(require_login), Depends(verify_csrf)])
