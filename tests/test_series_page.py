@@ -9,10 +9,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Fare, Itinerary, Leg, Trip, TripSeries
+from app.ranking import format_total
 from app.trip_import import import_trip
+from app.web.pages import best_offer
 from tests.test_trips_list import _client
 
-T = datetime(2026, 12, 4, 8, 0, tzinfo=timezone.utc)
+T = datetime(2030, 12, 4, 8, 0, tzinfo=timezone.utc)
 
 
 @pytest.fixture
@@ -32,7 +34,7 @@ def _series(engine) -> tuple[int, list[int]]:
         s.add(series)
         s.flush()
         trips = [Trip(title="Amsterdam → Berlin", origin_text="Amsterdam", destination_text="Berlin",
-                      date_from=date(2026, 12, 4) + timedelta(weeks=2 * k), series_id=series.id) for k in range(4)]
+                      date_from=date(2030, 12, 4) + timedelta(weeks=2 * k), series_id=series.id) for k in range(4)]
         s.add_all(trips)
         s.flush()
         it = Itinerary(trip=trips[0], fingerprint="s1", depart_at=T, arrive_at=T, duration_min=60)
@@ -53,11 +55,15 @@ def test_four_lines_with_cost_links_and_search(engine, client):
     sid, ids = _series(engine)
     page = client.get(f"/series/{sid}").text
     assert page.count('class="series-trip"') == 4 and "Utrecht → Paris" not in page
-    assert page.count("effective €97.40") == 1 and page.count("no offers yet") == 3
-    assert page.index("effective €97.40") < page.index("no offers yet")
+    with Session(engine) as s:
+        best = best_offer(s, s.get(Trip, ids[0]))
+        expected = format_total(best[2])
+    assert expected != "€97.40"  # the time part of the default profile (#2513)
+    assert page.count(f"effective {expected}") == 1 and page.count("no offers yet") == 3
+    assert page.index(f"effective {expected}") < page.index("no offers yet")
     for i in ids:
         assert f'href="/trips/{i}"' in page
-    assert page.count("Open the search") == 4 and "2026-12-18" in page and "Berlin%20Hbf" in page
+    assert page.count("Open the search") == 4 and "2030-12-18" in page and "Berlin%20Hbf" in page
 
 
 def test_unknown_series_is_404_and_login_needed(engine, client, monkeypatch):
