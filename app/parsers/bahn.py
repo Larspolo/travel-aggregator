@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from pydantic import ValidationError
 
 from app.parsers import DayPrice, ParseResult, count
-from app.schemas import LegIn, OfferIn, _short_reason
+from app.schemas import LegIn, NoticeIn, OfferIn, _short_reason
 
 DEFAULT_TZ = "Europe/Berlin"
 # UIC country code -> timezone
@@ -31,12 +31,6 @@ CLASSES = {"KLASSE_1": "1st class", "KLASSE_2": "2nd class"}
 TRAVEL_CLASSES = {"KLASSE_1": "first", "KLASSE_2": "standard"}
 DISCOUNTS = {"BAHNCARD25": "BahnCard 25", "BAHNCARD50": "BahnCard 50", "BAHNCARD100": "BahnCard 100"}
 BOOKING_URL = "https://www.bahn.de/buchung/fahrplan/suche"
-
-
-def _cancelled(conn: dict) -> bool:
-    """True when bahn.de shows the connection as cancelled (#2629)."""
-    return any(isinstance(n, dict) and n.get("key") == "text.realtime.connection.cancelled"
-               for n in conn.get("risNotizen") or [])
 
 
 class NoPrice(ValueError):
@@ -85,7 +79,7 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.7.0"
+    version = "1.8.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have no BahnCard number and no traveler name (#1903)
     redact_keys: frozenset[str] = frozenset()
     # the station codes and the date of the search are in the body, not in a URL: no query name to keep (#1903)
@@ -110,7 +104,7 @@ class BahnParser:
         for i, conn in enumerate(conns):
             try:
                 if _cancelled(conn):  # #2629: a cancelled connection is no rejected offer
-                    result.cancelled.append(self._legs(conn))
+                    result.cancelled.append(self._legs(conn, {}))
                     continue
                 result.offers.extend(self._offers(conn, extra))
             except NoPrice as e:
@@ -162,7 +156,8 @@ class BahnParser:
                 raise NoPrice("no price (angebotsPreis)")
             klasse = conn.get("angebotsPreisKlasse")
             fares = [(price, [CLASSES.get(klasse, "")], klasse)]
-        legs = self._legs(conn)
+        notices = _notices(conn, None, {})
+        legs = self._legs(conn, notices)
         return [OfferIn(
             external_id=conn.get("tripId"),
             # str() first: a JSON float such as 130.99 must not become a long binary Decimal
@@ -172,15 +167,18 @@ class BahnParser:
             legs=legs,
             booking_url=BOOKING_URL,
             travel_class=TRAVEL_CLASSES.get(klasse),
+            notices=[NoticeIn(text=t, level=lv, leg=leg) for (t, leg), lv in notices.items()],
         ) for price, fare, klasse in fares]
 
-    def _legs(self, conn: dict) -> list[LegIn]:
-        """The legs of a connection; a walk is no leg."""
+    def _legs(self, conn: dict, notices: dict) -> list[LegIn]:
+        """The legs of a connection (a walk is no leg); the notices of its sections go to `notices` (#2624)."""
         legs = []
         for a in conn["verbindungsAbschnitte"]:
             vm = a.get("verkehrsmittel") or {}
             if vm.get("typ") in SKIP_TYPES:
+                _notices(a, None, notices)
                 continue
+            _notices(a, len(legs), notices)
             attrs = {z.get("key"): z.get("value") for z in vm.get("zugattribute") or []}
             # RP: a mandatory reservation; GP: the price includes it (#1621). RE alone is only a recommendation.
             reservation = None
@@ -208,3 +206,28 @@ class BahnParser:
                 load_second=load.get("KLASSE_2"),
             ))
         return legs
+
+
+NOTICE_CLASSES = {"KLASSE_1": " (1st class)", "KLASSE_2": " (2nd class)"}
+CANCELLED = "text.realtime.connection.cancelled"
+
+
+def _cancelled(conn: dict) -> bool:
+    """True when bahn.de shows the connection as cancelled (#2629)."""
+    return any(isinstance(n, dict) and n.get("key") == CANCELLED for n in conn.get("risNotizen") or [])
+
+
+def _notices(part: dict, leg: int | None, out: dict) -> dict:
+    """Add the notices of a connection or section to `out` ({(text, leg): level}, #2624); one per text and leg."""
+    skip = {n.get("value") for n in part.get("risNotizen") or [] if n.get("key") == CANCELLED}
+    items = [(m.get("text"), m) for m in part.get("priorisierteMeldungen") or []]
+    items += [(n.get("value"), n) for n in part.get("risNotizen") or [] if n.get("key") != CANCELLED]
+    items += [(m.get("text"), m) for m in part.get("himMeldungen") or []]
+    for text, m in items:
+        if not isinstance(text, str) or not text.strip() or text in skip:
+            continue
+        text = (text.strip() + NOTICE_CLASSES.get(m.get("fahrscheinklasse"), ""))[:300]
+        level = "high" if m.get("prioritaet") in ("HOCH", "SEHR HOCH") else "low"
+        if out.get((text, leg)) != "high":
+            out[(text, leg)] = level
+    return out

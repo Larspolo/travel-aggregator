@@ -7,6 +7,7 @@ from sqlalchemy import (
     JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, SmallInteger, String, Text, Time, UniqueConstraint,
     false, func, text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 Money = Numeric(10, 2)
@@ -113,6 +114,8 @@ class Itinerary(Base):
     booking_code: Mapped[str | None] = mapped_column(String(40), nullable=True)  # the booking code (#1716)
     # The last time to cancel the booking (#2311): UTC and the offset of the departure of the first leg.
     cancel_by: Mapped[datetime | None] = mapped_column(_tz(), nullable=True)
+    # The notices of the operator (#2624): a list of {"text", "level", "leg"}; NULL is not known.
+    notices: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     cancel_by_offset_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # the keys of the dismissed timetable changes, one per line (#2342, app/schedule_change.py)
     schedule_change_dismissed: Mapped[str | None] = mapped_column(Text, nullable=True)

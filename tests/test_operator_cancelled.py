@@ -68,7 +68,7 @@ def test_a_cancelled_connection_with_no_itinerary_makes_no_row(sessions):
         assert s.scalar(select(func.count()).select_from(Itinerary).where(Itinerary.trip_id == tid)) == 0
 
 
-def test_the_migration_upgrades_and_downgrades_to_0069(empty_database_url):
+def test_the_migration_upgrades_and_downgrades_to_0070(empty_database_url):
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine
@@ -83,7 +83,7 @@ def test_the_migration_upgrades_and_downgrades_to_0069(empty_database_url):
         return {c["name"] for c in inspect(engine).get_columns("itineraries")}
     try:
         assert "operator_cancelled_at" in cols()
-        command.downgrade(cfg, "0069")
+        command.downgrade(cfg, "0070")
         assert "operator_cancelled_at" not in cols()
         command.upgrade(cfg, "head")
         assert "operator_cancelled_at" in cols()
