@@ -52,6 +52,15 @@ class LegIn(BaseModel):
         return self
 
 
+class NoticeIn(BaseModel):
+    """A notice of the operator (#2624). `leg` is the index of the leg in `legs`; None is the whole connection."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    text: str = Field(max_length=300)
+    level: Literal["low", "high"]
+    leg: int | None = Field(None, ge=0, le=MAX_LEGS)
+
+
 class OfferIn(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
@@ -68,6 +77,8 @@ class OfferIn(BaseModel):
     checked_bag_price: Decimal | None = Field(None, ge=0, max_digits=10, decimal_places=2)  # first bag, price currency
     legs: list[LegIn] = Field(min_length=1, max_length=MAX_LEGS)
     booking_url: str | None = Field(None, max_length=2000, pattern=r"^https?://")
+    # #2624: None = the source tells nothing; [] = the source tells "no notice"
+    notices: list[NoticeIn] | None = Field(None, max_length=20)
 
     @model_validator(mode="after")
     def _legs_in_order(self) -> "OfferIn":
