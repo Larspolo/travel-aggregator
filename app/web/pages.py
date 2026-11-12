@@ -1444,8 +1444,8 @@ def series_page(request: Request, series_id: int, session: Session = Depends(get
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"no series {series_id}")
     rows = sorted((r for r in list_trips(session) if r.series_id == series_id),
                   key=lambda r: (r.date_from or date.max, r.id))
-    return templates.TemplateResponse(request, "series.html", {"series": series, "rows": [
-        (r, links_for_trip(r)) for r in rows]})
+    return templates.TemplateResponse(request, "series.html", {"series": series, "format_total": format_total, "rows": [
+        (r, links_for_trip(r), best_offer(session, session.get(Trip, r.id))) for r in rows]})
 
 
 @router.post("/trips/{trip_id}/copy-journey", dependencies=[Depends(require_login), Depends(verify_csrf)])

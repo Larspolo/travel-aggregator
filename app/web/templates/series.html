@@ -5,10 +5,10 @@
 <h1>Series: every {{ series.step_weeks }} week{{ "" if series.step_weeks == 1 else "s" }}</h1>
 <p><a href="/">Back to the trips</a></p>
 <ul class="series-trips">
-  {% for t, links in rows %}
+  {% for t, links, best in rows %}
   <li class="series-trip">
     <a href="/trips/{{ t.id }}"><strong>{{ t.date_from or "no date" }}</strong> {{ t.title }}</a>
-    <span class="series-best">{% if t.best_price is not none %}effective {{ t.best_price | money(t.best_currency) }}{% else %}<span class="muted">no offers yet</span>{% endif %}</span>
+    <span class="series-best">{% if best is not none %}effective {{ format_total(best[2]) }}{% else %}<span class="muted">no offers yet</span>{% endif %}</span>
     {% if links %}<span class="trip-open-search">Open the search:{% for name, url in links %} <a class="open-search" href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ name }}</a>{% endfor %}</span>{% endif %}
   </li>
   {% endfor %}
