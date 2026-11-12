@@ -3,6 +3,7 @@
 {% block title %}{% if trip_id %}Edit trip{% else %}New trip{% endif %} – travel-aggregator{% endblock %}
 {% block content %}
 {{ ui.page_header("Edit trip" if trip_id else "New trip", back=("/trips/" ~ trip_id, "Trip") if trip_id else ("/", "Trips")) }}
+{% if flash %}<p class="flash" role="status">{{ flash }}</p>{% endif %}
 {% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
 <form class="card" method="post" action="{% if trip_id %}/trips/{{ trip_id }}/edit{% else %}/trips/new{% endif %}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
@@ -46,6 +47,18 @@
     {% if trip_id %}<a class="btn btn-danger" href="/trips/{{ trip_id }}/delete">Delete trip</a>{% endif %}
   </div>
 </form>
+{% if trip_id is none %}
+<form class="card" method="post" action="/trips/from-event" enctype="multipart/form-data">
+  <h2>From an event</h2>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <div class="field wide"><label for="f-event-file">Event file (.ics)</label><input id="f-event-file" type="file" name="file" accept=".ics,text/calendar" required></div>
+    <div class="field"><label for="f-event-origin">Origin</label><input id="f-event-origin" name="origin_text" maxlength="200"></div>
+    <div class="field"><label for="f-event-margin">Margin before the event (minutes)</label><input id="f-event-margin" type="number" name="margin" min="0" max="600" value="60"></div>
+  </div>
+  <div class="form-actions"><button class="btn" type="submit">Make the trip and its return</button></div>
+</form>
+{% endif %}
 {% if trip_id %}
 <form class="card" method="post" action="/trips/{{ trip_id }}/copy">
   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
