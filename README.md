@@ -1404,6 +1404,14 @@ personal values replaced by `"REDACTED"`: names, e-mail addresses, phone numbers
 and the personal keys that the parser of the source names. The prices, the connections and the response stay as they are,
 so a parser fix can read the file. Check the file before you attach it to an issue: the app cannot find every personal value.
 
+### Upload several files
+
+The form "Upload a payload" on `/trips/{id}/captures` takes one or more files at once. Select several files in the file field (the field takes at most 20 files).
+- Each file must be a JSON payload or a HAR file. The source of a JSON file comes from its name, `<source>-<id>.json`, or from the field "Source" when you choose one.
+- The page shows one result line for each file, for example "bahn.de-12.json: stored, 3 offers" or "notes.txt: not stored – <reason>". A file that is not stored gives its reason in that line.
+- The files together must be at most 30 MB. A larger set, or more than 20 files, is refused and nothing is stored.
+- A good file is stored even when another file of the same upload is not.
+
 ### Best offers by source
 
 The card "Best offers by source" on `/captures` shows, for each source, two numbers, for example "bahn.de: best in 3 of 5 trips (last 12 months)":
