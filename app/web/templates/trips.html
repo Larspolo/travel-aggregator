@@ -9,7 +9,7 @@
     {% call ui.card(css=("trip-split" if kind == "split" else none)) %}
     <div class="trip-card-head">
       <div>
-        {% if kind == "return" %}<span class="muted">Return of {{ note }}</span>{% elif kind == "next" %}<span class="muted">then, after {{ note }}</span>{% elif kind == "split" %}<span class="muted">split via {{ note }}</span>{% endif %}
+        {% if kind == "return" %}<span class="muted">Return of {{ note }}</span>{% elif kind == "next" %}<span class="muted">then, after {{ note }}</span>{% elif kind == "split" %}<span class="muted">split via {{ note }}</span>{% elif kind == "series" %}<span class="muted trip-series">{{ note }}</span>{% endif %}
         <h2><a href="/trips/{{ t.id }}">{{ t.title }}</a></h2>
       </div>
       <a class="btn btn-ghost btn-icon" href="/trips/{{ t.id }}/edit" title="Edit">{{ ui.icon("pencil", "Edit " ~ t.title) }}</a>
