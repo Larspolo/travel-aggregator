@@ -69,6 +69,7 @@ class LegData(_Model):
     depart_at: AwareDatetime
     arrive_at: AwareDatetime
     ticket: int | None = Field(None, ge=1, le=MAX_LEGS)
+    services: str | None = Field(None, max_length=50)  # missing in an older export: None (#2551)
 
 
 class PriceData(_Model):
@@ -174,7 +175,8 @@ def _new_itinerary(trip_id: int, d: ItineraryData, fp: str, now: datetime) -> It
     it.legs.extend(Leg(seq=seq, mode=leg.mode, carrier=leg.carrier, service_no=leg.service_no,
                        from_name=leg.from_name, from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code,
                        depart_at=leg.depart_at.astimezone(UTC), depart_offset_min=utc_offset_min(leg.depart_at),
-                       arrive_at=leg.arrive_at.astimezone(UTC), arrive_offset_min=utc_offset_min(leg.arrive_at))
+                       arrive_at=leg.arrive_at.astimezone(UTC), arrive_offset_min=utc_offset_min(leg.arrive_at),
+                       services=leg.services)
                    for seq, leg in enumerate(d.legs, 1))
     return it
 
