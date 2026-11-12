@@ -433,6 +433,7 @@ def _form_page(request: Request, values: dict, errors: list[str], trip_id: int |
     via = _split_places(session, _get_trip(session, trip_id)) if splittable else []
     return templates.TemplateResponse(request, "trip_form.html",
                                       {"values": values, "errors": errors, "trip_id": trip_id, "journey": journey,
+                                           "flash": request.session.pop("flash", None),
                                        "splittable": splittable, "split_error": split_error, "merge": merge,
                                        "via_places": via, "place_kinds": PLACE_KINDS,
                                        "trip_places": _trip_places(session, trip_id) if trip_id else [],

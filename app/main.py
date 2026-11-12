@@ -13,7 +13,7 @@ from app import metrics
 from app.api import health, ingest, trips
 from app.config import get_settings
 from app.schemas import MAX_BODY_BYTES, MAX_HAR_BYTES
-from app.web import booking_upload, calendar, days_off, export, manual, pages, passes, pinned, reparse, settings_export, share, sources, spend, trip_import, trip_merge, upcoming, userscripts
+from app.web import booking_upload, calendar, event_trip, days_off, export, manual, pages, passes, pinned, reparse, settings_export, share, sources, spend, trip_import, trip_merge, upcoming, userscripts
 
 app = FastAPI(title="travel-aggregator")
 # With no SECRET_KEY, a random key: the sessions then end at each restart.
@@ -47,6 +47,7 @@ async def limit_body(request: Request, call_next):
 app.include_router(health.router, prefix="/api")
 app.include_router(ingest.router, prefix="/api")
 app.include_router(trips.router, prefix="/api")
+app.include_router(event_trip.router)  # before pages: /trips/{trip_id}
 app.include_router(trip_import.router)  # before pages: /trips/{trip_id} also matches /trips/import
 app.include_router(settings_export.router)  # before pages
 app.include_router(trip_merge.router)  # before pages: /trips/{trip_id}/merge
