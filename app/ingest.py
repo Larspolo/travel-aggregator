@@ -82,6 +82,11 @@ def _update_services(it: Itinerary, offer: OfferIn) -> None:
     for stored, leg in zip(sorted(it.legs, key=lambda x: x.seq), offer.legs):
         if leg.services:
             stored.services = services_text(leg)
+        # a capture with a platform replaces the stored platform (#2590)
+        if leg.from_platform:
+            stored.from_platform = leg.from_platform
+        if leg.to_platform:
+            stored.to_platform = leg.to_platform
         # The load of a class (#2582): a newer known value replaces the stored value.
         if leg.load_first is not None:
             stored.load_first = leg.load_first
@@ -94,7 +99,8 @@ def _legs(offer: OfferIn) -> list[Leg]:
                 from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code, depart_at=leg.depart_at,
                 depart_offset_min=utc_offset_min(leg.depart_at), arrive_at=leg.arrive_at,
                 arrive_offset_min=utc_offset_min(leg.arrive_at), services=services_text(leg),
-                load_first=leg.load_first, load_second=leg.load_second)
+                load_first=leg.load_first, load_second=leg.load_second,
+                from_platform=leg.from_platform, to_platform=leg.to_platform)
             for seq, leg in enumerate(offer.legs, 1)]
 
 

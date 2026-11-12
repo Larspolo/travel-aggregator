@@ -79,7 +79,7 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.5.0"
+    version = "1.6.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have no BahnCard number and no traveler name (#1903)
     redact_keys: frozenset[str] = frozenset()
     # the station codes and the date of the search are in the body, not in a URL: no query name to keep (#1903)
@@ -163,6 +163,7 @@ class BahnParser:
             reservation = None
             if "RP" in attrs:
                 reservation = "included" if "GP" in attrs else "required"
+            halte = a.get("halte") or []
             # The expected load (#2582): stufe 1 to 4 as it is; 0 or another value is not known.
             load = {m.get("klasse"): m.get("stufe") for m in a.get("auslastungsmeldungen") or []}
             load = {k: v if v in (1, 2, 3, 4) else None for k, v in load.items()}
@@ -178,6 +179,8 @@ class BahnParser:
                 arrive_at=local_time(a["ankunft"], a.get("ankunftsOrtExtId")),
                 reservation=reservation,
                 services=[name for key, name in SERVICES if key in attrs],
+                from_platform=(halte[0].get("gleis") or None) if halte else None,
+                to_platform=(halte[-1].get("gleis") or None) if halte else None,
                 load_first=load.get("KLASSE_1"),
                 load_second=load.get("KLASSE_2"),
             ))

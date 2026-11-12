@@ -149,6 +149,9 @@ class Leg(Base):
     arrive_offset_min: Mapped[int] = mapped_column(Integer)
     # The on-board services (#2548): the names joined with a comma ("wifi,power"); None is not known.
     services: Mapped[str | None] = mapped_column(String(50))
+    # The planned departure and arrival platform (#2590); None is not known.
+    from_platform: Mapped[str | None] = mapped_column(String(10))
+    to_platform: Mapped[str | None] = mapped_column(String(10))
     # The expected load of each class (#2582): 1 to 4; None is not known.
     load_first: Mapped[int | None] = mapped_column(SmallInteger)
     load_second: Mapped[int | None] = mapped_column(SmallInteger)
