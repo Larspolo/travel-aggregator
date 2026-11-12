@@ -78,7 +78,7 @@ from app.profiles import update_weights as update_profile
 from app.same_journey import JoinError, join, split
 from app.capture_changes import capture_changes
 from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Passkey, PlaceName, PushSubscription, RailPass, ScoreProfile, Setting,
-                        SentMessage, SourceFee, Trip, TripAccessTime)
+                        SentMessage, SourceFee, Trip, TripAccessTime, TripSeries)
 from app.place_names import aliases as place_aliases
 from app.tripmatch import ALIASES, fold
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
@@ -423,7 +423,7 @@ FORM_FIELDS = tuple(TripForm.model_fields)
 
 
 def _form_page(request: Request, values: dict, errors: list[str], trip_id: int | None, session: Session,
-               code: int = 200, split_error: str | None = None):
+               code: int = 200, split_error: str | None = None, repeat_error: str | None = None):
     journey = len(chain(_get_trip(session, trip_id))) if trip_id else 1  # the button "Copy journey" (#802)
     splittable = trip_id is not None and _get_trip(session, trip_id).split_of_id is None  # "Split via" (#1177)
     merge = None  # "Merge into another trip" (#1262)
@@ -434,6 +434,7 @@ def _form_page(request: Request, values: dict, errors: list[str], trip_id: int |
     return templates.TemplateResponse(request, "trip_form.html",
                                       {"values": values, "errors": errors, "trip_id": trip_id, "journey": journey,
                                        "splittable": splittable, "split_error": split_error, "merge": merge,
+                                       "repeat_error": repeat_error,
                                        "via_places": via, "place_kinds": PLACE_KINDS,
                                        "trip_places": _trip_places(session, trip_id) if trip_id else [],
                                        "profiles": list_profiles(session),
@@ -1385,6 +1386,49 @@ def copy_trip(trip_id: int, session: Session = Depends(get_session)) -> Redirect
     session.add(new)
     session.commit()
     return RedirectResponse(f"/trips/{new.id}/edit", status_code=303)
+
+
+def _repeat_error(trip: Trip, step_weeks: str, count: str) -> str | None:
+    """The reason that "Repeat" cannot copy a trip (#2498), or None."""
+    if trip.date_from is None:
+        return "Repeat: the trip has no date."
+    if trip.series_id is not None:
+        return "Repeat: the trip is already in a series."
+    if trip.return_of_id is not None or trip.return_trip is not None:
+        return "Repeat: a return trip cannot repeat."
+    if trip.split_of_id is not None:
+        return "Repeat: a split trip cannot repeat."
+    if step_weeks not in ("1", "2"):
+        return "Repeat: the step must be 1 or 2 weeks."
+    if not count.isdigit() or not 2 <= int(count) <= 12:
+        return "Repeat: the count must be 2 to 12 dates."
+    return None
+
+
+@router.post("/trips/{trip_id}/repeat", response_class=HTMLResponse,
+             dependencies=[Depends(require_login), Depends(verify_csrf)])
+def repeat_trip(request: Request, trip_id: int, step_weeks: str = Form(""), count: str = Form(""),
+                session: Session = Depends(get_session)):
+    """Copies of a trip every 1 or 2 weeks, in one series with the trip (#2498)."""
+    trip = _get_trip(session, trip_id)
+    error = _repeat_error(trip, step_weeks.strip(), count.strip())
+    if error is not None:
+        values = {k: ("" if getattr(trip, k) is None else getattr(trip, k)) for k in FORM_FIELDS}
+        return _form_page(request, values, [], trip_id, session, 422, repeat_error=error)
+    series = TripSeries(step_weeks=int(step_weeks))
+    session.add(series)
+    session.flush()
+    trip.series_id = series.id
+    for k in range(1, int(count)):
+        shift = timedelta(days=k * 7 * series.step_weeks)
+        new = _copy_of(trip)
+        new.title = trip.title
+        new.date_from = trip.date_from + shift
+        new.date_to = trip.date_to + shift if trip.date_to is not None else None
+        new.series_id = series.id
+        session.add(new)
+    session.commit()
+    return RedirectResponse(f"/trips/{trip_id}/edit", status_code=303)
 
 
 @router.post("/trips/{trip_id}/copy-journey", dependencies=[Depends(require_login), Depends(verify_csrf)])

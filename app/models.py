@@ -20,6 +20,16 @@ class Base(DeclarativeBase):
     pass
 
 
+class TripSeries(Base):
+    """The copies of a trip every 1 or 2 weeks (#2498)."""
+
+    __tablename__ = "trip_series"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    step_weeks: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
+
+
 class Trip(Base):
     __tablename__ = "trips"
 
@@ -55,6 +65,8 @@ class Trip(Base):
     return_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL"), unique=True)
     # The trip that this trip is a part of, split via a place (#1177); the database deletes it with that trip.
     split_of_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), index=True)
+    # The series of the repeated copies of a trip (#2498); the trip stays when its series goes.
+    series_id: Mapped[int | None] = mapped_column(ForeignKey("trip_series.id", ondelete="SET NULL"), index=True)
     created_at: Mapped[datetime] = mapped_column(_tz(), server_default=func.now())
 
     itineraries: Mapped[list["Itinerary"]] = relationship(back_populates="trip", cascade="all, delete-orphan")

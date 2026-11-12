@@ -128,5 +128,12 @@
   <button class="btn" type="submit">{{ ui.icon("plus") }}Copy journey</button>
 </form>
 {% endif %}
+<form class="card" method="post" action="/trips/{{ trip_id }}/repeat">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  {% if repeat_error %}<p class="error" role="alert">{{ repeat_error }}</p>{% endif %}
+  <div class="field"><label for="f-step">Repeat every</label><select id="f-step" name="step_weeks"><option value="1" selected>1 week</option><option value="2">2 weeks</option></select></div>
+  <div class="field"><label for="f-count">Dates in total</label><input id="f-count" type="number" name="count" min="2" max="12" value="4"></div>
+  <button class="btn" type="submit">Repeat</button>
+</form>
 {% endif %}
 {% endblock %}
