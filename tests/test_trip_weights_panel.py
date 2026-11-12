@@ -22,7 +22,7 @@ NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide
          "transfer_place3_name", "transfer_place3_markup", "transfer_place1_min", "transfer_place2_min", "transfer_place3_min",
          "train_hour_markup", "bus_hour_markup", "flight_hour_markup", "ferry_hour_markup", "transfer_wait_hour_markup", "later_transfer_markup",  # (#2221, #2302)
          "night_seat_adjust", "night_couchette_adjust", "night_sleeper_adjust",
-         "work_hour_markup", "work_hour_start", "work_hour_end"}  # (#2333)
+         "work_hour_markup", "work_hour_start", "work_hour_end", "work_seat_hour_markup"}  # (#2333, #2566)
 
 
 def _form(html):
@@ -40,7 +40,7 @@ def test_the_panel_has_the_main_controls_first_and_a_fieldset_per_group(trip):  
     assert re.findall(r"<fieldset><legend>([^<]+)</legend>", advanced) == GROUPS
     fieldsets = re.findall(r"<fieldset>.*?</fieldset>", advanced, flags=re.S)
     outside = re.sub(r"<fieldset>.*?</fieldset>", "", advanced, flags=re.S)
-    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 81  # the bicycle fee (#2475), 3 carrier loyalty inputs (#2432), the work hours (#2333), the later transfer (#2302), the transfer wait hour (#2221), 7 weekday markups (#2136), 6 transfer place inputs (#1851), 3 minimums (#2073), the currency fee (#1993), the leave value (#2022)
+    assert "<input" not in outside and sum(f.count("<input") for f in fieldsets) == 82  # the work-seat hour (#2566), the bicycle fee (#2475),3 carrier loyalty inputs (#2432), the work hours (#2333), the later transfer (#2302), the transfer wait hour (#2221), 7 weekday markups (#2136), 6 transfer place inputs (#1851), 3 minimums (#2073), the currency fee (#1993), the leave value (#2022)
 
 
 def test_each_input_name_of_the_form_is_still_sent(trip):  # noqa: F811
