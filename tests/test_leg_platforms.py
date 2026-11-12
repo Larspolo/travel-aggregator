@@ -69,7 +69,7 @@ def test_a_platform_of_11_characters_rejects_the_offer(setup):  # noqa: F811
     assert r.json()["rejected"] == 1 and r.json()["created"] == 0
 
 
-def test_the_migration_upgrades_and_downgrades_to_0066(empty_database_url):
+def test_the_migration_upgrades_and_downgrades_to_0067(empty_database_url):
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine
@@ -82,7 +82,7 @@ def test_the_migration_upgrades_and_downgrades_to_0066(empty_database_url):
     try:
         cols = lambda: {c["name"] for c in inspect(engine).get_columns("legs")}  # noqa: E731
         assert {"from_platform", "to_platform"} <= cols()
-        command.downgrade(cfg, "0066")
+        command.downgrade(cfg, "0067")
         assert not {"from_platform", "to_platform"} & cols()
         command.upgrade(cfg, "head")
         assert {"from_platform", "to_platform"} <= cols()

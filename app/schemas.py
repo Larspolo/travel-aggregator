@@ -39,6 +39,9 @@ class LegIn(BaseModel):
     # The planned departure and arrival platform (#2590): None is not known.
     from_platform: str | None = Field(None, max_length=10)
     to_platform: str | None = Field(None, max_length=10)
+    # The expected load of each class (#2582): 1 low to 4 fully booked; None is not known.
+    load_first: int | None = Field(None, ge=1, le=4)
+    load_second: int | None = Field(None, ge=1, le=4)
 
     @model_validator(mode="after")
     def _arrives_after_departure(self) -> "LegIn":
