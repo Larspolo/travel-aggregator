@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from pydantic import ValidationError
 
 from app.parsers import DayPrice, ParseResult, count
-from app.schemas import LegIn, NoticeIn, OfferIn, _short_reason
+from app.schemas import LegIn, NoticeIn, OfferIn, StopIn, _short_reason
 
 DEFAULT_TZ = "Europe/Berlin"
 # UIC country code -> timezone
@@ -48,6 +48,17 @@ def local_time(t: dict, ext_id: Any) -> datetime:
     if naive.tzinfo is not None:
         return naive
     return naive.replace(tzinfo=station_tz(ext_id))
+
+
+def _stop(h: dict) -> StopIn:
+    """A stop between the ends of a leg (#2634); a missing time is None."""
+    note = "; ".join(n["value"] for n in h.get("risNotizen") or [] if n.get("value"))
+    return StopIn(
+        name=h["name"], code=h.get("extId"),
+        arrive_at=local_time(h["ankunft"], h.get("extId")) if (h.get("ankunft") or {}).get("sollzeit") else None,
+        depart_at=local_time(h["abfahrt"], h.get("extId")) if (h.get("abfahrt") or {}).get("sollzeit") else None,
+        platform=h.get("gleis") or None, note=note[:200] or None,
+    )
 
 
 def discounts(request: dict | None) -> list[str] | None:
@@ -204,6 +215,7 @@ class BahnParser:
                 to_platform=(halte[-1].get("gleis") or None) if halte else None,
                 load_first=load.get("KLASSE_1"),
                 load_second=load.get("KLASSE_2"),
+                stops=[_stop(h) for h in halte[1:-1]] if halte else None,
             ))
         return legs
 

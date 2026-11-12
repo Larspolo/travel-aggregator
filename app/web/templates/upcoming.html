@@ -17,9 +17,10 @@
         {% for leg in it.legs %}{% set dep = leg.depart_at | local(leg.depart_offset_min) %}{% set arr = leg.arrive_at | local(leg.arrive_offset_min) %}{% set gap = arr | day_gap(dep) %}
           <li class="journey-when">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon, leg.mode) }}{% endif %}
             {{ leg.carrier or "" }} {{ leg.service_no or "" }} · {{ leg.from_name }} → {{ leg.to_name }}{% if leg.from_platform or leg.to_platform %} <span class="leg-platforms muted">planned platform {{ leg.from_platform or "?" }} → {{ leg.to_platform or "?" }}</span>{% endif %} ·
-            {{ dep.strftime("%H:%M") }}–{{ arr.strftime("%H:%M") }}{% if gap > 0 %} <span class="chip">+{{ gap }} day{% if gap > 1 %}s{% endif %}</span>{% endif %}</li>
+            {{ dep.strftime("%H:%M") }}–{{ arr.strftime("%H:%M") }}{% if gap > 0 %} <span class="chip">+{{ gap }} day{% if gap > 1 %}s{% endif %}</span>{% endif %}{% set leg_notices = (it.notices or []) | selectattr("leg", "equalto", loop.index0) | list %}{% if leg_notices %}<div class="leg-notices muted">{% for n in leg_notices %}<span>{{ n.text }}</span> {% endfor %}</div>{% endif %}</li>
         {% endfor %}
         </ul>
+        {% set whole_notices = (it.notices or []) | selectattr("leg", "none") | list %}{% if whole_notices %}<div class="notices">{% for n in whole_notices %}<p>{{ n.text }}</p>{% endfor %}</div>{% endif %}
         {% if it.booking_code %}<p class="muted">Booking code: {{ it.booking_code }}</p>{% endif %}
         {% if it.cancel_by and it.cancel_by > now %}<p class="muted">Cancel until {{ (it.cancel_by | local(it.cancel_by_offset_min or 0)).strftime("%-d %b %H:%M") }}{% if not only and it.id in cancel_soon %} <span class="chip warn">cancel soon or keep</span>{% endif %}</p>{% endif %}
         {% if not only %}{% for c in overlaps.get(it.id, []) %}
