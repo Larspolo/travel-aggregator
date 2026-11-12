@@ -457,7 +457,7 @@ button.icon:hover, a.icon:hover { background: var(--surface); border-color: var(
 /* The whole trip card opens the trip (#736): the title link covers the card; the edit button stays on top. */
 .trip-grid .card { position: relative; cursor: pointer; }
 .trip-card-head h2 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-.trip-card-head .btn-icon { position: relative; z-index: 1; }
+.trip-card-head .btn-icon, .trip-card-head input[type="checkbox"] { position: relative; z-index: 1; }
 .trip-card-head .btn-icon { border-color: transparent; box-shadow: none; background: transparent; }
 .trip-card-head .btn-icon:focus-visible { box-shadow: var(--ring); }
 .trip-card-head .btn-icon:hover { background: var(--surface-2); }

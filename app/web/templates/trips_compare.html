@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Compare trips · travel-aggregator{% endblock %}
+{% block content %}
+{{ ui.page_header("Compare trips", back=("/", "Trips")) }}
+{% if error %}
+<p class="error">{{ error }}</p>
+{% else %}
+<section class="card data-card"><div class="scroll" tabindex="0" role="region" aria-label="Comparison of trips"><table class="compare trips-compare">
+  <tbody>
+  <tr><th scope="row">Trip</th>{% for t, v in columns %}<td><a href="/trips/{{ t.id }}">{{ t.title }}</a><div class="muted">{{ t.origin_text or "?" }} → {{ t.destination_text or "?" }}</div></td>{% endfor %}</tr>
+  <tr><th scope="row">Dates</th>{% for t, v in columns %}<td>{{ v.date_from or "" }}{% if v.date_to %} – {{ v.date_to }}{% endif %}</td>{% endfor %}</tr>
+  <tr><th scope="row">Best offer</th>{% for t, v in columns %}{% if v.best %}{% set cost = v.best[2] %}<td class="cost{{ ' best' if lowest is not none and not cost.no_rate and cost.total == lowest }}">{% if cost.no_rate %}effective: no rate{% else %}effective {{ cost.total | money("EUR") }}{% endif %}<div class="muted">{{ v.best[1].latest_price | money(v.best[1].currency) }} · {{ v.best[1].source }}</div></td>{% else %}<td class="muted">no offers yet</td>{% endif %}{% endfor %}</tr>
+  <tr><th scope="row">Cheapest</th>{% for t, v in columns %}<td>{% if v.cheapest %}{{ v.cheapest[1].latest_price | money(v.cheapest[1].currency) }}{% else %}<span class="muted">–</span>{% endif %}</td>{% endfor %}</tr>
+  <tr><th scope="row">Fastest</th>{% for t, v in columns %}<td>{% if v.fastest %}{{ v.fastest[0].duration_min // 60 }}h {{ "%02d" | format(v.fastest[0].duration_min % 60) }}{% else %}<span class="muted">–</span>{% endif %}</td>{% endfor %}</tr>
+  <tr><th scope="row">Offers</th>{% for t, v in columns %}<td>{{ v.count }}</td>{% endfor %}</tr>
+  <tr><th scope="row">Newest capture</th>{% for t, v in columns %}<td>{% if v.newest_capture %}{{ v.newest_capture.strftime("%d %b %H:%M") }} UTC{% else %}<span class="muted">–</span>{% endif %}</td>{% endfor %}</tr>
+  </tbody>
+</table></div></section>
+{% endif %}
+{% endblock %}
