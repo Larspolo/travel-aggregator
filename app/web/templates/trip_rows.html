@@ -54,7 +54,7 @@
           {% if not loop.first %}{% set gap = ((leg.depart_at - loop.previtem.arrive_at).total_seconds() // 60) | int %}
           <div class="transfer muted">{% if (loop.index0 - 1) in changes %}Change of station: {{ loop.previtem.to_name }} → {{ leg.from_name }}{% else %}Transfer at {{ leg.from_name }}{% endif %}: {{ gap // 60 }}h {{ "%02d" | format(gap % 60) }}{% if (loop.index0 - 1) in lonely %} · no later connection captured{% endif %}{% if (loop.index0 - 1) in short_marks %} · <span class="short-place">{{ short_marks[loop.index0 - 1] }}</span>{% endif %}</div>{% endif %}
           <div class="leg">
-            <div class="service">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon) }}{% endif %} {{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}</div>
+            <div class="service">{% if leg.mode | mode_icon %}{{ ui.icon(leg.mode | mode_icon) }}{% endif %} {{ leg.carrier or "?" }}{% if leg.service_no %} {{ leg.service_no }}{% endif %}{% set svc = (leg.services or "").split(",") %}{% set labels = (["Wi-Fi"] if "wifi" in svc else []) + (["power sockets"] if "power" in svc else []) %}{% if labels %} <span class="badge leg-services" title="on board of this leg">{{ labels | join(", ") }}</span>{% endif %}</div>
             <div class="stop"><time>{{ (leg.depart_at | local(leg.depart_offset_min)).strftime("%H:%M") }}</time> {{ leg.from_name }}</div>
             <div class="stop"><time>{{ (leg.arrive_at | local(leg.arrive_offset_min)).strftime("%H:%M") }}</time> {{ leg.to_name }}</div>
           </div>
