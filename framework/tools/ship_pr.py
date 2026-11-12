@@ -18,8 +18,8 @@ minutes after its start (#4784): a red quick CI after the end of its run cost a 
 minutes later (11 to 25 of 50 takeovers on 2026-10-30); the run that wrote the code fixes it with its warm context.
 Run it with the Bash `timeout` 600000. Exit 0: shipped (the quick CI is green, still runs at the time limit: `--ci`
 waits again). Exit 2: the lint or a test fails, a change of data
-files only adds a test (`docs/extend.md`), or the prose of the message or body closes another ticket (#472;
-nothing committed or pushed). Exit 3: the
+files only adds a test (`docs/extend.md`), the prose of the message or body closes another ticket (#472), or the
+body says a part of the ticket is not covered and names no follow-up ticket (`open_part`; nothing committed or pushed). Exit 3: the
 guard or the push fails (do not push by hand). Exit 4: no commit to ship, or the PR call fails. Exit 5: the quick CI
 is red, or a check of GATES (`[ci] gates` of `agent.toml`) during the wait for the merge: it prints the failed steps and tests;
 fix them, commit and run it again.
@@ -133,6 +133,21 @@ def body_with_ticket(text, number, part=False):
 
 
 CLOSER = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+#(\d+)\b", re.I)
+
+
+OPEN_PART = re.compile(r"\bnot (?:covered|tested|in the tests?|met)\b|^#+\s*not (?:covered|tested|done)\b", re.I)
+
+
+def open_part(text):
+    """The first line of a PR body that says a part of the ticket is not covered and names no ticket, else None.
+    Such a PR still closed its ticket (#2486: "the rail-pass case is not covered yet", #2408: "## Not covered"), and a
+    deep close check of the epic found the gap later and made a ticket for it (#2512, #2415): a deep run more per gap.
+    Do the part, or make a follow-up ticket and name it in that line (`Follow-up: #N`). A skipped verify level ("Not
+    done: level 4") is no part of the ticket and does not match."""
+    for line in text.splitlines():
+        if OPEN_PART.search(line) and not re.search(r"#\d+", line):
+            return line.strip()
+    return None
 
 
 def closer(text, number, part=False):
@@ -329,6 +344,10 @@ def main(argv=None):
             print(f"{f} closes a ticket in the line {line!r}: reword it (GitHub closes each ticket after a closing "
                   f"word; only `{'Part of' if a.part else 'Closes'} #{a.number}`, #472)")
             return 2
+    if a.body and not a.part and (line := open_part(open(a.body, encoding="utf-8").read())):
+        print(f"{a.body} says a part of #{a.number} is not covered: {line!r}. Do it, or make a follow-up ticket "
+              f"(`ticket` skill; `Part of #E` of the epic) and name it in that line (`Follow-up: #N`)")
+        return 2
     if a.ci:
         owner, head = CONFIG["repo"].split("/")[0], a.pr_branch or branch
         pr = next(iter(dashboard.api(f"pulls?head={owner}:{head}&state=open")), None)
