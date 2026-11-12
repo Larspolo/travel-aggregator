@@ -48,3 +48,15 @@ def nearby_days(prices: Sequence[Any], date_from: date | None, date_to: date | N
         if kept is None or eur < kept.price_eur:
             cheapest[p.day] = NearbyDay(p.day, p.source, p.price, p.currency, eur, cheapest_eur - eur)
     return [cheapest[d] for d in sorted(cheapest)]
+
+
+def add_day_span(date_from: date, date_to: date | None, picked: date) -> tuple[date, date | None]:
+    """The span of the trip after "Add this day" (#2525): a day before the span moves the first date (an empty last date
+    becomes the old first date); a day after the span moves the last date. Only the days next to the span are allowed.
+    Raises ValueError for any other day."""
+    last = date_to if date_to is not None and date_to >= date_from else date_from
+    if picked in {date_from - timedelta(days=i) for i in range(1, NEARBY + 1)}:
+        return picked, date_to if date_to is not None else date_from
+    if picked in {last + timedelta(days=i) for i in range(1, NEARBY + 1)}:
+        return date_from, picked
+    raise ValueError(f"{picked.isoformat()} is not next to the span")

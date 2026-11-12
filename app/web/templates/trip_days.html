@@ -20,3 +20,11 @@
 {% endif %}
 </nav>
 {% include "trip_day_cover.html" %}
+{% if nearby and not oob %}{# the cheaper days next to the span (#2525): "Add this day" moves the span to it #}
+<ul id="nearby-days" class="nearby-days">
+{% for n in nearby %}
+  <li>{{ n.day.strftime("%a %d %b") }}: from {{ n.price | money(n.currency) }} ({{ n.source }} day price), {{ n.less_eur | money("EUR") }} less
+  <form class="inline-form" method="post" action="/trips/{{ trip.id }}/add-day"><input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><input type="hidden" name="day" value="{{ n.day.isoformat() }}"><button class="btn" type="submit">Add this day</button></form></li>
+{% endfor %}
+</ul>
+{% endif %}
