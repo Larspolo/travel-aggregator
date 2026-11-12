@@ -28,6 +28,7 @@ def test_the_fixture_gives_the_load_of_ice_611_and_ice_519():
     raw = json.loads(FIX.read_text(encoding="utf-8"))
     conns = raw["response"]["verbindungen"]
     conns[1]["angebotsPreis"] = conns[0]["angebotsPreis"]  # the ICE 611 connection has no price in the fixture
+    conns[1].pop("risNotizen")  # #2629: with the cancel notice the connection is no offer
     legs = legs_by_name(raw)
     assert (legs["ICE 611"].load_first, legs["ICE 611"].load_second) == (3, 3)
     assert (legs["ICE 519"].load_first, legs["ICE 519"].load_second) == (None, 4)

@@ -114,6 +114,9 @@ class BahnParser:
         result = ParseResult(travelers=travelers(request), discounts=discounts(request))
         for i, conn in enumerate(conns):
             try:
+                if _cancelled(conn):  # #2629: a cancelled connection is no rejected offer
+                    result.cancelled.append(self._legs(conn, {}))
+                    continue
                 result.offers.extend(self._offers(conn, extra))
             except NoPrice as e:
                 result.errors.append({"index": i, "reason": str(e)})
@@ -164,8 +167,23 @@ class BahnParser:
                 raise NoPrice("no price (angebotsPreis)")
             klasse = conn.get("angebotsPreisKlasse")
             fares = [(price, [CLASSES.get(klasse, "")], klasse)]
-        legs = []
         notices = _notices(conn, None, {})
+        legs = self._legs(conn, notices)
+        return [OfferIn(
+            external_id=conn.get("tripId"),
+            # str() first: a JSON float such as 130.99 must not become a long binary Decimal
+            price_amount=Decimal(str(price["betrag"])).quantize(Decimal("0.01")),
+            price_currency=price.get("waehrung") or "EUR",
+            fare_name=", ".join(x for x in fare + extra if x) or None,
+            legs=legs,
+            booking_url=BOOKING_URL,
+            travel_class=TRAVEL_CLASSES.get(klasse),
+            notices=[NoticeIn(text=t, level=lv, leg=leg) for (t, leg), lv in notices.items()],
+        ) for price, fare, klasse in fares]
+
+    def _legs(self, conn: dict, notices: dict) -> list[LegIn]:
+        """The legs of a connection (a walk is no leg); the notices of its sections go to `notices` (#2624)."""
+        legs = []
         for a in conn["verbindungsAbschnitte"]:
             vm = a.get("verkehrsmittel") or {}
             if vm.get("typ") in SKIP_TYPES:
@@ -199,21 +217,16 @@ class BahnParser:
                 load_second=load.get("KLASSE_2"),
                 stops=[_stop(h) for h in halte[1:-1]] if halte else None,
             ))
-        return [OfferIn(
-            external_id=conn.get("tripId"),
-            # str() first: a JSON float such as 130.99 must not become a long binary Decimal
-            price_amount=Decimal(str(price["betrag"])).quantize(Decimal("0.01")),
-            price_currency=price.get("waehrung") or "EUR",
-            fare_name=", ".join(x for x in fare + extra if x) or None,
-            legs=legs,
-            booking_url=BOOKING_URL,
-            travel_class=TRAVEL_CLASSES.get(klasse),
-            notices=[NoticeIn(text=t, level=lv, leg=leg) for (t, leg), lv in notices.items()],
-        ) for price, fare, klasse in fares]
+        return legs
 
 
 NOTICE_CLASSES = {"KLASSE_1": " (1st class)", "KLASSE_2": " (2nd class)"}
 CANCELLED = "text.realtime.connection.cancelled"
+
+
+def _cancelled(conn: dict) -> bool:
+    """True when bahn.de shows the connection as cancelled (#2629)."""
+    return any(isinstance(n, dict) and n.get("key") == CANCELLED for n in conn.get("risNotizen") or [])
 
 
 def _notices(part: dict, leg: int | None, out: dict) -> dict:
