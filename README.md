@@ -884,6 +884,17 @@ The button "Open search" opens the search page on the site where the app capture
 - The button shows only when the stored page address starts with `http://` or `https://`.
 - The button only opens a page in your browser: the app sends no request to the travel site.
 
+### Make a trip from an event
+
+A calendar event can make a trip and its return trip. Use it for a train, bus or flight that is in your calendar.
+- In your calendar app, save the event as an `.ics` file.
+- Open the form `/trips/new`. The box "From an event" has the field "Event file (.ics)". Select the file. The field "Origin" is optional: it is the origin of the outbound trip.
+- The field "Margin before the event (minutes)" is the time that you need before the start of the event. The default is 60. The arrive-by time of the outbound trip is the start of the event minus the margin.
+- Press "Make the trip and its return". The app makes two linked trips (see "Round trips"). The outbound trip goes from the origin to the location of the event, and its title is the title of the event. The return trip goes from the location of the event back to the origin, and its title is the title of the event with "(return)". The leave-after time of the return trip is the end of the event. The app opens the edit form of the outbound trip.
+- An event with no time (all day) gives the dates only. No arrive-by time and no leave-after time are set.
+- The app reads only the first event of the file. It keeps only the text of the title and the location, cut to 200 characters. A file of more than 256 kB, a file that is not UTF-8 text, a file with no event, and an event that starts in the past are refused, and the form shows the reason.
+- When the event gives its times in UTC, the edit form shows the note "The event file gave UTC times: check the arrive-by and leave-after times." Check these times before you save.
+
 ### Round trips
 
 A round trip is two trips that are linked: an outbound trip and its return trip.
