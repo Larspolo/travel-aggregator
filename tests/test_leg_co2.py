@@ -64,7 +64,7 @@ def test_a_negative_co2_rejects_the_offer(setup, sessions):  # noqa: F811
     assert [e["index"] for e in IngestIn(**b).offer_errors] == [0]
 
 
-def test_the_migration_upgrades_and_downgrades_to_0067(empty_database_url):
+def test_the_migration_upgrades_and_downgrades_to_0068(empty_database_url):
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine
@@ -76,7 +76,7 @@ def test_the_migration_upgrades_and_downgrades_to_0067(empty_database_url):
     engine = create_engine(empty_database_url)
     try:
         assert "co2_g" in {c["name"] for c in inspect(engine).get_columns("legs")}
-        command.downgrade(cfg, "0067")
+        command.downgrade(cfg, "0068")
         assert "co2_g" not in {c["name"] for c in inspect(engine).get_columns("legs")}
         command.upgrade(cfg, "head")
         assert "co2_g" in {c["name"] for c in inspect(engine).get_columns("legs")}

@@ -151,6 +151,9 @@ class Leg(Base):
     services: Mapped[str | None] = mapped_column(String(50))
     # The CO2 in grams per traveler (#2586); None is not known.
     co2_g: Mapped[int | None] = mapped_column(Integer)
+    # The planned departure and arrival platform (#2590); None is not known.
+    from_platform: Mapped[str | None] = mapped_column(String(10))
+    to_platform: Mapped[str | None] = mapped_column(String(10))
     # The expected load of each class (#2582): 1 to 4; None is not known.
     load_first: Mapped[int | None] = mapped_column(SmallInteger)
     load_second: Mapped[int | None] = mapped_column(SmallInteger)
