@@ -1814,7 +1814,9 @@ on a Friday from 14:00 to 19:00 local time adds `work hours` €45 for the 3 hou
 
 The **Advanced** section has the field **Each work-seat hour €**. It is empty by default, and an empty field adds no part. Each hour of a leg with both Wi-Fi and power sockets costs this value in place of the hour markup. The breakdown shows the part `work seat` for the minutes of these legs: the minutes × (the value − the hour markup) / 60. For example, with an hour markup of €15 and a work-seat value of €5, a 4-hour leg with Wi-Fi and power sockets adds `work seat` €-40. A leg with only one of these services, or with no known services, adds no part.
 
-The **Advanced** section has the fields **Expected load high €** and **Expected load very high €**. Both default to `0`, and a value of `0` adds no part. A leg with an expected load of level 2 (high) adds the value of **Expected load high €** for each leg. A leg with level 3 (very high) or level 4 (fully booked) adds the value of **Expected load very high €**. The level is the 1st class load for a 1st class fare, and the 2nd class load for any other fare. The parts are named `expected load high` and `expected load very high` in the breakdown. The expected load comes from bahn.de only.
+### Expected load markup
+
+The **Advanced** section has the fields **Expected load high €** and **Expected load very high €**. Both default to `0`, and a value of `0` adds no part. A leg with an expected load of level 2 (high) adds the value of **Expected load high €** for each leg. A leg with level 3 (very high) or level 4 (fully booked) adds the value of **Expected load very high €**. The level is the 1st class load for a 1st class fare, and the 2nd class load for any other fare. The parts are named `expected load high`, `expected load very high` and `expected load fully booked` in the breakdown. A leg with level 4 gives the part `expected load fully booked`, with the value of **Expected load very high €**. The expected load comes from bahn.de only.
 
 ### Days off
 
