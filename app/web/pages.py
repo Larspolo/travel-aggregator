@@ -1434,6 +1434,20 @@ def repeat_trip(request: Request, trip_id: int, step_weeks: str = Form(""), coun
     return RedirectResponse(f"/trips/{trip_id}/edit", status_code=303)
 
 
+@router.get("/series/{series_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+def series_page(request: Request, series_id: int, session: Session = Depends(get_session)) -> HTMLResponse:
+    """The trips of a series (#2500): the date, the best effective cost and the search links of each date. The app
+    only shows the links: it sends no request (P1)."""
+    from app.search_links import links_for_trip
+    series = session.get(TripSeries, series_id)
+    if series is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no series {series_id}")
+    rows = sorted((r for r in list_trips(session) if r.series_id == series_id),
+                  key=lambda r: (r.date_from or date.max, r.id))
+    return templates.TemplateResponse(request, "series.html", {"series": series, "rows": [
+        (r, links_for_trip(r)) for r in rows]})
+
+
 @router.post("/trips/{trip_id}/copy-journey", dependencies=[Depends(require_login), Depends(verify_csrf)])
 def copy_journey(trip_id: int, session: Session = Depends(get_session)) -> RedirectResponse:
     """A copy of a whole journey (#802): the same order, each copy linked to the copy before it."""
