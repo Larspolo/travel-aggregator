@@ -6,17 +6,90 @@ import socket
 import sys
 import subprocess
 import tempfile
+import time
 import uuid
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-from sqlalchemy import create_engine, text
+import time_machine
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.pool import Pool
 
 from app.db import sqlalchemy_url
 from tests import gh_annotations, shard
 
 PG_BIN = Path("/usr/lib/postgresql/16/bin")
+
+# The clock of the tests in tests/ (#2543): the fixtures have fixed trip dates in the near future, and the app compares
+# them with `datetime.now()`. With the real clock, each test with a date fails on the day that the real date passes it.
+# The clock of each test process starts at FIXED_START (also in each xdist worker) and moves on (tick=True: timeouts and
+# waits work). It runs only for the modules and items in tests/ (their import and their fixtures too): the tests of
+# framework/tests compare times with git and GitHub, which have the real clock.
+# PostgreSQL follows it too: each database of the tests has `testclock.now()` (the real now() plus the shift of the
+# test clock) before pg_catalog in the search_path, so a `server_default=func.now()` column has the time of the test.
+# The clock of the browser and of subprocesses stays real. `tests/test_clock_fixed.py` checks it.
+FIXED_START = datetime(2026, 11, 12, 10, 0, tzinfo=timezone.utc)
+TESTS_DIR = Path(__file__).resolve().parent
+_shift = 0.0     # seconds: the test clock minus the real clock (time.time() while the test clock is off): one value per process
+_db_shift = 0.0  # seconds: the test clock minus the clock of PostgreSQL (the real clock, also under an outer travel)
+_clock = None    # the time_machine.travel of the test clock while it runs
+
+
+def _clock_on(on: bool) -> None:
+    global _clock
+    if on and _clock is None:
+        _clock = time_machine.travel(time.time() + _shift, tick=True)
+        _clock.start()
+    elif not on and _clock is not None:
+        _clock.stop()
+        _clock = None
+
+
+DB_CLOCK = """CREATE SCHEMA IF NOT EXISTS testclock;
+CREATE OR REPLACE FUNCTION testclock.now() RETURNS timestamptz LANGUAGE sql STABLE AS
+$$ SELECT pg_catalog.now() + coalesce(nullif(current_setting('testclock.shift', true), ''), '0')::interval $$"""
+
+
+@event.listens_for(Pool, "connect")
+def _db_clock(dbapi_connection, connection_record):
+    """Each connection of the tests (the app, alembic, the tests) sees the database clock of the test clock."""
+    if not type(dbapi_connection).__module__.startswith("psycopg"):
+        return
+    cursor = dbapi_connection.cursor()
+    cursor.execute(f"SET search_path = \"$user\", public, testclock, pg_catalog; SET testclock.shift = '{_db_shift:.6f} s'")
+    cursor.close()
+    dbapi_connection.commit()
+
+
+def pytest_configure(config):
+    global _shift, _db_shift
+    _shift = FIXED_START.timestamp() - time.time()
+    hatch = time_machine.escape_hatch
+    _db_shift = FIXED_START.timestamp() - (hatch.time.time() if hatch.is_travelling() else time.time())
+
+
+def _in_tests(node) -> bool:
+    return Path(node.path).resolve().is_relative_to(TESTS_DIR)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_make_collect_report(collector):
+    """The test clock for the import of a module of tests/: a module-level `datetime.now()` has the test time too."""
+    _clock_on(_in_tests(collector))
+    yield
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_protocol(item, nextitem):
+    """The test clock for an item of tests/ (its setup, call and teardown), the real clock for the other items."""
+    _clock_on(_in_tests(item))
+    yield
+
+
+def pytest_unconfigure(config):
+    _clock_on(False)
 
 
 def pytest_addoption(parser):
@@ -112,6 +185,11 @@ def _database(postgres_url, template=None):
     with admin.connect() as c:
         c.execute(text(f'CREATE DATABASE "{name}"{copy}'))
     base = postgres_url.rsplit("/", 1)[0]
+    if not template:   # a copy of the template has the function of the clock
+        clock = create_engine(f"{base}/{name}")
+        with clock.begin() as c:
+            c.exec_driver_sql(DB_CLOCK)
+        clock.dispose()
     try:
         yield f"{base}/{name}"
     finally:
