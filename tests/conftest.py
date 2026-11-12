@@ -22,14 +22,31 @@ from tests import gh_annotations, shard
 
 PG_BIN = Path("/usr/lib/postgresql/16/bin")
 
-# The clock of all tests (#2543): the fixtures have fixed trip dates in the near future, and the app compares them with
-# `datetime.now()`. With the real clock, each test with a date fails on the day that the real date passes it. The clock
-# starts at this time in each test process (also in each xdist worker) and moves on (tick=True: timeouts and waits work).
-# PostgreSQL follows it too: each database of the tests has `testclock.now()` (the real now() plus the offset of the
+# The clock of the tests in tests/ (#2543): the fixtures have fixed trip dates in the near future, and the app compares
+# them with `datetime.now()`. With the real clock, each test with a date fails on the day that the real date passes it.
+# The clock of each test process starts at FIXED_START (also in each xdist worker) and moves on (tick=True: timeouts and
+# waits work). It runs only for the items in tests/ (pytest_runtest_protocol: their fixtures too): the tests of
+# framework/tests compare times with git and GitHub, which have the real clock.
+# PostgreSQL follows it too: each database of the tests has `testclock.now()` (the real now() plus the shift of the
 # test clock) before pg_catalog in the search_path, so a `server_default=func.now()` column has the time of the test.
-# Not covered: the clock of the browser and of subprocesses. `tests/test_clock_fixed.py` checks it.
+# The clock of the browser and of subprocesses stays real. `tests/test_clock_fixed.py` checks it.
 FIXED_START = datetime(2026, 11, 12, 10, 0, tzinfo=timezone.utc)
-_clock = time_machine.travel(FIXED_START, tick=True)
+TESTS_DIR = Path(__file__).resolve().parent
+_shift = 0.0     # seconds: the test clock minus the real clock (time.time() while the test clock is off): one value per process
+_db_shift = 0.0  # seconds: the test clock minus the clock of PostgreSQL (the real clock, also under an outer travel)
+_clock = None    # the time_machine.travel of the test clock while it runs
+
+
+def _clock_on(on: bool) -> None:
+    global _clock
+    if on and _clock is None:
+        _clock = time_machine.travel(time.time() + _shift, tick=True)
+        _clock.start()
+    elif not on and _clock is not None:
+        _clock.stop()
+        _clock = None
+
+
 DB_CLOCK = """CREATE SCHEMA IF NOT EXISTS testclock;
 CREATE OR REPLACE FUNCTION testclock.now() RETURNS timestamptz LANGUAGE sql STABLE AS
 $$ SELECT pg_catalog.now() + coalesce(nullif(current_setting('testclock.shift', true), ''), '0')::interval $$"""
@@ -40,19 +57,28 @@ def _db_clock(dbapi_connection, connection_record):
     """Each connection of the tests (the app, alembic, the tests) sees the database clock of the test clock."""
     if not type(dbapi_connection).__module__.startswith("psycopg"):
         return
-    offset = time.time() - time_machine.escape_hatch.time.time()
     cursor = dbapi_connection.cursor()
-    cursor.execute(f"SET search_path = testclock, \"$user\", public, pg_catalog; SET testclock.shift = '{offset:.6f} s'")
+    cursor.execute(f"SET search_path = testclock, \"$user\", public, pg_catalog; SET testclock.shift = '{_db_shift:.6f} s'")
     cursor.close()
     dbapi_connection.commit()
 
 
 def pytest_configure(config):
-    _clock.start()
+    global _shift, _db_shift
+    _shift = FIXED_START.timestamp() - time.time()
+    hatch = time_machine.escape_hatch
+    _db_shift = FIXED_START.timestamp() - (hatch.time.time() if hatch.is_travelling() else time.time())
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_protocol(item, nextitem):
+    """The test clock for an item of tests/ (its setup, call and teardown), the real clock for the other items."""
+    _clock_on(Path(item.path).resolve().is_relative_to(TESTS_DIR))
+    yield
 
 
 def pytest_unconfigure(config):
-    _clock.stop()
+    _clock_on(False)
 
 
 def pytest_addoption(parser):
