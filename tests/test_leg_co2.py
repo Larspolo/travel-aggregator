@@ -82,3 +82,7 @@ def test_the_migration_upgrades_and_downgrades_to_0066(empty_database_url):
         assert "co2_g" in {c["name"] for c in inspect(engine).get_columns("legs")}
     finally:
         engine.dispose()
+
+
+def test_the_parser_version_is_1_4_0():
+    assert TrainlineParser.version == "1.4.0"
