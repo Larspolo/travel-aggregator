@@ -11,7 +11,7 @@ from app import departed
 from app.currency import EUR, to_eur
 from app.gone import gone_fares
 from app.suspect import suspect_fares
-from app.models import CurrencyRate, Fare, Itinerary, Trip
+from app.models import CurrencyRate, Fare, Itinerary, Trip, TripSeries
 
 
 def alt_places(text: str | None) -> list[str]:
@@ -52,6 +52,8 @@ class TripRow:
     split_of_id: int | None = None  # the trip that this trip is a part of (#1177)
     notes: str | None = None  # not shown on the list; only searched (#1220)
     tags: tuple[str, ...] = ()  # shown on the list as links to `/?tag=` (#1951)
+    series_id: int | None = None  # the series of the trip (#2498)
+    series_step: int | None = None  # the weeks between the trips of its series (#2499)
 
 
 def list_trips(session: Session) -> list[TripRow]:
@@ -65,10 +67,11 @@ def list_trips(session: Session) -> list[TripRow]:
         select(
             Trip.id, Trip.title, Trip.origin_text, Trip.destination_text, Trip.date_from, Trip.date_to,
             Trip.status, Trip.return_of_id, Trip.split_of_id, Trip.target_price, Trip.share_hash, Trip.notes,
-                Trip.tags_text,
+                Trip.tags_text, Trip.series_id, TripSeries.step_weeks,
             Itinerary.id.label("itinerary_id"),
             Fare.id.label("fare_id"), Fare.latest_price, Fare.currency, CurrencyRate.eur_per_unit,
         )
+        .outerjoin(TripSeries, TripSeries.id == Trip.series_id)
         .outerjoin(Itinerary, (Itinerary.trip_id == Trip.id) & Itinerary.hidden.is_(False)
                     & departed.not_departed(departed_now))
         .outerjoin(Fare, (Fare.itinerary_id == Itinerary.id) & Fare.latest_price.is_not(None))
@@ -110,7 +113,7 @@ def _trip_row(info: dict, rates: dict[str, Decimal]) -> TripRow:
         best_price=best_price, best_currency=best_currency, return_of_id=r.return_of_id, no_rate=no_rate,
         at_target=bool(in_eur) and r.target_price is not None and best_price <= r.target_price,
         shared=r.share_hash is not None, split_of_id=r.split_of_id, notes=r.notes,
-        tags=tuple(trip_tags(r.tags_text)),
+        tags=tuple(trip_tags(r.tags_text)), series_id=r.series_id, series_step=r.step_weeks,
     )
 
 
@@ -217,7 +220,7 @@ def find_journeys(rows: list[TripRow], text: str, archived: bool) -> list[tuple[
         return lines
     groups: list[list[tuple[str, TripRow, str]]] = []
     for line in lines:
-        if line[0] == "trip" or not groups:
+        if line[0] in ("trip", "series") or not groups:
             groups.append([])
         groups[-1].append(line)
 
@@ -254,7 +257,7 @@ def tag_journeys(lines: list[tuple[str, TripRow, str]], tag: str) -> list[tuple[
         return lines
     groups: list[list[tuple[str, TripRow, str]]] = []
     for line in lines:
-        if line[0] == "trip" or not groups:
+        if line[0] in ("trip", "series") or not groups:
             groups.append([])
         groups[-1].append(line)
     return [line for g in groups
@@ -272,7 +275,7 @@ def sort_journeys(lines: list[tuple[str, TripRow, str]], key: str,
         return lines
     groups: list[list[tuple[str, TripRow, str]]] = []
     for line in lines:
-        if line[0] == "trip" or not groups:
+        if line[0] in ("trip", "series") or not groups:
             groups.append([])
         groups[-1].append(line)
     if key == "price":
@@ -286,3 +289,32 @@ def sort_journeys(lines: list[tuple[str, TripRow, str]], key: str,
         timed.sort(key=lambda g: captured[g[0][1].id], reverse=True)
         groups = timed + untimed
     return [line for g in groups for line in g]
+
+
+def series_journeys(lines: list[tuple[str, TripRow, str]], rows: list[TripRow],
+                    today: date) -> list[tuple[str, TripRow, str]]:
+    """`lines` with the journeys of each series of trips in one line (#2499), at the place of its first journey:
+    ("series", the trip of the next date that is not past (else the last trip), "every 2 weeks · next Fri 18 Dec ·
+    4 trips"). The count and the next date come from all trips of the series in `rows` that are not archived."""
+    members: dict[int, list[TripRow]] = {}
+    for r in rows:
+        if r.series_id is not None and r.status != "archived":
+            members.setdefault(r.series_id, []).append(r)
+    out: list[tuple[str, TripRow, str]] = []
+    done: set[int] = set()
+    skip = False
+    for line in lines:
+        kind, t, _ = line
+        if kind == "trip":
+            skip = t.series_id is not None and t.series_id in members
+            if skip and t.series_id not in done:
+                done.add(t.series_id)
+                trips = sorted(members[t.series_id], key=lambda r: (r.date_from or date.max, r.id))
+                nxt = next((r for r in trips if r.date_from is not None and r.date_from >= today), trips[-1])
+                step = nxt.series_step or 1
+                when = f"every {step} week{'s' if step != 1 else ''}"
+                day = f" · next {nxt.date_from:%a} {nxt.date_from.day} {nxt.date_from:%b}" if nxt.date_from else ""
+                out.append(("series", nxt, f"{when}{day} · {len(trips)} trips"))
+        if not skip:
+            out.append(line)
+    return out

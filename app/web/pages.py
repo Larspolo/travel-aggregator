@@ -95,7 +95,7 @@ from app.timeofday import arrive_by_extras, leave_after_extras, night_extras, ni
 from app.timeofday import weekday_extras
 from app.tokens import create as create_token, revoke as revoke_token
 from app.trip_merge import is_linked, merge_choices
-from app.trips import archived_journeys, chain, find_journeys, list_trips, past_trips, route_text, sort_journeys, tag_journeys
+from app.trips import archived_journeys, chain, find_journeys, list_trips, past_trips, route_text, series_journeys, sort_journeys, tag_journeys
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -400,7 +400,9 @@ def index(request: Request, archived: bool = False, q: str = Query("", max_lengt
         if q.strip() and not archived else []
     archived_found = sum(1 for kind, _, _ in archived_lines if kind == "trip")
     return templates.TemplateResponse(request, "trips.html",
-                                      {"lines": sort_journeys(tag_journeys(find_journeys(rows, q, archived), tag), sort, captured),
+                                      {"lines": sort_journeys(series_journeys(tag_journeys(find_journeys(rows, q, archived), tag), rows, date.today())
+                                                                 if not archived else tag_journeys(find_journeys(rows, q, archived), tag),
+                                                                 sort, captured),
                                        "q": q.strip(), "tag": tag.strip(), "sort": sort, "drops": drops_by_trip(session),
                                        "new": new_by_trip(session), "archived": archived, "archived_count": archived_count,
                                        "archived_lines": archived_lines, "archived_found": archived_found,
