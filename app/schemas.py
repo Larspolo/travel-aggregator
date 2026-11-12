@@ -36,6 +36,9 @@ class LegIn(BaseModel):
     reservation: Literal["required", "included"] | None = None
     # The on-board services of the leg (#2548): empty is not known.
     services: list[Literal["wifi", "power"]] = Field(default_factory=list, max_length=2)
+    # The planned departure and arrival platform (#2590): None is not known.
+    from_platform: str | None = Field(None, max_length=10)
+    to_platform: str | None = Field(None, max_length=10)
 
     @model_validator(mode="after")
     def _arrives_after_departure(self) -> "LegIn":

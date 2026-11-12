@@ -82,13 +82,19 @@ def _update_services(it: Itinerary, offer: OfferIn) -> None:
     for stored, leg in zip(sorted(it.legs, key=lambda x: x.seq), offer.legs):
         if leg.services:
             stored.services = services_text(leg)
+        # a capture with a platform replaces the stored platform (#2590)
+        if leg.from_platform:
+            stored.from_platform = leg.from_platform
+        if leg.to_platform:
+            stored.to_platform = leg.to_platform
 
 
 def _legs(offer: OfferIn) -> list[Leg]:
     return [Leg(seq=seq, mode=leg.mode, carrier=leg.carrier, service_no=leg.service_no, from_name=leg.from_name,
                 from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code, depart_at=leg.depart_at,
                 depart_offset_min=utc_offset_min(leg.depart_at), arrive_at=leg.arrive_at,
-                arrive_offset_min=utc_offset_min(leg.arrive_at), services=services_text(leg))
+                arrive_offset_min=utc_offset_min(leg.arrive_at), services=services_text(leg),
+                from_platform=leg.from_platform, to_platform=leg.to_platform)
             for seq, leg in enumerate(offer.legs, 1)]
 
 
