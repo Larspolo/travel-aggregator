@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
-from app.models import Capture, DayPrice, Fare, FarePrice, Itinerary, Leg, Trip
+from app.models import Capture, DayPrice, Fare, FarePrice, Itinerary, Leg, LegStop, Trip
 from app.parsers import count, get_parser
 from app.parsers.ns import CHANGE_STATION
 from app.place_names import aliases as place_aliases
@@ -94,6 +94,18 @@ def _update_services(it: Itinerary, offer: OfferIn) -> None:
             stored.load_first = leg.load_first
         if leg.load_second is not None:
             stored.load_second = leg.load_second
+        # a capture that knows the stops replaces them (#2634)
+        if leg.stops is not None:
+            stored.stops = _stops(leg)
+
+
+def _stops(leg: LegIn) -> list[LegStop]:
+    """The stops of an offer leg (#2634)."""
+    return [LegStop(seq=seq, name=x.name, code=x.code, arrive_at=x.arrive_at,
+                    arrive_offset_min=utc_offset_min(x.arrive_at) if x.arrive_at else None, depart_at=x.depart_at,
+                    depart_offset_min=utc_offset_min(x.depart_at) if x.depart_at else None,
+                    platform=x.platform, note=x.note)
+            for seq, x in enumerate(leg.stops or [], 1)]
 
 
 def _legs(offer: OfferIn) -> list[Leg]:
@@ -102,7 +114,8 @@ def _legs(offer: OfferIn) -> list[Leg]:
                 depart_offset_min=utc_offset_min(leg.depart_at), arrive_at=leg.arrive_at,
                 arrive_offset_min=utc_offset_min(leg.arrive_at), services=services_text(leg),
                 load_first=leg.load_first, load_second=leg.load_second,
-                from_platform=leg.from_platform, to_platform=leg.to_platform, co2_g=leg.co2_g)
+                from_platform=leg.from_platform, to_platform=leg.to_platform, co2_g=leg.co2_g,
+                stops=_stops(leg))
             for seq, leg in enumerate(offer.legs, 1)]
 
 

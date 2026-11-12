@@ -16,6 +16,19 @@ MAX_HAR_BYTES = 30_000_000  # an uploaded HAR file on the captures page (#1563)
 Mode = Literal["train", "bus", "flight", "ferry", "car", "other"]
 
 
+class StopIn(BaseModel):
+    """A stop between the ends of a leg (#2634)."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    name: str = Field(min_length=1, max_length=200)
+    code: str | None = Field(None, max_length=20)
+    arrive_at: AwareDatetime | None = None
+    depart_at: AwareDatetime | None = None
+    platform: str | None = Field(None, max_length=10)
+    note: str | None = Field(None, max_length=200)
+
+
 class LegIn(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
@@ -44,6 +57,8 @@ class LegIn(BaseModel):
     # The expected load of each class (#2582): 1 low to 4 fully booked; None is not known.
     load_first: int | None = Field(None, ge=1, le=4)
     load_second: int | None = Field(None, ge=1, le=4)
+    # The stops between the ends of the leg (#2634): None is not known.
+    stops: list[StopIn] | None = Field(None, max_length=80)
 
     @model_validator(mode="after")
     def _arrives_after_departure(self) -> "LegIn":
