@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from pydantic import ValidationError
 
 from app.parsers import DayPrice, ParseResult, count
-from app.schemas import LegIn, NoticeIn, OfferIn, _short_reason
+from app.schemas import LegIn, NoticeIn, OfferIn, StopIn, _short_reason
 
 DEFAULT_TZ = "Europe/Berlin"
 # UIC country code -> timezone
@@ -50,6 +50,17 @@ def local_time(t: dict, ext_id: Any) -> datetime:
     return naive.replace(tzinfo=station_tz(ext_id))
 
 
+def _stop(h: dict) -> StopIn:
+    """A stop between the ends of a leg (#2634); a missing time is None."""
+    note = "; ".join(n["value"] for n in h.get("risNotizen") or [] if n.get("value"))
+    return StopIn(
+        name=h["name"], code=h.get("extId"),
+        arrive_at=local_time(h["ankunft"], h.get("extId")) if (h.get("ankunft") or {}).get("sollzeit") else None,
+        depart_at=local_time(h["abfahrt"], h.get("extId")) if (h.get("abfahrt") or {}).get("sollzeit") else None,
+        platform=h.get("gleis") or None, note=note[:200] or None,
+    )
+
+
 def discounts(request: dict | None) -> list[str] | None:
     """The discount cards of the travelers (#1750); None when the request has no reisende list."""
     if not isinstance(request, dict) or not isinstance(request.get("reisende"), list):
@@ -79,7 +90,7 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.7.0"
+    version = "1.8.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have no BahnCard number and no traveler name (#1903)
     redact_keys: frozenset[str] = frozenset()
     # the station codes and the date of the search are in the body, not in a URL: no query name to keep (#1903)
@@ -186,6 +197,7 @@ class BahnParser:
                 to_platform=(halte[-1].get("gleis") or None) if halte else None,
                 load_first=load.get("KLASSE_1"),
                 load_second=load.get("KLASSE_2"),
+                stops=[_stop(h) for h in halte[1:-1]] if halte else None,
             ))
         return [OfferIn(
             external_id=conn.get("tripId"),

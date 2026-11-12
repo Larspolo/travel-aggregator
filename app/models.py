@@ -162,6 +162,29 @@ class Leg(Base):
     load_second: Mapped[int | None] = mapped_column(SmallInteger)
 
     itinerary: Mapped[Itinerary] = relationship(back_populates="legs")
+    stops: Mapped[list["LegStop"]] = relationship(
+        back_populates="leg", cascade="all, delete-orphan", order_by="LegStop.seq"
+    )
+
+
+class LegStop(Base):
+    """A stop between the ends of a leg (#2634). Times are UTC with the original offset, as in `Leg`."""
+
+    __tablename__ = "leg_stops"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    leg_id: Mapped[int] = mapped_column(ForeignKey("legs.id", ondelete="CASCADE"), index=True)
+    seq: Mapped[int] = mapped_column(Integer)
+    name: Mapped[str] = mapped_column(String(200))
+    code: Mapped[str | None] = mapped_column(String(20))
+    arrive_at: Mapped[datetime | None] = mapped_column(_tz())
+    arrive_offset_min: Mapped[int | None] = mapped_column(Integer)
+    depart_at: Mapped[datetime | None] = mapped_column(_tz())
+    depart_offset_min: Mapped[int | None] = mapped_column(Integer)
+    platform: Mapped[str | None] = mapped_column(String(10))
+    note: Mapped[str | None] = mapped_column(String(200))
+
+    leg: Mapped[Leg] = relationship(back_populates="stops")
 
 
 class Fare(Base):
