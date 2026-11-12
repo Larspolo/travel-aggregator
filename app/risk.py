@@ -350,3 +350,22 @@ def bike_extras(fare, itinerary, weights: Weights) -> tuple[tuple[str, Decimal],
     if getattr(fare, "bike", None) != "reservation":
         return ()
     return (("bicycle", fee * len(itinerary.legs)),)
+
+
+def load_extras(fare, itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the markup of the expected load per leg (epic #2607): the level of the fare's class (1st class for a
+    "first" fare, else 2nd class). Level 2 adds `load_high_markup`; levels 3 and 4 add `load_very_high_markup`.
+    Level 1, no level and a markup of 0 add nothing. One part per label, with the sum of its legs."""
+    high, very_high = Decimal(weights.load_high_markup), Decimal(weights.load_very_high_markup)
+    sums: dict[str, Decimal] = {}
+    for leg in itinerary.legs:
+        attr = "load_first" if getattr(fare, "travel_class", None) == "first" else "load_second"
+        level = getattr(leg, attr, None)
+        if level == 2 and high != 0:
+            sums["expected load high"] = sums.get("expected load high", Decimal("0")) + high
+        elif level == 3 and very_high != 0:
+            sums["expected load very high"] = sums.get("expected load very high", Decimal("0")) + very_high
+        elif level == 4 and very_high != 0:
+            sums["expected load fully booked"] = sums.get("expected load fully booked", Decimal("0")) + very_high
+    return tuple((label, sums[label]) for label in ("expected load high", "expected load very high",
+                                                    "expected load fully booked") if label in sums)
