@@ -72,7 +72,7 @@ from app.sales_open import horizons as sales_horizons
 from app.sourcehealth import failing_sources
 from app.carriers import carrier_names
 from app.risk import carrier_extras, loyalty_extras, mode_extras, mode_hour_extras, reservation_extras, bike_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
-from app.profiles import active_weights, default_weights, delete as delete_profile, from_config, list_profiles
+from app.profiles import PRESETS, active_weights, default_weights, delete as delete_profile, from_config, list_profiles, preset_weights
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
 from app.same_journey import JoinError, join, split
@@ -1665,15 +1665,16 @@ def form_weights(form) -> tuple[Weights, str | None]:
 
 
 def _profile_form(request: Request, profile: ScoreProfile | None, name: str, weights: Weights,
-                  error: str | None = None, code: int = 200, fit=None) -> HTMLResponse:
+                  error: str | None = None, code: int = 200, fit=None, preset: str = "") -> HTMLResponse:
     return templates.TemplateResponse(request, "profile_edit.html", {"profile": profile, "name": name,
-                                      "weights": weights, "error": error, "fit": fit}, status_code=code)
+                                      "weights": weights, "error": error, "fit": fit,
+                                      "presets": PRESETS, "preset": preset}, status_code=code)
 
 
 @router.get("/profiles/new", response_class=HTMLResponse, dependencies=[Depends(require_login)])
-def new_profile_page(request: Request) -> HTMLResponse:
-    """A form with the `Weights` defaults for a new profile (#1013)."""
-    return _profile_form(request, None, "", Weights())
+def new_profile_page(request: Request, preset: str = Query("", max_length=20)) -> HTMLResponse:
+    """A form with the `Weights` defaults for a new profile, or the values of a "Start from" preset (#1013, #2520)."""
+    return _profile_form(request, None, "", preset_weights(preset), preset=preset if preset in PRESETS else "")
 
 
 @router.get("/profiles/{profile_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
