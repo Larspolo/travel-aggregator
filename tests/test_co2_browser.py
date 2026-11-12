@@ -77,7 +77,7 @@ def test_the_co2_price_puts_the_train_first(live, width):
         page.evaluate("document.querySelectorAll('#rows details').forEach(d => d.open = true)")
         text = page.locator("#rows").inner_text()
         breakdown = page.locator(ROWS, has_text="KL 1975").locator(".breakdown").text_content()
-        assert "€18 CO₂ 180 kg" in breakdown, breakdown
+        assert "€18 CO₂ 180 kg (estimate)" in breakdown, breakdown
         assert "CO₂ about 180 kg per traveler (estimate)" in text
         assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
         check("/trips/{id}", width, serious(page))

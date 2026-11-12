@@ -59,7 +59,7 @@ from app.drops import drops_by_trip, mark_seen, trip_drops
 from app.door import baggage_extras, door_extras, flight_extras, trip_places
 from app.flexibility import flexibility_extras
 from app.travelclass import class_extras
-from app.co2 import co2_extras, co2_kg
+from app.co2 import co2_extras, co2_kg, co2_origin
 from app.tradeoff import best_at_price, best_range, break_even
 from app.history import chart, trend_chart
 from app.trend import trip_trend
@@ -1144,6 +1144,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
                "rates": rates, "tradeoff": tradeoff, "gone_fares": gone_marks, "suspect_fares": suspect,
                "co2": {it.id: kg for it, *_ in rows if (kg := co2_kg(it, weights)) > 0},  # #1418
+               "co2_origin": {it.id: co2_origin(it) for it, *_ in rows},  # #2587
                "new_since": trip.viewed_at}  # the rows after the last full view are "new" (#1090)
     from app.models import ShareMark
     # the "Suits me" marks of the shared link (#1783): a chip and the note; no change of the score or the order (P2)
