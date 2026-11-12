@@ -147,6 +147,8 @@ class Leg(Base):
     depart_offset_min: Mapped[int] = mapped_column(Integer)
     arrive_at: Mapped[datetime] = mapped_column(_tz())
     arrive_offset_min: Mapped[int] = mapped_column(Integer)
+    # The on-board services (#2548): the names joined with a comma ("wifi,power"); None is not known.
+    services: Mapped[str | None] = mapped_column(String(50))
 
     itinerary: Mapped[Itinerary] = relationship(back_populates="legs")
 

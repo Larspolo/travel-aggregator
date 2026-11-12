@@ -34,6 +34,8 @@ class LegIn(BaseModel):
     # The seat reservation of the leg (#1620): "required" is mandatory and not in the price, "included" is mandatory
     # and in the price, None is optional or not known.
     reservation: Literal["required", "included"] | None = None
+    # The on-board services of the leg (#2548): empty is not known.
+    services: list[Literal["wifi", "power"]] = Field(default_factory=list, max_length=2)
 
     @model_validator(mode="after")
     def _arrives_after_departure(self) -> "LegIn":

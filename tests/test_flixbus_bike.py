@@ -81,5 +81,5 @@ def test_a_bad_no_bikes_period_is_ignored():
     assert _bike_of_first(raw) == "reservation"
 
 
-def test_the_parser_version_is_1_2_0():
-    assert FlixbusParser.version == "1.2.0"
+def test_the_parser_version_is_1_3_0():
+    assert FlixbusParser.version == "1.3.0"

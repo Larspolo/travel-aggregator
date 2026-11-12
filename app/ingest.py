@@ -70,11 +70,25 @@ def load_raw(capture: Capture):
     return None if capture.raw_gz is None else json.loads(gzip.decompress(capture.raw_gz))
 
 
+def services_text(leg) -> str | None:
+    """The services of a leg as stored (#2548): the names joined with a comma, None when not known."""
+    return ",".join(dict.fromkeys(leg.services)) or None
+
+
+def _update_services(it: Itinerary, offer: OfferIn) -> None:
+    """A capture that knows the services of the legs replaces the stored services (#2548)."""
+    if len(it.legs) != len(offer.legs):
+        return
+    for stored, leg in zip(sorted(it.legs, key=lambda x: x.seq), offer.legs):
+        if leg.services:
+            stored.services = services_text(leg)
+
+
 def _legs(offer: OfferIn) -> list[Leg]:
     return [Leg(seq=seq, mode=leg.mode, carrier=leg.carrier, service_no=leg.service_no, from_name=leg.from_name,
                 from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code, depart_at=leg.depart_at,
                 depart_offset_min=utc_offset_min(leg.depart_at), arrive_at=leg.arrive_at,
-                arrive_offset_min=utc_offset_min(leg.arrive_at))
+                arrive_offset_min=utc_offset_min(leg.arrive_at), services=services_text(leg))
             for seq, leg in enumerate(offer.legs, 1)]
 
 
@@ -132,6 +146,8 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         it.last_seen_at = max(it.last_seen_at, captured_at)
         if not has_real_legs(it.legs) and has_real_legs(offer.legs):
             _replace_legs(session, it, offer)
+        else:
+            _update_services(it, offer)
     # #2144: the offer of a joined row goes to the row that it is joined into, on the fares that came from it
     origin = it.id if it.merged_into_id is not None else None
     if origin is not None:
