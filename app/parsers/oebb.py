@@ -69,6 +69,8 @@ def legs(conn: dict) -> list[LegIn]:
             to_name=s["to"]["name"],
             depart_at=local(s["from"]["departure"], s["from"].get("esn")),
             arrive_at=local(s["to"]["arrival"], s["to"].get("esn")),
+            from_platform=s["from"].get("departurePlatform") or None,  # planned platforms (#2591)
+            to_platform=s["to"].get("arrivalPlatform") or None,
         ))
     return out
 
@@ -114,7 +116,7 @@ def _bike(connection: dict) -> str | None:
 
 class OebbParser:
     source = "oebbtickets.at"
-    version = "1.2.0"
+    version = "1.3.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have only the passenger id "1" (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
