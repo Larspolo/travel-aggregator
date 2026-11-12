@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
 from app.ingest import fingerprint
-from app.models import Fare, FarePrice, Itinerary, Leg, Trip
+from app.models import Fare, FarePrice, Itinerary, Leg, LegStop, Trip
 from app.schemas import MAX_LEGS, Mode, clean_tags, utc_offset_min
 from app.web.export import FORMAT, VERSION
 
@@ -58,6 +58,15 @@ class TripData(_Model):
         return text.split(", ") if text else []
 
 
+class StopData(_Model):
+    name: str = Field(min_length=1, max_length=200)
+    code: str | None = Field(None, max_length=20)
+    arrive_at: AwareDatetime | None = None
+    depart_at: AwareDatetime | None = None
+    platform: str | None = Field(None, max_length=10)
+    note: str | None = Field(None, max_length=200)
+
+
 class LegData(_Model):
     mode: Mode
     carrier: str | None = Field(None, max_length=100)
@@ -75,6 +84,8 @@ class LegData(_Model):
     to_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2590)
     load_first: int | None = Field(None, ge=1, le=4)  # missing in an older export: None (#2584)
     load_second: int | None = Field(None, ge=1, le=4)
+    # The stops between the ends of the leg (#2634): missing in an older export, so None.
+    stops: list[StopData] | None = None
 
 
 class PriceData(_Model):
@@ -184,7 +195,14 @@ def _new_itinerary(trip_id: int, d: ItineraryData, fp: str, now: datetime) -> It
                        depart_at=leg.depart_at.astimezone(UTC), depart_offset_min=utc_offset_min(leg.depart_at),
                        arrive_at=leg.arrive_at.astimezone(UTC), arrive_offset_min=utc_offset_min(leg.arrive_at),
                        services=leg.services, from_platform=leg.from_platform, to_platform=leg.to_platform, co2_g=leg.co2_g,
-                       load_first=leg.load_first, load_second=leg.load_second)
+                       load_first=leg.load_first, load_second=leg.load_second,
+                       stops=[LegStop(seq=n, name=x.name, code=x.code,
+                                      arrive_at=x.arrive_at.astimezone(UTC) if x.arrive_at else None,
+                                      arrive_offset_min=utc_offset_min(x.arrive_at) if x.arrive_at else None,
+                                      depart_at=x.depart_at.astimezone(UTC) if x.depart_at else None,
+                                      depart_offset_min=utc_offset_min(x.depart_at) if x.depart_at else None,
+                                      platform=x.platform, note=x.note)
+                              for n, x in enumerate(leg.stops or [], 1)])
                    for seq, leg in enumerate(d.legs, 1))
     return it
 
