@@ -68,6 +68,8 @@
         <input type="number" name="work_hour_start" min="0" max="23" step="1" value="{{ weights.work_hour_start }}"></label>
       <label>Work hours to
         <input type="number" name="work_hour_end" min="1" max="24" step="1" value="{{ weights.work_hour_end }}"></label>
+      <label>Each work-seat hour €
+        <input type="number" name="work_seat_hour_markup" min="0" max="100" step="0.01" value="{% if weights.work_seat_hour_markup is not none %}{{ weights.work_seat_hour_markup }}{% endif %}" placeholder="no part"></label>
       <label>Train markup € (negative = discount)
         <input type="number" name="train_markup" min="-1000" max="1000" step="0.01" value="{{ weights.train_markup }}"></label>
       <label>Bus markup €
