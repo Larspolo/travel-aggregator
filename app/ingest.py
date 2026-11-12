@@ -84,6 +84,11 @@ def _update_services(it: Itinerary, offer: OfferIn) -> None:
             stored.services = services_text(leg)
         if leg.co2_g is not None:
             stored.co2_g = leg.co2_g
+        # The load of a class (#2582): a newer known value replaces the stored value.
+        if leg.load_first is not None:
+            stored.load_first = leg.load_first
+        if leg.load_second is not None:
+            stored.load_second = leg.load_second
 
 
 def _legs(offer: OfferIn) -> list[Leg]:
@@ -91,7 +96,7 @@ def _legs(offer: OfferIn) -> list[Leg]:
                 from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code, depart_at=leg.depart_at,
                 depart_offset_min=utc_offset_min(leg.depart_at), arrive_at=leg.arrive_at,
                 arrive_offset_min=utc_offset_min(leg.arrive_at), services=services_text(leg),
-                co2_g=leg.co2_g)
+                load_first=leg.load_first, load_second=leg.load_second, co2_g=leg.co2_g)
             for seq, leg in enumerate(offer.legs, 1)]
 
 

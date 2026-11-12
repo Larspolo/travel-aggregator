@@ -38,6 +38,9 @@ class LegIn(BaseModel):
     services: list[Literal["wifi", "power"]] = Field(default_factory=list, max_length=2)
     # The CO2 of the leg in grams per traveler (#2586): None is not known.
     co2_g: int | None = Field(None, ge=0, le=10_000_000)
+    # The expected load of each class (#2582): 1 low to 4 fully booked; None is not known.
+    load_first: int | None = Field(None, ge=1, le=4)
+    load_second: int | None = Field(None, ge=1, le=4)
 
     @model_validator(mode="after")
     def _arrives_after_departure(self) -> "LegIn":

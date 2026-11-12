@@ -4,7 +4,7 @@ from datetime import date, datetime, time
 from decimal import Decimal
 
 from sqlalchemy import (
-    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, String, Text, Time, UniqueConstraint,
+    JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, SmallInteger, String, Text, Time, UniqueConstraint,
     false, func, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -151,6 +151,9 @@ class Leg(Base):
     services: Mapped[str | None] = mapped_column(String(50))
     # The CO2 in grams per traveler (#2586); None is not known.
     co2_g: Mapped[int | None] = mapped_column(Integer)
+    # The expected load of each class (#2582): 1 to 4; None is not known.
+    load_first: Mapped[int | None] = mapped_column(SmallInteger)
+    load_second: Mapped[int | None] = mapped_column(SmallInteger)
 
     itinerary: Mapped[Itinerary] = relationship(back_populates="legs")
 
