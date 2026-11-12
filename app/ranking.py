@@ -86,6 +86,10 @@ class Weights:
     reservation_fee: Decimal = Decimal("0")
     # The fee per leg of a fare with a bicycle reservation on a trip with a bicycle (#2475); 0 disables it.
     bike_fee: Decimal = Decimal("0")
+    # The expected load markup per leg (epic #2607): EUR for the level high (2) and for very high (3) or fully
+    # booked (4); 0 disables each.
+    load_high_markup: Decimal = Decimal("0")
+    load_very_high_markup: Decimal = Decimal("0")
     # The percent of the EUR price of a fare in another currency than EUR (#1993); 0 disables the part.
     currency_fee_pct: Decimal = Decimal("0")
     # The age in hours after which a row is stale (#275): a display flag only, not part of the cost.
