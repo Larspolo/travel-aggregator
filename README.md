@@ -1802,6 +1802,10 @@ and the hour markup, times the hours. A value equal to the hour markup, or a leg
 day off (see "Days off" below), adds no part. For example, with an hour markup of €15 and a work-hour value of €30, a train
 on a Friday from 14:00 to 19:00 local time adds `work hours` €45 for the 3 hours from 14:00 to 17:00.
 
+### Work seat
+
+The **Advanced** section has the field **Each work-seat hour €**. It is empty by default, and an empty field adds no part. Each hour of a leg with both Wi-Fi and power sockets costs this value in place of the hour markup. The breakdown shows the part `work seat` for the minutes of these legs: the minutes × (the value − the hour markup) / 60. For example, with an hour markup of €15 and a work-seat value of €5, a 4-hour leg with Wi-Fi and power sockets adds `work seat` €-40. A leg with only one of these services, or with no known services, adds no part.
+
 ### Days off
 
 Set the days off on `/days-off` (link "Days off" in the settings navigation). A day off is one date, or a span of dates
