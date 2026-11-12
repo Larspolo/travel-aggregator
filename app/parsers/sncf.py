@@ -18,6 +18,8 @@ from app.schemas import LegIn, OfferIn, _short_reason
 
 PARIS = ZoneInfo("Europe/Paris")
 TRAVEL_CLASSES = {"FIRST": "first", "SECOND": "standard"}
+# the on-board services of a leg (#2549): the onBoardServices code -> the service name; other codes are dropped
+SERVICES = {"WIFI": "wifi"}
 BOOKING_URL = "https://www.sncf-connect.com/"
 PRICE = re.compile(r"^(\d{1,6})(?:,(\d{1,2}))?$")
 
@@ -46,7 +48,7 @@ def service_no(transporter: dict) -> str | None:
 
 class SncfParser:
     source = "sncf-connect.com"
-    version = "1.0.0"
+    version = "1.1.0"
     # no personal key beyond PERSONAL_KEYS in the fixtures (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -108,6 +110,8 @@ class SncfParser:
                 to_code=None,
                 depart_at=dep,
                 arrive_at=arr,
+                services=list(dict.fromkeys(SERVICES[s["code"]] for s in train.get("onBoardServices") or []
+                                            if s.get("code") in SERVICES)),
             ))
         if not legs:
             raise ValueError("a proposal with no train step")

@@ -39,5 +39,5 @@ def test_gv_327_without_global_price_is_required():
     assert first_leg(conn) == "required"
 
 
-def test_parser_version_is_1_3_0():
-    assert BahnParser.version == "1.3.0"
+def test_parser_version_is_1_4_0():
+    assert BahnParser.version == "1.4.0"

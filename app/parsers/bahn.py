@@ -25,6 +25,8 @@ COUNTRY_TZ = {
 # legs that are no vehicle: they are not a leg and not a transfer
 SKIP_TYPES = {"WALK", "TRANSFER"}
 MODES = {"BUS": "bus", "SCHIFF": "ferry"}
+# the on-board services of a leg (#2549): the zugattribute key -> the service name
+SERVICES = (("WV", "wifi"), ("LS", "power"))
 CLASSES = {"KLASSE_1": "1st class", "KLASSE_2": "2nd class"}
 TRAVEL_CLASSES = {"KLASSE_1": "first", "KLASSE_2": "standard"}
 DISCOUNTS = {"BAHNCARD25": "BahnCard 25", "BAHNCARD50": "BahnCard 50", "BAHNCARD100": "BahnCard 100"}
@@ -77,7 +79,7 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.3.0"
+    version = "1.4.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have no BahnCard number and no traveler name (#1903)
     redact_keys: frozenset[str] = frozenset()
     # the station codes and the date of the search are in the body, not in a URL: no query name to keep (#1903)
@@ -172,6 +174,7 @@ class BahnParser:
                 depart_at=local_time(a["abfahrt"], a.get("abfahrtsOrtExtId")),
                 arrive_at=local_time(a["ankunft"], a.get("ankunftsOrtExtId")),
                 reservation=reservation,
+                services=[name for key, name in SERVICES if key in attrs],
             ))
         return [OfferIn(
             external_id=conn.get("tripId"),
