@@ -128,9 +128,27 @@ def week_line(usage, now):
     line = f"week ahead {(used7 - gone / (7 * 86400)) * 100:+.0f} pt"
     if used7 <= 0 or gone <= 0:
         return line
-    out = now + (1 - used7) / (used7 / gone)
+    out = runs_out(usage, now)
     at = datetime.datetime.fromtimestamp(out, datetime.timezone.utc)
     return line + (f" · runs out {at:%a %H:%M}" if out < reset7 else " · lasts to the reset")
+
+
+def runs_out(usage, now):
+    """The time (Unix seconds) when the 7-day quota runs out at the mean rate of the week so far, or None without a
+    rate. Before `seven_day[1]` (the reset): the week quota limits the work, so each run costs a later ticket (#2574)."""
+    if "seven_day" not in usage:
+        return None
+    used7, reset7, _ = usage["seven_day"]
+    gone = 7 * 86400 - max(reset7 - now, 0)
+    if used7 <= 0 or gone <= 0:
+        return None
+    return now + (1 - used7) / (used7 / gone)
+
+
+def week_binds(usage, now):
+    """True when the 7-day quota runs out before its reset at the rate of the week so far (`runs_out`)."""
+    out = runs_out(usage, now)
+    return out is not None and out < usage["seven_day"][1]
 
 
 def runs_to_start(target, claims, ready, paused, hi=MAX_FIRE, refill=1):
