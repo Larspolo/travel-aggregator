@@ -72,7 +72,7 @@ from app.coverage import trip_coverage
 from app.sales_open import horizons as sales_horizons
 from app.sourcehealth import failing_sources
 from app.carriers import carrier_names
-from app.risk import carrier_extras, loyalty_extras, mode_extras, mode_hour_extras, reservation_extras, bike_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
+from app.risk import carrier_extras, loyalty_extras, mode_extras, mode_hour_extras, reservation_extras, bike_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, work_seat_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
 from app.profiles import PRESETS, active_weights, default_weights, delete as delete_profile, from_config, list_profiles, preset_weights
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -733,7 +733,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
                 + weekday_extras(it, weights)
             + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
                 + mode_hour_extras(it, weights) + transfer_wait_extras(it, weights) + later_transfer_extras(it, weights)
-                + work_hour_extras(it, weights)
+                + work_hour_extras(it, weights) + work_seat_extras(it, weights)
             + carrier_extras(it, weights) + transfer_place_extras(it, weights) + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
             + (leave_after_extras(it, it.trip.leave_after, weights) if weights.leave_hour_markup else ())
@@ -1584,6 +1584,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       work_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#2332)
                       work_hour_start: int = Form(9, ge=0, le=23),  # (#2332)
                       work_hour_end: int = Form(17, ge=1, le=24),  # (#2332)
+                      work_seat_hour_markup: Decimal | None = Form(None, ge=0, le=100),  # (#2566)
                       night_seat_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
                       night_couchette_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
                       night_sleeper_adjust: Decimal | None = Form(None, ge=-1000, le=1000),  # (#1808)
@@ -1630,7 +1631,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       transfer_wait_hour_markup=transfer_wait_hour_markup,
                       later_transfer_markup=later_transfer_markup,
                       work_hour_markup=work_hour_markup, work_hour_start=work_hour_start,
-                      work_hour_end=work_hour_end,
+                      work_hour_end=work_hour_end, work_seat_hour_markup=work_seat_hour_markup,
                       night_seat_adjust=night_seat_adjust, night_couchette_adjust=night_couchette_adjust,
                       night_sleeper_adjust=night_sleeper_adjust)
     save_profile(session, name.strip(), weights)
@@ -1667,6 +1668,7 @@ WEIGHT_RANGES = {
     "transfer_wait_hour_markup": (0, 100),  # (#2220)
     "later_transfer_markup": (0, 100),  # (#2302)
     "work_hour_markup": (0, 100), "work_hour_start": (0, 23), "work_hour_end": (1, 24),  # (#2332)
+    "work_seat_hour_markup": (0, 100),  # (#2566)
     "night_seat_adjust": (-1000, 1000), "night_couchette_adjust": (-1000, 1000),
     "night_sleeper_adjust": (-1000, 1000),  # (#1808)
 }

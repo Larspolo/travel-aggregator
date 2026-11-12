@@ -121,6 +121,27 @@ def work_hour_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], 
     return (("work hours", amount),)
 
 
+def work_seat_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """One part ("work seat", amount) for the minutes of the legs with both Wi-Fi and power sockets (#2566): the
+    services of a leg are "wifi,power" (None is not known); the amount is minutes × (value − hour_markup) / 60.
+    A value of None or a difference of 0 adds no part."""
+    value = weights.work_seat_hour_markup
+    if value is None:
+        return ()
+    diff = Decimal(value) - Decimal(weights.hour_markup)
+    if diff == 0:
+        return ()
+    minutes = 0
+    for leg in itinerary.legs:
+        names = set((leg.services or "").split(","))
+        if {"wifi", "power"} <= names:
+            minutes += int((leg.arrive_at - leg.depart_at).total_seconds() // 60)
+    if not minutes:
+        return ()
+    amount = (Decimal(minutes) * diff / 60).quantize(Decimal("0.01"))
+    return (("work seat", amount),)
+
+
 def loyalty_extras(itinerary, per: Decimal | None, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     """One part ("loyalty <name>", minus the percent of `per`) for each carrier slot whose name each leg of the
     itinerary has (#2432), by the name match of `carrier_extras()`. A fare with no EUR price (`per` None), an empty

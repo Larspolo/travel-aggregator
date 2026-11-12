@@ -59,6 +59,8 @@ class Weights:
     work_hour_markup: Decimal | None = None
     work_hour_start: int = 9
     work_hour_end: int = 17
+    # The work-seat hour value (#2566, epic #2565): € per hour of a leg with Wi-Fi and power sockets; None = no part.
+    work_seat_hour_markup: Decimal | None = None
     # The short-transfer penalty (#173): a transfer shorter than the minimum; a penalty of 0 disables it.
     short_transfer_min: int = 10
     short_transfer_penalty: Decimal = Decimal("0")
