@@ -64,9 +64,15 @@ def _bags(info: Any) -> tuple[int | None, Decimal | None]:
     return included, (min(prices) if prices else None)
 
 
+
+def _recheck(sector_segment: dict) -> bool | None:
+    """The bag recheck at the transfer before a segment (#2660): a bool, else None."""
+    value = (sector_segment.get("layover") or {}).get("isBaggageRecheck")
+    return value if isinstance(value, bool) else None
+
 class KiwiParser:
     source = "kiwi.com"
-    version = "1.3.0"
+    version = "1.4.0"
     # no personal key beyond PERSONAL_KEYS in the fixtures (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -144,6 +150,7 @@ class KiwiParser:
                 depart_at=_time(src),
                 arrive_at=_time(dst),
                 ticket=ticket,
+                bag_recheck=_recheck(sector_segment) if k else None,
             ))
         return legs
 

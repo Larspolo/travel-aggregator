@@ -1,7 +1,7 @@
 """The part price mark of a fare (#2655).
 
-Revision ID: 0073
-Revises: 0072
+Revision ID: 0074
+Revises: 0073
 
 No data loss: the upgrade adds the column `fares.part_price` (false for each existing row).
 The downgrade drops only this new column and its values.
@@ -10,8 +10,8 @@ The downgrade drops only this new column and its values.
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0073"
-down_revision = "0072"
+revision = "0074"
+down_revision = "0073"
 branch_labels = None
 depends_on = None
 

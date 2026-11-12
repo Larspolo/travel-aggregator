@@ -53,7 +53,7 @@ def test_the_ingest_stores_the_mark_and_a_newer_capture_removes_it(sessions):
     assert True not in _fares(sessions, trip_id)
 
 
-def test_the_migration_upgrades_and_downgrades_to_0072(empty_database_url):
+def test_the_migration_upgrades_and_downgrades_to_0073(empty_database_url):
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine
@@ -61,11 +61,11 @@ def test_the_migration_upgrades_and_downgrades_to_0072(empty_database_url):
     cfg = Config("alembic.ini")
     cfg.set_main_option("sqlalchemy.url", empty_database_url)
     cfg.attributes["configure_logger"] = False
-    command.upgrade(cfg, "0073")
+    command.upgrade(cfg, "0074")
     engine = create_engine(empty_database_url)
     try:
         assert "part_price" in {c["name"] for c in inspect(engine).get_columns("fares")}
-        command.downgrade(cfg, "0072")
+        command.downgrade(cfg, "0073")
         assert "part_price" not in {c["name"] for c in inspect(engine).get_columns("fares")}
         command.upgrade(cfg, "head")
         assert "part_price" in {c["name"] for c in inspect(engine).get_columns("fares")}
