@@ -555,6 +555,10 @@ The expanded row of a fare shows the expected load of each class of a leg: "expe
 
 A leg shows its planned platforms: "planned platform <departure> → <arrival>". The trip page, the Upcoming page and the calendar event of a leg show them. The calendar event shows the platform after the name of the place. The sources that give the planned platforms are bahn.de and ÖBB. A leg with no value shows no platform, and a missing side shows "?".
 
+### Stops of a leg
+
+A leg with stops between its ends shows a closed list: "2 stops", for example. Opening the list shows each stop with its local time, its name, its platform and its note. The trip page and the Upcoming page show the list. A leg with no stops shows no list. The source for the stops is bahn.de only.
+
 ### Notices of a connection
 
 The expanded row of a fare shows the notices of the operator on a connection. A notice of a leg shows under that leg, and a notice of the whole connection shows under the legs. The Upcoming page shows the notices of a booked journey in the same way. The text of a notice is shown as plain text. The source for the notices is bahn.de only. A fare from another source shows no notice.
