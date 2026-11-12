@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.auth import require_login
 from app.db import get_session
-from app.models import Fare, Itinerary, Trip
+from app.models import Fare, Itinerary, Leg, Trip
 from app.spend import YEAR_CSV_COLUMNS
 from app.trips import trip_tags
 
@@ -52,7 +52,7 @@ def load_trip(session: Session, trip_id: int) -> Trip:
     """The trip with its itineraries, legs, fares and prices, in few queries."""
     trip = session.scalars(
         select(Trip).where(Trip.id == trip_id).options(
-            selectinload(Trip.itineraries).selectinload(Itinerary.legs),
+            selectinload(Trip.itineraries).selectinload(Itinerary.legs).selectinload(Leg.stops),
             selectinload(Trip.itineraries).selectinload(Itinerary.fares).selectinload(Fare.prices),
         )
     ).one_or_none()
@@ -107,6 +107,15 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                         "co2_g": leg.co2_g,
                         "from_platform": leg.from_platform, "to_platform": leg.to_platform,
                         "load_first": leg.load_first, "load_second": leg.load_second,
+                        "stops": [
+                            {
+                                "name": stop.name, "code": stop.code,
+                                "arrive_at": _local(stop.arrive_at, stop.arrive_offset_min or 0) if stop.arrive_at else None,
+                                "depart_at": _local(stop.depart_at, stop.depart_offset_min or 0) if stop.depart_at else None,
+                                "platform": stop.platform, "note": stop.note,
+                            }
+                            for stop in leg.stops
+                        ],
                     }
                     for leg in it.legs
                 ],
