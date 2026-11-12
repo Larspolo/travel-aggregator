@@ -32,6 +32,10 @@ def trip(sessions):
     app.dependency_overrides.pop(require_login, None)
 
 
+def _cancelled(conn):
+    return any(n.get("key") == "text.realtime.connection.cancelled" for n in conn.get("risNotizen") or [])
+
+
 def post(client, auth, trip_id, raw):
     body = {"trip_id": trip_id, "source": "bahn.de", "parser_version": "1.0.0",
             "captured_at": "2026-11-03T19:41:00Z", "raw": raw}
@@ -55,13 +59,16 @@ def test_each_priced_connection_is_on_the_trip_page(trip, name):
     client, auth, trip_id = trip
     raw = json.loads((FIX / name).read_text(encoding="utf-8"))
     prices = priced_prices(raw)
-    unpriced = len(raw["response"]["verbindungen"]) - len(prices)
+    # #2629: a cancelled connection is no error
+    cancelled = sum(1 for c in raw["response"]["verbindungen"] if _cancelled(c))
+    unpriced = len(raw["response"]["verbindungen"]) - len(prices) - cancelled
 
     out = post(client, auth, trip_id, raw)
     assert out["created"] == len(prices)
     assert len(out["errors"]) == unpriced
     assert [e["index"] for e in out["errors"]] == [
-        i for i, c in enumerate(raw["response"]["verbindungen"]) if not (c.get("angebotsPreis") or {}).get("betrag")]
+        i for i, c in enumerate(raw["response"]["verbindungen"])
+        if not (c.get("angebotsPreis") or {}).get("betrag") and not _cancelled(c)]
 
     page = client.get(f"/trips/{trip_id}").text
     for price in prices:
