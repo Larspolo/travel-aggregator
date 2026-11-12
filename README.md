@@ -1599,6 +1599,7 @@ A score profile stores the weights of the sliders under a name.
   weights that the page shows at that moment.
 - One profile is the default. The default profile gives the weights of a trip page that has no other profile.
   Set the default on `/profiles`.
+- A new profile can start from a preset. On `/profiles/new`, the line "Start from" has three links. "Budget" sets the hour markup to 5 € and the transfer markup to 5 €. "Time is money" sets 40 € and 25 €. "Balanced" keeps the defaults (15 € and 10 €). Each value stays editable before you save.
 - A trip can have its own profile. Choose it in the trip edit form `/trips/{id}/edit`.
 - The switcher "Profile" on the trip page (`/trips/{id}?profile=<id>`) selects a profile for that page.
 - The trip page shows "Best by profile" when you have two or more profiles. It lists the best offer of each profile
