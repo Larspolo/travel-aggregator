@@ -393,6 +393,19 @@ def review_floor(ready):
     return min(max(REVIEW_MIN, ready or 0), REVIEW_MAX_MIN)
 
 
+def week_binds(read=None, now=None):
+    """True when the 7-day quota runs out before its reset (`usage.week_binds`): then a review costs a ticket later in
+    the week also with few ready tickets, and `--reviewed` uses the highest floor, REVIEW_MAX_MIN (#2574; 8 reviews per
+    100 PRs at a gap of 10 took 22 % of the run cost in a week at 97 %). read: a function that gives the quota (test).
+    An error of the read: False (the floor of the ready tickets, as before)."""
+    import usage  # usage imports this module in due_reviews
+    try:
+        return usage.week_binds((read or usage.read_usage)(), time.time() if now is None else now)
+    except Exception as e:  # noqa: BLE001 - the quota read is a CLI call: no quota, the old floor
+        print(f"week quota: {e}", file=sys.stderr)
+        return False
+
+
 def next_gap(gap, changed, ready=0):
     """The gap after a review (owner, 2026-10-29). A change resets a gap above REVIEW to REVIEW and halves the others
     (at least review_floor(ready) merged PRs), so a review that finds work comes sooner. No change resets a gap below
@@ -868,7 +881,10 @@ def main(argv=None):
         return 1
     if a.reviewed:
         from dashboard import api as call
-        body = reviewed(api(f"issues/{STATUS}")["body"], a.reviewed == "change", ready=ready_tickets(a.remote))
+        ready = ready_tickets(a.remote)
+        if week_binds():                                  # a review costs a later ticket: the highest floor (#2574)
+            ready = max(ready or 0, REVIEW_MAX_MIN)
+        body = reviewed(api(f"issues/{STATUS}")["body"], a.reviewed == "change", ready=ready)
         call(f"issues/{STATUS}", "PATCH", {"body": body})
         print(agent_state(body))
         return 0

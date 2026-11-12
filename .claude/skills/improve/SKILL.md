@@ -143,7 +143,7 @@ in a comment: then revert it and add the reason to `docs/LEARNINGS.md`.
 
 Then set the next review: `python3 framework/tools/claim.py 0 --reviewed change` after a change, or `--reviewed none` when no
 lever was above its threshold. The gap of merged PRs moves (`claim.next_gap`, the values in `[review]` of
-`agent.toml`, owner 2026-10-29): `change` halves a gap up to `gap` (down to the count of ready tickets, between `min_gap` and `max_min_gap`) and resets a larger one to `gap`;
+`agent.toml`, owner 2026-10-29): `change` halves a gap up to `gap` (down to the count of ready tickets, between `min_gap` and `max_min_gap`; `max_min_gap` when the week quota runs out before its reset, #2574) and resets a larger one to `gap`;
 `none` doubles a gap from `gap` up (up to `max_gap`) and resets a smaller one to `gap`. Owner work since the last review makes it `owner_gap`. So reviews that find
 work come more often, and reviews that find nothing come less often. Say `change` when the review opened a PR or a
 ticket for a miss or for a lever above its threshold; else `none`. A small gap costs one deep run per gap: the
