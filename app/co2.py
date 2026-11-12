@@ -18,9 +18,20 @@ def co2_kg(itinerary, weights: Weights) -> Decimal:
         field = KG_HOUR_FIELDS.get(leg.mode)
         if field is None:
             continue
+        if getattr(leg, "co2_g", None) is not None:  # the captured grams of the leg (#2587)
+            total += Decimal(leg.co2_g) / Decimal(1000)
+            continue
         hours = Decimal((leg.arrive_at - leg.depart_at).total_seconds()) / Decimal(3600)
         total += hours * Decimal(getattr(weights, field))
     return total
+
+
+def co2_origin(itinerary) -> str:
+    """ "from the capture" when each train, bus and flight leg has captured grams, else "estimate" (#2587)."""
+    legs = [leg for leg in itinerary.legs if leg.mode in KG_HOUR_FIELDS]
+    if legs and all(getattr(leg, "co2_g", None) is not None for leg in legs):
+        return "from the capture"
+    return "estimate"
 
 
 def co2_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
@@ -30,4 +41,4 @@ def co2_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
     kg = co2_kg(itinerary, weights)
     if kg == 0:
         return ()
-    return ((f"CO₂ {kg:.0f} kg", (kg * Decimal(weights.co2_price_kg)).quantize(Decimal("0.01"))),)
+    return ((f"CO₂ {kg:.0f} kg ({co2_origin(itinerary)})", (kg * Decimal(weights.co2_price_kg)).quantize(Decimal("0.01"))),)

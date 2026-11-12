@@ -19,13 +19,13 @@ def _leg(mode, minutes):
 def test_flight_leg_of_two_hours_gives_the_part():
     it = SimpleNamespace(legs=[_leg("flight", 120)])
     assert co2_kg(it, PRICED) == Decimal("180")
-    assert co2_extras(it, PRICED) == (("CO₂ 180 kg", Decimal("18.00")),)
+    assert co2_extras(it, PRICED) == (("CO₂ 180 kg (estimate)", Decimal("18.00")),)
 
 
 def test_train_and_bus_legs_add_up():
     it = SimpleNamespace(legs=[_leg("train", 120), _leg("bus", 90)])
     assert co2_kg(it, Weights()) == Decimal("9")
-    assert co2_extras(it, PRICED) == (("CO₂ 9 kg", Decimal("0.90")),)
+    assert co2_extras(it, PRICED) == (("CO₂ 9 kg (estimate)", Decimal("0.90")),)
 
 
 def test_other_mode_adds_nothing():
