@@ -557,7 +557,7 @@ The expanded row of a fare shows the expected load of each class of a leg: "expe
 
 ### Planned platforms of a leg
 
-A leg shows its planned platforms: "planned platform <departure> → <arrival>". The trip page, the Upcoming page and the calendar event of a leg show them. The calendar event shows the platform after the name of the place. The sources that give the planned platforms are bahn.de, NS International and ÖBB. NS International gives no platform of a transfer. A leg with no value shows no platform, and a missing side shows "?".
+A leg shows its planned platforms: "planned platform <departure> → <arrival>". The trip page, the Upcoming page and the calendar event of a leg show them. The calendar event shows the platform after the name of the place. The sources that give the planned platforms are bahn.de, NS International, ÖBB and SBB. NS International gives no platform of a transfer. A leg with no value shows no platform, and a missing side shows "?".
 
 ### Platforms of a transfer
 The transfer line of a connection shows the platforms of the transfer: "platform <arrival> → <departure>", for example "platform 4 → 5". When both legs use the same platform, the line shows "same platform". A transfer with one platform value shows no platform text. The trip page and the shared page show them.
@@ -568,7 +568,7 @@ A booked leg shows a warning when its platform differs from the platform you boo
 
 ### Stops of a leg
 
-A leg with stops between its ends shows a closed list: "2 stops", for example. Opening the list shows each stop with its local time, its name, its platform and its note. The trip page and the Upcoming page show the list. A leg with no stops shows no list. The sources for the stops are bahn.de and SNCF Connect. SNCF Connect gives no times and no platforms of a stop, so its list shows only the names of the stops.
+A leg with stops between its ends shows a closed list: "2 stops", for example. Opening the list shows each stop with its local time, its name, its platform and its note. The trip page and the Upcoming page show the list. A leg with no stops shows no list. The sources for the stops are bahn.de, SNCF Connect and SBB. SNCF Connect and SBB give no times and no platforms of a stop, so their lists show only the names of the stops.
 
 ### Notices of a connection
 
