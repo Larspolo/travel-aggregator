@@ -982,6 +982,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               pareto_only: bool = Query(False, alias="pareto"),  # "only these": the marked offers (#1857)
               route: str = Query("", max_length=200),  # route_value() of a route; "" = all (#2225)
               via: str = Query("", max_length=100),  # a place the itinerary stops at or changes at (epic #2699)
+              avoid: str = Query("", max_length=100),  # a place the itinerary does not stop at or change at (epic #2719)
               capture: int | None = Query(None),  # with `change`: only the changes of this capture (#2329)
               change: str = Query("", max_length=10),
               bike: bool | None = Query(None),  # None: the bicycle of the trip (#2474)
@@ -1050,6 +1051,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             # the day filter shows only the offers that depart on that local day (#709)
             (f"day {day}", day and it.legs and depart_day(it) != day),
             (f"via {via.strip()}", bool(via.strip()) and not passes_via(it, via)),  # epic #2699
+            (f"avoid {avoid.strip()}", bool(avoid.strip()) and passes_via(it, avoid)),  # epic #2719
         ) if hit}
         # an excluded mode or carrier hides each offer with one of its legs: each value is its own filter
         hides |= {f"excluded mode {m}" for m in exclude_mode if any(leg.mode == m for leg in it.legs)}
@@ -1125,7 +1127,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale,
-            "pareto_only": pareto_only, "route": route, "via": via.strip()}
+            "pareto_only": pareto_only, "route": route, "via": via.strip(), "avoid": avoid.strip()}
     # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
     query = {**{k: v for k, v in to_config(weights).items() if v is not None},
              **{k: MODE_HOUR_BLANK for k in MODE_HOUR_FIELDS if getattr(weights, k) is None},  # (#1568)
@@ -1136,6 +1138,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              **({"latest_arrive": latest_arrive} if limit_arrive is not None else {}),
              **({"day": day} if day else {}),
              **({"via": via.strip()} if via.strip() else {}),
+             **({"avoid": avoid.strip()} if avoid.strip() else {}),
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     if show_hidden:
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
@@ -1209,7 +1212,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         f"mode {mode}", f"source {source}", f"max transfers {limit_transfers}", f"max duration {limit_duration} min",
         f"depart after {earliest_depart}", f"arrive by {latest_arrive}",
         *(f"excluded mode {m}" for m in exclude_mode), *(f"excluded carrier {c}" for c in exclude_carrier),
-        "bicycle", "hide stale", "only marked", f"day {day}", f"via {via.strip()}"])
+        "bicycle", "hide stale", "only marked", f"day {day}", f"avoid {avoid.strip()}", f"via {via.strip()}"])
     # the transfer places of the offers of the page (#1460): only for a trip that is no part of a split
     context["via_places"] = [] if trip.split_of_id else via_places(itineraries, split_skip(trip))
     context["best_hidden"] = hidden_best(best_hidden, best_direct, query, sort, dir, trip_id)  # #1454
@@ -1222,6 +1225,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                f"arrive by {latest_arrive}": {"latest_arrive": ""},  # empty: no arrive-by limit (#1296)
                "bicycle": {"bike": "0"}, "hide stale": {"hide_stale": None}, "only marked": {"pareto": None}, f"day {day}": {"day": None},
                f"via {via.strip()}": {"via": None},
+               f"avoid {avoid.strip()}": {"avoid": None},
                **{f"excluded mode {m}": {"exclude_mode": [x for x in exclude_mode if x != m]} for m in exclude_mode},
                **{f"excluded carrier {c}": {"exclude_carrier": [x for x in exclude_carrier if x != c]}
                   for c in exclude_carrier}}
