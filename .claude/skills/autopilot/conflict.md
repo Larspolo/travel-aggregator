@@ -25,7 +25,8 @@ push: fix it in the next push. Do not rebase or force-push a branch that has an 
 A conflict in the column "Used today in" of `docs/DESIGN.md`: take main's side (`coverage.yml` writes it).
 Two new rows of the feature table at the same place: keep both.
 A conflict in `migrations/HEAD`: another PR added a migration first. Take main's line, rename your migration to the next
-number, set its `down_revision` to main's head, and write its file name into `migrations/HEAD` (#2387).
+number, set its `down_revision` to main's head, and write its file name into `migrations/HEAD` (#2387). The pick (`dashboard.candidates`) gives no second ticket that names
+`migrations/HEAD` while one is in progress (#2679), so this conflict comes only from a ticket with no such line.
 `docs/LEARNINGS.md` has `merge=union`: the merge keeps lines that main removed. `claim.py N --guard` fails
 and names them (#563): remove them from the branch, commit, and run the guard again.
 

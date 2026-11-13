@@ -58,6 +58,8 @@ gets `process` (#901): the dashboard counts the merged PRs with it.
 
 `dashboard.py --next` puts the tickets that share fewer files and functions with the work in progress first (#487):
 name each file and function that the ticket changes, and no others (tools that only check, such as `render.py`, do not count).
+A ticket that adds a migration names `migrations/HEAD`: the pick then gives no second such ticket while one is in
+progress (`dashboard.migrates()`, #2679: 4 merge conflicts in 100 PRs in `models.py`, `schemas.py` and `ingest.py`).
 
 ## Size
 
