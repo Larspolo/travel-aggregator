@@ -24,4 +24,4 @@ def test_a_leg_gives_its_planned_platforms_and_none_when_unknown():
 
 
 def test_the_parser_version_is_bumped_for_the_platforms():
-    assert OebbParser.version == "1.3.0"
+    assert tuple(map(int, OebbParser.version.split("."))) >= (1, 3, 0)  # a later ticket bumps it again (#2786)
