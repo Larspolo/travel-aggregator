@@ -371,6 +371,26 @@ def load_extras(fare, itinerary, weights: Weights) -> tuple[tuple[str, Decimal],
                                                     "expected load fully booked") if label in sums)
 
 
+def notice_extras(itinerary, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the markup of a high notice of the operator (epic #2694): one part "notice: <start>" for the first
+    notice with the level "high". The start is the text when it has 28 characters or less; else the text up to
+    the last space at or before character 28, then " …" (a text with no such space: its first 28 characters).
+    None, no high notice or a markup of 0 add no part."""
+    markup = Decimal(weights.notice_markup)
+    if markup == 0:
+        return ()
+    high = next((n for n in (getattr(itinerary, "notices", None) or []) if n.get("level") == "high"), None)
+    if high is None:
+        return ()
+    text = str(high.get("text") or "")
+    if len(text) <= 28:
+        start = text
+    else:
+        cut = text.rfind(" ", 0, 29)
+        start = (text[:cut] if cut > 0 else text[:28]) + " …"
+    return ((f"notice: {start}", markup),)
+
+
 def recheck_extras(fare, itinerary, weights: Weights, trip=None) -> tuple[tuple[str, Decimal], ...]:
     """Add the bag recheck fee (#2661) for each leg with `bag_recheck` true: one part per leg, named by its start.
     A fee of 0 or a trip with "Checked bag: none" adds no part."""

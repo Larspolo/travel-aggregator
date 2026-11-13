@@ -72,7 +72,7 @@ from app.coverage import trip_coverage
 from app.sales_open import horizons as sales_horizons
 from app.sourcehealth import failing_sources
 from app.carriers import carrier_names
-from app.risk import carrier_extras, loyalty_extras, mode_extras, mode_hour_extras, reservation_extras, bike_extras, recheck_extras, load_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, work_seat_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
+from app.risk import carrier_extras, notice_extras, loyalty_extras, mode_extras, mode_hour_extras, reservation_extras, bike_extras, recheck_extras, load_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, work_seat_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
 from app.profiles import PRESETS, active_weights, default_weights, delete as delete_profile, from_config, list_profiles, preset_weights
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -578,6 +578,7 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  recheck_fee: Decimal | None = Query(None, ge=0, le=1000),
                  load_high_markup: Decimal | None = Query(None, ge=0, le=1000),
                  load_very_high_markup: Decimal | None = Query(None, ge=0, le=1000),
+                 notice_markup: Decimal | None = Query(None, ge=0, le=1000),
                  currency_fee_pct: Decimal | None = Query(None, ge=0, le=10),
                  stale_hours: int | None = Query(None, ge=1, le=720),
                  stale_penalty: Decimal | None = Query(None, ge=0, le=1000),
@@ -739,7 +740,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
             + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
                 + mode_hour_extras(it, weights) + transfer_wait_extras(it, weights) + later_transfer_extras(it, weights)
                 + work_hour_extras(it, weights) + work_seat_extras(it, weights)
-            + carrier_extras(it, weights) + transfer_place_extras(it, weights) + co2_extras(it, weights)
+            + carrier_extras(it, weights) + notice_extras(it, weights) + transfer_place_extras(it, weights) + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
             + (leave_after_extras(it, it.trip.leave_after, weights) if weights.leave_hour_markup else ())
             + transfer_extras(it, weights) + station_change_extras(it, weights) + fallback_extras(it, weights)
@@ -1569,6 +1570,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       recheck_fee: Decimal = Form(Weights.recheck_fee, ge=0, le=1000),
                       load_high_markup: Decimal = Form(Weights.load_high_markup, ge=0, le=1000),
                       load_very_high_markup: Decimal = Form(Weights.load_very_high_markup, ge=0, le=1000),
+                      notice_markup: Decimal = Form(Weights.notice_markup, ge=0, le=1000),
                       currency_fee_pct: Decimal = Form(Weights.currency_fee_pct, ge=0, le=10),  # (#1993)
                       stale_hours: int = Form(Weights.stale_hours, ge=1, le=720),
                       stale_penalty: Decimal = Form(Weights.stale_penalty, ge=0, le=1000),
@@ -1636,6 +1638,7 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       first_class_hour=first_class_hour,
                       self_transfer_penalty=self_transfer_penalty, reservation_fee=reservation_fee,
                       bike_fee=bike_fee, recheck_fee=recheck_fee, load_high_markup=load_high_markup, load_very_high_markup=load_very_high_markup,
+                      notice_markup=notice_markup,
                       currency_fee_pct=currency_fee_pct, stale_hours=stale_hours,
                       stale_penalty=stale_penalty, hour_tier1_after_min=hour_tier1_after_min,
                       hour_tier1_markup=hour_tier1_markup, hour_tier2_after_min=hour_tier2_after_min,
@@ -1680,7 +1683,7 @@ WEIGHT_RANGES = {
     "co2_price_kg": (0, 10), "co2_train_kg_h": (0, 1000), "co2_bus_kg_h": (0, 1000),
     "co2_flight_kg_h": (0, 1000), "co2_ferry_kg_h": (0, 1000),
     "flex_partly_refundable": (-1000, 1000), "flex_flexible": (-1000, 1000), "first_class_hour": (-1000, 1000),
-    "self_transfer_penalty": (0, 1000), "reservation_fee": (0, 1000), "bike_fee": (0, 1000), "recheck_fee": (0, 1000), "load_high_markup": (0, 1000), "load_very_high_markup": (0, 1000), "currency_fee_pct": (0, 10), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
+    "self_transfer_penalty": (0, 1000), "reservation_fee": (0, 1000), "bike_fee": (0, 1000), "recheck_fee": (0, 1000), "load_high_markup": (0, 1000), "load_very_high_markup": (0, 1000), "notice_markup": (0, 1000), "currency_fee_pct": (0, 10), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
     "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),
     "hour_tier2_markup": (0, 100),
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),
