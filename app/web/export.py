@@ -107,6 +107,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                         "services": leg.services,
                         "co2_g": leg.co2_g,
                         "from_platform": leg.from_platform, "to_platform": leg.to_platform,
+                        "booked_from_platform": leg.booked_from_platform, "booked_to_platform": leg.booked_to_platform,
                         "bag_recheck": leg.bag_recheck,
                         "load_first": leg.load_first, "load_second": leg.load_second,
                         "stops": [
