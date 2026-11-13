@@ -27,6 +27,13 @@ FLEX = {"NON_FLEXIBLE": "non-flexible", "SEMI_FLEXIBLE": "semi-flexible", "FULL_
 BOOKING_URL = "https://www.nsinternational.com/"
 
 
+def platform(station: dict, kind: str) -> str | None:
+    """The planned platform of a departure or arrival: `updatedPlatform` when set, else `platform` (#2737)."""
+    value = station.get(kind) or {}
+    text = (value.get("updatedPlatform") or value.get("platform") or "").strip()
+    return text if text and len(text) <= 10 else None
+
+
 def local_time(station: dict, kind: str) -> datetime:
     naive = datetime.fromisoformat(station[kind]["plannedLocalDateTime"])
     if naive.tzinfo is not None:
@@ -36,7 +43,7 @@ def local_time(station: dict, kind: str) -> datetime:
 
 class NsParser:
     source = "nsinternational.com"
-    version = "1.2.0"
+    version = "1.3.0"
     # no personal key beyond PERSONAL_KEYS in the fixtures (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -102,6 +109,8 @@ class NsParser:
                 to_code=dest.get("code") if last else None,
                 depart_at=dep,
                 arrive_at=arr if last else dep,
+                from_platform=platform(orig, "departure") if first else None,
+                to_platform=platform(dest, "arrival") if last else None,
             ))
         offers = []
         for o in conn["offers"]:
