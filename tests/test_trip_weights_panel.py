@@ -8,7 +8,7 @@ GUARDS = ("app/web/templates/trip*.html", "app/web/pages.py")   # ship_pr runs t
 
 GROUPS = ["Hour tiers", "Airport", "Time windows", "Night", "Modes", "Carriers", "Weekday of departure", "Transfer places", "CO₂", "Fares", "Staleness", "Profile"]
 NAMES = {"hour_markup", "transfer_markup", "show_hidden", "show_departed", "hide_stale", "pareto", "sort", "dir", "mode", "earliest_depart",
-         "latest_arrive", "day", "via", "source", "max_transfers", "max_duration_min", "airport_before_min", "airport_after_min",
+         "latest_arrive", "day", "via", "avoid", "source", "max_transfers", "max_duration_min", "airport_before_min", "airport_after_min",
          "baggage_fee", "early_limit", "late_limit", "time_window_penalty", "night_start", "night_end", "night_min",
          "night_adjust", "overnight_min", "overnight_cost", "wait_hour_markup", "leave_hour_markup", "night_hour_markup", "short_transfer_min", "short_transfer_penalty", "station_change_min", "station_change_penalty", "no_fallback_penalty", "stale_hours",
          "stale_penalty", "hour_tier1_after_min", "hour_tier1_markup", "hour_tier2_after_min", "hour_tier2_markup",
