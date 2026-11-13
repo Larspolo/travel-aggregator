@@ -101,6 +101,7 @@ The runs are paced without you. `framework/tools/usage.py` reads the usage of yo
 as the Claude Code CLI reports them) and computes the number of runs: fast to 90 % of the 5-hour window 2 hours before
 its reset, then slower to 98 % at the reset (your decision, 2026-10-26), and not the week faster than it passes
 when `week_guard` in `steering/system/system.toml` is `true` (now `false`, your decision, 2026-11-09).
+A rejected 7-day window (the week quota is used up) starts no run, also with `week_guard = false`: no run can work then (#2656).
 You do not need to send percentages.
 A run of the scheduled task cannot start other runs (#566). So the workflow `pacer.yml` (#3193, #3194) runs
 `framework/tools/pacer.py` every 10 minutes: it computes the runs that the target misses (`usage.fire`, at most `max_fire` of

@@ -72,7 +72,7 @@ from app.coverage import trip_coverage
 from app.sales_open import horizons as sales_horizons
 from app.sourcehealth import failing_sources
 from app.carriers import carrier_names
-from app.risk import carrier_extras, loyalty_extras, mode_extras, mode_hour_extras, reservation_extras, bike_extras, load_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, work_seat_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
+from app.risk import carrier_extras, notice_extras, loyalty_extras, mode_extras, mode_hour_extras, reservation_extras, bike_extras, recheck_extras, load_extras, transfer_wait_extras, later_transfer_extras, work_hour_extras, work_seat_extras, self_transfer_extras, short_place_marks, stale_extras, station_change_extras, station_changes, transfer_extras, transfer_place_extras
 from app.profiles import PRESETS, active_weights, default_weights, delete as delete_profile, from_config, list_profiles, preset_weights
 from app.profiles import rename as rename_profile, save as save_profile, set_default as set_default_profile, to_config
 from app.profiles import update_weights as update_profile
@@ -81,7 +81,7 @@ from app.capture_changes import capture_changes
 from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Leg, Passkey, PlaceName, PushSubscription, RailPass, ScoreProfile, Setting,
                         SentMessage, SourceFee, Trip, TripAccessTime, TripSeries)
 from app.place_names import aliases as place_aliases
-from app.tripmatch import ALIASES, fold
+from app.tripmatch import ALIASES, fold, passes_via
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
                         REMINDER_DAYS_KEY, REMINDER_NOT_SENT, SOURCE_ALERT_KEY, alert_messages, deliver, setting,
                         webpush_ready)
@@ -575,8 +575,10 @@ def weight_query(hour_markup: Decimal | None = Query(None, ge=0, le=100),
                  self_transfer_penalty: Decimal | None = Query(None, ge=0, le=1000),
                  reservation_fee: Decimal | None = Query(None, ge=0, le=1000),
                  bike_fee: Decimal | None = Query(None, ge=0, le=1000),
+                 recheck_fee: Decimal | None = Query(None, ge=0, le=1000),
                  load_high_markup: Decimal | None = Query(None, ge=0, le=1000),
                  load_very_high_markup: Decimal | None = Query(None, ge=0, le=1000),
+                 notice_markup: Decimal | None = Query(None, ge=0, le=1000),
                  currency_fee_pct: Decimal | None = Query(None, ge=0, le=10),
                  stale_hours: int | None = Query(None, ge=1, le=720),
                  stale_penalty: Decimal | None = Query(None, ge=0, le=1000),
@@ -738,7 +740,7 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
             + overnight_extras(it, weights) + night_time_extras(it, weights) + mode_extras(it, weights)
                 + mode_hour_extras(it, weights) + transfer_wait_extras(it, weights) + later_transfer_extras(it, weights)
                 + work_hour_extras(it, weights) + work_seat_extras(it, weights)
-            + carrier_extras(it, weights) + transfer_place_extras(it, weights) + co2_extras(it, weights)
+            + carrier_extras(it, weights) + notice_extras(it, weights) + transfer_place_extras(it, weights) + co2_extras(it, weights)
             + (arrive_by_extras(it, it.trip.arrive_by, weights) if weights.wait_hour_markup else ())
             + (leave_after_extras(it, it.trip.leave_after, weights) if weights.leave_hour_markup else ())
             + transfer_extras(it, weights) + station_change_extras(it, weights) + fallback_extras(it, weights)
@@ -751,12 +753,12 @@ def row_cost(it: Itinerary, fares, places, weights: Weights, stale_before: datet
                                   ((f"pass {rail_pass.name}", covered),) + base + night_extras(it, weights, f)
                                   + flexibility_extras(f, weights) + baggage_extras(f, it, weights, rates)
                                   + class_extras(f, it.duration_min, weights) + self_transfer_extras(f, weights)
-                                  + reservation_extras(f, weights) + bike_extras(f, it, weights) + load_extras(f, it, weights) + fee_extras(f, fees, travelers))
+                                  + reservation_extras(f, weights) + bike_extras(f, it, weights) + recheck_extras(f, it, weights) + load_extras(f, it, weights) + fee_extras(f, fees, travelers))
         eur, n = to_eur(f.latest_price, f.currency, rates), counts.get(f.id)
         per = per_traveler(eur, n) if eur is not None else None
         b = effective_cost(per if per is not None else Decimal(0), it.duration_min, it.transfers, weights,
                            base + night_extras(it, weights, f) + flexibility_extras(f, weights) + baggage_extras(f, it, weights, rates) + class_extras(f, it.duration_min, weights)
-                               + self_transfer_extras(f, weights) + reservation_extras(f, weights) + bike_extras(f, it, weights) + load_extras(f, it, weights)
+                               + self_transfer_extras(f, weights) + reservation_extras(f, weights) + bike_extras(f, it, weights) + recheck_extras(f, it, weights) + load_extras(f, it, weights)
                                + fee_extras(f, fees, travelers) + currency_fee_extras(f, per, weights)
                                    + loyalty_extras(it, per, weights))
         return for_group(in_eur(b, f.latest_price, f.currency, eur), f.latest_price, f.currency, n)
@@ -772,6 +774,17 @@ def current_fares(fares, gone):
     """The fares that are not gone (#1386), or all fares when all are gone: a gone fare does not rank."""
     now = [f for f in fares if f.id not in gone]
     return now or list(fares)
+
+
+def full_price(fares):
+    """The fares with a price for the full route (#2656): a part-price fare (bahn.de `hasTeilpreis`, #2655) is too low
+    to rank. Empty when all fares are part-price fares."""
+    return [f for f in fares if not getattr(f, "part_price", False)]
+
+
+def part_only(row) -> bool:
+    """True when the main fare of an (itinerary, fare, cost) row is a part-price fare: the row has no full fare (#2656)."""
+    return bool(getattr(row[1], "part_price", False))
 
 
 def current_rows(rows, gone):
@@ -829,8 +842,9 @@ def best_for_weights(session: Session, trip: Trip, weights: Weights, now: dateti
     places = trip_places(session, trip)  # (#2109)
     rates = load_rates(session)
     counts, fees, gone = fare_travelers(session, its), load_fees(session), _gone(session, its)
-    rows = [(it, *row_cost(it, current_fares(it.fares, gone), places, weights, stale_before, rates, counts, fees))
-            for it in its if it.fares and it.operator_cancelled_at is None]  # (#2630)
+    rows = [(it, *row_cost(it, fs, places, weights, stale_before, rates, counts, fees))
+            for it in its if it.fares and it.operator_cancelled_at is None  # (#2630)
+            and (fs := full_price(current_fares(it.fares, gone)))]  # no part-price fare (#2656)
     rows = current_rows(rows, gone)
     if not rows:
         return None
@@ -902,8 +916,8 @@ def split_sections(session: Session, trip: Trip, weights: Weights, places, now: 
                                                       departed.not_departed(now))
                               .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
         counts = fare_travelers(session, its)
-        return [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts, fees))
-                for it in its if it.fares and it.legs]
+        return [(it, *row_cost(it, fs, places, weights, stale_before, rates, counts, fees))
+                for it in its if it.legs and (fs := full_price(it.fares))]  # no part-price fare (#2656)
     sections = []
     for a, b in zip(parts[0::2], parts[1::2]):
         first, second = ranked(a), ranked(b)
@@ -967,6 +981,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               hide_stale: bool = Query(False),
               pareto_only: bool = Query(False, alias="pareto"),  # "only these": the marked offers (#1857)
               route: str = Query("", max_length=200),  # route_value() of a route; "" = all (#2225)
+              via: str = Query("", max_length=100),  # a place the itinerary stops at or changes at (epic #2699)
+              avoid: str = Query("", max_length=100),  # a place the itinerary does not stop at or change at (epic #2719)
               capture: int | None = Query(None),  # with `change`: only the changes of this capture (#2329)
               change: str = Query("", max_length=10),
               bike: bool | None = Query(None),  # None: the bicycle of the trip (#2474)
@@ -1014,6 +1030,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         sources |= {f.source for f in it.fares}
         carriers |= {c for leg in it.legs for c in carrier_names(leg.carrier)}
         fares = current_fares([f for f in it.fares if not source or f.source == source], gone)
+        fares = full_price(fares) or fares  # a part-price fare is the main fare only of a row with no full fare (#2656)
         no_bike = False
         if bike_filter and fares:
             fares = [f for f in fares if f.bike != "no"]
@@ -1033,6 +1050,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             ("hide stale", hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before),
             # the day filter shows only the offers that depart on that local day (#709)
             (f"day {day}", day and it.legs and depart_day(it) != day),
+            (f"via {via.strip()}", bool(via.strip()) and not passes_via(it, via)),  # epic #2699
+            (f"avoid {avoid.strip()}", bool(avoid.strip()) and passes_via(it, avoid)),  # epic #2719
         ) if hit}
         # an excluded mode or carrier hides each offer with one of its legs: each value is its own filter
         hides |= {f"excluded mode {m}" for m in exclude_mode if any(leg.mode == m for leg in it.legs)}
@@ -1060,6 +1079,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     # a hidden or departed row gets no highlight (#200, #1391)
     shown = [r for r in rows if not r[0].hidden and not departed.is_departed(r[0], departed_now)
              and r[0].operator_cancelled_at is None  # (#2630)
+             and not part_only(r)  # (#2656)
              and not all_gone(r)]  # a row with only gone fares gets no highlight (#1386)
     # no other shown offer is cheaper and faster (#1856): the price and the door-to-door minutes, not the weights
     pareto = pareto_ids([(r[0].id, r[2].price, door_minutes(r[0], places, weights)) for r in shown])
@@ -1097,6 +1117,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     rows.sort(key=all_gone)  # stable: the rows with only gone fares after the current rows (#1386)
+    rows.sort(key=part_only)  # stable: the rows with only part-price fares after the other rows (#2656)
     rows.sort(key=lambda r: r[0].operator_cancelled_at is not None)  # the operator cancelled rows last (#2630)
     rows.sort(key=lambda r: departed.is_departed(r[0], departed_now))  # the departed rows last (#1391)
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
@@ -1106,7 +1127,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale,
-            "pareto_only": pareto_only, "route": route}
+            "pareto_only": pareto_only, "route": route, "via": via.strip(), "avoid": avoid.strip()}
     # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
     query = {**{k: v for k, v in to_config(weights).items() if v is not None},
              **{k: MODE_HOUR_BLANK for k in MODE_HOUR_FIELDS if getattr(weights, k) is None},  # (#1568)
@@ -1116,6 +1137,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              **({"earliest_depart": earliest_depart} if limit_depart is not None else {}),
              **({"latest_arrive": latest_arrive} if limit_arrive is not None else {}),
              **({"day": day} if day else {}),
+             **({"via": via.strip()} if via.strip() else {}),
+             **({"avoid": avoid.strip()} if avoid.strip() else {}),
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     if show_hidden:
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
@@ -1189,7 +1212,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         f"mode {mode}", f"source {source}", f"max transfers {limit_transfers}", f"max duration {limit_duration} min",
         f"depart after {earliest_depart}", f"arrive by {latest_arrive}",
         *(f"excluded mode {m}" for m in exclude_mode), *(f"excluded carrier {c}" for c in exclude_carrier),
-        "bicycle", "hide stale", "only marked", f"day {day}"])
+        "bicycle", "hide stale", "only marked", f"day {day}", f"avoid {avoid.strip()}", f"via {via.strip()}"])
     # the transfer places of the offers of the page (#1460): only for a trip that is no part of a split
     context["via_places"] = [] if trip.split_of_id else via_places(itineraries, split_skip(trip))
     context["best_hidden"] = hidden_best(best_hidden, best_direct, query, sort, dir, trip_id)  # #1454
@@ -1201,6 +1224,8 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                f"depart after {earliest_depart}": {"earliest_depart": None},
                f"arrive by {latest_arrive}": {"latest_arrive": ""},  # empty: no arrive-by limit (#1296)
                "bicycle": {"bike": "0"}, "hide stale": {"hide_stale": None}, "only marked": {"pareto": None}, f"day {day}": {"day": None},
+               f"via {via.strip()}": {"via": None},
+               f"avoid {avoid.strip()}": {"avoid": None},
                **{f"excluded mode {m}": {"exclude_mode": [x for x in exclude_mode if x != m]} for m in exclude_mode},
                **{f"excluded carrier {c}": {"exclude_carrier": [x for x in exclude_carrier if x != c]}
                   for c in exclude_carrier}}
@@ -1550,8 +1575,10 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       self_transfer_penalty: Decimal = Form(Weights.self_transfer_penalty, ge=0, le=1000),
                       reservation_fee: Decimal = Form(Weights.reservation_fee, ge=0, le=1000),
                       bike_fee: Decimal = Form(Weights.bike_fee, ge=0, le=1000),
+                      recheck_fee: Decimal = Form(Weights.recheck_fee, ge=0, le=1000),
                       load_high_markup: Decimal = Form(Weights.load_high_markup, ge=0, le=1000),
                       load_very_high_markup: Decimal = Form(Weights.load_very_high_markup, ge=0, le=1000),
+                      notice_markup: Decimal = Form(Weights.notice_markup, ge=0, le=1000),
                       currency_fee_pct: Decimal = Form(Weights.currency_fee_pct, ge=0, le=10),  # (#1993)
                       stale_hours: int = Form(Weights.stale_hours, ge=1, le=720),
                       stale_penalty: Decimal = Form(Weights.stale_penalty, ge=0, le=1000),
@@ -1618,7 +1645,8 @@ def save_profile_page(trip_id: int = Form(...), name: str = Form(..., min_length
                       flex_partly_refundable=flex_partly_refundable, flex_flexible=flex_flexible,
                       first_class_hour=first_class_hour,
                       self_transfer_penalty=self_transfer_penalty, reservation_fee=reservation_fee,
-                      bike_fee=bike_fee, load_high_markup=load_high_markup, load_very_high_markup=load_very_high_markup,
+                      bike_fee=bike_fee, recheck_fee=recheck_fee, load_high_markup=load_high_markup, load_very_high_markup=load_very_high_markup,
+                      notice_markup=notice_markup,
                       currency_fee_pct=currency_fee_pct, stale_hours=stale_hours,
                       stale_penalty=stale_penalty, hour_tier1_after_min=hour_tier1_after_min,
                       hour_tier1_markup=hour_tier1_markup, hour_tier2_after_min=hour_tier2_after_min,
@@ -1663,7 +1691,7 @@ WEIGHT_RANGES = {
     "co2_price_kg": (0, 10), "co2_train_kg_h": (0, 1000), "co2_bus_kg_h": (0, 1000),
     "co2_flight_kg_h": (0, 1000), "co2_ferry_kg_h": (0, 1000),
     "flex_partly_refundable": (-1000, 1000), "flex_flexible": (-1000, 1000), "first_class_hour": (-1000, 1000),
-    "self_transfer_penalty": (0, 1000), "reservation_fee": (0, 1000), "bike_fee": (0, 1000), "load_high_markup": (0, 1000), "load_very_high_markup": (0, 1000), "currency_fee_pct": (0, 10), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
+    "self_transfer_penalty": (0, 1000), "reservation_fee": (0, 1000), "bike_fee": (0, 1000), "recheck_fee": (0, 1000), "load_high_markup": (0, 1000), "load_very_high_markup": (0, 1000), "notice_markup": (0, 1000), "currency_fee_pct": (0, 10), "stale_hours": (1, 720), "stale_penalty": (0, 1000),
     "hour_tier1_after_min": (0, 2880), "hour_tier1_markup": (0, 100), "hour_tier2_after_min": (0, 2880),
     "hour_tier2_markup": (0, 100),
     "carrier1_markup": (-1000, 1000), "carrier2_markup": (-1000, 1000), "carrier3_markup": (-1000, 1000),

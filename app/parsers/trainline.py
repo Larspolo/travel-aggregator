@@ -55,6 +55,19 @@ def _notices(journey: dict, search: dict) -> list[NoticeIn] | None:
             for i, f in enumerate(flags) if isinstance(f, dict) and f.get("isReplacementService") is True]
 
 
+def _platform(leg: dict, end: str) -> str | None:
+    """#2770: the planned platform of a leg end ("origin" or "destination"); None for no text or one of over 10 characters."""
+    point = leg.get("platforms")
+    point = point.get(end) if isinstance(point, dict) else None
+    text = point.get("platform") if isinstance(point, dict) else None
+    return text if isinstance(text, str) and text and len(text) <= 10 else None
+
+
+def _cancelled(journey: dict, search: dict) -> bool:
+    """#2773: True when thetrainline.com shows a leg of the journey as cancelled; no `realTime` is not cancelled."""
+    return any((search["legs"][leg_id].get("realTime") or {}).get("isCancelled") is True for leg_id in journey["legs"])
+
+
 def fare_name(type_name: str, class_name: str) -> str:
     """The fare type name, plus the class name when the fare type name does not say the class."""
     if not class_name or any(w in type_name.lower() for w in CLASS_WORDS):
@@ -64,7 +77,7 @@ def fare_name(type_name: str, class_name: str) -> str:
 
 class TrainlineParser:
     source = "thetrainline.com"
-    version = "1.5.0"
+    version = "1.7.0"
     # no personal key beyond PERSONAL_KEYS: `dateOfBirth` is in PERSONAL_KEYS (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -100,6 +113,9 @@ class TrainlineParser:
         result.discounts = card_names(cards) if isinstance(cards, list) else None
         for i, journey in enumerate(journeys.values()):
             try:
+                if _cancelled(journey, search):  # #2773: a cancelled journey is no rejected offer
+                    result.cancelled.append(self._legs(journey, data, search))
+                    continue
                 result.offers.extend(self._offers(journey, data, search))
             except ValidationError as e:
                 result.errors.append({"index": i, "reason": _short_reason(e)})
@@ -107,9 +123,9 @@ class TrainlineParser:
                 result.errors.append({"index": i, "reason": f"bad journey: {type(e).__name__} {e}"[:200]})
         return result
 
-    def _offers(self, journey: dict, data: dict, search: dict) -> list[OfferIn]:
+    def _legs(self, journey: dict, data: dict, search: dict) -> list[LegIn]:
+        """The legs of a journey."""
         locations, carriers, modes = data["locations"], data.get("carriers") or {}, data.get("transportModes") or {}
-        journey_bike = bike(journey.get("bikeRestrictionStatus"))  # #2458: the bicycle transport of the journey
         legs = []
         for leg_id in journey["legs"]:
             leg = search["legs"][leg_id]
@@ -129,9 +145,16 @@ class TrainlineParser:
                 arrive_at=aware(leg["arriveAt"]),
                 # Trainline books the mandatory reservation with the ticket: the price is the full price (#1622)
                 reservation="included" if leg.get("isReservationMandatory") is True else None,
+                from_platform=_platform(leg, "origin"),  # planned platforms (#2770)
+                to_platform=_platform(leg, "destination"),
                 co2_g=co2 if isinstance(co2 := leg.get("co2EmissionInGramsPerPassenger"), int)
                 and not isinstance(co2, bool) and co2 >= 0 else None,
             ))
+        return legs
+
+    def _offers(self, journey: dict, data: dict, search: dict) -> list[OfferIn]:
+        journey_bike = bike(journey.get("bikeRestrictionStatus"))  # #2458: the bicycle transport of the journey
+        legs = self._legs(journey, data, search)
         notices = _notices(journey, search)
         best: dict[str, tuple[Decimal, str, str | None, int | None]] = {}
         for section_id in journey.get("sections") or []:

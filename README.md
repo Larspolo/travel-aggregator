@@ -505,7 +505,8 @@ An arrival on a later calendar day shows a mark "+1 day" (or "+2 days" and so on
 Under the fare name, the age of the newest capture shows, for example "2 h ago".
 If the newest capture is older than the stale hours, the row also shows "stale, price may have changed". See "Stale offers".
 A fare that a newer search of the same site did not show again, in the departure span of that search, shows the mark "not in the last <source> search". The best offer does not use such a fare. The next search that shows the fare again removes the mark.
-A connection that a newer bahn.de search shows as cancelled shows the mark "cancelled by the operator", with the time of that capture. The row sorts after the rows that are not cancelled, and it is never the best offer. On the Upcoming page, a booked journey with the mark shows "Cancelled by the operator: check the booking". The source for this mark is bahn.de only: no other source gives it.
+A connection that a newer bahn.de search shows as cancelled shows the mark "cancelled by the operator", with the time of that capture. The row sorts after the rows that are not cancelled, and it is never the best offer. On the Upcoming page, a booked journey with the mark shows "Cancelled by the operator: check the booking". The sources for this mark are bahn.de, SBB and Trainline: no other source gives it.
+A bahn.de fare with a part price, a price for a part of the route only, shows the badge "price for a part of the route". The row cost uses only the full fares of the row, so a part price does not lower it. A row that has only part-price fares shows its part price, sorts after the other rows, and is never the best offer.
 A fare whose latest price is implausible shows the chip "check the price" next to its price. A price is implausible when it is €0, or when it is below a fifth or above five times the last usable price of the fare in the same currency. The chip title names the last price, for example "The last price was €39.00". A price of €0 with no earlier price shows the title "A price of 0 cannot be right".
 The best offer, the highlights and "Best by profile" do not use a fare with the chip, as long as the row or the trip has a usable fare. A row with only such fares still shows, with the chip and no highlight. The trips list, the target price check and the price-drop messages do not use such a fare either. A later capture with a plausible price removes the chip, and the fare counts again.
 Click a column header to sort by it. Click it again to reverse the order.
@@ -515,6 +516,8 @@ The hard filters hide the offers that do not match. A penalty does not hide an o
 Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 - `max_transfers`: the most transfers (0 to 10).
 - `max_duration_min`: the longest duration in minutes.
+- `via`: the field "Via" hides each offer that does not stop at or change at a place with this name. A part of the name is enough, with no accents needed: "hannover" finds "Hannover Hbf", and "zurich" finds "Zürich HB". The places are the stops of each leg and the change places; the start and the end of the trip do not count. An empty value is no filter. The line "Filters hide N of M offers" counts the offers that the field hides.
+- `avoid`: the field "Avoid" hides each offer that stops at or changes at a place with this name, the opposite of "Via". It uses the same match and the same places. The line "Filters hide N of M offers" counts the offers that the field hides, and the link of "avoid <place>" removes the filter.
 - `earliest_depart`: the first leg departs at or after this local time.
 - `latest_arrive`: the last leg arrives by this local time, on the day of its departure.
 - `exclude_mode`: a mode (train, bus or flight) hides each offer with one of its legs.
@@ -554,15 +557,22 @@ The expanded row of a fare shows the expected load of each class of a leg: "expe
 
 ### Planned platforms of a leg
 
-A leg shows its planned platforms: "planned platform <departure> → <arrival>". The trip page, the Upcoming page and the calendar event of a leg show them. The calendar event shows the platform after the name of the place. The sources that give the planned platforms are bahn.de and ÖBB. A leg with no value shows no platform, and a missing side shows "?".
+A leg shows its planned platforms: "planned platform <departure> → <arrival>". The trip page, the Upcoming page and the calendar event of a leg show them. The calendar event shows the platform after the name of the place. The sources that give the planned platforms are bahn.de, NS International, ÖBB, SBB and Trainline. NS International gives no platform of a transfer. A leg with no value shows no platform, and a missing side shows "?".
+
+### Platforms of a transfer
+The transfer line of a connection shows the platforms of the transfer: "platform <arrival> → <departure>", for example "platform 4 → 5". When both legs use the same platform, the line shows "same platform". A transfer with one platform value shows no platform text. The trip page and the shared page show them.
+
+### Platform change of a booked leg
+
+A booked leg shows a warning when its platform differs from the platform you booked. "Platform changed: <booked> now <new>" shows at the departure, and "Arrival platform changed: <booked> now <new>" shows at the arrival. The warning shows on the Upcoming page, on the trip page and in the print of a journey (the print uses the Upcoming page). A leg with no booked platform, or with no current platform, shows no warning. A leg that is not booked shows no warning.
 
 ### Stops of a leg
 
-A leg with stops between its ends shows a closed list: "2 stops", for example. Opening the list shows each stop with its local time, its name, its platform and its note. The trip page and the Upcoming page show the list. A leg with no stops shows no list. The source for the stops is bahn.de only.
+A leg with stops between its ends shows a closed list: "2 stops", for example. Opening the list shows each stop with its local time, its name, its platform and its note. The trip page and the Upcoming page show the list. A leg with no stops shows no list. The sources for the stops are bahn.de, SNCF Connect and SBB. SNCF Connect and SBB give no times and no platforms of a stop, so their lists show only the names of the stops.
 
 ### Notices of a connection
 
-The expanded row of a fare shows the notices of the operator on a connection. A notice of a leg shows under that leg, and a notice of the whole connection shows under the legs. The Upcoming page shows the notices of a booked journey in the same way. The text of a notice is shown as plain text. The source for the notices is bahn.de only. A fare from another source shows no notice.
+The expanded row of a fare shows the notices of the operator on a connection. A notice of a leg shows under that leg, and a notice of the whole connection shows under the legs. The Upcoming page shows the notices of a booked journey in the same way. The text of a notice is shown as plain text. The sources for the notices are bahn.de and FlixBus. A notice from FlixBus is a notice of the whole ride, with the level "low". A fare from another source shows no notice.
 A notice with the level "high" also shows the mark "notice" on the collapsed row of the fare. The mark shows the first high notice as its tooltip. A row with only low notices shows no mark.
 
 ### Departure days
@@ -1742,6 +1752,8 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   removes the baggage part from the ranking, and a fare with an included bag gets no part too.
 A trip can also set the select **Checked bag** of the trip form. Its value **as the profile** uses the parts above. Its value **none (hand luggage only)** gives every flight fare of the trip the part `no checked bag (trip)` at €0, so no bag cost is added.
 
+A leg of a kiwi.com transfer where the bags must be collected and checked in again shows the text "collect the bags and check them in again at" and the place of the leg, in the expanded row of the fare. The **Advanced** section under the sliders has the field **Bag recheck € per transfer**, default `0`. Each such leg adds the part `bag recheck at` and the place of the leg, with this amount for each leg. A value of 0 removes the part. A trip with the **Checked bag** select set to "none (hand luggage only)" adds no part for the bag recheck fee.
+
 A trip can also set the checkbox **With a bicycle** of the trip form. Then the trip has these bicycle rules:
 
 - The filter **by bicycle** hides each fare with the mark "no bicycle". The trip page counts the hidden offers by bicycle,
@@ -1827,6 +1839,10 @@ The **Advanced** section has the field **Each work-seat hour €**. It is empty 
 ### Expected load markup
 
 The **Advanced** section has the fields **Expected load high €** and **Expected load very high €**. Both default to `0`, and a value of `0` adds no part. A leg with an expected load of level 2 (high) adds the value of **Expected load high €** for each leg. A leg with level 3 (very high) or level 4 (fully booked) adds the value of **Expected load very high €**. The level is the 1st class load for a 1st class fare, and the 2nd class load for any other fare. The parts are named `expected load high`, `expected load very high` and `expected load fully booked` in the breakdown. A leg with level 4 gives the part `expected load fully booked`, with the value of **Expected load very high €**. The expected load comes from bahn.de only.
+
+### High notice markup
+
+The **Advanced** section has the field **High notice €** (its label on the page is "Notice of the operator, high €"). It defaults to `0`, and a value of `0` adds no part. A connection with a high notice of the operator adds the value once for the connection, not once for each leg. Only a high notice counts: a notice with a low level adds no part. A high notice is a notice of the operator for a disruption, such as construction work or a replacement bus. The part is named `notice: <start>` in the breakdown, where `<start>` is the start of the text of the first high notice. The notices come from bahn.de and FlixBus. A FlixBus notice has the level "low", so it adds no part.
 
 ### Days off
 

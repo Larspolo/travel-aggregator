@@ -4,6 +4,7 @@ A capture is the `Trips` query {"url", "method", "request", "response"} with the
 connections in `prices`. One offer per trip and price of `tripPrices`. The amounts are in centimes. The times have the
 offset of the payload. The parser sends no request (P1)."""
 
+import re
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
@@ -11,13 +12,19 @@ from typing import Any
 from pydantic import ValidationError
 
 from app.parsers import ParseResult, count
-from app.schemas import LegIn, OfferIn, _short_reason
+from app.schemas import LegIn, OfferIn, StopIn, _short_reason
 
 BOOKING_URL = "https://www.sbb.ch/"
 MODES = {"TRAIN": "train", "BUS": "bus", "SHIP": "ferry"}  # TRAMWAY, CABLEWAY and the rest are "other"
 CLASSES = {"FIRST": ("first", "1st class"), "SECOND": ("standard", "2nd class")}
 FLEX = {"NON_FLEXIBLE": "Saver", "FULL_FLEXIBLE": "Flex"}
 CARDS = {"HALF_FARE": "Half Fare card", "GA": "GA travelcard"}
+
+
+def quay(point: dict) -> str | None:
+    """The planned platform of a departure or arrival (`quayFormatted`, #2733); a longer text is no platform."""
+    text = (point.get("quayFormatted") or "").strip()
+    return text if text and len(text) <= 10 else None
 
 
 def aware(value: str) -> datetime:
@@ -35,6 +42,21 @@ def service_no(product: dict) -> str | None:
     return product.get("name") or None
 
 
+def stops(journey: dict) -> list[StopIn] | None:
+    """The stops between the ends of a leg (#2732). A point with a 7-digit place id is a stop; another id (the
+    tunnel "Hauenstein-Basistunnel", id 175) is no stop. None when the payload gives no stop points."""
+    points = (journey or {}).get("stopPoints")
+    if points is None:
+        return None
+    out = []
+    for point in points[1:-1]:
+        place = point.get("place") or {}
+        code, name = str(place.get("id") or ""), (place.get("name") or "").strip()
+        if re.fullmatch(r"\d{7}", code) and name:
+            out.append(StopIn(name=name, code=code))
+    return out
+
+
 def discounts(passengers: Any) -> list[str] | None:
     """The card names of the `reductions` of the request (#1752); None when the request has no passengers list."""
     if not isinstance(passengers, list):
@@ -48,6 +70,12 @@ def discounts(passengers: Any) -> list[str] | None:
     return out
 
 
+def _cancelled(trip: dict) -> bool:
+    """True when sbb.ch shows the trip as cancelled or partly cancelled (#2757); no summary is not cancelled."""
+    status = (trip.get("summary") or {}).get("tripStatus") or {}
+    return status.get("cancelled") is True or status.get("partiallyCancelled") is True
+
+
 def variables(part: Any) -> dict:
     req = part.get("request") if isinstance(part, dict) else None
     body = req.get("body") if isinstance(req, dict) else None
@@ -58,7 +86,7 @@ def variables(part: Any) -> dict:
 
 class SbbParser:
     source = "sbb.ch"
-    version = "1.0.0"
+    version = "1.3.0"
     redact_keys: frozenset[str] = frozenset()
     url_keep: frozenset[str] = frozenset()
     # the userscript of sbb.ch gives the hook URL (#1776); no HAR entry is read before then
@@ -86,6 +114,9 @@ class SbbParser:
                              discounts=discounts(people))
         for i, trip in enumerate(trips):
             try:
+                if _cancelled(trip):  # #2757: a cancelled trip is no rejected offer
+                    result.cancelled.append(self._legs(trip))
+                    continue
                 if trip.get("id") not in by_id:
                     raise ValueError("no price")
                 result.offers.extend(self._offers(trip, by_id[trip["id"]]))
@@ -95,7 +126,8 @@ class SbbParser:
                 result.errors.append({"index": i, "reason": f"bad trip: {type(e).__name__} {e}"[:200]})
         return result
 
-    def _offers(self, trip: dict, price: dict) -> list[OfferIn]:
+    def _legs(self, trip: dict) -> list[LegIn]:
+        """The legs of a trip (a walk is no leg)."""
         legs = []
         for leg in trip["legs"]:
             if leg.get("__typename") != "PTRideLeg":
@@ -108,7 +140,14 @@ class SbbParser:
                 from_name=leg["start"]["name"], from_code=leg["start"].get("id"),
                 to_name=leg["end"]["name"], to_code=leg["end"].get("id"),
                 depart_at=aware(leg["departure"]["time"]), arrive_at=aware(leg["arrival"]["time"]),
+                stops=stops(leg.get("serviceJourney")),
+                from_platform=quay(leg["departure"]),  # planned platforms (#2733)
+                to_platform=quay(leg["arrival"]),
             ))
+        return legs
+
+    def _offers(self, trip: dict, price: dict) -> list[OfferIn]:
+        legs = self._legs(trip)
         # the trip id is about 1000 characters: the departure and the services identify the trip
         ext = "|".join([legs[0].depart_at.isoformat(), *(x.service_no or "" for x in legs)])[:200] if legs else None
         offers = []

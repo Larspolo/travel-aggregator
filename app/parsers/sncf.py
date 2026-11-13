@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 from pydantic import ValidationError
 
 from app.parsers import ParseResult
-from app.schemas import LegIn, OfferIn, _short_reason
+from app.schemas import LegIn, OfferIn, StopIn, _short_reason
 
 PARIS = ZoneInfo("Europe/Paris")
 TRAVEL_CLASSES = {"FIRST": "first", "SECOND": "standard"}
@@ -22,6 +22,7 @@ TRAVEL_CLASSES = {"FIRST": "first", "SECOND": "standard"}
 SERVICES = {"WIFI": "wifi"}
 BOOKING_URL = "https://www.sncf-connect.com/"
 PRICE = re.compile(r"^(\d{1,6})(?:,(\d{1,2}))?$")
+STATION = re.compile(r"RESARAIL_STA_(\d+)")
 
 
 def price(label: Any) -> Decimal:
@@ -46,9 +47,22 @@ def service_no(transporter: dict) -> str | None:
     return number or None
 
 
+def _stops(items: list) -> list[StopIn]:
+    """The stops between the ends of a leg (#2716); an item with no label is skipped. The code is the digits of
+    the RESARAIL_STA_ station id of labelComplement, else None."""
+    stops = []
+    for item in items or []:
+        loc = item.get("location") or {}
+        if not loc.get("label"):
+            continue
+        m = STATION.search(loc.get("labelComplement") or "")
+        stops.append(StopIn(name=loc["label"], code=m.group(1) if m else None))
+    return stops
+
+
 class SncfParser:
     source = "sncf-connect.com"
-    version = "1.1.0"
+    version = "1.2.0"
     # no personal key beyond PERSONAL_KEYS in the fixtures (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -112,6 +126,7 @@ class SncfParser:
                 arrive_at=arr,
                 services=list(dict.fromkeys(SERVICES[s["code"]] for s in train.get("onBoardServices") or []
                                             if s.get("code") in SERVICES)),
+                stops=_stops(train["stops"]) if "stops" in train else None,
             ))
         if not legs:
             raise ValueError("a proposal with no train step")

@@ -84,5 +84,5 @@ def test_the_migration_upgrades_and_downgrades_to_0068(empty_database_url):
         engine.dispose()
 
 
-def test_the_parser_version_is_1_5_0():
-    assert TrainlineParser.version == "1.5.0"
+def test_the_parser_version_is_1_7_0():
+    assert TrainlineParser.version == "1.7.0"
