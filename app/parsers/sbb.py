@@ -4,6 +4,7 @@ A capture is the `Trips` query {"url", "method", "request", "response"} with the
 connections in `prices`. One offer per trip and price of `tripPrices`. The amounts are in centimes. The times have the
 offset of the payload. The parser sends no request (P1)."""
 
+import re
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
@@ -11,7 +12,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from app.parsers import ParseResult, count
-from app.schemas import LegIn, OfferIn, _short_reason
+from app.schemas import LegIn, OfferIn, StopIn, _short_reason
 
 BOOKING_URL = "https://www.sbb.ch/"
 MODES = {"TRAIN": "train", "BUS": "bus", "SHIP": "ferry"}  # TRAMWAY, CABLEWAY and the rest are "other"
@@ -33,6 +34,21 @@ def service_no(product: dict) -> str | None:
     if kind and number:
         return f"{kind} {number}"
     return product.get("name") or None
+
+
+def stops(journey: dict) -> list[StopIn] | None:
+    """The stops between the ends of a leg (#2732). A point with a 7-digit place id is a stop; another id (the
+    tunnel "Hauenstein-Basistunnel", id 175) is no stop. None when the payload gives no stop points."""
+    points = (journey or {}).get("stopPoints")
+    if points is None:
+        return None
+    out = []
+    for point in points[1:-1]:
+        place = point.get("place") or {}
+        code, name = str(place.get("id") or ""), (place.get("name") or "").strip()
+        if re.fullmatch(r"\d{7}", code) and name:
+            out.append(StopIn(name=name, code=code))
+    return out
 
 
 def discounts(passengers: Any) -> list[str] | None:
@@ -58,7 +74,7 @@ def variables(part: Any) -> dict:
 
 class SbbParser:
     source = "sbb.ch"
-    version = "1.0.0"
+    version = "1.1.0"
     redact_keys: frozenset[str] = frozenset()
     url_keep: frozenset[str] = frozenset()
     # the userscript of sbb.ch gives the hook URL (#1776); no HAR entry is read before then
@@ -108,6 +124,7 @@ class SbbParser:
                 from_name=leg["start"]["name"], from_code=leg["start"].get("id"),
                 to_name=leg["end"]["name"], to_code=leg["end"].get("id"),
                 depart_at=aware(leg["departure"]["time"]), arrive_at=aware(leg["arrival"]["time"]),
+                stops=stops(leg.get("serviceJourney")),
             ))
         # the trip id is about 1000 characters: the departure and the services identify the trip
         ext = "|".join([legs[0].depart_at.isoformat(), *(x.service_no or "" for x in legs)])[:200] if legs else None
