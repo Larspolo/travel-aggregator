@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app import metrics
-from app.api import health, ingest, trips
+from app.api import health, ingest, token, trips
 from app.config import get_settings
 from app.schemas import MAX_BODY_BYTES, MAX_HAR_BYTES
 from app.web import booking_upload, calendar, event_trip, days_off, export, manual, pages, passes, pinned, reparse, settings_export, share, sources, spend, trip_import, trip_merge, upcoming, userscripts
@@ -47,6 +47,7 @@ async def limit_body(request: Request, call_next):
 app.include_router(health.router, prefix="/api")
 app.include_router(ingest.router, prefix="/api")
 app.include_router(trips.router, prefix="/api")
+app.include_router(token.router, prefix="/api")
 app.include_router(event_trip.router)  # before pages: /trips/{trip_id}
 app.include_router(trip_import.router)  # before pages: /trips/{trip_id} also matches /trips/import
 app.include_router(settings_export.router)  # before pages
