@@ -72,7 +72,7 @@ def _recheck(sector_segment: dict) -> bool | None:
 
 class KiwiParser:
     source = "kiwi.com"
-    version = "1.4.0"
+    version = "1.5.0"
     # no personal key beyond PERSONAL_KEYS in the fixtures (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -158,6 +158,10 @@ class KiwiParser:
         legs = self._legs(it)
         included, bag_price = _bags(it.get("bagsInfo"))
         offers, suffix = [], " return" if "outbound" in it else ""
+        hack = it.get("travelHack") if isinstance(it.get("travelHack"), dict) else {}
+        # #2793: a hidden-city ticket goes on after the stop; a throwaway ticket has a part that is not used
+        travel_hack = ("hidden-city" if hack.get("isTrueHiddenCity") is True
+                       else "throwaway" if hack.get("isThrowawayTicket") is True else None)
         for edge in it["bookingOptions"]["edges"]:
             node = edge["node"]
             offers.append(OfferIn(
@@ -168,5 +172,6 @@ class KiwiParser:
                 booking_url=BOOKING_BASE + node["bookingUrl"],
                 checked_bags_included=included,
                 checked_bag_price=bag_price,
+                travel_hack=travel_hack,
             ))
         return offers

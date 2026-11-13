@@ -111,6 +111,7 @@ class FareData(_Model):
     bike: Literal["allowed", "reservation", "no"] | None = None  # missing in an older export: None (#2477)
     compartment: str | None = Field(None, max_length=100)  # #2786
     part_price: bool = False  # missing in an older export: false (#2657)
+    travel_hack: Literal["hidden-city", "throwaway"] | None = None  # #2793
     prices: list[PriceData] = Field(default_factory=list)
 
 
@@ -271,7 +272,7 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                             self_transfers=_self_transfers(d.legs), latest_price=fd.latest_price,
                             currency=fd.currency, latest_captured_at=fd.latest_captured_at,
                             reservation_legs=fd.reservation_legs, bike=fd.bike, part_price=fd.part_price,
-                            compartment=fd.compartment)
+                            compartment=fd.compartment, travel_hack=fd.travel_hack)
                 it.fares.append(fare)
                 result.fares_added += 1
             else:
