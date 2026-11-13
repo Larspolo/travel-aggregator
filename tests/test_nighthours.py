@@ -48,6 +48,6 @@ def test_trip_page_shows_night_hours(trip):  # noqa: F811
     o = copy.deepcopy(offer("100.00", "NJ 40"))
     o["legs"] = [dict(o["legs"][0], depart_at="2026-12-20T21:00:00+01:00", arrive_at="2026-12-21T08:00:00+01:00")]
     ingest(client, auth, trip_id, [o])
-    page = client.get(f"/trips/{trip_id}").text
+    page = client.get("/profiles/new").text
     assert 'name="night_hour_markup"' in page and "night hours" not in page
     assert "night hours" in client.get(f"/trips/{trip_id}?night_hour_markup=5").text

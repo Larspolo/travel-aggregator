@@ -699,3 +699,4 @@ a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 #keys {
   max-width: min(28rem, calc(100vw - 2rem));
 }
+.profile-best a { text-decoration: underline; }  /* a link in a text line (axe link-in-text-block, #2831) */

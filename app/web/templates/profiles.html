@@ -1,7 +1,7 @@
 {% extends "settings_base.html" %}
 {% import "ui.html" as ui %}
 {% block title %}Profiles – travel-aggregator{% endblock %}
-{% block header %}{{ ui.page_header("Profiles", subtitle='The weights of the score. One profile is the default. Make a profile here, or save one on a trip page under "Advanced".') }}{% endblock %}
+{% block header %}{{ ui.page_header("Profiles", subtitle='The weights of the score. One profile is the default. Make a profile here.') }}{% endblock %}
 {% block settings %}
 {% if error %}<p role="alert" class="chip danger">{{ error }}</p>{% endif %}
 {% call ui.card("Profiles") %}

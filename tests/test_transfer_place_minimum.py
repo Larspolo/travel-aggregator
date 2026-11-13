@@ -52,7 +52,7 @@ def test_advanced_shows_and_the_profile_stores_the_minimum(trip, sessions):  # n
     assert 'name="transfer_place1_min"' in page and 'value="60"' in page
     data = {"csrf_token": csrf(client, trip_id), "trip_id": trip_id, "name": "P",
             "transfer_place1_name": "Paris CDG", "transfer_place1_min": "60"}
-    assert client.post("/profiles", data=data, follow_redirects=False).status_code == 303
+    assert client.post("/profiles/new", data=data, follow_redirects=False).status_code == 303
     with sessions() as s:
         loaded = from_config(s.query(ScoreProfile).one().config_json)
     assert loaded.transfer_place1_min == 60 and loaded.transfer_place2_min is None
@@ -62,7 +62,7 @@ def test_advanced_shows_and_the_profile_stores_the_minimum(trip, sessions):  # n
 def test_an_out_of_range_minimum_stores_nothing(trip, sessions, value):  # noqa: F811
     client, trip_id = trip
     data = {"csrf_token": csrf(client, trip_id), "trip_id": trip_id, "name": "P", "transfer_place3_min": value}
-    assert client.post("/profiles", data=data).status_code == 422
+    assert client.post("/profiles/new", data=data).status_code == 422
     assert client.get(f"/trips/{trip_id}?transfer_place3_min={value}").status_code == 422
     with sessions() as s:
         assert s.query(ScoreProfile).count() == 0

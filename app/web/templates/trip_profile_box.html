@@ -1,0 +1,8 @@
+{# The weights of the active profile (#2830); the weights are set on the profile page (#2831). #}
+{% if profiles %}{% set w = profile_box.weights %}
+<div class="profile-box" id="profile-box"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <p class="item-facts">€{{ profile_box.hour }}/h{% if profile_box.this_trip %} (this trip){% endif %}{% for after, markup in [(w.hour_tier1_after_min, w.hour_tier1_markup), (w.hour_tier2_after_min, w.hour_tier2_markup)]|sort if after > 0 %} · €{{ markup }}/h after {{ after // 60 }} h{% if after % 60 %} {{ after % 60 }} min{% endif %}{% endfor %} · €{{ w.transfer_markup }} per transfer</p>
+  {% if profile_box.other %}<p class="item-facts">{{ profile_box.other }} other settings</p>{% endif %}
+  <div class="actions">{% if profile_box.active_id %}<a class="btn" href="/profiles/{{ profile_box.active_id }}">Edit profile</a> {% endif %}<a class="btn" href="/profiles/new">New profile</a></div>
+</div>
+{% endif %}

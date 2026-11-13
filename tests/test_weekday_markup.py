@@ -36,11 +36,11 @@ def test_the_form_shows_and_saves_the_values(trip, sessions):  # noqa: F811
     client, auth, trip_id = trip
     ingest(client, auth, trip_id, [offer("100.00", "FR 1")])
     page = client.get(f"/trips/{trip_id}?weekday5_markup=15").text
-    assert 'name="weekday5_markup" min="-1000" max="1000" step="0.01" value="15"' in page and "Sunday markup" in page
+    assert "weekday5_markup=15" in page and "Sunday markup" in client.get("/profiles/new").text
     assert client.get(f"/trips/{trip_id}?weekday1_markup=5000").status_code == 422
     data = {"csrf_token": csrf(client, trip_id), "trip_id": trip_id, "name": "Days", "weekday5_markup": "15",
             "weekday7_markup": "-5.50"}
-    assert client.post("/profiles", data=data, follow_redirects=False).status_code == 303
+    assert client.post("/profiles/new", data=data, follow_redirects=False).status_code == 303
     with sessions() as s:
         w = from_config(s.query(ScoreProfile).one().config_json)
     assert (str(w.weekday5_markup), str(w.weekday7_markup), w.weekday1_markup) == ("15", "-5.50", Decimal("0"))

@@ -1,15 +1,17 @@
 """The phone check of #338 with touch, so that no person checks it: on a phone device the pages do not scroll
-sideways, a tap on a weight slider ranks the table again, each itinerary is a card that fits the box (#593), and a tap opens a row."""
+sideways, a tap on the profile dropdown ranks the table again (#2831), each itinerary is a card that fits the box (#593), and a tap opens a row."""
 
 import copy
 import os
 import socket
 import threading
 import time
+from decimal import Decimal
 
 import pytest
 import uvicorn
 
+from tests.profile_pick import add_profiles
 from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a fixture)
 
 pytestmark = pytest.mark.slow
@@ -28,6 +30,8 @@ def direct(price):
 @pytest.fixture
 def live(trip, sessions):  # noqa: F811
     client, auth, trip_id = trip
+    with sessions() as s:
+        add_profiles(s, "Direct", transfer_markup=Decimal("100"))
     ingest(client, auth, trip_id, [offer("80.00", "ICE 105", carrier="Carrier with a long name",
                                          fare="A long fare name"), direct("120.00")])
     with socket.socket() as s:
@@ -72,13 +76,12 @@ def test_the_trips_list_and_the_trip_page_work_with_touch_on_a_phone(live):
         # On a phone the weights are one closed <details> (#593): a tap opens it.
         page.locator(".panel-toggle > summary").tap()
         page.wait_for_function("document.querySelector('.panel-toggle').open", timeout=5000)
-        # A tap at the right end of the transfer slider sets a high markup: the direct offer ranks first.
-        slider = page.locator('input[type="range"][name="transfer_markup"]')
-        slider.scroll_into_view_if_needed()
-        box = slider.bounding_box()
+        # A tap on the profile dropdown and a profile with a high transfer markup: the direct offer ranks first.
+        select = page.locator('form.weights select[name="profile"]')
+        select.scroll_into_view_if_needed()
+        select.tap()
         with page.expect_response(lambda r: f"/trips/{tid}?" in r.url):
-            page.touchscreen.tap(box["x"] + box["width"] - 2, box["y"] + box["height"] / 2)
-        assert int(slider.input_value()) > 90
+            select.select_option(label="Direct")
         page.wait_for_function("document.querySelector('#table tbody td.carrier').innerText.includes('ICE 77')")
 
         # Each itinerary is a card (#593): the table box does not scroll sideways, and the page does not either.

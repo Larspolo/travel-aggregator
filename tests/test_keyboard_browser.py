@@ -42,21 +42,6 @@ def test_tab_enter_and_escape_on_a_menu(live, width, menu):  # noqa: F811
     assert focused, "the focus is not on the summary of the menu after Escape"
 
 
-def test_arrow_right_on_a_slider_reranks(live):  # noqa: F811
-    from playwright.sync_api import sync_playwright
-
-    with sync_playwright() as p:
-        browser, page = open_page(p, live, 1280)
-        slider = page.locator("input[type=range][name=hour_markup]")
-        before = slider.input_value()
-        slider.focus()
-        with page.expect_response(lambda r: "hour_markup=" in r.url):
-            page.keyboard.press("ArrowRight")
-        after = slider.input_value()
-        browser.close()
-    assert int(after) == int(before) + 1
-
-
 def test_enter_opens_the_row_detail(live):  # noqa: F811
     from playwright.sync_api import sync_playwright
 

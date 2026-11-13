@@ -49,7 +49,6 @@ def test_the_trip_page_shows_the_part_and_the_url_wins(trip, sessions):  # noqa:
     page = client.get(f"/trips/{trip_id}?carrier1_name=Deutsche%20Bahn&carrier1_loyalty_pct=5").text
     with_loyalty = re.findall(r'class="breakdown[^"]*">([^<]*)<', page)[0]
     assert "€-4 loyalty Deutsche Bahn" in with_loyalty
-    assert 'name="carrier1_loyalty_pct" min="0" max="50" step="0.1" value="5"' in page
     page0 = client.get(f"/trips/{trip_id}?carrier1_name=Deutsche%20Bahn").text
     without = re.findall(r'class="breakdown[^"]*">([^<]*)<', page0)[0]
     assert "loyalty" not in without
@@ -63,10 +62,10 @@ def test_the_profile_form_stores_the_values(trip, sessions):  # noqa: F811
     client, _, trip_id = trip
     base = {"csrf_token": csrf(client, trip_id), "trip_id": trip_id}
     for bad in ("51", "-1"):
-        assert client.post("/profiles", data={**base, "name": "Bad", "carrier2_loyalty_pct": bad}).status_code == 422
+        assert client.post("/profiles/new", data={**base, "name": "Bad", "carrier2_loyalty_pct": bad}).status_code == 422
     data = {**base, "name": "DB", "carrier1_loyalty_pct": "5", "carrier2_loyalty_pct": "2.5",
             "carrier3_loyalty_pct": "10"}
-    assert client.post("/profiles", data=data, follow_redirects=False).status_code == 303
+    assert client.post("/profiles/new", data=data, follow_redirects=False).status_code == 303
     with sessions() as s:
         w = from_config(s.scalars(select(ScoreProfile)).one().config_json)
     assert (w.carrier1_loyalty_pct, w.carrier2_loyalty_pct, w.carrier3_loyalty_pct) == (

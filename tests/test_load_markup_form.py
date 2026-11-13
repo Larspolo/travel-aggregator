@@ -10,7 +10,7 @@ from tests.test_trip_booked import trip  # noqa: F401 (fixture)
 
 def test_advanced_shows_both_load_fields_at_zero(trip):  # noqa: F811
     client, trip_id = trip
-    page = client.get(f"/trips/{trip_id}").text
+    page = client.get("/profiles/new").text
     assert "Expected load high €" in page
     assert "Expected load very high €" in page
     assert _value(page, "load_high_markup") == "0"

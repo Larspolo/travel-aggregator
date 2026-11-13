@@ -4,6 +4,7 @@ ranks above the cheaper itinerary with a night transfer in Köln, with no reload
 import socket
 import threading
 import time
+from decimal import Decimal
 
 import pytest
 import uvicorn
@@ -13,6 +14,7 @@ from app.auth import require_login
 from app.main import app
 from app.models import Trip
 from tests.browser_wait import wait_js
+from tests.profile_pick import add_profiles, pick
 from tests.test_a11y_browser import check, launch, serious
 from tests.test_trip_page import ingest
 
@@ -42,6 +44,7 @@ def live(sessions):
         t = Trip(title="Amsterdam – Zürich", origin_text="Amsterdam", destination_text="Zürich")
         s.add(t)
         s.commit()
+        add_profiles(s, "Hotel", overnight_cost=Decimal("80"))
         trip_id = t.id
     app.dependency_overrides[require_login] = lambda: None
     ingest(TestClient(app), {"Authorization": f"Bearer {token}"}, trip_id, [DIRECT, VIA])
@@ -73,9 +76,8 @@ def test_the_hotel_cost_puts_the_night_train_first(live, width):
         page.goto(live)
         page.wait_for_selector(ROWS)
         assert "ICE 128" in _first(page) and "overnight stop" not in page.inner_text("#rows")
-        page.evaluate("window.marker = 1; document.querySelectorAll('details.panel-toggle, details.advanced')"
-                      ".forEach(d => d.open = true)")
-        page.locator("form.weights input[name=overnight_cost]").fill("80")
+        page.evaluate("window.marker = 1")
+        pick(page, "Hotel")
         wait_js(page, f"document.querySelector('{ROWS}').innerText.includes('NJ 402')")
         assert page.evaluate("window.marker") == 1  # no reload
         via = page.locator(ROWS, has_text="ICE 128")
