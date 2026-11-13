@@ -572,7 +572,7 @@ A leg with stops between its ends shows a closed list: "2 stops", for example. O
 
 ### Notices of a connection
 
-The expanded row of a fare shows the notices of the operator on a connection. A notice of a leg shows under that leg, and a notice of the whole connection shows under the legs. The Upcoming page shows the notices of a booked journey in the same way. The text of a notice is shown as plain text. The sources for the notices are bahn.de and FlixBus. A notice from FlixBus is a notice of the whole ride, with the level "low". A fare from another source shows no notice.
+The expanded row of a fare shows the notices of the operator on a connection. A notice of a leg shows under that leg, and a notice of the whole connection shows under the legs. The Upcoming page shows the notices of a booked journey in the same way. The text of a notice is shown as plain text. The sources for the notices are bahn.de, FlixBus and Trainline. A notice from FlixBus is a notice of the whole ride, with the level "low". A Trainline notice names a leg that a replacement service runs, with the level "high". A fare from another source shows no notice.
 A notice with the level "high" also shows the mark "notice" on the collapsed row of the fare. The mark shows the first high notice as its tooltip. A row with only low notices shows no mark.
 
 ### Departure days
@@ -1842,7 +1842,7 @@ The **Advanced** section has the fields **Expected load high €** and **Expecte
 
 ### High notice markup
 
-The **Advanced** section has the field **High notice €** (its label on the page is "Notice of the operator, high €"). It defaults to `0`, and a value of `0` adds no part. A connection with a high notice of the operator adds the value once for the connection, not once for each leg. Only a high notice counts: a notice with a low level adds no part. A high notice is a notice of the operator for a disruption, such as construction work or a replacement bus. The part is named `notice: <start>` in the breakdown, where `<start>` is the start of the text of the first high notice. The notices come from bahn.de and FlixBus. A FlixBus notice has the level "low", so it adds no part.
+The **Advanced** section has the field **High notice €** (its label on the page is "Notice of the operator, high €"). It defaults to `0`, and a value of `0` adds no part. A connection with a high notice of the operator adds the value once for the connection, not once for each leg. Only a high notice counts: a notice with a low level adds no part. A high notice is a notice of the operator for a disruption, such as construction work or a replacement bus. The part is named `notice: <start>` in the breakdown, where `<start>` is the start of the text of the first high notice. The notices come from bahn.de, FlixBus and Trainline. A FlixBus notice has the level "low", so it adds no part. A Trainline notice of a replacement service has the level "high", so it adds the part once for the connection.
 
 ### Days off
 
