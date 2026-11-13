@@ -16,6 +16,7 @@ class Settings:
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""
+    smtp_starttls: bool = True
     smtp_password: str = ""
     smtp_from: str = ""
     # The new-issue form of the "Report on GitHub" link (#929): a fork reports to its own repository.
@@ -35,6 +36,7 @@ def get_settings() -> Settings:
         smtp_host=os.environ.get("SMTP_HOST", ""),
         smtp_port=int(os.environ.get("SMTP_PORT") or 587),
         smtp_user=os.environ.get("SMTP_USER", ""),
+        smtp_starttls=os.environ.get("SMTP_STARTTLS", "true").strip().lower() not in ("false", "0", "no"),
         smtp_password=os.environ.get("SMTP_PASSWORD", ""),
         smtp_from=os.environ.get("SMTP_FROM", ""),
         issues_url=os.environ.get("ISSUES_URL") or "https://github.com/Larspolo/travel-aggregator/issues/new",
