@@ -11,8 +11,8 @@ Basel SBB (`8500010`) → Zürich HB (`8503000`) for 1 adult; the prices are in 
 
 | File | Search | What it shows |
 |---|---|---|
-| `search-basel-zuerich-half-fare.json` | Wed 2026-11-11, after 07:25, Half Fare card (`reductions: ["HALF_FARE"]`) | 4 trips: 07:33 (IC 3 561), 07:36 (IR 36 2061), 07:43 (IR 37 2261), 07:43 (IR 37 2261, then IC 5 511: 1 transfer). Saver prices (`NON_FLEXIBLE`). |
-| `search-basel-zuerich.json` | Tue 2026-12-08, after 08:00, no card (`reductions: ["NONE"]`) | 5 trips: 08:07 (IC 3 763), 08:07 (IR 36 1963), 08:33 (IC 3 563), 08:43 (IR 37 2263), 08:43 (IR 37 2263, then IC 5 513). Flex prices (`FULL_FLEXIBLE`). |
+| `search-basel-zuerich-half-fare.json` | Wed 2026-11-11, after 07:25, Half Fare card (`reductions: ["HALF_FARE"]`) | 4 trips: 07:33 (IC 3 561), 07:36 (IR 36 2061), 07:43 (IR 37 2261), 07:43 (IR 37 2261, then IC 5 511: 1 transfer). Normal prices (`NON_FLEXIBLE`; the field is the reverse of its name, #2820). |
+| `search-basel-zuerich.json` | Tue 2026-12-08, after 08:00, no card (`reductions: ["NONE"]`) | 5 trips: 08:07 (IC 3 763), 08:07 (IR 36 1963), 08:33 (IC 3 563), 08:43 (IR 37 2263), 08:43 (IR 37 2263, then IC 5 513). Saver prices (`FULL_FLEXIBLE`, the "%" mark of sbb.ch, #2820). |
 
 Notes for the parser:
 

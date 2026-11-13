@@ -17,7 +17,9 @@ from app.schemas import LegIn, OfferIn, StopIn, _short_reason
 BOOKING_URL = "https://www.sbb.ch/"
 MODES = {"TRAIN": "train", "BUS": "bus", "SHIP": "ferry"}  # TRAMWAY, CABLEWAY and the rest are "other"
 CLASSES = {"FIRST": ("first", "1st class"), "SECOND": ("standard", "2nd class")}
-FLEX = {"NON_FLEXIBLE": "Saver", "FULL_FLEXIBLE": "Flex"}
+# The field is the reverse of its name (#2820): the HAR of #1776 has the normal price CHF 36.00 (2nd class, no card;
+# CHF 18.00 with the Half Fare card) as NON_FLEXIBLE and the cheaper "%" saver prices of sbb.ch as FULL_FLEXIBLE.
+FLEX = {"NON_FLEXIBLE": "Flex", "FULL_FLEXIBLE": "Saver"}
 CARDS = {"HALF_FARE": "Half Fare card", "GA": "GA travelcard"}
 
 
@@ -86,7 +88,7 @@ def variables(part: Any) -> dict:
 
 class SbbParser:
     source = "sbb.ch"
-    version = "1.3.0"
+    version = "1.4.0"
     redact_keys: frozenset[str] = frozenset()
     url_keep: frozenset[str] = frozenset()
     # the userscript of sbb.ch gives the hook URL (#1776); no HAR entry is read before then

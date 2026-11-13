@@ -47,7 +47,7 @@ def test_direct_ic_with_half_fare_prices():
     assert len(o.legs) == 1 and o.legs[0].service_no == "IC 561"
     assert (o.legs[0].from_name, o.legs[0].to_name) == ("Basel SBB", "Zürich HB")
     assert o.legs[0].arrive_at.strftime("%H:%M") == "08:26"
-    assert o.price_amount == Decimal("18.00") and o.fare_name == "Saver, 2nd class"
+    assert o.price_amount == Decimal("18.00") and o.fare_name == "Flex, 2nd class"
     assert offers["first"].price_amount == Decimal("31.00")
 
 
@@ -58,7 +58,7 @@ def test_transfer_and_no_card():
     assert [x.service_no for x in two[0].legs] == ["IR 2263", "IC 513"]
     assert two[0].legs[0].to_name == two[0].legs[1].from_name
     second = next(o for o in two if o.travel_class == "standard")
-    assert second.price_amount == Decimal("21.40") and second.fare_name == "Flex, 2nd class"
+    assert second.price_amount == Decimal("21.40") and second.fare_name == "Saver, 2nd class"
 
 
 def test_trip_with_no_price_is_rejected_and_others_stay():
