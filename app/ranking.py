@@ -91,6 +91,8 @@ class Weights:
     # booked (4); 0 disables each.
     load_high_markup: Decimal = Decimal("0")
     load_very_high_markup: Decimal = Decimal("0")
+    # The markup of an itinerary with a high notice of the operator (epic #2694); 0 disables it.
+    notice_markup: Decimal = Decimal("0")
     # The percent of the EUR price of a fare in another currency than EUR (#1993); 0 disables the part.
     currency_fee_pct: Decimal = Decimal("0")
     # The age in hours after which a row is stale (#275): a display flag only, not part of the cost.
