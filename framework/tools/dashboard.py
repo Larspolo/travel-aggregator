@@ -145,13 +145,28 @@ def names(text):
     return out - NO_OVERLAP
 
 
+MIGRATING = "migration*"     # a name in work(): a migration is in progress (names() never gives it, #2679)
+
+
+def migrates(issue):
+    """True when the ticket adds a migration: it names `migrations/HEAD` and is no process ticket (#2679). Two such
+    tickets at the same time conflicted in `migrations/HEAD`, `models.py`, `schemas.py` and `ingest.py` (4 of 100 PRs)."""
+    return "migrations/HEAD" in (issue.get("body") or "") and "process" not in labels(issue)
+
+
 def work(issues, pr_files):
     """The names that the work in progress touches (#487): what the claimed tickets (in-progress) name, and the
-    files of the open PRs. pr_files: {PR number: [file paths]}."""
+    files of the open PRs. pr_files: {PR number: [file paths]}. MIGRATING when a claimed ticket adds a migration or
+    an open PR with no `hold` changes `migrations/HEAD` (#2679)."""
     out = {f.rsplit("/", 1)[-1] for files in pr_files.values() for f in files}
+    held = {i["number"] for i in issues if "pull_request" in i and "hold" in labels(i)}
+    if any("migrations/HEAD" in files and n not in held for n, files in pr_files.items()):
+        out.add(MIGRATING)
     for i in issues:
         if "pull_request" not in i and "in-progress" in labels(i):
             out |= names(i.get("body"))
+            if migrates(i):
+                out.add(MIGRATING)
     return out
 
 
@@ -203,7 +218,8 @@ def candidates(issues, busy=frozenset(), now=None, lane=None, reserved=RESERVED,
     lane ("haiku"): only the tickets with `lane:haiku`. No lane (the Opus runs): the lane tickets come after all others,
     so an Opus run takes one only when nothing else is ready (#1715), and never one of a `reserved` lane (#1994).
     `reserved=()` counts all ready tickets (the pacer splits them into lanes itself). A task of a person whose last
-    comment is an agent comment waits for the person (person_waits, last: its last comment)."""
+    comment is an agent comment waits for the person (person_waits, last: its last comment). A ticket that adds a
+    migration waits while another migration is in progress (MIGRATING in busy, #2679)."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
     open_numbers = {i["number"] for i in issues}
     issues = [i for i in issues if "pull_request" not in i]
@@ -220,7 +236,8 @@ def candidates(issues, busy=frozenset(), now=None, lane=None, reserved=RESERVED,
     ready = [i for i in issues if not labels(i) & SKIP and not any(d in open_numbers for d in depends(i))
              and not i.get("title", "").startswith("Decide:") and not parked(i)
              and (LANE + lane in labels(i) if lane else not {LANE + r for r in reserved} & labels(i))
-             and not held(i, now, after) and not person_waits(i, last)]   # last: they read GitHub
+             and not held(i, now, after) and not (MIGRATING in busy and migrates(i))
+             and not person_waits(i, last)]   # last: they read GitHub
     return sorted(ready, key=rank)
 
 
