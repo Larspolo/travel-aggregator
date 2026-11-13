@@ -76,7 +76,7 @@ def test_amsterdam_berlin_gives_no_platform_on_any_leg():
 
 
 def test_parser_version_is_1_6_0():
-    assert TrainlineParser.version == "1.6.0"
+    assert TrainlineParser.version == "1.7.0"
 
 
 def _rows(page):
