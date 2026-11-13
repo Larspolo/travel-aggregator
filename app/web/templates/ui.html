@@ -57,3 +57,8 @@
 <span class="price-change {{ 'down' if fare.latest_price < old else 'up' }}" title="the price at the last view">{{ old | money(fare.currency) }} → {{ fare.latest_price | money(fare.currency) }}</span>
 {%- else -%}{{ fare.latest_price | money(fare.currency) }}{%- endif -%}
 {%- endmacro %}
+
+{# The platforms of a transfer: arrival platform of the leg before, departure platform of the next leg (#2740). #}
+{% macro transfer_platforms(arrive, depart) -%}
+{% if arrive and depart %}{% if arrive == depart %} · same platform{% else %} · platform {{ arrive }} → {{ depart }}{% endif %}{% endif %}
+{%- endmacro %}
