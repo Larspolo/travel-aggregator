@@ -89,6 +89,12 @@
     {% for p in profiles %}<option value="{{ p.id }}"{% if p.id == active_profile_id %} selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></label>
   <button type="submit">Use profile</button>
 </form>
+{% set w = profile_box.weights %}
+<div class="profile-box" id="profile-box">
+  <p class="item-facts">€{{ profile_box.hour }}/h{% if profile_box.this_trip %} (this trip){% endif %}{% for after, markup in [(w.hour_tier1_after_min, w.hour_tier1_markup), (w.hour_tier2_after_min, w.hour_tier2_markup)]|sort if after > 0 %} · €{{ markup }}/h after {{ after // 60 }} h{% if after % 60 %} {{ after % 60 }} min{% endif %}{% endfor %} · €{{ w.transfer_markup }} per transfer</p>
+  {% if profile_box.other %}<p class="item-facts">{{ profile_box.other }} other settings</p>{% endif %}
+  {% if profile_box.active_id %}<a class="btn" href="/profiles/{{ profile_box.active_id }}">Edit</a>{% endif %}
+</div>
 {% endif %}
 <form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-indicator="#table" hx-trigger="input changed delay:150ms, change"
       oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">

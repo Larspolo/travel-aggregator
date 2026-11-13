@@ -963,6 +963,20 @@ def trips_compare_page(request: Request, id: list[int] = Query([]),
                                        "format_total": format_total})
 
 
+def profile_box(trip: Trip, chosen, session: Session, active_id: int | None) -> dict:
+    """The values of the active profile for the box under the profile dropdown (#2830): the hour value of the trip
+    replaces the hour markup (#2423); `other` counts the settings that differ from the `Weights` defaults."""
+    profile = from_config(chosen.config_json) if chosen is not None else default_weights(session)
+    shown = {"hour_markup", "hour_tier1_after_min", "hour_tier1_markup", "hour_tier2_after_min", "hour_tier2_markup",
+             "transfer_markup"}
+    defaults = Weights()
+    other = sum(1 for f in dataclasses.fields(Weights)
+                if f.name not in shown and getattr(profile, f.name) != getattr(defaults, f.name))
+    return {"weights": profile, "this_trip": trip.hour_value is not None,
+            "hour": trip.hour_value if trip.hour_value is not None else profile.hour_markup,
+            "other": other, "active_id": active_id}
+
+
 @router.get("/trips/{trip_id}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 def trip_page(request: Request, trip_id: int, session: Session = Depends(get_session),
               overrides: dict = Depends(weight_query),
@@ -1170,6 +1184,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     context = {"joined": _joined_rows(session, trip_id), "trip": trip, "rows": rows, "weights": weights, "view": view, "sort_query": query, "sort_qs": urlencode(query, doseq=True), "format_breakdown": format_breakdown,
                "format_total": format_total, "bar_parts": bar_parts,
                "now": now, "stale_before": stale_before, "profiles": profiles, "active_profile_id": active_id,
+               "profile_box": profile_box(trip, chosen, session, active_id),
                "rates": rates, "tradeoff": tradeoff, "gone_fares": gone_marks, "suspect_fares": suspect,
                "co2": {it.id: kg for it, *_ in rows if (kg := co2_kg(it, weights)) > 0},  # #1418
                "co2_origin": {it.id: co2_origin(it) for it, *_ in rows},  # #2587
