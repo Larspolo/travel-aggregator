@@ -110,6 +110,10 @@ A run of the scheduled task cannot start other runs (#566). So the workflow `pac
 fires the cron of this repository only a few times per day. A red Pacer run shows a failed call (a wrong token: make
 a new API token and change the secret). The scheduled tasks have no schedule of their own. To stop all runs: add `paused` to the status issue.
 
+All your projects use one subscription. Each project plans with its share of the week (`week_share`), and the runs
+leave a part of the week to your own sessions (`week_reserve`) until 12 hours before the weekly reset. Both values
+are in `[pacing]` of `steering/system/system.toml`; the hub (`lars-his-projects/fleet`) gives the shares.
+
 ## CI and the merge
 
 The repository is public, so GitHub Actions minutes are free (#370). CI runs only the quick checks on each PR (lint
