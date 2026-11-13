@@ -559,6 +559,9 @@ The expanded row of a fare shows the expected load of each class of a leg: "expe
 
 A leg shows its planned platforms: "planned platform <departure> → <arrival>". The trip page, the Upcoming page and the calendar event of a leg show them. The calendar event shows the platform after the name of the place. The sources that give the planned platforms are bahn.de, NS International and ÖBB. NS International gives no platform of a transfer. A leg with no value shows no platform, and a missing side shows "?".
 
+### Platforms of a transfer
+The transfer line of a connection shows the platforms of the transfer: "platform <arrival> → <departure>", for example "platform 4 → 5". When both legs use the same platform, the line shows "same platform". A transfer with one platform value shows no platform text. The trip page and the shared page show them.
+
 ### Platform change of a booked leg
 
 A booked leg shows a warning when its platform differs from the platform you booked. "Platform changed: <booked> now <new>" shows at the departure, and "Arrival platform changed: <booked> now <new>" shows at the arrival. The warning shows on the Upcoming page, on the trip page and in the print of a journey (the print uses the Upcoming page). A leg with no booked platform, or with no current platform, shows no warning. A leg that is not booked shows no warning.
