@@ -137,7 +137,7 @@ def post(url: str, text: str, headers: dict[str, str]) -> None:
 
 
 def send_email(m: Message) -> None:
-    """The e-mail sender: SSL on port 465, else STARTTLS. The tests replace `smtplib.SMTP` with a double."""
+    """The e-mail sender: SSL on port 465, else STARTTLS (SMTP_STARTTLS=false: none, for a local relay, #525). The tests replace `smtplib.SMTP` with a double."""
     cfg = get_settings()
     mail = EmailMessage()
     mail["Subject"], mail["From"], mail["To"] = m.title, cfg.smtp_from or cfg.smtp_user, m.url
@@ -147,7 +147,7 @@ def send_email(m: Message) -> None:
     else:
         server = smtplib.SMTP(cfg.smtp_host, cfg.smtp_port, timeout=TIMEOUT_S * 2)
     with server:
-        if cfg.smtp_port != 465:
+        if cfg.smtp_port != 465 and cfg.smtp_starttls:
             server.starttls()
         if cfg.smtp_user:
             server.login(cfg.smtp_user, cfg.smtp_password)

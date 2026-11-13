@@ -46,6 +46,19 @@ services:
       # The updater installs the patch releases of PostgreSQL 16 (never a new major version).
       - com.centurylinklabs.watchtower.scope=travel-preview
 
+  # A self-hosted mail relay for the price-drop e-mail (#525): SMTP_HOST=mail in .env. Only on the default
+  # network and with no published port, so only the app can send through it. It delivers straight to the
+  # receiving server: the mail can go to the spam folder (the owner accepts that).
+  mail:
+    image: boky/postfix:latest
+    restart: unless-stopped
+    environment:
+      ALLOWED_SENDER_DOMAINS: ""
+      ALLOW_EMPTY_SENDER_DOMAINS: "true"
+      POSTFIX_myhostname: ${MAIL_DOMAIN:-travel-preview.larspolo.nl}
+    labels:
+      - com.centurylinklabs.watchtower.scope=travel-preview
+
   # Polls the registry every 5 minutes and restarts `app` on a new image. Scoped, so it and the global
   # watchtower leave each other's containers alone.
   updater:
