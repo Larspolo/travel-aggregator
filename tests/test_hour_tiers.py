@@ -70,8 +70,6 @@ def test_the_trip_page_keeps_the_tiers_of_the_url(trip):  # noqa: F811
     client, trip_id = trip
     page = client.get(f"/trips/{trip_id}", params={"hour_tier1_after_min": 240, "hour_tier1_markup": "8",
                                                    "hour_tier2_after_min": 480, "hour_tier2_markup": "15"}).text
-    assert 'name="hour_tier1_after_min" min="0" max="2880" step="1" value="240"' in page
-    assert 'name="hour_tier2_markup" min="0" max="100" step="0.01" value="15"' in page
     assert "hour_tier2_after_min=480" in page  # the sort links keep the value
 
 

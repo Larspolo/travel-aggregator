@@ -1,4 +1,4 @@
-"""The score profiles (#229): "Save as profile" on the trip page stores the weights, a load gives the same weights,
+"""The score profiles (#229): the profile page form (#2831) stores the weights, a load gives the same weights,
 and the migration 0008 upgrades and downgrades."""
 
 import dataclasses
@@ -62,11 +62,9 @@ def test_the_form_covers_each_weight():
 
 def test_a_save_stores_one_row_and_a_load_gives_the_same_weights(trip, sessions):  # noqa: F811
     client, trip_id = trip
-    page = client.get(f"/trips/{trip_id}").text
-    assert "Save as profile" in page and 'action="/profiles"' in page
     data = {"csrf_token": csrf(client, trip_id), "trip_id": trip_id, "name": "Comfort", **CHANGED}
-    r = client.post("/profiles", data=data, follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == f"/trips/{trip_id}"
+    r = client.post("/profiles/new", data=data, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/profiles"
     rows = _profiles(sessions)
     assert [n for n, _ in rows] == ["Comfort"]
     loaded = from_config(rows[0][1])
@@ -74,32 +72,33 @@ def test_a_save_stores_one_row_and_a_load_gives_the_same_weights(trip, sessions)
         assert getattr(loaded, f.name) == _expected(f.name, CHANGED[f.name]), f.name
 
 
-def test_a_second_save_with_the_same_name_replaces_the_config(trip, sessions):  # noqa: F811
+def test_a_second_save_with_the_same_name_is_rejected(trip, sessions):  # noqa: F811
     client, trip_id = trip
     token = csrf(client, trip_id)
-    client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "Comfort", **CHANGED})
-    client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "Comfort", "hour_markup": "30"})
+    client.post("/profiles/new", data={"csrf_token": token, "trip_id": trip_id, "name": "Comfort", **CHANGED})
+    r = client.post("/profiles/new", data={"csrf_token": token, "name": "Comfort", "hour_markup": "30"})
+    assert r.status_code == 422
     rows = _profiles(sessions)
     assert len(rows) == 1
-    assert from_config(rows[0][1]) == Weights(hour_markup=Decimal("30"))
+    assert from_config(rows[0][1]).hour_markup != Decimal("30")
 
 
 def test_the_bike_fee_saves_and_a_value_over_1000_is_rejected(trip, sessions):  # noqa: F811
     client, trip_id = trip
     token = csrf(client, trip_id)
-    r = client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "Bike", "bike_fee": "9"},
+    r = client.post("/profiles/new", data={"csrf_token": token, "trip_id": trip_id, "name": "Bike", "bike_fee": "9"},
                     follow_redirects=False)
     assert r.status_code == 303
     assert from_config(_profiles(sessions)[0][1]).bike_fee == Decimal("9")
-    r = client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "Over", "bike_fee": "1001"})
+    r = client.post("/profiles/new", data={"csrf_token": token, "trip_id": trip_id, "name": "Over", "bike_fee": "1001"})
     assert r.status_code == 422
 
 
 def test_a_save_without_the_csrf_token_or_out_of_range_stores_nothing(trip, sessions):  # noqa: F811
     client, trip_id = trip
     token = csrf(client, trip_id)
-    assert client.post("/profiles", data={"trip_id": trip_id, "name": "X"}).status_code == 403
-    r = client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "X", "hour_markup": "101"})
+    assert client.post("/profiles/new", data={"trip_id": trip_id, "name": "X"}).status_code == 403
+    r = client.post("/profiles/new", data={"csrf_token": token, "trip_id": trip_id, "name": "X", "hour_markup": "101"})
     assert r.status_code == 422
     assert _profiles(sessions) == []
 

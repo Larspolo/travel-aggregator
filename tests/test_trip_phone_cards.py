@@ -21,7 +21,7 @@ def test_a_phone_shows_cards_and_a_tap_opens_the_details(live):  # noqa: F811
         width = page.viewport_size["width"]
         assert page.evaluate("document.documentElement.scrollWidth") <= width
         assert not page.locator(".panel-toggle").evaluate("e => e.open")
-        assert not page.locator("form.weights input[name=hour_markup]").is_visible()
+        assert not page.locator("form.weights input[name=max_transfers]").is_visible()
         assert not page.locator("#table thead").is_visible()
         card = page.locator(CARD).first
         assert card.evaluate("e => getComputedStyle(e).display") == "grid"
@@ -37,7 +37,7 @@ def test_a_phone_shows_cards_and_a_tap_opens_the_details(live):  # noqa: F811
 
         desk = browser.new_page(viewport={"width": 1280, "height": 800})
         desk.goto(f"{base}/trips/{tid}")
-        assert desk.locator("form.weights input[name=hour_markup]").is_visible()
+        assert desk.locator("form.weights input[name=max_transfers]").is_visible()
         assert not desk.locator(".panel-toggle > summary").is_visible()
         assert desk.locator("#table thead").is_visible()
         assert desk.locator(CARD).first.evaluate("e => getComputedStyle(e).display") == "table-row"

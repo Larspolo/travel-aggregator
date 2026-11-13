@@ -1,9 +1,10 @@
-"""The CO₂ cost on the trip page in the browser (#1419): a CO₂ price of €0.10 per kg puts a train of 6 h above a
+"""The CO₂ cost on the trip page in the browser (#1419): a profile with a CO₂ price of €0.10 per kg puts a train of 6 h above a
 cheaper flight of 2 h, with no reload, at 1280 and 390 px."""
 
 import socket
 import threading
 import time
+from decimal import Decimal
 
 import pytest
 import uvicorn
@@ -13,6 +14,7 @@ from app.auth import require_login
 from app.main import app
 from app.models import Trip
 from tests.browser_wait import wait_js
+from tests.profile_pick import add_profiles, pick
 from tests.test_a11y_browser import check, launch, serious
 from tests.test_trip_page import ingest
 
@@ -39,6 +41,7 @@ def live(sessions):
         s.add(t)
         s.commit()
         trip_id = t.id
+        add_profiles(s, "Green", co2_price_kg=Decimal("0.10"))
     app.dependency_overrides[require_login] = lambda: None
     ingest(TestClient(app), {"Authorization": f"Bearer {token}"}, trip_id, [FLIGHT, TRAIN])
     with socket.socket() as s:
@@ -69,9 +72,8 @@ def test_the_co2_price_puts_the_train_first(live, width):
         page.goto(live)
         page.wait_for_selector(ROWS)
         assert "KL 1975" in _first(page)
-        page.evaluate("window.marker = 1; document.querySelectorAll('details.panel-toggle, details.advanced')"
-                      ".forEach(d => d.open = true)")
-        page.locator("form.weights input[name=co2_price_kg]").fill("0.10")
+        page.evaluate("window.marker = 1")
+        pick(page, "Green")
         wait_js(page, f"document.querySelector('{ROWS}').innerText.includes('ICE 105')")
         assert page.evaluate("window.marker") == 1  # no reload
         page.evaluate("document.querySelectorAll('#rows details').forEach(d => d.open = true)")

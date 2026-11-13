@@ -1,4 +1,4 @@
-"""The hour values per mode in "Advanced" (#1568): the trip page, the live re-ranking and "Save as profile"."""
+"""The hour values per mode in "Advanced" (#1568): the profile page and the URL weights of the trip page (#2831)."""
 
 import re
 
@@ -14,7 +14,7 @@ def _value(page, name):
 
 def test_advanced_shows_four_empty_fields_with_a_placeholder(trip):  # noqa: F811
     client, trip_id = trip
-    page = client.get(f"/trips/{trip_id}").text
+    page = client.get("/profiles/new").text
     for label in ("Train hour €", "Bus hour €", "Flight hour €", "Ferry hour €"):
         assert label in page
     for name in FIELDS:
@@ -41,12 +41,12 @@ def test_save_as_profile_keeps_the_values_and_rejects_150_and_minus_1(trip, sess
     client, trip_id = trip
     token = csrf(client, trip_id)
     for bad in ("150", "-1"):
-        r = client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "X",
+        r = client.post("/profiles/new", data={"csrf_token": token, "trip_id": trip_id, "name": "X",
                                            "flight_hour_markup": bad})
         assert r.status_code == 422
     with sessions() as s:
         assert s.query(ScoreProfile).count() == 0
-    client.post("/profiles", data={"csrf_token": token, "trip_id": trip_id, "name": "Fast",
+    client.post("/profiles/new", data={"csrf_token": token, "trip_id": trip_id, "name": "Fast",
                                    "train_hour_markup": "5", "ferry_hour_markup": ""})
     with sessions() as s:
         p = s.query(ScoreProfile).one()

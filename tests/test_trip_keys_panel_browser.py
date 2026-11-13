@@ -55,7 +55,7 @@ def test_question_mark_in_a_form_field_opens_no_panel(server, sessions):  # noqa
         page = browser.new_page(viewport={"width": 1280, "height": 900})
         page.goto(f"{base}/trips/{trip_id}")
         page.wait_for_selector(ROWS)
-        page.focus("input[name=hour_markup]")
+        page.focus("input[name=via]")
         page.keyboard.press("?")
         assert page.evaluate(OPEN) is False
         browser.close()

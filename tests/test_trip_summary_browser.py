@@ -5,6 +5,7 @@ import copy
 import socket
 import threading
 import time
+from decimal import Decimal
 
 import pytest
 import uvicorn
@@ -14,6 +15,7 @@ from app.auth import require_login
 from app.main import app
 from app.models import Trip
 from tests.browser_wait import wait_js
+from tests.profile_pick import add_profiles, pick
 from tests.test_a11y_browser import launch
 from tests.test_mode_hours_browser import FLIGHT, TRAIN
 from tests.test_trip_page import ingest
@@ -40,6 +42,7 @@ def live(sessions):
         s.add(t)
         s.commit()
         trip_id = t.id
+        add_profiles(s, "Hours", base={"hour_markup": Decimal("0")}, hour_markup=Decimal("20"))
     app.dependency_overrides[require_login] = lambda: None
     ingest(TestClient(app), {"Authorization": f"Bearer {token}"}, trip_id,
            [FLIGHT, CHEAP_TRAIN, SECOND_TRAIN, THIRD_TRAIN])
@@ -51,7 +54,7 @@ def live(sessions):
     thread.start()
     while not server.started:
         time.sleep(0.05)
-    yield f"http://127.0.0.1:{port}/trips/{trip_id}?hour_markup=0"
+    yield f"http://127.0.0.1:{port}/trips/{trip_id}"  # the default profile "Base" has €0/h
     server.should_exit = True
     thread.join(5)
     app.dependency_overrides.pop(require_login, None)
@@ -116,9 +119,8 @@ def test_a_change_of_the_hour_markup_changes_the_copied_text(live):
         page = context.new_page()
         page.goto(live)
         assert "€40.00" in page.evaluate(f"{BOX}.value.split('\\n')[0]") # the cheap train first at 0 per hour
-        page.evaluate("window.marker = 1; document.querySelectorAll('details.panel-toggle, details.advanced')"
-                      ".forEach(d => d.open = true)")
-        page.locator("form.weights input[name=hour_markup]").fill("20")
+        page.evaluate("window.marker = 1")
+        pick(page, "Hours")  # a profile with €20/h (#2831)
         wait_js(page, f"{BOX}.value.split('\\n')[0].includes('€60.00')")  # the flight of 2 h is best now
         page.get_by_role("button", name="Copy summary").click()
         assert wait_js(page, "navigator.clipboard.readText()").split("\n")[0].startswith(

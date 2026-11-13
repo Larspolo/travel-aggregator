@@ -8,7 +8,7 @@ from tests.test_trip_booked import trip  # noqa: F401 (fixture)
 
 def test_advanced_shows_the_later_transfer_field_empty(trip):  # noqa: F811
     client, trip_id = trip
-    page = client.get(f"/trips/{trip_id}").text
+    page = client.get("/profiles/new").text
     assert "Each later transfer €" in page
     assert _value(page, "later_transfer_markup") == ""
 

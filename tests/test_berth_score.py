@@ -59,7 +59,7 @@ def test_a_saved_profile_keeps_the_values_and_an_empty_field_gives_none(trip, se
     client, _, trip_id = trip
     data = {"csrf_token": csrf(client, trip_id), "trip_id": trip_id, "name": "Berths",
             "night_couchette_adjust": "-40", "night_seat_adjust": "0", "night_sleeper_adjust": ""}
-    assert client.post("/profiles", data=data, follow_redirects=False).status_code == 303
+    assert client.post("/profiles/new", data=data, follow_redirects=False).status_code == 303
     loaded = from_config(_profiles(sessions)[0][1])
     assert (loaded.night_couchette_adjust, loaded.night_seat_adjust, loaded.night_sleeper_adjust) == (
         Decimal("-40"), Decimal("0"), None)

@@ -82,29 +82,14 @@
 {% endif %}
 {% if rows or view.mode or view.source or view.exclude_mode or view.exclude_carrier or view.hide_stale or view.pareto_only or view.max_transfers is not none or view.max_duration_min is not none or view.earliest_depart or view.latest_arrive %}
 <div class="trip-layout">
-<aside class="panel card" tabindex="0" aria-label="Weights and filters"><details class="panel-toggle"><summary>Weights and filters</summary>
-{% if profiles %}
-<form class="profile" method="get" action="/trips/{{ trip.id }}">
-  <label>Profile <select name="profile">
-    {% for p in profiles %}<option value="{{ p.id }}"{% if p.id == active_profile_id %} selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></label>
-  <button type="submit">Use profile</button>
-</form>
-{% set w = profile_box.weights %}
-<div class="profile-box" id="profile-box">
-  <p class="item-facts">€{{ profile_box.hour }}/h{% if profile_box.this_trip %} (this trip){% endif %}{% for after, markup in [(w.hour_tier1_after_min, w.hour_tier1_markup), (w.hour_tier2_after_min, w.hour_tier2_markup)]|sort if after > 0 %} · €{{ markup }}/h after {{ after // 60 }} h{% if after % 60 %} {{ after % 60 }} min{% endif %}{% endfor %} · €{{ w.transfer_markup }} per transfer</p>
-  {% if profile_box.other %}<p class="item-facts">{{ profile_box.other }} other settings</p>{% endif %}
-  {% if profile_box.active_id %}<a class="btn" href="/profiles/{{ profile_box.active_id }}">Edit</a>{% endif %}
-</div>
-{% endif %}
-<form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-indicator="#table" hx-trigger="input changed delay:150ms, change"
-      oninput="hour_value.value = hour_markup.value; transfer_value.value = transfer_markup.value">
-  {% if sort_query.profile %}<input type="hidden" name="profile" value="{{ sort_query.profile }}">{% endif %}
-  {% if view.route %}<input type="hidden" name="route" value="{{ view.route }}">{% endif %}{# the route filter stays on a weight change (#2241) #}
+<aside class="panel card" tabindex="0" aria-label="Profile and filters"><details class="panel-toggle"><summary>Profile and filters</summary>
+<form class="weights" hx-get="/trips/{{ trip.id }}" hx-target="#table" hx-indicator="#table" hx-trigger="input changed delay:150ms, change">
+  {% if profiles %}<label class="field">Profile <select name="profile">
+    {% for p in profiles %}<option value="{{ p.id }}"{% if p.id == active_profile_id %} selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></label>{% endif %}
+  {% if view.route %}<input type="hidden" name="route" value="{{ view.route }}">{% endif %}{# the route filter stays on a filter change (#2241) #}
   {% if view.change_line %}<input type="hidden" name="capture" value="{{ sort_query.capture }}"><input type="hidden" name="change" value="{{ sort_query.change }}">{% endif %}
-  <label class="slider"><span>Hour markup €</span><output name="hour_value">{{ weights.hour_markup }}</output>
-    <input type="range" name="hour_markup" min="0" max="100" step="1" value="{{ weights.hour_markup }}"></label>
-  <label class="slider"><span>Transfer markup €</span><output name="transfer_value">{{ weights.transfer_markup }}</output>
-    <input type="range" name="transfer_markup" min="0" max="100" step="1" value="{{ weights.transfer_markup }}"></label>
+  {% for k in ["hour_markup", "transfer_markup"] if request.query_params.get(k) %}<input type="hidden" name="{{ k }}" value="{{ request.query_params.get(k) }}">{% endfor %}{# a URL weight stays on a filter change (#2831) #}
+  {% include "trip_profile_box.html" %}
   <details class="filters" open><summary>Filters</summary>
     <label><input type="checkbox" name="show_hidden" value="true"{% if view.show_hidden %} checked{% endif %}> show hidden</label>
     <label><input type="checkbox" name="show_departed" value="true"{% if view.show_departed %} checked{% endif %}> show departed</label>
@@ -127,18 +112,6 @@
       {% for c in view.carriers %}<label><input type="checkbox" name="exclude_carrier" value="{{ c }}"{% if c in view.exclude_carrier %} checked{% endif %}> {{ c }}</label>{% endfor %}
     </details>
   </details>
-  <details class="advanced"><summary>Advanced</summary>
-    {% include "weights_advanced.html" %}
-    <fieldset><legend>Profile</legend>
-      <label>Profile name <input type="text" name="name" form="save-profile" required maxlength="100"></label>
-      <button type="submit" form="save-profile">Save as profile</button>
-    </fieldset>
-  </details>
-</form>
-<form id="save-profile" method="post" action="/profiles"
-      onformdata="for (const [k, v] of new FormData(document.querySelector('form.weights'))) event.formData.set(k, v)">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-  <input type="hidden" name="trip_id" value="{{ trip.id }}">
 </form>
 </details></aside>
 <div class="results">

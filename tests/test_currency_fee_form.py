@@ -39,7 +39,7 @@ def test_a_chf_fare_shows_the_currency_fee_in_its_breakdown(trip, sessions):  # 
 def test_a_saved_profile_loads_the_currency_fee(trip, sessions):  # noqa: F811
     client, _, trip_id = trip
     data = {"csrf_token": csrf(client, trip_id), "trip_id": trip_id, "name": "Abroad", "currency_fee_pct": "2"}
-    r = client.post("/profiles", data=data, follow_redirects=False)
+    r = client.post("/profiles/new", data=data, follow_redirects=False)
     assert r.status_code == 303
     with sessions() as s:
         assert from_config(s.query(ScoreProfile).one().config_json).currency_fee_pct == Decimal("2")
@@ -53,6 +53,6 @@ def test_a_value_above_10_is_rejected_on_the_trip_page(trip, sessions):  # noqa:
 def test_a_value_above_10_is_rejected_on_save(trip, sessions):  # noqa: F811
     client, _, trip_id = trip
     data = {"csrf_token": csrf(client, trip_id), "trip_id": trip_id, "name": "Abroad", "currency_fee_pct": "11"}
-    assert client.post("/profiles", data=data, follow_redirects=False).status_code == 422
+    assert client.post("/profiles/new", data=data, follow_redirects=False).status_code == 422
     with sessions() as s:
         assert s.query(ScoreProfile).count() == 0

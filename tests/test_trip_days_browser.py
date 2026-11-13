@@ -1,5 +1,5 @@
 """The departure days of a trip work end to end in the browser (#712): the strip shows each day with its best effective
-cost, a click on a day filters the table to its offers, a slider keeps that filter, "All days" shows all rows again,
+cost, a click on a day filters the table to its offers, a profile change keeps that filter, "All days" shows all rows again,
 and a tap on a phone filters too (#709, #710, #711)."""
 
 import copy
@@ -9,6 +9,7 @@ import socket
 import threading
 import time
 from datetime import date
+from decimal import Decimal
 
 import pytest
 import uvicorn
@@ -17,6 +18,7 @@ from app import tokens
 from app.auth import require_login
 from app.main import app
 from app.models import Trip
+from tests.profile_pick import add_profiles, pick
 from tests.test_trip_page import ingest, offer
 
 pytestmark = pytest.mark.slow
@@ -46,6 +48,13 @@ def days_trip(sessions):
     app.dependency_overrides[require_login] = lambda: None
     yield trip_id
     app.dependency_overrides.pop(require_login, None)
+
+
+@pytest.fixture
+def slow_profile(sessions):
+    """A default profile and a profile "Slow" with €50/h (#2831)."""
+    with sessions() as s:
+        add_profiles(s, "Slow", hour_markup=Decimal("50"))
 
 
 @pytest.fixture
@@ -82,7 +91,7 @@ def number(text):
     return float(re.search(r"\d+(?:\.\d+)?", text.replace(",", "")).group(0))
 
 
-def test_the_departure_days_filter_the_table_end_to_end(live):
+def test_the_departure_days_filter_the_table_end_to_end(slow_profile, live):
     from playwright.sync_api import sync_playwright
 
     exe = "/opt/pw-browsers/chromium"
@@ -109,10 +118,9 @@ def test_the_departure_days_filter_the_table_end_to_end(live):
         assert page.locator(ROWS, has_text="ICE 301").count() == 1
         assert page.locator(ROWS, has_text="ICE 302").count() == 1
 
-        # a slider change keeps the day filter
-        slider = page.locator("form.weights input[type=range][name=hour_markup]")
-        with page.expect_response(lambda r: "hour_markup=50" in r.url and "day=2026-12-19" in r.url):
-            slider.evaluate("el => { el.value = '50'; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+        # a profile change keeps the day filter (#2831)
+        with page.expect_response(lambda r: "profile=" in r.url and "day=2026-12-19" in r.url):
+            pick(page, "Slow")
         page.wait_for_function(f"document.querySelectorAll(\"{ROWS}\").length === 2")
         assert page.locator(ROWS).count() == 2
 

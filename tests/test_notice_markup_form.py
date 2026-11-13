@@ -10,7 +10,7 @@ from tests.test_trip_booked import trip  # noqa: F401 (fixture)
 
 def test_advanced_shows_the_notice_field_at_zero(trip):  # noqa: F811
     client, trip_id = trip
-    page = client.get(f"/trips/{trip_id}").text
+    page = client.get("/profiles/new").text
     assert "Notice of the operator, high €" in page
     assert _value(page, "notice_markup") == "0"
 

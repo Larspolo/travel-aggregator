@@ -36,7 +36,7 @@ def test_the_default_profile_ranks_and_a_url_weight_wins(trip, sessions):  # noq
     ingest(client, auth, trip_id, [offer("89.90"), direct("150.00")])
     page = client.get(f"/trips/{trip_id}").text
     assert "€150 price + €200 time = €350" in page and _first_is_direct(page)  # 240 min × 50/60
-    assert 'name="hour_markup" min="0" max="100" step="1" value="50"' in page
+    assert "€50/h" in page  # the profile box (#2830)
     page = client.get(f"/trips/{trip_id}?hour_markup=0").text
     assert "= €99.90" in page and not _first_is_direct(page)  # 89.90 + 1 transfer × 10
 

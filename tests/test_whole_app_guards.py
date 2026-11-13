@@ -23,7 +23,7 @@ def test_a_new_route_runs_the_route_list_test():
 
 def test_a_trip_template_runs_the_form_and_the_checklist_tests():
     got = _selected(["app/web/templates/trip.html"])
-    assert {"tests/test_trip_weights_panel.py", "tests/test_page_checklist.py"} <= got
+    assert {"tests/test_trip_profile_only.py", "tests/test_page_checklist.py"} <= got
 
 
 def test_a_style_sheet_runs_the_checklist_test():

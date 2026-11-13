@@ -10,7 +10,7 @@ from tests.test_trip_booked import trip  # noqa: F401 (fixture)
 
 def test_advanced_shows_the_work_seat_field_empty(trip):  # noqa: F811
     client, trip_id = trip
-    page = client.get(f"/trips/{trip_id}").text
+    page = client.get("/profiles/new").text
     assert "Each work-seat hour €" in page
     assert _value(page, "work_seat_hour_markup") == ""
 

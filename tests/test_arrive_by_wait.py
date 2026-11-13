@@ -61,7 +61,6 @@ def test_the_trip_page_reranks_and_shows_the_line(setup, sessions):  # noqa: F81
         page = c.get(f"/trips/{trip_id}?hour_markup=0&transfer_markup=0&wait_hour_markup=5").text
         assert page.index("ICE 9") < page.index("ICE 1")
         assert "wait 3 h 30 min before 14:00" in page and "17.50" in page
-        assert re.search(r'Wait before the arrival time, € per hour\s*<input[^>]*name="wait_hour_markup"[^>]*value="5"', page)
         assert c.get(f"/trips/{trip_id}?wait_hour_markup=-1").status_code == 422
     finally:
         app.dependency_overrides.pop(require_login, None)

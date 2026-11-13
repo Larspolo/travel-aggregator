@@ -20,10 +20,10 @@ code, stop at a block, a login or a CAPTCHA.
 
 ## P2. Simple first in the ranking
 
-A few controls that work at once win over all controls at the same time. Price, hour and transfer weights are always
-visible; each extra (night, door-to-door, risk, flexibility, staleness) has a working default and sits in an
-"Advanced" panel. The breakdown always shows each part of the score. Example: a new extra adds one line to the
-breakdown and one control in "Advanced", not a new column in the table.
+A few controls that work at once win over all controls at the same time. The price, hour and transfer weights are always
+visible in the profile box of the trip page (#2830) and set on the profile page; each extra (night, door-to-door,
+risk, flexibility, staleness) has a working default and sits under "Advanced" of the profile page (owner, #2818). The breakdown always shows each part of the score. Example: a new extra adds one line to the
+breakdown and one control in "Advanced" of the profile page, not a new column in the table.
 
 ## P3. Robust sources first
 
