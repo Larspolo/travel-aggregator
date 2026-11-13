@@ -58,6 +58,11 @@
 {%- else -%}{{ fare.latest_price | money(fare.currency) }}{%- endif -%}
 {%- endmacro %}
 
+{# The platforms of a transfer: arrival platform of the leg before, departure platform of the next leg (#2740). #}
+{% macro transfer_platforms(arrive, depart) -%}
+{% if arrive and depart %}{% if arrive == depart %} · same platform{% else %} · platform {{ arrive }} → {{ depart }}{% endif %}{% endif %}
+{%- endmacro %}
+
 {# A platform change of a booked leg (#2684): the booked platform is not the stored platform. #}
 {% macro platform_change(leg) -%}
 {%- if leg.booked_from_platform and leg.from_platform and leg.booked_from_platform != leg.from_platform %} <span class="chip warn platform-change">Platform changed: {{ leg.booked_from_platform }} now {{ leg.from_platform }}</span>{% endif -%}
