@@ -208,6 +208,7 @@ class Fare(Base):
     seats_left: Mapped[int | None] = mapped_column(Integer)  # #1823: seats left at the newest capture
     bike: Mapped[str | None] = mapped_column(String(12))  # #2457: bicycle transport at the newest capture
     compartment: Mapped[str | None] = mapped_column(String(100))  # #2786: Nightjet compartment, newest capture
+    compartment_info: Mapped[str | None] = mapped_column(Text)  # #2787: its info texts, one per line, newest capture
     travel_hack: Mapped[str | None] = mapped_column(String(12))  # #2793: hidden-city or throwaway, newest capture
     part_price: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # #2655: newest capture
     checked_bag_price: Mapped[Decimal | None] = mapped_column(Money)  # the first checked bag, in `currency`

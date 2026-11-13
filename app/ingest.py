@@ -45,6 +45,13 @@ def fingerprint(legs: list[LegIn]) -> str:
     return hashlib.sha256(("journey\n" + "\n".join(parts)).encode()).hexdigest()
 
 
+def _info_text(texts: list[str] | None) -> str | None:
+    """The info texts of a compartment (#2787), one per line; None for none. A line break inside a text becomes a
+    space, so that each line is one text."""
+    lines = [" ".join(t.split()) for t in texts or [] if t.strip()]
+    return "\n".join(lines) or None
+
+
 def has_real_legs(legs) -> bool:
     """True when each leg has its own stations and times: no leg goes to or from an unknown change station of the
     NS International parser (only the journey start and end are real there)."""
@@ -204,7 +211,8 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
                     currency=offer.price_currency, latest_captured_at=captured_at, self_transfers=offer.self_transfers,
                     reservation_legs=offer.reservation_legs, berth=offer.berth, seats_left=offer.seats_left,
                     bike=offer.bike, part_price=offer.part_price,
-                    compartment=offer.compartment, travel_hack=offer.travel_hack)
+                    compartment=offer.compartment, compartment_info=_info_text(offer.compartment_info),
+                    travel_hack=offer.travel_hack)
         it.fares.append(fare)
     elif fare.latest_price == offer.price_amount and fare.currency == offer.price_currency:
         fare.latest_captured_at = max(fare.latest_captured_at, captured_at)  # a capture of the same price (#1404)
@@ -216,6 +224,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
             fare.seats_left, fare.bike = offer.seats_left, offer.bike  # #2457: bike follows the newest capture
             fare.part_price = offer.part_price  # #2655
             fare.compartment = offer.compartment  # #2786
+            fare.compartment_info = _info_text(offer.compartment_info)  # #2787
             fare.travel_hack = offer.travel_hack  # #2793
         fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
         return result
@@ -252,6 +261,7 @@ def _upsert_one(session: Session, trip_id: int, capture_id: int | None, offer: O
         fare.seats_left, fare.bike = offer.seats_left, offer.bike  # #2457: bike follows the newest capture
         fare.part_price = offer.part_price  # #2655
         fare.compartment = offer.compartment  # #2786
+        fare.compartment_info = _info_text(offer.compartment_info)  # #2787
         fare.travel_hack = offer.travel_hack  # #2793
     fare.checked_bags_included, fare.checked_bag_price = offer.checked_bags_included, offer.checked_bag_price
     fare.prices.append(FarePrice(price=offer.price_amount, currency=offer.price_currency, captured_at=captured_at,

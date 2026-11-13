@@ -4,7 +4,7 @@ instance. The keys are those of the ingest: a second import of the same data add
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
 from decimal import Decimal
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 from sqlalchemy import select
@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.derived import Leg as DerivedLeg
 from app.derived import derive
-from app.ingest import fingerprint
+from app.ingest import _info_text, fingerprint
 from app.models import Fare, FarePrice, Itinerary, Leg, LegStop, Trip
 from app.schemas import MAX_LEGS, Mode, clean_tags, utc_offset_min
 from app.web.export import FORMAT, VERSION
@@ -110,6 +110,7 @@ class FareData(_Model):
     reservation_legs: int = Field(0, ge=0, le=MAX_LEGS)  # missing in an older export: 0 (#1625)
     bike: Literal["allowed", "reservation", "no"] | None = None  # missing in an older export: None (#2477)
     compartment: str | None = Field(None, max_length=100)  # #2786
+    compartment_info: list[Annotated[str, Field(min_length=1, max_length=200)]] | None = Field(None, max_length=8)  # #2787
     part_price: bool = False  # missing in an older export: false (#2657)
     travel_hack: Literal["hidden-city", "throwaway"] | None = None  # #2793
     prices: list[PriceData] = Field(default_factory=list)
@@ -272,7 +273,8 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                             self_transfers=_self_transfers(d.legs), latest_price=fd.latest_price,
                             currency=fd.currency, latest_captured_at=fd.latest_captured_at,
                             reservation_legs=fd.reservation_legs, bike=fd.bike, part_price=fd.part_price,
-                            compartment=fd.compartment, travel_hack=fd.travel_hack)
+                            compartment=fd.compartment, compartment_info=_info_text(fd.compartment_info),
+                            travel_hack=fd.travel_hack)
                 it.fares.append(fare)
                 result.fares_added += 1
             else:

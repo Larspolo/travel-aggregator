@@ -44,7 +44,7 @@ def test_a_null_price_is_never_the_compartment_and_no_media_gives_none():
     raw = load()
     section = raw["offerSections"][0]
     private = "Comfort private compartment in a couchette coach for up to 4 passengers"
-    assert private not in {c for _, _, _, c in _tiers(section).values()}
+    assert private not in {t[3] for t in _tiers(section).values()}
     bare = copy.deepcopy(raw["offerSections"][1])
     bare.pop("media", None)
     assert _tiers(bare) == {}
