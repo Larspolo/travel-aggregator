@@ -1742,6 +1742,8 @@ The effective cost also counts the time and cost outside the vehicle. The breakd
   removes the baggage part from the ranking, and a fare with an included bag gets no part too.
 A trip can also set the select **Checked bag** of the trip form. Its value **as the profile** uses the parts above. Its value **none (hand luggage only)** gives every flight fare of the trip the part `no checked bag (trip)` at €0, so no bag cost is added.
 
+A leg of a kiwi.com transfer where the bags must be collected and checked in again shows the text "collect the bags and check them in again at" and the place of the leg, in the expanded row of the fare. The **Advanced** section under the sliders has the field **Bag recheck € per transfer**, default `0`. Each such leg adds the part `bag recheck at` and the place of the leg, with this amount for each leg. A value of 0 removes the part. A trip with the **Checked bag** select set to "none (hand luggage only)" adds no part for the bag recheck fee.
+
 A trip can also set the checkbox **With a bicycle** of the trip form. Then the trip has these bicycle rules:
 
 - The filter **by bicycle** hides each fare with the mark "no bicycle". The trip page counts the hidden offers by bicycle,
