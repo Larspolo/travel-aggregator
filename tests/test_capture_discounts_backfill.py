@@ -1,7 +1,6 @@
 """Migration 0079 fills the discount cards of old captures from their raw payloads (#2807)."""
 
 import gzip
-import json
 from pathlib import Path
 
 from alembic import command
