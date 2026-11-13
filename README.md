@@ -557,6 +557,10 @@ The expanded row of a fare shows the expected load of each class of a leg: "expe
 
 A leg shows its planned platforms: "planned platform <departure> → <arrival>". The trip page, the Upcoming page and the calendar event of a leg show them. The calendar event shows the platform after the name of the place. The sources that give the planned platforms are bahn.de and ÖBB. A leg with no value shows no platform, and a missing side shows "?".
 
+### Platform change of a booked leg
+
+A booked leg shows a warning when its platform differs from the platform you booked. "Platform changed: <booked> now <new>" shows at the departure, and "Arrival platform changed: <booked> now <new>" shows at the arrival. The warning shows on the Upcoming page, on the trip page and in the print of a journey (the print uses the Upcoming page). A leg with no booked platform, or with no current platform, shows no warning. A leg that is not booked shows no warning.
+
 ### Stops of a leg
 
 A leg with stops between its ends shows a closed list: "2 stops", for example. Opening the list shows each stop with its local time, its name, its platform and its note. The trip page and the Upcoming page show the list. A leg with no stops shows no list. The source for the stops is bahn.de only.
