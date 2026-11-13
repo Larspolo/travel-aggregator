@@ -8,7 +8,7 @@ networks:
 
 services:
   app:
-    image: ghcr.io/larspolo/travel-aggregator:preview
+    image: ghcr.io/lars-his-projects/travel-aggregator:preview
     restart: unless-stopped
     env_file: .env
     depends_on:

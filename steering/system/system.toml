@@ -2,7 +2,8 @@
 
 [pacing]
 max_runs = 16                   # the most runs at one time (framework/tools/usage.py)
-week_guard = false              # false: only the 5-hour window counts, not the weekly pace (owner, 2026-11-09)
+week_guard = true               # true: the 7-day usage limits the runs, so that the quota lasts to the weekly reset (owner, 2026-11-13); false: only the 5-hour window counts
+week_free = 0.0                 # below this 7-day usage only the 5-hour window counts; 0: the weekly pace counts from the start of the week
 max_waiting_prs = 10            # flow brake: at this many old agent PRs the pacer starts only 1 repair run
 max_ci_queue = 5                # flow brake: at this many queued CI runs the pacer starts no run
 refill_runs = 3                 # the most refill runs at one time: one per 4 missing tickets (`usage.refill_count`)

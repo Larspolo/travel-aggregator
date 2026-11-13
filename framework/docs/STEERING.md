@@ -63,9 +63,9 @@ The file `.github/labels.txt` defines the labels. The Labels workflow creates th
 
 - **Scheduled cloud runs** (recommended): a scheduled task in Claude Code on the web starts a new session on
   a timer. Each run uses your Max quota. Change or stop the schedule at claude.ai/code (scheduled tasks).
-  The scheduled task must have the repository `Larspolo/travel-aggregator`. Without it, the runs cannot clone the code.
+  The scheduled task must have the repository `lars-his-projects/travel-aggregator`. Without it, the runs cannot clone the code.
   To set it: open claude.ai/code/routines → the task → menu next to its name → **Edit** → **Advanced
-  settings** → **General** → **Repository** → `Larspolo/travel-aggregator`. Below it, select the **Cloud environment**
+  settings** → **General** → **Repository** → `lars-his-projects/travel-aggregator`. Below it, select the **Cloud environment**
   that allows the Mojang hosts. Select the model in the model selector of the prompt box. **Save changes**.
   More runs can work at the same time (start them with **Run now**). They claim tickets with a comment, so two
   runs do not do the same ticket. With the argument `max`, a run continues until no ticket is ready, and it
@@ -100,7 +100,7 @@ ticket with numbered steps.
 The runs are paced without you. `framework/tools/usage.py` reads the usage of your subscription (the 5-hour and 7-day windows,
 as the Claude Code CLI reports them) and computes the number of runs: fast to 90 % of the 5-hour window 2 hours before
 its reset, then slower to 98 % at the reset (your decision, 2026-10-26), and not the week faster than it passes
-when `week_guard` in `steering/system/system.toml` is `true` (now `false`, your decision, 2026-11-09).
+when `week_guard` in `steering/system/system.toml` is `true` (now `true`, with `week_free = 0`: the weekly pace counts from the start of the week, your decision, 2026-11-13).
 A rejected 7-day window (the week quota is used up) starts no run, also with `week_guard = false`: no run can work then (#2656).
 You do not need to send percentages.
 A run of the scheduled task cannot start other runs (#566). So the workflow `pacer.yml` (#3193, #3194) runs

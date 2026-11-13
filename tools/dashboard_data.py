@@ -5,7 +5,7 @@
 Writes the files of DATASETS: the merged PRs, the tickets, the epics, the roadmap, the usage, the tokens, the accounts,
 the spend and the reviews, and copies the setup list (written by hand: tools/dashboard_artifact/setup.json). The page
 reads them as data files: `tools/dashboard_site.py` builds the GitHub Pages site with them. The page and this file
-come from the dashboard of the project aoe2mc (Larspolo/aoe2mc), without its release bar.
+come from the dashboard of the project aoe2mc (lars-his-projects/aoe2mc), without its release bar.
 
 With `DASHBOARD_CACHE` (a folder that `dashboard-site.yml` keeps with `actions/cache`), it reads only the issues and
 PRs that changed since the last build (`cached`): all issues and all closed PRs were about 60 API pages in each build,

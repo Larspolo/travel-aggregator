@@ -14,7 +14,7 @@ def _compose() -> dict:
 
 def test_app_follows_latest_image() -> None:
     app = _compose()["services"]["app"]
-    assert app["image"] == "ghcr.io/larspolo/travel-aggregator:latest"
+    assert app["image"] == "ghcr.io/lars-his-projects/travel-aggregator:latest"
 
 
 def test_app_publishes_only_on_localhost() -> None:

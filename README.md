@@ -71,14 +71,14 @@ another port.
 
 ## Run it on a server
 
-Each green build of `main` becomes the image `ghcr.io/larspolo/travel-aggregator:preview`.
+Each green build of `main` becomes the image `ghcr.io/lars-his-projects/travel-aggregator:preview`.
 [`deploy/preview/`](deploy/preview/) runs it behind Traefik, with its own database and a scoped watchtower that
 installs each new image within 5 minutes.
 
 1. Copy `deploy/preview/docker-compose.yml` and `deploy/preview/.env.example` to a folder on the server. Rename the
    second file to `.env`.
 2. In `.env`, set random values for `POSTGRES_PASSWORD` (also in `DATABASE_URL`) and `SECRET_KEY`
-   (`openssl rand -hex 24`). Set `OWNER_PASSWORD_HASH` to the hash of your login password (`docker run --rm --entrypoint python ghcr.io/larspolo/travel-aggregator:preview -m app.auth 'PASSWORD'`),
+   (`openssl rand -hex 24`). Set `OWNER_PASSWORD_HASH` to the hash of your login password (`docker run --rm --entrypoint python ghcr.io/lars-his-projects/travel-aggregator:preview -m app.auth 'PASSWORD'`),
    in single quotes.
 3. Change the host name `travel-preview.larspolo.nl` in the compose file to your own.
 4. `docker compose up -d`, then make an API token: `docker compose exec app python -m app.tokens create laptop`.
@@ -91,7 +91,7 @@ The preview is for test data.
 ### The production instance
 
 For your real data, use the release images. [`deploy/production/`](deploy/production/) runs the image
-`ghcr.io/larspolo/travel-aggregator:latest`, with its own database volume and its own scoped watchtower. `:latest`
+`ghcr.io/lars-his-projects/travel-aggregator:latest`, with its own database volume and its own scoped watchtower. `:latest`
 changes only when an epic closes, so the production instance does not follow each merge.
 
 Follow these steps from an empty server to a first captured offer. Do the check after each step before you continue.
@@ -108,7 +108,7 @@ Follow these steps from an empty server to a first captured offer. Do the check 
 Copy `deploy/production/docker-compose.yml` and `deploy/production/.env.example` to a folder on the server. Rename
 the second file to `.env`. In `.env`, set random values for `POSTGRES_PASSWORD` (also in `DATABASE_URL`) and
 `SECRET_KEY` (`openssl rand -hex 24`). Set `OWNER_PASSWORD_HASH` to the hash of your login password
-(`docker run --rm --entrypoint python ghcr.io/larspolo/travel-aggregator:latest -m app.auth 'PASSWORD'`), in single
+(`docker run --rm --entrypoint python ghcr.io/lars-his-projects/travel-aggregator:latest -m app.auth 'PASSWORD'`), in single
 quotes. Then start it: `docker compose up -d`.
 
 Check: `curl http://127.0.0.1:8000/api/health` on the server shows `"status"` and the commit that runs. The app is

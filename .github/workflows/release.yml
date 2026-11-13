@@ -50,8 +50,8 @@ jobs:
           push: true
           build-args: GIT_SHA=${{ steps.v.outputs.sha }}   # /api/health shows it
           tags: |
-            ghcr.io/larspolo/travel-aggregator:${{ steps.v.outputs.version }}
-            ghcr.io/larspolo/travel-aggregator:latest
+            ghcr.io/${{ github.repository }}:${{ steps.v.outputs.version }}
+            ghcr.io/${{ github.repository }}:latest
           cache-from: type=gha
       - name: Push the git tag
         env:

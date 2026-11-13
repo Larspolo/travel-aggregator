@@ -20,7 +20,7 @@ class Settings:
     smtp_password: str = ""
     smtp_from: str = ""
     # The new-issue form of the "Report on GitHub" link (#929): a fork reports to its own repository.
-    issues_url: str = "https://github.com/Larspolo/travel-aggregator/issues/new"
+    issues_url: str = "https://github.com/lars-his-projects/travel-aggregator/issues/new"
     # The origin of the passkeys (#1558), for example https://travel.example.com: empty is the origin of the request.
     passkey_origin: str = ""
 
@@ -39,6 +39,6 @@ def get_settings() -> Settings:
         smtp_starttls=os.environ.get("SMTP_STARTTLS", "true").strip().lower() not in ("false", "0", "no"),
         smtp_password=os.environ.get("SMTP_PASSWORD", ""),
         smtp_from=os.environ.get("SMTP_FROM", ""),
-        issues_url=os.environ.get("ISSUES_URL") or "https://github.com/Larspolo/travel-aggregator/issues/new",
+        issues_url=os.environ.get("ISSUES_URL") or "https://github.com/lars-his-projects/travel-aggregator/issues/new",
         passkey_origin=os.environ.get("PASSKEY_ORIGIN", "").rstrip("/"),
     )

@@ -1,7 +1,7 @@
 name: Dashboard site
 
 # Builds the owner's dashboard (travel-aggregator Autopilot) with tools/dashboard_site.py and publishes it to GitHub
-# Pages (https://larspolo.github.io/travel-aggregator): no Claude session and no quota. The pacer loop (pacer.yml) starts it each cycle,
+# Pages (https://lars-his-projects.github.io/travel-aggregator): no Claude session and no quota. The pacer loop (pacer.yml) starts it each cycle,
 # because GitHub fires the cron of this repository only a few times per day; the cron is a fallback.
 on:
   schedule:

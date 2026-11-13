@@ -47,7 +47,7 @@ def test_events():
 
 
 def test_claim_to_merge():
-    url = "https://api.github.com/repos/Larspolo/travel-aggregator/issues/"
+    url = "https://api.github.com/repos/lars-his-projects/travel-aggregator/issues/"
     comments = [{"body": "Started by `a`.", "issue_url": url + "5", "created_at": "2026-10-25T13:00:00Z"},
                 {"body": "Started by `b`.", "issue_url": url + "5", "created_at": "2026-10-25T13:10:00Z"},
                 {"body": "Started by `c`.", "issue_url": url + "5", "created_at": "2026-10-25T15:00:00Z"},  # after
