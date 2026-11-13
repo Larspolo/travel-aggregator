@@ -516,6 +516,7 @@ The hard filters hide the offers that do not match. A penalty does not hide an o
 Each filter is a query parameter of `/trips/{id}`. An empty value is no filter.
 - `max_transfers`: the most transfers (0 to 10).
 - `max_duration_min`: the longest duration in minutes.
+- `via`: the field "Via" hides each offer that does not stop at or change at a place with this name. A part of the name is enough, with no accents needed: "hannover" finds "Hannover Hbf", and "zurich" finds "Zürich HB". The places are the stops of each leg and the change places; the start and the end of the trip do not count. An empty value is no filter. The line "Filters hide N of M offers" counts the offers that the field hides.
 - `earliest_depart`: the first leg departs at or after this local time.
 - `latest_arrive`: the last leg arrives by this local time, on the day of its departure.
 - `exclude_mode`: a mode (train, bus or flight) hides each offer with one of its legs.
