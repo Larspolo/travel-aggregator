@@ -31,7 +31,7 @@ def test_p_pins_and_h_hides_the_focused_row(server, sessions):  # noqa: F811
         page.goto(f"{base}/trips/{trip_id}")
         page.wait_for_selector(ROWS)
         ids = page.eval_on_selector_all('tr[id^="it-"]', "rs => rs.map(r => r.id)")
-        page.focus("input[name=hour_markup]")
+        page.focus("input[name=via]")
         page.keyboard.press("p")
         page.wait_for_timeout(300)
         assert "pinned" not in page.inner_text("#rows")

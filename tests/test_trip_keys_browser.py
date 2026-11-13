@@ -45,7 +45,7 @@ def test_j_k_and_enter_on_the_rows(server, sessions):  # noqa: F811
         assert page.evaluate(opened) is False
         page.keyboard.press("Control+j")
         assert page.evaluate(ACTIVE) == ids[0]
-        page.focus("input[name=hour_markup]")
+        page.focus("input[name=via]")
         page.keyboard.press("j")
-        assert page.evaluate("document.activeElement.name") == "hour_markup"
+        assert page.evaluate("document.activeElement.name") == "via"
         browser.close()

@@ -45,10 +45,16 @@ def days_trip(sessions):
         s.add(t)
         s.commit()
         trip_id = t.id
-        add_profiles(s, "Slow", hour_markup=Decimal("50"))
     app.dependency_overrides[require_login] = lambda: None
     yield trip_id
     app.dependency_overrides.pop(require_login, None)
+
+
+@pytest.fixture
+def slow_profile(sessions):
+    """A default profile and a profile "Slow" with €50/h (#2831)."""
+    with sessions() as s:
+        add_profiles(s, "Slow", hour_markup=Decimal("50"))
 
 
 @pytest.fixture
@@ -85,7 +91,7 @@ def number(text):
     return float(re.search(r"\d+(?:\.\d+)?", text.replace(",", "")).group(0))
 
 
-def test_the_departure_days_filter_the_table_end_to_end(live):
+def test_the_departure_days_filter_the_table_end_to_end(slow_profile, live):
     from playwright.sync_api import sync_playwright
 
     exe = "/opt/pw-browsers/chromium"
