@@ -38,6 +38,12 @@
 
 {# The bicycle transport of a fare (#2456, #2457): allowed, reservation or no. None shows nothing. #}
 {# on_trip: the trip takes a bicycle, so a fare with no value says "not known" (#2476). #}
+{% macro hack_badge(fare) -%}
+{#- #2793: a kiwi.com hidden-city or throwaway ticket, with its risks in the title -#}
+{%- if fare.travel_hack == "hidden-city" %} <span class="badge travel-hack" title="The ticket goes on after your stop: no checked bag, and the airline can cancel the rest">hidden-city ticket</span>
+{%- elif fare.travel_hack == "throwaway" %} <span class="badge travel-hack" title="You do not use a part of this ticket: the airline can cancel the rest">throwaway ticket</span>{% endif -%}
+{%- endmacro %}
+
 {% macro bike_badge(fare, on_trip=false) -%}
 {%- if fare.bike == "allowed" %} <span class="badge bike" title="the source shows that this train or bus takes a bicycle">bicycle: allowed</span>
 {%- elif fare.bike == "reservation" %} <span class="badge bike" title="a bicycle needs a reservation or a bike ticket">bicycle: reservation</span>
