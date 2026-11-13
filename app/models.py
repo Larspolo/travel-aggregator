@@ -207,6 +207,7 @@ class Fare(Base):
     checked_bags_included: Mapped[int | None] = mapped_column(Integer)  # #1525
     seats_left: Mapped[int | None] = mapped_column(Integer)  # #1823: seats left at the newest capture
     bike: Mapped[str | None] = mapped_column(String(12))  # #2457: bicycle transport at the newest capture
+    compartment: Mapped[str | None] = mapped_column(String(100))  # #2786: Nightjet compartment, newest capture
     part_price: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # #2655: newest capture
     checked_bag_price: Mapped[Decimal | None] = mapped_column(Money)  # the first checked bag, in `currency`
     self_transfers: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # #176, derived at ingest

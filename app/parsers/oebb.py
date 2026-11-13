@@ -87,11 +87,22 @@ def _second(section: dict) -> list[dict]:
     return tc["offers"]
 
 
-def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str]]:
-    """{fare name: (cheapest price, flexibility, berth)} of the Nightjet tiers of a section; {} for a section with no
-    tiers."""
-    kinds = {c["id"]: c.get("accommodationType") for c in (section.get("media") or {}).get("compartments") or []}
-    best: dict[str, tuple[Decimal, str | None, str]] = {}
+def _text(value: Any) -> str | None:
+    """A trimmed text of at most 100 characters (#2786); None for no text."""
+    return (value.strip()[:100] or None) if isinstance(value, str) else None
+
+
+def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str, str | None]]:
+    """{fare name: (cheapest price, flexibility, berth, compartment)} of the Nightjet tiers of a section; {} for a
+    section with no tiers. The compartment is the English name of the cheapest compartment (#2786); on a tie, the
+    first in the order of `media.compartments`."""
+    media = (section.get("media") or {}).get("compartments") or []
+    kinds = {c["id"]: c.get("accommodationType") for c in media}
+    names = {c["id"]: _text((c.get("name") or {}).get("en")) if isinstance(c.get("name"), dict) else None
+             for c in media}
+    order = {c["id"]: i for i, c in enumerate(media)}
+    best: dict[str, tuple[Decimal, str | None, str, str | None]] = {}
+    rank: dict[str, int] = {}
     for offer in _second(section):
         for c in (offer.get("reservation") or {}).get("compartments") or []:
             tier = TIERS.get(kinds.get(c.get("id")))
@@ -99,8 +110,10 @@ def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str]]:
                 continue
             name, berth = tier
             p = money(offer.get("price") or 0) + money(c["price"])
-            if name not in best or p < best[name][0]:
-                best[name] = (p, _flex(offer), berth)
+            r = order.get(c.get("id"), len(order))
+            if name not in best or p < best[name][0] or (p == best[name][0] and r < rank[name]):
+                best[name] = (p, _flex(offer), berth, names.get(c.get("id")))
+                rank[name] = r
     return {name: best[name] for name, _ in TIERS.values() if name in best}
 
 
@@ -116,7 +129,7 @@ def _bike(connection: dict) -> str | None:
 
 class OebbParser:
     source = "oebbtickets.at"
-    version = "1.3.0"
+    version = "1.4.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have only the passenger id "1" (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -172,9 +185,10 @@ class OebbParser:
                 continue
             base += min(money(o["price"]) for o in _second(section))
         if not tiers:
-            tiers = {None: (Decimal("0"), None, None)}
+            tiers = {None: (Decimal("0"), None, None, None)}
         return [
             OfferIn(price_amount=base + price, price_currency=CURRENCY, fare_name=name, flexibility=flex,
-                    travel_class="standard", berth=berth, legs=trip, booking_url=BOOKING_URL, bike=bike)
-            for name, (price, flex, berth) in tiers.items()
+                    travel_class="standard", berth=berth, compartment=compartment, legs=trip,
+                    booking_url=BOOKING_URL, bike=bike)
+            for name, (price, flex, berth, compartment) in tiers.items()
         ]

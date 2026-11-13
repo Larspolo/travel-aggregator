@@ -109,6 +109,7 @@ class FareData(_Model):
     latest_captured_at: AwareDatetime
     reservation_legs: int = Field(0, ge=0, le=MAX_LEGS)  # missing in an older export: 0 (#1625)
     bike: Literal["allowed", "reservation", "no"] | None = None  # missing in an older export: None (#2477)
+    compartment: str | None = Field(None, max_length=100)  # #2786
     part_price: bool = False  # missing in an older export: false (#2657)
     prices: list[PriceData] = Field(default_factory=list)
 
@@ -269,7 +270,8 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                             flexibility=fd.flexibility, booking_url=fd.booking_url,
                             self_transfers=_self_transfers(d.legs), latest_price=fd.latest_price,
                             currency=fd.currency, latest_captured_at=fd.latest_captured_at,
-                            reservation_legs=fd.reservation_legs, bike=fd.bike, part_price=fd.part_price)
+                            reservation_legs=fd.reservation_legs, bike=fd.bike, part_price=fd.part_price,
+                            compartment=fd.compartment)
                 it.fares.append(fare)
                 result.fares_added += 1
             else:
