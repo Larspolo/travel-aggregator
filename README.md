@@ -564,7 +564,7 @@ A booked leg shows a warning when its platform differs from the platform you boo
 
 ### Stops of a leg
 
-A leg with stops between its ends shows a closed list: "2 stops", for example. Opening the list shows each stop with its local time, its name, its platform and its note. The trip page and the Upcoming page show the list. A leg with no stops shows no list. The source for the stops is bahn.de only.
+A leg with stops between its ends shows a closed list: "2 stops", for example. Opening the list shows each stop with its local time, its name, its platform and its note. The trip page and the Upcoming page show the list. A leg with no stops shows no list. The sources for the stops are bahn.de and SNCF Connect. SNCF Connect gives no times and no platforms of a stop, so its list shows only the names of the stops.
 
 ### Notices of a connection
 
