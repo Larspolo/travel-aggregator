@@ -5,6 +5,7 @@
 {% block settings %}
 {% if error %}<p role="alert" class="chip danger">{{ error }}</p>{% endif %}
 {% call ui.card("Profiles") %}
+<p class="help default-help">The default profile scores all trips that have no own profile. A trip selects its profile on the trip page or in its edit form.</p>
 <p><a class="btn" href="/profiles/new">New profile</a></p>
 {% if rows %}
 <ul class="item-list">
