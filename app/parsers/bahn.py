@@ -90,7 +90,7 @@ def travelers(request: dict | None) -> int | None:
 
 class BahnParser:
     source = "bahn.de"
-    version = "1.8.0"
+    version = "1.9.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have no BahnCard number and no traveler name (#1903)
     redact_keys: frozenset[str] = frozenset()
     # the station codes and the date of the search are in the body, not in a URL: no query name to keep (#1903)
@@ -178,6 +178,7 @@ class BahnParser:
             legs=legs,
             booking_url=BOOKING_URL,
             travel_class=TRAVEL_CLASSES.get(klasse),
+            part_price=bool(conn.get("hasTeilpreis")),  # #2655
             notices=[NoticeIn(text=t, level=lv, leg=leg) for (t, leg), lv in notices.items()],
         ) for price, fare, klasse in fares]
 
