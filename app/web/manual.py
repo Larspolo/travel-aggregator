@@ -23,7 +23,8 @@ from app.web.pages import _get_trip, templates
 router = APIRouter()
 
 MAX_FORM_LEGS = 4
-LEG_FIELDS = ("mode", "from_name", "to_name", "depart_at", "arrive_at")
+LEG_FIELDS = ("mode", "from_name", "to_name", "depart_at", "arrive_at", "carrier", "service_no")
+LEG_EXTRA = ("mode", "carrier", "service_no")  # the fields that alone do not make a leg (#2819)
 MODES = ("train", "bus", "flight", "ferry", "car", "other")
 CLASSES = (("", "Not set"), ("first", "1st class"), ("standard", "2nd class"))  # the value and the label (#740)
 
@@ -43,10 +44,12 @@ def _offer(values: dict) -> dict:
     legs = []
     for i in range(MAX_FORM_LEGS):
         leg = {k: values[f"leg{i}_{k}"] for k in LEG_FIELDS}
-        if not any(leg[k] for k in LEG_FIELDS if k != "mode"):
+        if not any(leg[k] for k in LEG_FIELDS if k not in LEG_EXTRA):
             continue
         for k in ("depart_at", "arrive_at"):
             leg[k] = f"{leg[k]}{offset}" if leg[k] else leg[k]  # a datetime-local value has no offset
+        for k in ("carrier", "service_no"):
+            leg[k] = leg[k] or None  # an empty field is not known (#2819)
         legs.append(leg)
     return {"price_amount": values["price_amount"], "price_currency": values["price_currency"] or "EUR",
             "fare_name": values["fare_name"] or None, "booking_url": values["booking_url"] or None,

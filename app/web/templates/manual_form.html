@@ -31,6 +31,8 @@
       <div class="field"><label for="leg{{ i }}-to">To</label><input id="leg{{ i }}-to" name="leg{{ i }}_to_name" maxlength="200" value="{{ values['leg%d_to_name' % i] or '' }}"></div>
       <div class="field"><label for="leg{{ i }}-depart">Departure</label><input id="leg{{ i }}-depart" type="datetime-local" name="leg{{ i }}_depart_at" value="{{ values['leg%d_depart_at' % i] or '' }}"></div>
       <div class="field"><label for="leg{{ i }}-arrive">Arrival</label><input id="leg{{ i }}-arrive" type="datetime-local" name="leg{{ i }}_arrive_at" value="{{ values['leg%d_arrive_at' % i] or '' }}"></div>
+      <div class="field"><label for="leg{{ i }}-carrier">Carrier</label><input id="leg{{ i }}-carrier" name="leg{{ i }}_carrier" maxlength="100" value="{{ values['leg%d_carrier' % i] or '' }}"></div>
+      <div class="field"><label for="leg{{ i }}-number">Number</label><input id="leg{{ i }}-number" name="leg{{ i }}_service_no" maxlength="20" value="{{ values['leg%d_service_no' % i] or '' }}"></div>
     </div>
   </fieldset>
   {% endfor %}
