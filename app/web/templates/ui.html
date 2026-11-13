@@ -62,3 +62,9 @@
 {% macro transfer_platforms(arrive, depart) -%}
 {% if arrive and depart %}{% if arrive == depart %} · same platform{% else %} · platform {{ arrive }} → {{ depart }}{% endif %}{% endif %}
 {%- endmacro %}
+
+{# A platform change of a booked leg (#2684): the booked platform is not the stored platform. #}
+{% macro platform_change(leg) -%}
+{%- if leg.booked_from_platform and leg.from_platform and leg.booked_from_platform != leg.from_platform %} <span class="chip warn platform-change">Platform changed: {{ leg.booked_from_platform }} now {{ leg.from_platform }}</span>{% endif -%}
+{%- if leg.booked_to_platform and leg.to_platform and leg.booked_to_platform != leg.to_platform %} <span class="chip warn platform-change">Arrival platform changed: {{ leg.booked_to_platform }} now {{ leg.to_platform }}</span>{% endif -%}
+{%- endmacro %}
