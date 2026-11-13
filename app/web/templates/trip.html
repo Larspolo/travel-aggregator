@@ -113,6 +113,8 @@
     <label class="field">Source <select name="source"><option value="">All</option>
       {% for s in view.sources %}<option value="{{ s }}"{% if s == view.source %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
     <label class="field">Max transfers <input type="number" name="max_transfers" min="0" max="10" step="1" value="{{ view.max_transfers if view.max_transfers is not none else '' }}"></label>
+    <label class="field">Via <input type="text" name="via" maxlength="100" value="{{ view.via }}"></label>
+    <label class="field">Avoid <input type="text" name="avoid" maxlength="100" value="{{ view.avoid }}"></label>
     <label class="field">Max duration (min) <input type="number" name="max_duration_min" min="0" max="10080" step="1" value="{{ view.max_duration_min if view.max_duration_min is not none else '' }}"></label>
     <details class="exclude"><summary>Exclude</summary>
       {% for m in view.modes %}<label><input type="checkbox" name="exclude_mode" value="{{ m }}"{% if m in view.exclude_mode %} checked{% endif %}> {{ m }}</label>{% endfor %}

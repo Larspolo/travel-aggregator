@@ -91,10 +91,14 @@ def _update_services(it: Itinerary, offer: OfferIn) -> None:
         if leg.co2_g is not None:
             stored.co2_g = leg.co2_g
         # a capture with a platform replaces the stored platform (#2590)
-        if leg.from_platform:
-            stored.from_platform = leg.from_platform
-        if leg.to_platform:
-            stored.to_platform = leg.to_platform
+        # a booked leg keeps the platform before its first change (#2683)
+        for side in ("from", "to"):
+            new, old = getattr(leg, f"{side}_platform"), getattr(stored, f"{side}_platform")
+            if not new:
+                continue
+            if it.booked and old and new != old and getattr(stored, f"booked_{side}_platform") is None:
+                setattr(stored, f"booked_{side}_platform", old)
+            setattr(stored, f"{side}_platform", new)
         # a capture with a known bag recheck replaces the stored value (#2660)
         if leg.bag_recheck is not None:
             stored.bag_recheck = leg.bag_recheck

@@ -2,14 +2,21 @@
 not grow with the count of offers (#115).
 
 The test compares the fastest of 3 loads with the limit: in the quick CI, the other test workers use the same CPUs,
-and one load took 2.05 s on a main commit that changed only the README (#1063)."""
+and one load took 2.05 s on a main commit that changed only the README (#1063). In an xdist worker the limit is 4 s
+and the test takes the fastest of 5 loads: 3 loads of 2.04 to 3.38 s failed the quick CI of PR #2707 (#2709).
+The fixed count of statements is the real check of the scale."""
 
+import os
 import time
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 from tests.test_trip_page import ingest, offer, trip  # noqa: F401  (trip is a fixture)
+
+LOADED = "PYTEST_XDIST_WORKER" in os.environ  # other workers use the same CPUs
+LIMIT = 4 if LOADED else 2
+LOADS = 5 if LOADED else 3
 
 
 def add_offers(client, auth, trip_id, start, count):
@@ -41,9 +48,9 @@ def test_the_page_with_1000_offers_is_fast_and_has_a_fixed_count_of_statements(t
     few, _, _ = statements_of_page(client, trip_id)
     add_offers(client, auth, trip_id, 10, 990)
     client.get(f"/trips/{trip_id}")  # warm up the templates
-    loads = [statements_of_page(client, trip_id) for _ in range(3)]
+    loads = [statements_of_page(client, trip_id) for _ in range(LOADS)]
     for many, _, page in loads:
         assert page.count("ICE ") >= 1000
         assert many == few, f"{few} statements with 10 offers, {many} with 1,000"
     seconds = sorted(load[1] for load in loads)
-    assert seconds[0] < 2, f"{', '.join(f'{s:.2f}' for s in seconds)} s with 1,000 offers"
+    assert seconds[0] < LIMIT, f"{', '.join(f'{s:.2f}' for s in seconds)} s with 1,000 offers"

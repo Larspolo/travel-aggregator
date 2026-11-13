@@ -126,7 +126,7 @@ def test_the_export_and_import_keep_the_compartment(sessions):
     assert again["itineraries"][0]["fares"][0]["compartment"] == "Mini Cabin"
 
 
-def test_the_migration_upgrades_and_downgrades_to_0074(empty_database_url):
+def test_the_migration_upgrades_and_downgrades_to_0075(empty_database_url):
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine
@@ -134,11 +134,11 @@ def test_the_migration_upgrades_and_downgrades_to_0074(empty_database_url):
     cfg = Config("alembic.ini")
     cfg.set_main_option("sqlalchemy.url", empty_database_url)
     cfg.attributes["configure_logger"] = False
-    command.upgrade(cfg, "0075")
+    command.upgrade(cfg, "0076")
     engine = create_engine(empty_database_url)
     try:
         assert "compartment" in {c["name"] for c in inspect(engine).get_columns("fares")}
-        command.downgrade(cfg, "0074")
+        command.downgrade(cfg, "0075")
         assert "compartment" not in {c["name"] for c in inspect(engine).get_columns("fares")}
         command.upgrade(cfg, "head")
         assert "compartment" in {c["name"] for c in inspect(engine).get_columns("fares")}

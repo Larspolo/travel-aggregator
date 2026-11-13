@@ -82,6 +82,8 @@ class LegData(_Model):
     co2_g: int | None = Field(None, ge=0, le=10_000_000)  # missing in an older export: None (#2588)
     from_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2590)
     to_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2590)
+    booked_from_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2685)
+    booked_to_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2685)
     bag_recheck: bool | None = None  # missing in an older export: None
     load_first: int | None = Field(None, ge=1, le=4)  # missing in an older export: None (#2584)
     load_second: int | None = Field(None, ge=1, le=4)
@@ -108,6 +110,7 @@ class FareData(_Model):
     reservation_legs: int = Field(0, ge=0, le=MAX_LEGS)  # missing in an older export: 0 (#1625)
     bike: Literal["allowed", "reservation", "no"] | None = None  # missing in an older export: None (#2477)
     compartment: str | None = Field(None, max_length=100)  # #2786
+    part_price: bool = False  # missing in an older export: false (#2657)
     prices: list[PriceData] = Field(default_factory=list)
 
 
@@ -199,7 +202,8 @@ def _new_itinerary(trip_id: int, d: ItineraryData, fp: str, now: datetime) -> It
                        from_name=leg.from_name, from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code,
                        depart_at=leg.depart_at.astimezone(UTC), depart_offset_min=utc_offset_min(leg.depart_at),
                        arrive_at=leg.arrive_at.astimezone(UTC), arrive_offset_min=utc_offset_min(leg.arrive_at),
-                       services=leg.services, from_platform=leg.from_platform, to_platform=leg.to_platform, bag_recheck=leg.bag_recheck, co2_g=leg.co2_g,
+                       services=leg.services, from_platform=leg.from_platform, to_platform=leg.to_platform,
+                       booked_from_platform=leg.booked_from_platform, booked_to_platform=leg.booked_to_platform, bag_recheck=leg.bag_recheck, co2_g=leg.co2_g,
                        load_first=leg.load_first, load_second=leg.load_second,
                        stops=[LegStop(seq=n, name=x.name, code=x.code,
                                       arrive_at=x.arrive_at.astimezone(UTC) if x.arrive_at else None,
@@ -266,7 +270,8 @@ def import_trip(session: Session, data: dict, trip_id: int | None = None) -> Imp
                             flexibility=fd.flexibility, booking_url=fd.booking_url,
                             self_transfers=_self_transfers(d.legs), latest_price=fd.latest_price,
                             currency=fd.currency, latest_captured_at=fd.latest_captured_at,
-                            reservation_legs=fd.reservation_legs, bike=fd.bike, compartment=fd.compartment)
+                            reservation_legs=fd.reservation_legs, bike=fd.bike, part_price=fd.part_price,
+                            compartment=fd.compartment)
                 it.fares.append(fare)
                 result.fares_added += 1
             else:

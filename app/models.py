@@ -159,6 +159,9 @@ class Leg(Base):
     # The planned departure and arrival platform (#2590); None is not known.
     from_platform: Mapped[str | None] = mapped_column(String(10))
     to_platform: Mapped[str | None] = mapped_column(String(10))
+    # The platform at the booking, set at the first change of a booked leg (#2683); None is no change.
+    booked_from_platform: Mapped[str | None] = mapped_column(String(10))
+    booked_to_platform: Mapped[str | None] = mapped_column(String(10))
     # The bags must be checked in again before this leg (#2660); None is not known.
     bag_recheck: Mapped[bool | None] = mapped_column(Boolean)
     # The expected load of each class (#2582): 1 to 4; None is not known.
