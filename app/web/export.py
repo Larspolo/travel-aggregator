@@ -128,6 +128,7 @@ def trip_export(trip: Trip, now: datetime | None = None) -> dict:
                         "flexibility": fare.flexibility, "booking_url": fare.booking_url,
                         "latest_price": str(fare.latest_price), "currency": fare.currency,
                         "reservation_legs": fare.reservation_legs, "bike": fare.bike,
+                        "part_price": fare.part_price,
                         "latest_captured_at": _iso(fare.latest_captured_at),
                         "prices": [
                             {"captured_at": _iso(p.captured_at), "price": str(p.price), "currency": p.currency}
