@@ -42,6 +42,14 @@ def bike(status: Any) -> str | None:
     return BIKE.get(status) if isinstance(status, str) else None
 
 
+def _platform(leg: dict, end: str) -> str | None:
+    """#2770: the planned platform of a leg end ("origin" or "destination"); None for no text or one of over 10 characters."""
+    point = leg.get("platforms")
+    point = point.get(end) if isinstance(point, dict) else None
+    text = point.get("platform") if isinstance(point, dict) else None
+    return text if isinstance(text, str) and text and len(text) <= 10 else None
+
+
 def fare_name(type_name: str, class_name: str) -> str:
     """The fare type name, plus the class name when the fare type name does not say the class."""
     if not class_name or any(w in type_name.lower() for w in CLASS_WORDS):
@@ -51,7 +59,7 @@ def fare_name(type_name: str, class_name: str) -> str:
 
 class TrainlineParser:
     source = "thetrainline.com"
-    version = "1.4.0"
+    version = "1.5.0"
     # no personal key beyond PERSONAL_KEYS: `dateOfBirth` is in PERSONAL_KEYS (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -116,6 +124,8 @@ class TrainlineParser:
                 arrive_at=aware(leg["arriveAt"]),
                 # Trainline books the mandatory reservation with the ticket: the price is the full price (#1622)
                 reservation="included" if leg.get("isReservationMandatory") is True else None,
+                from_platform=_platform(leg, "origin"),  # planned platforms (#2770)
+                to_platform=_platform(leg, "destination"),
                 co2_g=co2 if isinstance(co2 := leg.get("co2EmissionInGramsPerPassenger"), int)
                 and not isinstance(co2, bool) and co2 >= 0 else None,
             ))
