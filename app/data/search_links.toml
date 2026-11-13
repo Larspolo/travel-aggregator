@@ -68,3 +68,9 @@ Berlin = "7630"
 [sbb]
 source = "sbb.ch"
 name = "SBB"
+template = "https://www.sbb.ch/en?stops={from}~{to}&day={date}&time=08_00&moment=dep"
+date_format = "%Y-%m-%d"
+
+[sbb.places]
+Basel = "Basel SBB_I8500010"
+"Zürich" = "Zürich HB_I8503000"
