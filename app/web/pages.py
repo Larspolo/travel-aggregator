@@ -1212,7 +1212,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         f"mode {mode}", f"source {source}", f"max transfers {limit_transfers}", f"max duration {limit_duration} min",
         f"depart after {earliest_depart}", f"arrive by {latest_arrive}",
         *(f"excluded mode {m}" for m in exclude_mode), *(f"excluded carrier {c}" for c in exclude_carrier),
-        "bicycle", "hide stale", "only marked", f"day {day}", f"avoid {avoid.strip()}"])
+        "bicycle", "hide stale", "only marked", f"day {day}", f"avoid {avoid.strip()}", f"via {via.strip()}"])
     # the transfer places of the offers of the page (#1460): only for a trip that is no part of a split
     context["via_places"] = [] if trip.split_of_id else via_places(itineraries, split_skip(trip))
     context["best_hidden"] = hidden_best(best_hidden, best_direct, query, sort, dir, trip_id)  # #1454
