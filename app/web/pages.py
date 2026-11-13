@@ -775,6 +775,17 @@ def current_fares(fares, gone):
     return now or list(fares)
 
 
+def full_price(fares):
+    """The fares with a price for the full route (#2656): a part-price fare (bahn.de `hasTeilpreis`, #2655) is too low
+    to rank. Empty when all fares are part-price fares."""
+    return [f for f in fares if not getattr(f, "part_price", False)]
+
+
+def part_only(row) -> bool:
+    """True when the main fare of an (itinerary, fare, cost) row is a part-price fare: the row has no full fare (#2656)."""
+    return bool(getattr(row[1], "part_price", False))
+
+
 def current_rows(rows, gone):
     """The (itinerary, fare, cost) rows whose main fare is not gone, or all rows when none is current (#1386)."""
     return [r for r in rows if r[1].id not in gone] or rows
@@ -830,8 +841,9 @@ def best_for_weights(session: Session, trip: Trip, weights: Weights, now: dateti
     places = trip_places(session, trip)  # (#2109)
     rates = load_rates(session)
     counts, fees, gone = fare_travelers(session, its), load_fees(session), _gone(session, its)
-    rows = [(it, *row_cost(it, current_fares(it.fares, gone), places, weights, stale_before, rates, counts, fees))
-            for it in its if it.fares and it.operator_cancelled_at is None]  # (#2630)
+    rows = [(it, *row_cost(it, fs, places, weights, stale_before, rates, counts, fees))
+            for it in its if it.fares and it.operator_cancelled_at is None  # (#2630)
+            and (fs := full_price(current_fares(it.fares, gone)))]  # no part-price fare (#2656)
     rows = current_rows(rows, gone)
     if not rows:
         return None
@@ -903,8 +915,8 @@ def split_sections(session: Session, trip: Trip, weights: Weights, places, now: 
                                                       departed.not_departed(now))
                               .options(subqueryload(Itinerary.legs), subqueryload(Itinerary.fares))).all()
         counts = fare_travelers(session, its)
-        return [(it, *row_cost(it, it.fares, places, weights, stale_before, rates, counts, fees))
-                for it in its if it.fares and it.legs]
+        return [(it, *row_cost(it, fs, places, weights, stale_before, rates, counts, fees))
+                for it in its if it.legs and (fs := full_price(it.fares))]  # no part-price fare (#2656)
     sections = []
     for a, b in zip(parts[0::2], parts[1::2]):
         first, second = ranked(a), ranked(b)
@@ -1015,6 +1027,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
         sources |= {f.source for f in it.fares}
         carriers |= {c for leg in it.legs for c in carrier_names(leg.carrier)}
         fares = current_fares([f for f in it.fares if not source or f.source == source], gone)
+        fares = full_price(fares) or fares  # a part-price fare is the main fare only of a row with no full fare (#2656)
         no_bike = False
         if bike_filter and fares:
             fares = [f for f in fares if f.bike != "no"]
@@ -1061,6 +1074,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     # a hidden or departed row gets no highlight (#200, #1391)
     shown = [r for r in rows if not r[0].hidden and not departed.is_departed(r[0], departed_now)
              and r[0].operator_cancelled_at is None  # (#2630)
+             and not part_only(r)  # (#2656)
              and not all_gone(r)]  # a row with only gone fares gets no highlight (#1386)
     # no other shown offer is cheaper and faster (#1856): the price and the door-to-door minutes, not the weights
     pareto = pareto_ids([(r[0].id, r[2].price, door_minutes(r[0], places, weights)) for r in shown])
@@ -1098,6 +1112,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
     if sort != "cost" or dir == "desc":
         rows.sort(key=SORT_KEYS[sort], reverse=dir == "desc")
     rows.sort(key=all_gone)  # stable: the rows with only gone fares after the current rows (#1386)
+    rows.sort(key=part_only)  # stable: the rows with only part-price fares after the other rows (#2656)
     rows.sort(key=lambda r: r[0].operator_cancelled_at is not None)  # the operator cancelled rows last (#2630)
     rows.sort(key=lambda r: departed.is_departed(r[0], departed_now))  # the departed rows last (#1391)
     rows.sort(key=lambda r: not r[0].pinned)  # stable: the pinned rows first in every order, in their order (#199)
