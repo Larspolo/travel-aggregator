@@ -1836,6 +1836,10 @@ The **Advanced** section has the field **Each work-seat hour €**. It is empty 
 
 The **Advanced** section has the fields **Expected load high €** and **Expected load very high €**. Both default to `0`, and a value of `0` adds no part. A leg with an expected load of level 2 (high) adds the value of **Expected load high €** for each leg. A leg with level 3 (very high) or level 4 (fully booked) adds the value of **Expected load very high €**. The level is the 1st class load for a 1st class fare, and the 2nd class load for any other fare. The parts are named `expected load high`, `expected load very high` and `expected load fully booked` in the breakdown. A leg with level 4 gives the part `expected load fully booked`, with the value of **Expected load very high €**. The expected load comes from bahn.de only.
 
+### High notice markup
+
+The **Advanced** section has the field **High notice €** (its label on the page is "Notice of the operator, high €"). It defaults to `0`, and a value of `0` adds no part. A connection with a high notice of the operator adds the value once for the connection, not once for each leg. Only a high notice counts: a notice with a low level adds no part. A high notice is a notice of the operator for a disruption, such as construction work or a replacement bus. The part is named `notice: <start>` in the breakdown, where `<start>` is the start of the text of the first high notice. The notices come from bahn.de only.
+
 ### Days off
 
 Set the days off on `/days-off` (link "Days off" in the settings navigation). A day off is one date, or a span of dates
