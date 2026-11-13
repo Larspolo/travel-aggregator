@@ -38,6 +38,24 @@ def fold(text: str) -> str:
     return "".join(c for c in decomposed if not unicodedata.combining(c))
 
 
+def passes_via(itinerary, text: str) -> bool:
+    """True when the itinerary stops at or changes at a place whose name has the text (epic #2699). The places are the
+    stops between the legs (the stops of each leg, and the change places). The ends of the trip do not count. An
+    empty text matches each itinerary."""
+    needle = fold(text.strip())
+    if not needle:
+        return True
+    legs = list(itinerary.legs)
+    places = []
+    for i, leg in enumerate(legs):
+        places += [getattr(stop, "name", None) for stop in (getattr(leg, "stops", None) or [])]
+        if i < len(legs) - 1:
+            places.append(getattr(leg, "to_name", None))
+        if i > 0:
+            places.append(getattr(leg, "from_name", None))
+    return any(needle in fold(place) for place in places if place)
+
+
 _fold = fold  # the old name (#1220)
 
 
