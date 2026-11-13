@@ -92,16 +92,36 @@ def _text(value: Any) -> str | None:
     return (value.strip()[:100] or None) if isinstance(value, str) else None
 
 
-def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str, str | None]]:
-    """{fare name: (cheapest price, flexibility, berth, compartment)} of the Nightjet tiers of a section; {} for a
-    section with no tiers. The compartment is the English name of the cheapest compartment (#2786); on a tie, the
-    first in the order of `media.compartments`."""
+def _infotexts(compartment: dict) -> list[str]:
+    """The English info texts of a compartment (#2787): at most 8 texts of 200 characters, trimmed; an empty text
+    is left out, and a line break inside a text becomes a space (one text per line when stored)."""
+    texts = compartment.get("infotexts")
+    if not isinstance(texts, list):
+        return []
+    out: list[str] = []
+    for t in texts:
+        value = t.get("en") if isinstance(t, dict) else None
+        if not isinstance(value, str):
+            continue
+        clean = " ".join(value.split())[:200]
+        if clean:
+            out.append(clean)
+        if len(out) == 8:
+            break
+    return out
+
+
+def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str, str | None, list[str]]]:
+    """{fare name: (cheapest price, flexibility, berth, compartment, info texts)} of the Nightjet tiers of a section;
+    {} for a section with no tiers. The compartment is the English name of the cheapest compartment (#2786); on a
+    tie, the first in the order of `media.compartments`. The info texts are those of that compartment (#2787)."""
     media = (section.get("media") or {}).get("compartments") or []
     kinds = {c["id"]: c.get("accommodationType") for c in media}
     names = {c["id"]: _text((c.get("name") or {}).get("en")) if isinstance(c.get("name"), dict) else None
              for c in media}
+    infos = {c["id"]: _infotexts(c) for c in media}
     order = {c["id"]: i for i, c in enumerate(media)}
-    best: dict[str, tuple[Decimal, str | None, str, str | None]] = {}
+    best: dict[str, tuple[Decimal, str | None, str, str | None, list[str]]] = {}
     rank: dict[str, int] = {}
     for offer in _second(section):
         for c in (offer.get("reservation") or {}).get("compartments") or []:
@@ -112,7 +132,7 @@ def _tiers(section: dict) -> dict[str, tuple[Decimal, str | None, str, str | Non
             p = money(offer.get("price") or 0) + money(c["price"])
             r = order.get(c.get("id"), len(order))
             if name not in best or p < best[name][0] or (p == best[name][0] and r < rank[name]):
-                best[name] = (p, _flex(offer), berth, names.get(c.get("id")))
+                best[name] = (p, _flex(offer), berth, names.get(c.get("id")), infos.get(c.get("id"), []))
                 rank[name] = r
     return {name: best[name] for name, _ in TIERS.values() if name in best}
 
@@ -129,7 +149,7 @@ def _bike(connection: dict) -> str | None:
 
 class OebbParser:
     source = "oebbtickets.at"
-    version = "1.4.0"
+    version = "1.5.0"
     # no personal key beyond PERSONAL_KEYS: the fixtures have only the passenger id "1" (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -185,10 +205,10 @@ class OebbParser:
                 continue
             base += min(money(o["price"]) for o in _second(section))
         if not tiers:
-            tiers = {None: (Decimal("0"), None, None, None)}
+            tiers = {None: (Decimal("0"), None, None, None, [])}
         return [
             OfferIn(price_amount=base + price, price_currency=CURRENCY, fare_name=name, flexibility=flex,
-                    travel_class="standard", berth=berth, compartment=compartment, legs=trip,
-                    booking_url=BOOKING_URL, bike=bike)
-            for name, (price, flex, berth, compartment) in tiers.items()
+                    travel_class="standard", berth=berth, compartment=compartment,
+                    compartment_info=infos or None, legs=trip, booking_url=BOOKING_URL, bike=bike)
+            for name, (price, flex, berth, compartment, infos) in tiers.items()
         ]

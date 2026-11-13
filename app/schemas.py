@@ -3,7 +3,7 @@ and limits each size (P4, P5)."""
 
 from datetime import date, datetime, time
 from decimal import Decimal
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
@@ -91,6 +91,8 @@ class OfferIn(BaseModel):
     checked_bags_included: int | None = Field(None, ge=0, le=9)  # #1525
     seats_left: int | None = Field(None, ge=0, le=9999)  # #1823: seats left of the fare, when the source gives it
     compartment: str | None = Field(None, max_length=100)  # #2786: the compartment of a Nightjet tier
+    # #2787: the info texts of that compartment, at most 8 of 200 characters; None = the source gives none
+    compartment_info: list[Annotated[str, Field(min_length=1, max_length=200)]] | None = Field(None, max_length=8)
     travel_hack: Literal["hidden-city", "throwaway"] | None = None  # #2793: a kiwi.com hidden-city or throwaway
     part_price: bool = False  # #2655: the price is for a part of the journey only (bahn.de `hasTeilpreis`)
     bike: Literal["allowed", "reservation", "no"] | None = None  # #2457: bicycle transport; None = not given
