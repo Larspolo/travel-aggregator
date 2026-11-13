@@ -82,6 +82,8 @@ class LegData(_Model):
     co2_g: int | None = Field(None, ge=0, le=10_000_000)  # missing in an older export: None (#2588)
     from_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2590)
     to_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2590)
+    booked_from_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2685)
+    booked_to_platform: str | None = Field(None, max_length=10)  # missing in an older export: None (#2685)
     bag_recheck: bool | None = None  # missing in an older export: None
     load_first: int | None = Field(None, ge=1, le=4)  # missing in an older export: None (#2584)
     load_second: int | None = Field(None, ge=1, le=4)
@@ -199,7 +201,8 @@ def _new_itinerary(trip_id: int, d: ItineraryData, fp: str, now: datetime) -> It
                        from_name=leg.from_name, from_code=leg.from_code, to_name=leg.to_name, to_code=leg.to_code,
                        depart_at=leg.depart_at.astimezone(UTC), depart_offset_min=utc_offset_min(leg.depart_at),
                        arrive_at=leg.arrive_at.astimezone(UTC), arrive_offset_min=utc_offset_min(leg.arrive_at),
-                       services=leg.services, from_platform=leg.from_platform, to_platform=leg.to_platform, bag_recheck=leg.bag_recheck, co2_g=leg.co2_g,
+                       services=leg.services, from_platform=leg.from_platform, to_platform=leg.to_platform,
+                       booked_from_platform=leg.booked_from_platform, booked_to_platform=leg.booked_to_platform, bag_recheck=leg.bag_recheck, co2_g=leg.co2_g,
                        load_first=leg.load_first, load_second=leg.load_second,
                        stops=[LegStop(seq=n, name=x.name, code=x.code,
                                       arrive_at=x.arrive_at.astimezone(UTC) if x.arrive_at else None,
