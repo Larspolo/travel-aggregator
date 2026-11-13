@@ -33,7 +33,7 @@ def test_use_this_hour_value_sets_the_field(live, sessions, width):  # noqa: F81
         page.goto(f"{base}/profiles/{pid}")
         text = page.inner_text(".hour-fit")
         page.click("text=Use this hour value")
-        page.wait_for_function("document.getElementById('hour_markup').value === '30.00'")
+        page.wait_for_function("document.getElementById('hour_markup')?.value === '30.00'")
         scroll = page.evaluate("document.documentElement.scrollWidth")
         outside = page.evaluate(OUTSIDE, width)
         shots = os.environ.get("SCREENSHOT_DIR")
