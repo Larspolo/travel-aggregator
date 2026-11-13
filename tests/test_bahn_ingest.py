@@ -49,7 +49,7 @@ def test_raw_capture_stores_the_offers_of_the_parser(setup, sessions):
 
 
 def priced_but_one():
-    """The fixture with no cancel notice (#2629): connection 1 is then an error, as it has no price."""
+    """The fixture with no cancel notice (#2629): connection 1 has no price, which is no error while others have one (#2810)."""
     raw = raw_fixture("fahrplan-koeln-muenchen.json")
     raw["response"]["verbindungen"][1].pop("risNotizen")
     return raw
@@ -62,23 +62,18 @@ def test_bad_connection_is_an_error_and_the_others_are_stored(setup, sessions, c
     assert r.status_code == 200, r.text
     out = r.json()
     assert out["created"] == 2
-    assert out["rejected"] == 1
-    assert out["errors"] == [{"index": 1, "reason": "no price (angebotsPreis)"}]
+    assert out["rejected"] == 0  # #2810
+    assert out["errors"] == []
     with sessions() as s:
         assert s.scalar(select(func.count()).select_from(Itinerary).where(Itinerary.trip_id == trip_id)) == 2
 
 
-def test_each_failure_is_logged_with_the_capture_id(setup, sessions, caplog):
-    client, auth, trip_id = setup
+def test_an_unpriced_connection_is_not_logged_as_a_failure(setup, sessions, caplog):
+    client, auth, trip_id = setup  # #2810: no rejected offer, so no log line
     caplog.set_level(logging.WARNING, logger="app.ingest")
     r = client.post("/api/ingest", json=body(trip_id, priced_but_one()), headers=auth)
     assert r.status_code == 200, r.text
-    with sessions() as s:
-        capture_id = s.scalar(select(Capture.id).order_by(Capture.id.desc()))
-    lines = [rec.getMessage() for rec in caplog.records if rec.name == "app.ingest"]
-    assert len(lines) == 1
-    assert f"capture {capture_id}:" in lines[0]
-    assert "no price (angebotsPreis)" in lines[0]
+    assert [rec.getMessage() for rec in caplog.records if rec.name == "app.ingest"] == []
 
 
 def test_unreadable_raw_keeps_the_capture_and_is_logged_with_its_id(setup, sessions, caplog):

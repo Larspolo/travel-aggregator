@@ -65,10 +65,13 @@ def test_each_priced_connection_is_on_the_trip_page(trip, name):
 
     out = post(client, auth, trip_id, raw)
     assert out["created"] == len(prices)
-    assert len(out["errors"]) == unpriced
-    assert [e["index"] for e in out["errors"]] == [
-        i for i, c in enumerate(raw["response"]["verbindungen"])
-        if not (c.get("angebotsPreis") or {}).get("betrag") and not _cancelled(c)]
+    if prices:  # #2810: an unpriced connection is no error while another connection has a price
+        assert out["errors"] == []
+    else:
+        assert len(out["errors"]) == unpriced
+        assert [e["index"] for e in out["errors"]] == [
+            i for i, c in enumerate(raw["response"]["verbindungen"])
+            if not (c.get("angebotsPreis") or {}).get("betrag") and not _cancelled(c)]
 
     page = client.get(f"/trips/{trip_id}").text
     for price in prices:

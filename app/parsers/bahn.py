@@ -112,6 +112,7 @@ class BahnParser:
             raise ValueError("the bahn.de payload has no verbindungen list")
         extra = _cards(request)
         result = ParseResult(travelers=travelers(request), discounts=discounts(request))
+        unpriced = []  # #2810: "Preis ermitteln" is no error while another connection of the response has a price
         for i, conn in enumerate(conns):
             try:
                 if _cancelled(conn):  # #2629: a cancelled connection is no rejected offer
@@ -119,11 +120,17 @@ class BahnParser:
                     continue
                 result.offers.extend(self._offers(conn, extra))
             except NoPrice as e:
-                result.errors.append({"index": i, "reason": str(e)})
+                if str(e) == NO_PRICE:
+                    unpriced.append({"index": i, "reason": str(e)})
+                else:
+                    result.errors.append({"index": i, "reason": str(e)})
             except ValidationError as e:
                 result.errors.append({"index": i, "reason": _short_reason(e)})
             except (KeyError, TypeError, ValueError, AttributeError) as e:
                 result.errors.append({"index": i, "reason": f"bad connection: {type(e).__name__} {e}"[:200]})
+        if not result.offers:  # no price at all: the payload form may have changed, so keep the errors
+            result.errors.extend(unpriced)
+            result.errors.sort(key=lambda e: e["index"])
         return result
 
     def _day_prices(self, intervals: list, people: int | None) -> ParseResult:
@@ -164,7 +171,7 @@ class BahnParser:
         if not fares:
             price = conn.get("angebotsPreis")
             if not price or price.get("betrag") is None:
-                raise NoPrice("no price (angebotsPreis)")
+                raise NoPrice(NO_PRICE)
             klasse = conn.get("angebotsPreisKlasse")
             fares = [(price, [CLASSES.get(klasse, "")], klasse)]
         notices = _notices(conn, None, {})
@@ -223,6 +230,7 @@ class BahnParser:
 
 NOTICE_CLASSES = {"KLASSE_1": " (1st class)", "KLASSE_2": " (2nd class)"}
 CANCELLED = "text.realtime.connection.cancelled"
+NO_PRICE = "no price (angebotsPreis)"  # #2810
 
 
 def _cancelled(conn: dict) -> bool:
