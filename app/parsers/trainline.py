@@ -12,7 +12,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from app.parsers import ParseResult, card_names, count, seats
-from app.schemas import LegIn, OfferIn, _short_reason
+from app.schemas import LegIn, NoticeIn, OfferIn, _short_reason
 
 BOOKING_URL = "https://www.thetrainline.com/"
 CLASS_WORDS = ("first", "1st", "standard", "2nd", "second")
@@ -42,6 +42,19 @@ def bike(status: Any) -> str | None:
     return BIKE.get(status) if isinstance(status, str) else None
 
 
+REPLACEMENT = "Replacement service in place of the scheduled train"
+
+
+def _notices(journey: dict, search: dict) -> list[NoticeIn] | None:
+    """A high notice for each leg with `replacementServiceInfo.isReplacementService` true (#2790).
+    No leg has the key: None (keep the stored notices)."""
+    flags = [(search["legs"][leg_id] or {}).get("replacementServiceInfo") for leg_id in journey["legs"]]
+    if not any(isinstance(f, dict) for f in flags):
+        return None
+    return [NoticeIn(text=REPLACEMENT, level="high", leg=i)
+            for i, f in enumerate(flags) if isinstance(f, dict) and f.get("isReplacementService") is True]
+
+
 def fare_name(type_name: str, class_name: str) -> str:
     """The fare type name, plus the class name when the fare type name does not say the class."""
     if not class_name or any(w in type_name.lower() for w in CLASS_WORDS):
@@ -51,7 +64,7 @@ def fare_name(type_name: str, class_name: str) -> str:
 
 class TrainlineParser:
     source = "thetrainline.com"
-    version = "1.4.0"
+    version = "1.5.0"
     # no personal key beyond PERSONAL_KEYS: `dateOfBirth` is in PERSONAL_KEYS (#1903)
     redact_keys: frozenset[str] = frozenset()
     # no URL in the fixtures: the search is in the body (#1903)
@@ -119,6 +132,7 @@ class TrainlineParser:
                 co2_g=co2 if isinstance(co2 := leg.get("co2EmissionInGramsPerPassenger"), int)
                 and not isinstance(co2, bool) and co2 >= 0 else None,
             ))
+        notices = _notices(journey, search)
         best: dict[str, tuple[Decimal, str, str | None, int | None]] = {}
         for section_id in journey.get("sections") or []:
             for alt_id in search["sections"][section_id].get("alternatives") or []:
@@ -145,6 +159,7 @@ class TrainlineParser:
                 bike=journey_bike,
                 legs=legs,
                 booking_url=BOOKING_URL,
+                notices=notices,
             )
             for name, (amount, cur, tc, left) in best.items()
         ]
