@@ -159,6 +159,14 @@ script, so you do not install the userscript again after an update.
 In the Tampermonkey menu, use `Set API token` (the token of step 4). Use `Set server URL` only when the server
 differs from the address that installed the userscript.
 
+To check the server URL and the API token, press `Test` in the panel, or use `Test the connection` in the
+Tampermonkey menu. The panel shows one message:
+- `Server OK, token OK (<name>)`: the server and the token work. The message shows the name of the token and, when it has one, its end date.
+- `No travel-aggregator at this URL`: the address does not answer as the app. Check the server URL.
+- `Token revoked: make a new token on the Userscripts page`, or `Token expired: ...`: make a new token on the `/tokens` page, then set it with `Set API token`.
+- `Wrong token: copy it again from the Userscripts page`: the token is not the one of the server. Copy it again.
+- `Too many bad tokens: wait <n> s`: wait for the time shown, then test again.
+
 Check: the Tampermonkey dashboard shows the script as on.
 
 The repository also has the userscripts (`userscripts/bahn.user.js`, `userscripts/ns.user.js`, `userscripts/flixbus.user.js`, `userscripts/sncf.user.js`, `userscripts/kiwi.user.js`). To install from the
@@ -277,6 +285,8 @@ Check: `curl https://<host>/api/health` shows the commit of the new release.
 | `SMTP_HOST`, `SMTP_PORT` | The SMTP server of the e-mail channel. Port `587` uses STARTTLS, port `465` uses SSL (default port `587`) |
 | `SMTP_USER`, `SMTP_PASSWORD` | The login of the SMTP server. The password stays in the environment, never in the database |
 | `SMTP_FROM` | The sender address of the e-mail |
+| `SMTP_STARTTLS` | `false` turns off STARTTLS for a local relay without TLS (default `true`; port `465` always uses SSL) |
+| `MAIL_DOMAIN` | The mail host name of the preview server (`deploy/preview/`, default `travel-preview.larspolo.nl`). The app itself does not read it |
 | `PASSKEY_ORIGIN` | The origin of the passkeys, for example `https://travel.example.com`. Empty: the origin of the request (the reverse proxy must send `X-Forwarded-Proto` and `Host`) |
 | `BACKUP_INTERVAL_HOURS` | The hours between two daily backups of the service `backup` (default `24`) |
 | `BACKUP_KEEP` | The number of daily dumps that stay; the older ones are deleted (default `14`, at least `1`) |
@@ -294,6 +304,7 @@ The image build sets `GIT_SHA` (a build argument of the `Dockerfile`, not a sett
 | Method and path | Use |
 |---|---|
 | `GET /api/health` | `{"status": "ok", "commit": "<commit of the image>", "built": "<build time of the image>"}`. No token. |
+| `GET /api/token` | The state of the API token of the request (the token in `Authorization: Bearer`): `{"name", "expires_at"}` (200), or the reason it fails (401: wrong, revoked or expired). The userscript panel uses it for `Test the connection`. Answers 429 after too many wrong tokens |
 | `GET /api/trips` | The trips, newest first; `?status=planning` (or `booked`, `archived`) shows only the trips of that status |
 | `POST /api/trips` | Make a trip: `{"title": "...", "origin_text", "destination_text", "date_from", "date_to", "travelers"}` |
 | `POST /api/ingest` | Captured offers for a trip (body: [`docs/SPEC.md`](docs/SPEC.md) section 5). Answers `{"created": n, "updated": n, "unchanged": n}` and the field `warning`: the text of the trip warning, or `null` (see "Trip warning of a capture") |
