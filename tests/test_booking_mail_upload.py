@@ -109,6 +109,7 @@ def test_other_times_do_not_match(client, sessions):
     assert state(sessions, it_id) == (False, None, None, None)
 
 
-def test_page_has_upload_field(client, sessions):
+def test_page_has_no_upload_field(client, sessions):
+    """The trip page shows no upload of booking statements (#2826)."""
     trip_id, _ = add(sessions)
-    assert "Booked? Upload the confirmation e-mail (.eml)" in client.get(f"/trips/{trip_id}").text
+    assert "booking-mail" not in client.get(f"/trips/{trip_id}").text
