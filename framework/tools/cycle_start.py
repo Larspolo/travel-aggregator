@@ -300,10 +300,19 @@ def checkout(remote="origin", branch=None):
 OWNER_CHECK = re.compile(r"^\s*[-*]\s*After\s+((?:#\d+[,\s]*(?:and\s+)?)+):\s*(.+)$", re.I)
 
 
+DONE_CHECK = re.compile(r"^(owner )?check\b", re.I)
+
+
 def _owner_check_sub(sub):
-    """True for a sub-issue that is an owner check: `needs-human`, `owner-sample`, or an open `check` (#1547)."""
+    """True for a sub-issue that is an owner check: `needs-human`, `owner-sample`, or an open `check` (#1547). Also a
+    check closed as completed (`check`, an audience label of `agent.toml` or a title "Check ..."/"Owner check ..."):
+    `close.yml` removes `needs-human` at the close, and 8 epics showed as orphans with their checks done (#2825 run)."""
     labels = dashboard.labels(sub)
-    return "needs-human" in labels or "owner-sample" in labels or ("check" in labels and sub.get("state") == "open")
+    if "needs-human" in labels or "owner-sample" in labels or ("check" in labels and sub.get("state") == "open"):
+        return True
+    done = sub.get("state") == "closed" and sub.get("state_reason") == "completed"
+    audience = set(CONFIG.get("audience", {}))
+    return done and bool("check" in labels or labels & audience or DONE_CHECK.match(sub.get("title") or ""))
 
 
 def owner_check_missing(issues, sub_issues_of):
