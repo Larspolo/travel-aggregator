@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlparse
 from pydantic import ValidationError
 
 from app.parsers import ParseResult, count, seats
-from app.schemas import LegIn, OfferIn, _short_reason
+from app.schemas import LegIn, NoticeIn, OfferIn, _short_reason
 
 BOOKING_URL = "https://www.flixbus.com/"
 DEFAULT_CURRENCY = "EUR"
@@ -95,9 +95,18 @@ def bicycle(conn: dict, response: dict) -> str | None:
 SERVICES = {"WIFI": "wifi", "POWER_SOCKETS": "power"}
 
 
+def _notices(conn: dict) -> list[NoticeIn] | None:
+    """The `messages` of a connection as notices of the whole connection (#2760). No key: None (keep the stored ones)."""
+    messages = conn.get("messages")
+    if not isinstance(messages, list):
+        return None
+    texts = [m.strip() for m in messages if isinstance(m, str) and m.strip()]
+    return [NoticeIn(text=t[:300], level="low", leg=None) for t in texts]
+
+
 class FlixbusParser:
     source = "flixbus.com"
-    version = "1.3.0"
+    version = "1.4.0"
     # the personal keys beyond PERSONAL_KEYS (#1903): none in the fixtures (the `address` is already REDACTED)
     redact_keys: frozenset[str] = frozenset()
     # the query names of the search URL that the parser reads, or that name the search (#1903)
@@ -160,4 +169,5 @@ class FlixbusParser:
             bike=bicycle(conn, response),
             legs=legs,
             booking_url=BOOKING_URL,
+            notices=_notices(conn),
         )
