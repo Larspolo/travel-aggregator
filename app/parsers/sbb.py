@@ -21,6 +21,12 @@ FLEX = {"NON_FLEXIBLE": "Saver", "FULL_FLEXIBLE": "Flex"}
 CARDS = {"HALF_FARE": "Half Fare card", "GA": "GA travelcard"}
 
 
+def quay(point: dict) -> str | None:
+    """The planned platform of a departure or arrival (`quayFormatted`, #2733); a longer text is no platform."""
+    text = (point.get("quayFormatted") or "").strip()
+    return text if text and len(text) <= 10 else None
+
+
 def aware(value: str) -> datetime:
     t = datetime.fromisoformat(value)
     if t.tzinfo is None:
@@ -74,7 +80,7 @@ def variables(part: Any) -> dict:
 
 class SbbParser:
     source = "sbb.ch"
-    version = "1.1.0"
+    version = "1.2.0"
     redact_keys: frozenset[str] = frozenset()
     url_keep: frozenset[str] = frozenset()
     # the userscript of sbb.ch gives the hook URL (#1776); no HAR entry is read before then
@@ -125,6 +131,8 @@ class SbbParser:
                 to_name=leg["end"]["name"], to_code=leg["end"].get("id"),
                 depart_at=aware(leg["departure"]["time"]), arrive_at=aware(leg["arrival"]["time"]),
                 stops=stops(leg.get("serviceJourney")),
+                from_platform=quay(leg["departure"]),  # planned platforms (#2733)
+                to_platform=quay(leg["arrival"]),
             ))
         # the trip id is about 1000 characters: the departure and the services identify the trip
         ext = "|".join([legs[0].depart_at.isoformat(), *(x.service_no or "" for x in legs)])[:200] if legs else None
