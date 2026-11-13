@@ -96,6 +96,8 @@ def target_runs(usage, now, burn=BURN, end=END, lo=LO, hi=HI, mid=MID, mid_left=
     used, reset, status = usage["five_hour"]
     if status == "rejected":
         return 0
+    if usage.get("seven_day", (0, 0, ""))[2] == "rejected":   # a hard limit, also with no week guard: no run can work,
+        return 0                                                # and a pacer brief claims a ticket for it (#2656: 18 h stuck)
     left = (reset - now) / 3600
     if left > mid_left and used < mid:                          # the first 3 hours: fast to `mid`
         aim, hours = mid, left - mid_left
@@ -104,9 +106,7 @@ def target_runs(usage, now, burn=BURN, end=END, lo=LO, hi=HI, mid=MID, mid_left=
     hours = max(hours, 0.25)                                    # the last quarter hour: use what is left
     n = round(max(aim - used, 0) / hours / burn)
     if week and "seven_day" in usage:                           # do not use the week faster than it passes
-        used7, reset7, status7 = usage["seven_day"]
-        if status7 == "rejected":
-            return 0
+        used7, reset7, _ = usage["seven_day"]
         if used7 < free7:
             return max(lo, min(hi, n))
         elapsed = 1 - max(reset7 - now, 0) / (7 * 86400)
