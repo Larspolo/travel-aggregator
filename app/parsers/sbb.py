@@ -70,6 +70,12 @@ def discounts(passengers: Any) -> list[str] | None:
     return out
 
 
+def _cancelled(trip: dict) -> bool:
+    """True when sbb.ch shows the trip as cancelled or partly cancelled (#2757); no summary is not cancelled."""
+    status = (trip.get("summary") or {}).get("tripStatus") or {}
+    return status.get("cancelled") is True or status.get("partiallyCancelled") is True
+
+
 def variables(part: Any) -> dict:
     req = part.get("request") if isinstance(part, dict) else None
     body = req.get("body") if isinstance(req, dict) else None
@@ -80,7 +86,7 @@ def variables(part: Any) -> dict:
 
 class SbbParser:
     source = "sbb.ch"
-    version = "1.2.0"
+    version = "1.3.0"
     redact_keys: frozenset[str] = frozenset()
     url_keep: frozenset[str] = frozenset()
     # the userscript of sbb.ch gives the hook URL (#1776); no HAR entry is read before then
@@ -108,6 +114,9 @@ class SbbParser:
                              discounts=discounts(people))
         for i, trip in enumerate(trips):
             try:
+                if _cancelled(trip):  # #2757: a cancelled trip is no rejected offer
+                    result.cancelled.append(self._legs(trip))
+                    continue
                 if trip.get("id") not in by_id:
                     raise ValueError("no price")
                 result.offers.extend(self._offers(trip, by_id[trip["id"]]))
@@ -117,7 +126,8 @@ class SbbParser:
                 result.errors.append({"index": i, "reason": f"bad trip: {type(e).__name__} {e}"[:200]})
         return result
 
-    def _offers(self, trip: dict, price: dict) -> list[OfferIn]:
+    def _legs(self, trip: dict) -> list[LegIn]:
+        """The legs of a trip (a walk is no leg)."""
         legs = []
         for leg in trip["legs"]:
             if leg.get("__typename") != "PTRideLeg":
@@ -134,6 +144,10 @@ class SbbParser:
                 from_platform=quay(leg["departure"]),  # planned platforms (#2733)
                 to_platform=quay(leg["arrival"]),
             ))
+        return legs
+
+    def _offers(self, trip: dict, price: dict) -> list[OfferIn]:
+        legs = self._legs(trip)
         # the trip id is about 1000 characters: the departure and the services identify the trip
         ext = "|".join([legs[0].depart_at.isoformat(), *(x.service_no or "" for x in legs)])[:200] if legs else None
         offers = []
