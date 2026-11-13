@@ -81,7 +81,7 @@ from app.capture_changes import capture_changes
 from app.models import (AccessTime, ApiToken, Capture, CurrencyRate, DayPrice, FarePrice, Itinerary, Leg, Passkey, PlaceName, PushSubscription, RailPass, ScoreProfile, Setting,
                         SentMessage, SourceFee, Trip, TripAccessTime, TripSeries)
 from app.place_names import aliases as place_aliases
-from app.tripmatch import ALIASES, fold
+from app.tripmatch import ALIASES, fold, passes_via
 from app.notify import (CHANNEL_KEY, CHANNELS, EMAIL_KEY, MAX_REMINDER_DAYS, NTFY_URL_KEY, REMINDER_BEFORE_KEY,
                         REMINDER_DAYS_KEY, REMINDER_NOT_SENT, SOURCE_ALERT_KEY, alert_messages, deliver, setting,
                         webpush_ready)
@@ -981,6 +981,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
               hide_stale: bool = Query(False),
               pareto_only: bool = Query(False, alias="pareto"),  # "only these": the marked offers (#1857)
               route: str = Query("", max_length=200),  # route_value() of a route; "" = all (#2225)
+              via: str = Query("", max_length=100),  # a place the itinerary stops at or changes at (epic #2699)
               capture: int | None = Query(None),  # with `change`: only the changes of this capture (#2329)
               change: str = Query("", max_length=10),
               bike: bool | None = Query(None),  # None: the bicycle of the trip (#2474)
@@ -1048,6 +1049,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             ("hide stale", hide_stale and max(f.latest_captured_at for f in it.fares) < stale_before),
             # the day filter shows only the offers that depart on that local day (#709)
             (f"day {day}", day and it.legs and depart_day(it) != day),
+            (f"via {via.strip()}", bool(via.strip()) and not passes_via(it, via)),  # epic #2699
         ) if hit}
         # an excluded mode or carrier hides each offer with one of its legs: each value is its own filter
         hides |= {f"excluded mode {m}" for m in exclude_mode if any(leg.mode == m for leg in it.legs)}
@@ -1123,7 +1125,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
             "earliest_depart": earliest_depart, "latest_arrive": latest_arrive, "day": day,
             "modes": sorted(modes), "sources": sorted(sources), "carriers": sorted(carriers),
             "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier, "hide_stale": hide_stale,
-            "pareto_only": pareto_only, "route": route}
+            "pareto_only": pareto_only, "route": route, "via": via.strip()}
     # the active weights (#230): a slider change or a sort keeps all values; night_hour_markup None is not sent
     query = {**{k: v for k, v in to_config(weights).items() if v is not None},
              **{k: MODE_HOUR_BLANK for k in MODE_HOUR_FIELDS if getattr(weights, k) is None},  # (#1568)
@@ -1133,6 +1135,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
              **({"earliest_depart": earliest_depart} if limit_depart is not None else {}),
              **({"latest_arrive": latest_arrive} if limit_arrive is not None else {}),
              **({"day": day} if day else {}),
+             **({"via": via.strip()} if via.strip() else {}),
              "exclude_mode": exclude_mode, "exclude_carrier": exclude_carrier}
     if show_hidden:
         query["show_hidden"] = True  # the sort links and the sliders keep it (#200)
@@ -1218,6 +1221,7 @@ def trip_page(request: Request, trip_id: int, session: Session = Depends(get_ses
                f"depart after {earliest_depart}": {"earliest_depart": None},
                f"arrive by {latest_arrive}": {"latest_arrive": ""},  # empty: no arrive-by limit (#1296)
                "bicycle": {"bike": "0"}, "hide stale": {"hide_stale": None}, "only marked": {"pareto": None}, f"day {day}": {"day": None},
+               f"via {via.strip()}": {"via": None},
                **{f"excluded mode {m}": {"exclude_mode": [x for x in exclude_mode if x != m]} for m in exclude_mode},
                **{f"excluded carrier {c}": {"exclude_carrier": [x for x in exclude_carrier if x != c]}
                   for c in exclude_carrier}}
