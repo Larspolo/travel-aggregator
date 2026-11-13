@@ -399,3 +399,13 @@ def recheck_extras(fare, itinerary, weights: Weights, trip=None) -> tuple[tuple[
     if fee == 0 or getattr(trip, "checked_bag", None) == "none":
         return ()
     return tuple((f"bag recheck at {leg.from_name}", fee) for leg in itinerary.legs if getattr(leg, "bag_recheck", None) is True)
+
+
+def hidden_city_extras(fare, weights: Weights) -> tuple[tuple[str, Decimal], ...]:
+    """Add the fee of a fare marked "hidden-city" or "throwaway" (#2794, the mark of #2793): one part, once per
+    fare. A fee of 0 or a fare with no mark adds no part."""
+    fee = Decimal(weights.hidden_city_fee)
+    mark = getattr(fare, "travel_hack", None)
+    if fee == 0 or mark not in ("hidden-city", "throwaway"):
+        return ()
+    return ((f"{mark} ticket", fee),)

@@ -87,6 +87,8 @@ class Weights:
     # The fee per leg of a fare with a bicycle reservation on a trip with a bicycle (#2475); 0 disables it.
     bike_fee: Decimal = Decimal("0")
     recheck_fee: Decimal = Decimal("0")  # #2661: per leg with a bag recheck; 0 disables it
+    # The fee per fare marked hidden-city or throwaway (#2794, mark of #2793); 0 disables it.
+    hidden_city_fee: Decimal = Decimal("0")
     # The expected load markup per leg (epic #2607): EUR for the level high (2) and for very high (3) or fully
     # booked (4); 0 disables each.
     load_high_markup: Decimal = Decimal("0")
