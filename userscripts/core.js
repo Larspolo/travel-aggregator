@@ -1,7 +1,7 @@
 // travel-aggregator userscript core: a floating status panel in a Shadow DOM.
 // It reads and writes no page data (P1, P5). It uses GM_* functions only through TACore.gm.
 // Make CORE_VERSION higher with each change of this file (the server adds it to the @version of each script).
-const CORE_VERSION = 23;
+const CORE_VERSION = 24;
 (function (root) {
   "use strict";
   if (root.TACore) return;
@@ -82,7 +82,8 @@ const CORE_VERSION = 23;
       <label><input type="checkbox" class="autotrip"> auto-select trip</label>
       <button type="button" class="send">Send</button>
       <button type="button" class="set-server">Server URL</button>
-      <button type="button" class="set-token">API token</button>`;
+      <button type="button" class="set-token">API token</button>
+      <button type="button" class="test-connection">Test</button>`;
     // One inline form for the questions of the panel (#1066): a browser dialog blocks Playwright and agent tools.
     const form = document.createElement("form");
     form.className = "ask";
@@ -128,6 +129,7 @@ const CORE_VERSION = 23;
       sendButton: controls.querySelector(".send"),
       serverButton: controls.querySelector(".set-server"),
       tokenButton: controls.querySelector(".set-token"),
+      testButton: controls.querySelector(".test-connection"),
       // Turns the end of the status text (the suffix " · Best of trip: …") into a link to href (#2367).
       addLink(suffix, href) {
         const text = box.textContent;
@@ -621,16 +623,57 @@ const CORE_VERSION = 23;
     silentCheck();
   };
   // The panel has the settings too (#536): the Tampermonkey menu is hidden in the extension popup.
+  // "Test the connection" (#2048): GET /api/health, then GET /api/token with the token; the status says the problem.
+  const testConnection = async () => {
+    const { server, token } = config();
+    if (!/^https?:\/\//.test(server)) { panel.setStatus("Set the server URL first", "error"); return; }
+    const get = (path, headers) => new Promise((resolve) => {
+      gm.request({
+        method: "GET",
+        url: server + path,
+        headers,
+        onload: (r) => resolve(r),
+        onerror: () => resolve(null),
+        ontimeout: () => resolve(null),
+      });
+    });
+    const noAnswer = () => panel.setStatus(`No answer from ${server}`, "error");
+    const health = await get("/api/health", {});
+    if (!health) return noAnswer();
+    let healthy = false;
+    try { healthy = JSON.parse(health.responseText).status === "ok"; } catch (e) { healthy = false; }
+    if (!healthy) { panel.setStatus("No travel-aggregator at this URL", "error"); return; }
+    const r = await get("/api/token", { Authorization: "Bearer " + token });
+    if (!r) return noAnswer();
+    let body = {};
+    try { body = JSON.parse(r.responseText) || {}; } catch (e) { body = {}; }
+    if (r.status === 200) {
+      const ends = body.expires_at ? `, ends ${String(body.expires_at).slice(0, 10)}` : "";
+      panel.setStatus(`Server OK, token OK (${body.name})${ends}`, "ok");
+    } else if (r.status === 401) {
+      const why = {
+        "token revoked": "Token revoked: make a new token on the Userscripts page",
+        "token expired": "Token expired: make a new token on the Userscripts page",
+      }[body.detail] || "Wrong token: copy it again from the Userscripts page";
+      panel.setStatus(why, "error");
+    } else if (r.status === 429) {
+      const wait = /retry-after:\s*(\d+)/i.exec(r.responseHeaders || "");
+      panel.setStatus(`Too many bad tokens: wait ${wait ? wait[1] : "?"} s`, "error");
+    } else {
+      panel.setStatus(`Token check failed (${r.status})`, "error");
+    }
+  };
   const setServer = async () => {
     const v = await panel.ask("travel-aggregator server URL", config().server, "url");
-    if (v !== null) { gm.setValue("server", v.trim()); showTripLink(); loadTrips(); }
+    if (v !== null) { gm.setValue("server", v.trim()); showTripLink(); loadTrips(); testConnection(); }
   };
   const setToken = async () => {
     const v = await panel.ask("travel-aggregator API token", "", "password");
-    if (v !== null) { gm.setValue("token", v.trim()); loadTrips(); }
+    if (v !== null) { gm.setValue("token", v.trim()); loadTrips(); testConnection(); }
   };
   panel.serverButton.addEventListener("click", setServer);
   panel.tokenButton.addEventListener("click", setToken);
+  panel.testButton.addEventListener("click", testConnection);
   // "Discard the queue" (#1666): empties the queue; no request and no browser dialog (P1, P6).
   const discard = () => {
     const n = loadQueue().length;
@@ -642,6 +685,7 @@ const CORE_VERSION = 23;
   gm.menu("Discard the queue", discard);
   gm.menu("Set server URL", setServer);
   gm.menu("Set API token", setToken);
+  gm.menu("Test the connection", testConnection);
   gm.menu("Add this website", () => {
     root.open(config().server.replace(/\/+$/, "") + "/sources/new?site=" + encodeURIComponent(root.location.host), "_blank");
   });
