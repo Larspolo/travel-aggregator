@@ -1381,6 +1381,8 @@ The search status of a trip shows a search link to eurostar.com. Use it to open 
 The ÖBB userscript captures the search results of shop.oebbtickets.at: the connections with their times and the
 prices of the results list. When you open the offers of a Nightjet, it also captures its Seat, Couchette and Sleeper
 fares.
+On the trip page, a Nightjet fare shows the name of its cheapest compartment after the fare name. The info texts of that
+compartment are listed under the fare.
 It reads only the responses that the ÖBB page itself gets. It sends no request to oebbtickets.at.
 
 To install it, add the file `userscripts/oebb.user.js` of this repository to Tampermonkey as a new script.
