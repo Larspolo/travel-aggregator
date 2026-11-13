@@ -15,7 +15,7 @@ def issue(n, body, labels=("cleanup",), app=None, created="2026-10-27T18:59:53Z"
 
 def test_an_owner_ticket_for_the_system_is_a_miss():
     issues = [issue(1909, "Currently the code contains long lists."),                    # owner, free text
-              issue(1864, "### Goal\n\nhttps://github.com/Larspolo/travel-aggregator/pull/1845", ("tooling",)),  # owner form
+              issue(1864, "### Goal\n\nhttps://github.com/lars-his-projects/travel-aggregator/pull/1845", ("tooling",)),  # owner form
               issue(1702, "## Goal\nParallel tickets ..." + FOOTER, ("process",)),         # agent, footer
               issue(1897, "## Goal\nAfter bootstrap ...", ("process",), app={"slug": "claude"}),
               issue(1806, "## Goal\nEach ticket number ...", ("tooling",)),               # agent, local session

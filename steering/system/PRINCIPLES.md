@@ -1,7 +1,7 @@
 # Principles: the agent system
 
 The direction of travel-aggregator for the agent system (how the runs work): what the owner prefers when two good
-options compete. These principles come from the owner's decisions in the aoe2mc project (Larspolo/aoe2mc), where this
+options compete. These principles come from the owner's decisions in the aoe2mc project (lars-his-projects/aoe2mc), where this
 agent system started; `aoe2mc#N` names an issue there. New decisions of this project go to
 `steering/system/DECISIONS.md`. The project principles (P1 to P5) are in `steering/project/PRINCIPLES.md`.
 

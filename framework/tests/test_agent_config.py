@@ -38,7 +38,7 @@ def test_the_tools_read_another_config(tmp_path):
 def test_no_tool_skill_or_workflow_names_the_repository():
     """Only agent.toml names it, and .claude/settings.json: permission rules cannot read a file. The copy of the
     owner's dashboard page (tools/dashboard_artifact, #982) is data of this project, not a tool."""
-    found = subprocess.run(["git", "grep", "-l", "Larspolo/travel-aggregator", "--", ".claude", "tools", ".github",
+    found = subprocess.run(["git", "grep", "-l", "lars-his-projects/travel-aggregator", "--", ".claude", "tools", ".github",
                             ":!tools/dashboard_artifact"],
                            cwd=ROOT, capture_output=True, text=True).stdout.split()
     assert found == [".claude/settings.json"]

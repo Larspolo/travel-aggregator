@@ -37,7 +37,7 @@
       "Bash(git stash:*)",
       "Bash(git worktree:*)",
       "Bash(git rev-parse:*)",
-      "Bash(gh api repos/Larspolo/travel-aggregator:*)",
+      "Bash(gh api repos/lars-his-projects/travel-aggregator:*)",
       "Bash(gh api search/issues:*)",
       "Bash(gh issue:*)",
       "Bash(gh pr:*)",

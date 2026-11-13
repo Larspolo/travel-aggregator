@@ -7,7 +7,7 @@ SINCE = datetime.datetime(2026, 10, 25, 12, 0, tzinfo=datetime.timezone.utc)
 
 
 def test_conflicted_prs_and_their_files():
-    url = "https://api.github.com/repos/Larspolo/travel-aggregator/issues/"
+    url = "https://api.github.com/repos/lars-his-projects/travel-aggregator/issues/"
     comments = [{"issue_url": url + "7", "body": "CI is green, but the merge failed (not mergeable)."},
                 {"issue_url": url + "9", "body": " CI is green, but the merge failed (not mergeable)."},
                 {"issue_url": url + "7", "body": "CI is green, but the merge failed again."},

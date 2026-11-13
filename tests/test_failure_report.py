@@ -65,7 +65,7 @@ def test_page_link_with_long_reasons(data, sessions, monkeypatch):
     links = re.findall(r'<a class="report-link" href="([^"]+)" target="_blank" rel="noopener">Report on GitHub</a>', page)
     assert len(links) == 1
     url = links[0].replace("&amp;", "&")
-    assert url.startswith("https://github.com/Larspolo/travel-aggregator/issues/new?")
+    assert url.startswith("https://github.com/lars-his-projects/travel-aggregator/issues/new?")
     assert len(url) <= MAX_URL
     body = parse_qs(urlsplit(url).query)["body"][0]
     assert "Unreadable payloads: 51" in body and "trimmed payload" in body

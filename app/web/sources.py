@@ -12,7 +12,7 @@ from app.web.pages import templates
 
 router = APIRouter()
 
-REPO = "Larspolo/travel-aggregator"
+REPO = "lars-his-projects/travel-aggregator"
 
 
 def issue_url(site: str) -> str:

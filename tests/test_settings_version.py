@@ -41,7 +41,7 @@ def test_version_card_names_commit_build_time_and_head(client, monkeypatch, tmp_
     page = client.get("/settings").text
     assert "Version" in page
     assert "Commit" in page and "abc1234" in page
-    assert "https://github.com/Larspolo/travel-aggregator/commit/abc1234" in page
+    assert "https://github.com/lars-his-projects/travel-aggregator/commit/abc1234" in page
     assert "built 2026-11-10 03:00 UTC" in page
     assert "migrations pending" not in page
     assert "(head)" in page

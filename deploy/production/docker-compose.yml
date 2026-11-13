@@ -4,7 +4,7 @@
 # The names of the variables are a contract: the app reads DATABASE_URL, SECRET_KEY and GIT_SHA (capture:skeleton).
 services:
   app:
-    image: ghcr.io/larspolo/travel-aggregator:latest
+    image: ghcr.io/lars-his-projects/travel-aggregator:latest
     restart: unless-stopped
     env_file: .env
     volumes:
@@ -20,7 +20,7 @@ services:
 
   # A daily dump of the database to the backups volume (`python -m app.backup --daily`; no cron needed).
   backup:
-    image: ghcr.io/larspolo/travel-aggregator:latest
+    image: ghcr.io/lars-his-projects/travel-aggregator:latest
     restart: unless-stopped
     env_file: .env
     command: python -m app.backup --daily

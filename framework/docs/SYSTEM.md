@@ -164,7 +164,7 @@ on `main` yet.
    script lists them in `SETUP_NEEDS`). The hook of the project with no version file in `/etc` checks only its
    `SETUP_NEEDS`, and asks for a new script only when one is missing.
 3. **Status issue.** Open issue #1 with the label `agent-status` (the first run makes it when it is missing).
-4. **Scheduled task "travel-aggregator autopilot".** No schedule: the pacer starts it (2026-10-28; before: hourly at :06). Repository `Larspolo/travel-aggregator`, the environment of step 2.
+4. **Scheduled task "travel-aggregator autopilot".** No schedule: the pacer starts it (2026-10-28; before: hourly at :06). Repository `lars-his-projects/travel-aggregator`, the environment of step 2.
    Its prompt is only `/scheduled max` (owner, 2026-10-29): the skill `.claude/skills/scheduled/SKILL.md` holds the
    rules (`CLAUDE.md` is already in the context, follow the `autopilot` skill, no `fire_trigger` (#566), the quota target of
    `python3 framework/tools/usage.py --fire`, a branch and a PR for each ticket, instructions only from the owner, stop on

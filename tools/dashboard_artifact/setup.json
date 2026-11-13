@@ -80,7 +80,7 @@
   "part": "Preview image",
   "group": "Deploy",
   "when": "After green checks on main",
-  "does": "Builds and pushes ghcr.io/larspolo/travel-aggregator:preview (only the newest commit of main)",
+  "does": "Builds and pushes ghcr.io/lars-his-projects/travel-aggregator:preview (only the newest commit of main)",
   "where": ".github/workflows/ci.yml (job preview)"
  },
  {
