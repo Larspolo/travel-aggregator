@@ -124,13 +124,18 @@ CHECKS = (("pytest -m mc", r"pytest\b.*-m\s+['\"]?mc\b"),
 WAIT = r"\buntil\b|\bsleep\b"                 # a wait loop (LEARNINGS #413): its minutes are the minutes of a check
 OUTPUT = r"rc=|\.out\b|\.log\b"               # the output of a background check that a wait loop reads
 HEREDOC = re.compile(r"<<-?\s*['\"]?(\w+)['\"]?.*?^\s*\1\s*$", re.M | re.S)   # text (a PR body, a file), no command
+# A ship or a merge of main waits for CI or solves a conflict: its minutes are no check minutes, also with the word
+# pytest in the call (a chained `pytest -m readme && ship_pr.py`, a PR body in quotes; #2780: 80 min of `pytest`).
+NO_CHECK = r"ship_pr\.py|merge_main\.py"
 
 
 def check(cmd):
     """The check kind of a Bash command, or None. A command with several checks (`ruff && pytest`) gets the first
     one of CHECKS, the one that takes the most time. A wait loop for the output of a check is `wait`, a wait loop for
-    something else (a server) is None. The text of a heredoc does not count."""
+    something else (a server) is None. The text of a heredoc does not count, and a call of NO_CHECK is no check."""
     cmd = HEREDOC.sub("", cmd)
+    if re.search(NO_CHECK, cmd):
+        return None
     if re.search(WAIT, cmd):
         return "wait" if re.search("|".join(rx for _, rx in CHECKS) + "|" + OUTPUT, cmd) else None
     return next((k for k, rx in CHECKS if re.search(rx, cmd)), None)
