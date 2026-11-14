@@ -149,7 +149,8 @@ def account_targets(reads, comments, now, names, config=None):
     for name in [n for n in names if n in reads]:
         burn, burn7 = usage.burns(comments, account=name)
         r = (tables.get(name) or {}).get("reserve", 0)
-        targets[name] = usage.target_runs(reads[name], now, burn, end=usage.END - r, mid=usage.MID - r, burn7=burn7)
+        targets[name] = usage.target_runs(reads[name], now, burn, end=usage.END - r, mid=usage.MID - r, burn7=burn7,
+                                          owner=usage.owner_wait)
     missing = missing_runs(targets, {n: eq(health.count_lanes(refs, t, account=n)) for n in names})
     return eq(health.count_lanes(refs, t)) + sum(missing.values()), missing, weights
 
