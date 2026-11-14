@@ -40,8 +40,8 @@ the assignee of a complete card, and GitHub tells the owner: do not write `@` an
 takes the label off an incomplete card and comments the lines that the card needs. Check a card before you post it:
 `python3 framework/tools/card.py --text FILE`. When the owner of the card comments on it, the workflow takes the label and the
 owner as the assignee off at once (owner, 2026-11-14): the owner has no step after the answer. The next run reads
-the answer in step 3 and does what it says. The line `For:` of the card names the owner who knows the answer when it is not `owner` of `agent.toml`; until
-#2867 is done, also add the label `for-lars` or `for-jeroen` (`ticket` skill, #72). Never ask with PushNotification, in the
+the answer in step 3 and does what it says. The line `For:` of the card names the owner who knows the answer when it is not `owner` of `agent.toml`
+(`[audience]` there says who knows what): that person becomes the assignee, and no label names a person (#2867). Never ask with PushNotification, in the
 session, or only in the status report. When the auto mode denies an action (for example closing an issue), do not send
 it through another tool: add `needs-human` to that issue and comment the evidence and the action. When the owner did
 it, remove the label.

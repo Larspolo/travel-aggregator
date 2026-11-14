@@ -17,7 +17,7 @@ def select(subs, closed=None):
 
 
 def test_an_open_owner_check_does_not_keep_the_epic_open():
-    out = select([sub(805, state="closed"), sub(807, "needs-human", "for-jeroen")])
+    out = select([sub(805, state="closed"), sub(807, "needs-human")])
     assert [(e, n, pr) for e, n, pr, _ in out] == [(9, (805,), (830,))]
 
 

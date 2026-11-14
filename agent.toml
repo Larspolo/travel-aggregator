@@ -29,6 +29,6 @@ steering = "framework/docs/STEERING.md"
 learnings = "docs/LEARNINGS.md"
 roadmap = "steering/project/ROADMAP.md"
 
-[audience]                      # who answers a needs-human ticket: add one of these labels to each (#72)
-for-lars = "Larspolo"           # the agent system: Claude, Docker, the server, CI, the GitHub settings
-for-jeroen = "Jeroenvb3"        # the project: decisions, features, the roadmap, payload captures (#122)
+[audience]                      # who answers a needs-human ticket: that person is its assignee (#2867; a label before, #72)
+system = "Larspolo"             # the agent system: Claude, Docker, the server, CI, the GitHub settings
+project = "Jeroenvb3"           # the project: decisions, features, the roadmap, payload captures (#122)

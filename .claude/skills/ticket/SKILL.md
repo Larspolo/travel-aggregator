@@ -86,12 +86,15 @@ progress (`dashboard.migrates()`, #2679: 4 merge conflicts in 100 PRs in `models
 
 ## needs-human tickets
 
-Add one label of `[audience]` in `agent.toml` too (#72): `for-lars` for the agent system (Claude, Docker, the
-server, CI, the GitHub settings), `for-jeroen` for the project (decisions, features, the roadmap, and the payload captures of a
-new source: Kind `outside`, owner Larspolo on #122). A payload capture of a travel site also has the lines
+The person who answers is the assignee of the ticket (#2867): GitHub shows each owner the waiting tickets of all
+projects in one list (https://github.com/issues/assigned) and sends a notification. The Cards workflow sets the
+assignee from the card: the line `For: <login>` of the card, else `owner` of `agent.toml`. `[audience]` in `agent.toml`
+names who knows what: `system` (Larspolo) for the agent system (Claude, Docker, the server, CI, the GitHub settings),
+`project` (Jeroenvb3) for the project (decisions, features, the roadmap, and the payload captures of a
+new source: Kind `outside`, owner Larspolo on #122). Add no label for the person. A payload capture of a travel site also has the lines
 `Capture: <start page URL>`, `Keep: <URL part of the requests to keep>` and `Branch: owner/<name>-captures` after the
 `Kind:` line, and steps that need no login: the `capture` skill on Jeroen's computer does it in his browser. Mention the login
-of that label in the comment. The status issue shows one list per label.
+of the person in the comment. The status issue shows one list per assignee.
 The owner reads them on a phone. Give numbered steps, the exact names of settings or files, and what the
 owner must reply. One ticket per decision.
 Make them early, but only when the owner can do them at once (owner, 2026-11-06): when you make an epic, make its

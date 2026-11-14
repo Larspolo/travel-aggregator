@@ -22,9 +22,9 @@ def test_a_completed_check_by_title_gives_none():
     assert missing(sub("Check the warning with a real bahn.de search")) == []
 
 
-def test_a_completed_check_by_label_or_audience_gives_none():
+def test_a_completed_check_by_label_or_old_person_label_gives_none():
     assert missing(sub(labels=["check"])) == []
-    assert missing(sub(labels=[next(iter(start.CONFIG["audience"]))])) == []
+    assert missing(sub(labels=["for-someone"])) == []        # the label of a person, from the time before #2867
 
 
 def test_a_check_closed_as_not_planned_still_gives_the_line():

@@ -398,22 +398,29 @@ def release_scope(epic, issues, milestones=()):
     return m.get("closed_issues", 0), m.get("closed_issues", 0) + m.get("open_issues", 0), left
 
 
+def assigned(issue):
+    """The logins of the assignees of an issue."""
+    return {(a.get("login") or "") for a in issue.get("assignees") or []}
+
+
 def waiting(wait, comments, audience=None):
-    """The lines of "Waiting for you", grouped by the label of `[audience]` in `agent.toml` (#72: `for-lars` for the
-    system, `for-jeroen` for the project). A ticket with no such label comes last, under "Other"."""
+    """The lines of "Waiting for you", grouped by the assignee (#2867): one group for each person of `[audience]` in
+    `agent.toml` (the system, the project). GitHub shows an owner the same tickets of all projects in one list
+    (https://github.com/issues/assigned). A ticket with no such assignee comes last, under "Other"."""
     audience = CONFIG.get("audience", {}) if audience is None else audience
     line = lambda i: f"- #{i['number']} {i['title']} – {question(comments.get(i['number'], []))}"
     if not wait:
         return ["- nothing"]
     if not audience:
         return [line(i) for i in wait]
-    out, rest = [], [i for i in wait if not set(audience) & labels(i)]
-    for label, login in audience.items():
-        group = [i for i in wait if label in labels(i)]
+    logins = list(dict.fromkeys(audience.values()))
+    out, rest = [], [i for i in wait if not set(logins) & assigned(i)]
+    for login in logins:
+        group = [i for i in wait if login in assigned(i)]
         if group:
-            out += [f"**For {login}** (`{label}`):"] + [line(i) for i in group]
+            out += [f"**For {login}**:"] + [line(i) for i in group]
     if rest:
-        out += ["**Other** (no `" + "` or `".join(audience) + "` label):"] + [line(i) for i in rest]
+        out += ["**Other** (no assignee):"] + [line(i) for i in rest]
     return out
 
 
