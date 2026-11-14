@@ -39,7 +39,7 @@ Exit 1 there: another run was first, take the next line. With a PR: fix it at st
 from step 6 (start from its branch when it has one). That is the work of this cycle.
 A ticket whose PR only waits for its quick CI or for Automerge gets no line (`pacer.ci_wait`). A line
 `PR #M waits for the owner (no agent branch, no label automerge)`: a green PR that Automerge never merges. Do not take it
-over: add `needs-human` and a comment that asks the owner to add the label `automerge` to PR #M or to merge it, then
+over: ask the owner with a card (`owner.md`; `Kind: setting`) to add the label `automerge` to PR #M or to merge it, add `needs-human`, then
 `python3 framework/tools/claim.py N --release` (#5331).
 
 ## The flow brake

@@ -3,10 +3,35 @@
 Read this file when you must ask the owner, when the auto mode denies an action, when a ticket is wrong, and in
 step 7 when the owner must check something in the game (part of the `autopilot` skill, #1700).
 
+## Before you ask: the owner is the last resource
+
+The owner (2026-11-14): "It should automatically use the available resources to fix it, and not ask me first."
+A blocked step stays your work until each resource failed. Go down this list, and note each try with its result:
+
+1. **Another route on this machine.** A host that gives no answer, a download that fails, a tool that is not there:
+   use another server or mirror of the same data, another API of the same service, the package of a registry, or a
+   copy that is in the repository. Put the route that works into the code or the setup (a list of servers in the
+   script, `scripts/cloud-setup.sh`), so that the next run does not search again.
+2. **Another machine.** A job of GitHub Actions has a network of its own. When a host gives no answer from a cloud
+   session, a workflow can run the command and commit the result or make a PR.
+3. **A rule of the project stops the step.** Do not go around a rule. When the rule only gives the owner a step that
+   a machine can do, ask for the rule, not for the step: a decision card that names the rule and its source, with
+   your recommendation. One answer then removes the step for each later run.
+4. **Only then a card**, for what only the owner has or decides: an account, a secret, money, a device, a right, a
+   direction. The card names each try (`Tried:`) and says why no machine can do the step (`Only the owner:`).
+
+A denial is not a resource that failed. When the auto mode denies an action, or a network policy refuses a host (403
+or 407), a person or a guard decided it: do not go around it with another tool or another machine. That is a card.
+
 ## Ask the owner
 
-Ask the owner (owner rule, #862): only with the label `needs-human`, the label `for-lars` or `for-jeroen` (`ticket` skill, #72) and a comment on the issue that needs the answer.
-The comment mentions the owner (`@` and `owner` of `agent.toml`) and says exactly what the owner must do. Never ask with PushNotification, in the
+Ask the owner (owner rule, #862) only with a card on the issue that needs the answer: a comment with the section
+`## For the owner` (`ticket` skill, "needs-human tickets"), and then the label `needs-human`. Write the comment first:
+the Cards workflow (`cards.yml`, `framework/tools/card.py`) reads the card when the label comes. It makes the owner
+the assignee of a complete card, and GitHub tells the owner: do not write `@` and the name of the owner yourself. It
+takes the label off an incomplete card and comments the lines that the card needs. Check a card before you post it:
+`python3 framework/tools/card.py --text FILE`. The line `For:` of the card names the owner who knows the answer when it is not `owner` of `agent.toml`; until
+#2867 is done, also add the label `for-lars` or `for-jeroen` (`ticket` skill, #72). Never ask with PushNotification, in the
 session, or only in the status report. When the auto mode denies an action (for example closing an issue), do not send
 it through another tool: add `needs-human` to that issue and comment the evidence and the action. When the owner did
 it, remove the label.
@@ -20,7 +45,7 @@ claim refs. Use it for a finished epic, an answered decision ticket and a check 
 denies the label too (a session without the owner's `autoMode` rule, #1740: `claude auto-mode config` lists its allow
 lines), do not try another way: keep the comment, add `needs-human` and "Please close".
 
-If the ticket is wrong or not possible: comment why, add `needs-human`, run `python3 framework/tools/claim.py N --release` (it
+If the ticket is wrong or not possible: say why in a card (`Kind: question`), add `needs-human`, run `python3 framework/tools/claim.py N --release` (it
 removes `in-progress`). Do not merge partial work: add `hold` to its PR (the workflow also skips a PR whose ticket has `needs-human` or `blocked`).
 
 ## Check tickets (step 7)

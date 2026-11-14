@@ -1,0 +1,32 @@
+name: Cards
+
+# The owner gets only a complete card (owner, 2026-11-14: the owner is the last resource). When a run adds the label
+# `needs-human`, framework/tools/card.py reads the card: the section "## For the owner" in a comment or in the body.
+# A complete card gets its owner as the assignee, and GitHub tells the owner. An incomplete card loses the label, and
+# a comment names the lines that it needs. A label that an owner added stays with no check.
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read         # checkout: framework/tools/card.py
+  issues: write          # the assignee, the label, the comment
+
+concurrency:
+  group: cards-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  card:
+    if: github.event.label.name == 'needs-human'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the card
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number }}
+          SENDER: ${{ github.event.sender.login }}
+        # The label can come some seconds before the comment with the card: an incomplete card gets a second read.
+        run: python3 framework/tools/card.py "$NUMBER" --apply --sender "$SENDER" --wait 45

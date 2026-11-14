@@ -103,7 +103,10 @@ your comment) has a section `## For the owner`, so that the `human` skill (`/hum
 can prepare and guide it:
 
     ## For the owner
-    Kind: play            (or decision, setting, outside, close, question)
+    Kind: play            (or decision, proposal, question, close, and for a step of the owner: setting, outside, step)
+    Minutes: <the minutes that the owner needs, a whole number>
+    Only the owner: <why no machine can do it: the account, the secret, the device or the right that only the owner has>
+    Tried: <a resource that you used before you asked> → <its result>
     World: <the command that makes the test data, from CLAUDE.md>
     Start: <the command that starts the program, from CLAUDE.md>
     1. <one step that the owner does>
@@ -111,6 +114,11 @@ can prepare and guide it:
     Reply: <what the owner must write on the ticket>
 
 Leave out `World` and `Start` when the ticket needs no world.
+The Cards workflow checks each card when the label `needs-human` comes (`framework/tools/card.py`; owner, 2026-11-14:
+the owner is the last resource). Each card needs `Kind:` and `Minutes:`. A card of the kind `setting`, `outside` or
+`step` also needs `Only the owner:` and one `Tried:` line for each resource that the run used first (`owner.md` of the
+`autopilot` skill, "Before you ask"). Add a line `For: <login>` only when another owner than `owner` of `agent.toml`
+knows the answer. An incomplete card loses the label, and the owner does not get it.
 Before you write a step, ask: can an agent check this (a test, Playwright at 1280 px or with a phone device, `curl`,
 `scripts/preview_check.sh`)? Then the agent checks it and the ticket links the evidence; the step is not in the list
 (owner, 2026-11-07: "the page side scroll on the phone should never have been asked"). Each step names why only a
