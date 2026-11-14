@@ -124,6 +124,7 @@ framework/tests/test_owner_tasks_close.py
 framework/tests/test_owner_tasks_project.py
 framework/tests/test_owner_tasks_wait.py
 framework/tests/test_card_lint.py
+framework/tests/test_card_answer.py
 framework/tests/test_report.py
 framework/tests/test_tokens.py
 framework/tests/test_tokens_verify.py
