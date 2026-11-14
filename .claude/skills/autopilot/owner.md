@@ -14,10 +14,18 @@ A blocked step stays your work until each resource failed. Go down this list, an
    script, `scripts/cloud-setup.sh`), so that the next run does not search again.
 2. **Another machine.** A job of GitHub Actions has a network of its own. When a host gives no answer from a cloud
    session, a workflow can run the command and commit the result or make a PR.
-3. **A rule of the project stops the step.** Do not go around a rule. When the rule only gives the owner a step that
+3. **A device or a program that a cloud session does not have** (a phone, a second browser, the installed app,
+   the real program). Do not give the check to the owner (owner, 2026-11-14). An emulator or the real program on
+   the worker of the hub does it: for a phone, the Android emulator of the Android SDK. Suggest the tool
+   yourself. Make a device ticket: no `needs-human`, a line that names the tool that the check needs, and the
+   line `Depends on: #N` with the ticket of your project that brings the device tickets to the worker (when the
+   project has none, make it: "Do the device tickets on the worker of the hub"). Ask the owner only for a
+   sense that only a person has (how it feels in the hand), or with a proposal card for a tool that costs money
+   or needs a key.
+4. **A rule of the project stops the step.** Do not go around a rule. When the rule only gives the owner a step that
    a machine can do, ask for the rule, not for the step: a decision card that names the rule and its source, with
    your recommendation. One answer then removes the step for each later run.
-4. **Only then a card**, for what only the owner has or decides: an account, a secret, money, a device, a right, a
+5. **Only then a card**, for what only the owner has or decides: an account, a secret, money, a device, a right, a
    direction. The card names each try (`Tried:`) and says why no machine can do the step (`Only the owner:`).
 
 A denial is not a resource that failed. When the auto mode denies an action, or a network policy refuses a host (403

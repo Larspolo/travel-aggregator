@@ -144,6 +144,10 @@ A bug ticket of a check names the check command in its Verify line, and the fix 
 ticket gives the measured cause (a traceback, a count of tiles). Without one, ask the owner for it first (`needs-human`):
 three fixes of a guessed cause came back as rework bugs (#5380 → #5422, #5381 → #5423, #5317 → #5361).
 
+A check that needs a device or a program that a cloud session does not have (a phone, a second browser, the
+installed app, the real program) is a device ticket, not a ticket for the owner (owner, 2026-11-14): `owner.md` of
+the `autopilot` skill, "Before you ask", step 3.
+
 ## Decision tickets
 
 Owner rule (2026-10-26): when a design has two or more clear options and no single best one (an interface, a game rule,
