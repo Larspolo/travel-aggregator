@@ -2,6 +2,8 @@
 
 [pacing]
 max_runs = 16                   # the most runs at one time (framework/tools/usage.py)
+owner_first = 1                 # the runs that start above the weekly pace while work of an owner waits: a comment with no
+                                # answer, or a new issue with no label (framework/tools/usage.py, `owner_wait`). 0: none
 week_guard = true               # true: the 7-day usage limits the runs, so that the quota lasts to the weekly reset (owner, 2026-11-13); false: only the 5-hour window counts
 week_free = 0.0                 # below this 7-day usage only the 5-hour window counts; 0: the weekly pace counts from the start of the week
 week_share = 0.25               # the part of the weekly budget of the account that this project plans with: its weight in fleet.toml of the hub (2 of 8); 1: the project has the account alone
