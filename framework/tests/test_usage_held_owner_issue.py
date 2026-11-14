@@ -16,7 +16,7 @@ def stub(monkeypatch, issues):
 
 
 def test_an_owner_issue_with_a_question_holds_the_feature(monkeypatch):
-    stub(monkeypatch, {1036: issue(["needs-human", "feature", "for-jeroen"], OWNER_ISSUE)})
+    stub(monkeypatch, {1036: issue(["needs-human", "feature"], OWNER_ISSUE)})
     assert usage.held({1036})
 
 

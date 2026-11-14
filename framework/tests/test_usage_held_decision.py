@@ -35,7 +35,7 @@ def stub(monkeypatch, issues):
 
 
 def test_an_open_decision_holds_the_feature(monkeypatch):
-    stub(monkeypatch, {418: issue("open", ["needs-human", "for-jeroen"], DECISION)})
+    stub(monkeypatch, {418: issue("open", ["needs-human"], DECISION)})
     assert usage.held({418})
 
 

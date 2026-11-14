@@ -6,9 +6,9 @@ allowed-tools: mcp__claude-in-chrome, Bash(python3 tools/capture.py:*), Bash(gh 
 
 # Capture tickets in the browser
 
-A capture ticket asks Jeroen (`for-jeroen` in `agent.toml`) for a real payload of a travel site: the cloud agents
+A capture ticket asks Jeroen (`project` of `[audience]` in `agent.toml`) for a real payload of a travel site: the cloud agents
 cannot open the travel sites (P1). This skill does the ticket for him in his own Chrome, while he does other work.
-The setup steps are in issue "Try the capture skill" (`for-jeroen`); `/chrome` shows the connection.
+The setup steps are in issue "Try the capture skill"; `/chrome` shows the connection.
 
 ## The rules (P1, P5)
 
@@ -43,7 +43,7 @@ The setup steps are in issue "Try the capture skill" (`for-jeroen`); `/chrome` s
 
 ## 2. Find the tickets
 
-`gh issue list --repo <repo> --state open --label needs-human --label for-jeroen --json
+`gh issue list --repo <repo> --state open --label needs-human --assignee Jeroenvb3 --json
 number,title,labels,body --limit 50`. With an argument, take only that ticket. A ticket is a capture ticket when:
 - its section `## For the owner` has a line `Capture: <start page>` (with `Kind: outside`), or
 - (an older ticket, for example #169) its steps are only a search on a travel site in the browser and a save of the
