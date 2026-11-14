@@ -4,9 +4,13 @@ name: Cards
 # `needs-human`, framework/tools/card.py reads the card: the section "## For the owner" in a comment or in the body.
 # A complete card gets its owner as the assignee, and GitHub tells the owner. An incomplete card loses the label, and
 # a comment names the lines that it needs. A label that an owner added stays with no check.
+# When the owner of a card comments on it, the label and the owner as the assignee go at once: the owner has no step
+# after the answer, and the next run reads the comment.
 on:
   issues:
     types: [labeled]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read         # checkout: framework/tools/card.py
@@ -18,7 +22,7 @@ concurrency:
 
 jobs:
   card:
-    if: github.event.label.name == 'needs-human'
+    if: github.event_name == 'issues' && github.event.label.name == 'needs-human'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -30,3 +34,19 @@ jobs:
           SENDER: ${{ github.event.sender.login }}
         # The label can come some seconds before the comment with the card: an incomplete card gets a second read.
         run: python3 framework/tools/card.py "$NUMBER" --apply --sender "$SENDER" --wait 45
+
+  answer:
+    if: >-
+      github.event_name == 'issue_comment' && !github.event.issue.pull_request
+      && contains(github.event.issue.labels.*.name, 'needs-human')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Take an answered card off the list of the owner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number }}
+          COMMENT: ${{ github.event.comment.id }}
+        # The tool reads the comment from the API: no text of a comment goes into this command.
+        run: python3 framework/tools/card.py "$NUMBER" --answer --comment "$COMMENT"
