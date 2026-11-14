@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+"""The check of a card for the owner (owner, 2026-11-14: the owner is the last resource).
+
+A run asks the owner with a card: the section "## For the owner" in a comment or in the body of the issue, and then
+the label `needs-human` (`owner.md` of the `autopilot` skill). `cards.yml` runs this tool when the label comes:
+- a complete card stays, and its owner becomes the assignee of the issue: GitHub then tells the owner;
+- an incomplete card loses the label, and a comment names the lines that it needs. The owner does not get it.
+
+    python3 framework/tools/card.py --text FILE   # check a card before you post it: exit 1 and the faults
+    python3 framework/tools/card.py N             # print the result for issue N, change nothing
+    python3 framework/tools/card.py N --apply     # the job of cards.yml
+
+Each card has `Kind:` and `Minutes:`. A card that gives the owner a step (`STEP_KINDS`) also says why only the owner
+can do it (`Only the owner:`) and what the run tried first (`Tried:`, one line for each resource with its result).
+A request for a close ("Please close") is complete with no section. A label that an owner added stays with no check,
+and so does the label of an epic with no card: it waits for an answer on another issue (`queue.md`).
+The check functions take plain text and plain JSON, so the tests need no network. Token: GITHUB_TOKEN, else `gh api`.
+Python standard library only.
+"""
+import argparse
+import os
+import re
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from agent_config import CONFIG, owners  # noqa: E402
+
+LABEL = "needs-human"
+EPIC = "epic"
+SECTION = re.compile(r"^## For the owner[ \t]*\n(.*?)(?=^## |\Z)", re.M | re.S)
+KINDS = ("decision", "proposal", "question", "play", "close", "setting", "outside", "step")
+STEP_KINDS = ("setting", "outside", "step")     # the owner does a step: the card says why no machine can do it
+EMPTY = re.compile(r"(nothing|none|no|n/?a|todo|tbd)?[\W_]*", re.I)     # a value that says nothing
+CLOSE = re.compile(r"\b(please close|close (this|it) by hand)\b", re.I)    # `owner_tasks.CLOSE`
+
+
+def values(text, key):
+    """The values of the lines "Key: value" of a card, in their sequence. A line can be an item of a list."""
+    return [m.group(1).strip() for m in re.finditer(rf"^[ \t]*(?:[-*][ \t]+)?{re.escape(key)}:[ \t]*(.*)$", text, re.M | re.I)]
+
+
+def word(text, key):
+    """The first word of the first line "Key: value", in lower case, or ""."""
+    return (" ".join(values(text, key)[:1]).split() or [""])[0].lower()
+
+
+def card(issue, comments=()):
+    """The newest section "## For the owner": of the comments (the last one first), else of the issue body, else ""."""
+    for text in [c.get("body") for c in reversed(list(comments))] + [issue.get("body")]:
+        if m := SECTION.search(text or ""):
+            return m.group(1).strip()
+    return ""
+
+
+def faults(text):
+    """What the text of a card needs before the owner gets it: [] for a complete card."""
+    if not text:
+        return ["the section `## For the owner`, in a comment or in the body of the issue"]
+    out = []
+    kind = word(text, "Kind")
+    if kind not in KINDS:
+        out.append("the line `Kind:` with one of: " + ", ".join(KINDS))
+    if not re.fullmatch(r"[1-9]\d*", word(text, "Minutes")):
+        out.append("the line `Minutes: N`: the minutes that the owner needs, as a whole number")
+    if kind in STEP_KINDS:
+        if all(EMPTY.fullmatch(v) for v in values(text, "Only the owner")):
+            out.append("the line `Only the owner:` that says why no machine can do this step: the account, the secret, "
+                       "the device or the right that only the owner has")
+        if all(EMPTY.fullmatch(v) for v in values(text, "Tried")):
+            out.append("one line `Tried:` for each resource that you used before you asked, with its result")
+    return out
+
+
+def person(text, config=None):
+    """The owner who gets the card: the login of the line `For:` when it is an owner of the project, else `owner`."""
+    config = CONFIG if config is None else config
+    asked = word(text, "For").lstrip("@")
+    return next((o for o in owners(config) if o.lower() == asked), config["owner"])
+
+
+def verdict(issue, comments=(), sender=None, config=None):
+    """What `cards.yml` does with an issue that got the label: ("skip", why), ("assign", login) or ("back", faults)."""
+    config = CONFIG if config is None else config
+    comments = list(comments)
+    names = {x["name"] for x in issue.get("labels", [])}
+    if LABEL not in names or issue.get("state") == "closed" or "pull_request" in issue:
+        return "skip", "the issue is not an open card"
+    if sender and sender.lower() in {o.lower() for o in owners(config)}:
+        return "skip", "an owner added the label"
+    if comments and CLOSE.search(comments[-1].get("body") or ""):
+        return "assign", config["owner"]
+    text = card(issue, comments)
+    if not text and EPIC in names:
+        return "skip", "an epic with no card: it waits for an answer on another issue (`queue.md`)"
+    bad = faults(text)
+    return ("back", bad) if bad else ("assign", person(text, config))
+
+
+def back_text(bad):
+    """The comment on an incomplete card."""
+    return ("This card is not complete, so the label `needs-human` is off (the Cards workflow). The owner is the last "
+            "resource: first use each resource that you have (`owner.md` of the `autopilot` skill, \"Before you ask\").\n\n"
+            "The card needs:\n" + "\n".join(f"- {b}" for b in bad) + "\n\n"
+            "When only the owner can do it, write the complete card in a new comment and add `needs-human` again.")
+
+
+def run(number, sender=None, apply=False, wait=0, api=None, pages=None, sleep=time.sleep, config=None):
+    """Read issue `number` and give the verdict. With `apply`: assign a complete card to its owner, or take the label
+    off an incomplete card and comment what it needs. `wait`: seconds before a second read of an incomplete card,
+    because the label can come before the comment with the card."""
+    if api is None:
+        from dashboard import api, pages
+    read = lambda: (api(f"issues/{number}"), pages(f"issues/{number}/comments"))  # noqa: E731
+    issue, comments = read()
+    what, detail = verdict(issue, comments, sender, config)
+    if what == "back" and wait:
+        sleep(wait)
+        issue, comments = read()
+        what, detail = verdict(issue, comments, sender, config)
+    if apply and what == "assign" and not issue.get("assignees"):
+        api(f"issues/{number}/assignees", "POST", {"assignees": [detail]})
+    if apply and what == "back":
+        api(f"issues/{number}/labels/{LABEL}", "DELETE")
+        api(f"issues/{number}/comments", "POST", {"body": back_text(detail)})
+    return what, detail
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("number", nargs="?", type=int, help="the number of the issue")
+    ap.add_argument("--text", metavar="FILE", help="check the card in this file (a comment or an issue body): no network")
+    ap.add_argument("--apply", action="store_true", help="assign a complete card; take the label off an incomplete card")
+    ap.add_argument("--sender", help="the login that added the label: a label of an owner stays with no check")
+    ap.add_argument("--wait", type=int, default=0, help="seconds before a second read of an incomplete card")
+    a = ap.parse_args(argv)
+    if a.text:
+        with open(a.text, encoding="utf-8") as f:
+            bad = faults(card({"body": f.read()}))
+        print("The card is complete." if not bad else "The card needs:\n" + "\n".join(f"- {b}" for b in bad))
+        return 1 if bad else 0
+    if a.number is None:
+        ap.error("give the number of an issue, or --text FILE")
+    what, detail = run(a.number, a.sender, a.apply, a.wait)
+    print(f"#{a.number}: {what}: " + ("; ".join(detail) if isinstance(detail, list) else detail))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -101,9 +101,9 @@ def pr_work(pr, open_issues, checks, beat, now, me="", ticket=None):
         quick = quick_green(checks)
         state = "checks red: " + ", ".join(red) if red else "checks green" if quick else "checks not finished"
         if red or not quick:   # the auto mode denies a removal of `hold` on a PR of another run: the owner removes it (#581)
-            return f"`hold`, no live claim, no change for {idle:.0f} min, {state}: add `needs-human` to #{ticket} with the reason"
-        return (f"`hold`, no live claim, no change for {idle:.0f} min, {state}: add `needs-human` to #{ticket} and ask the "
-                "owner to remove `hold` (`owner.md`; the auto mode denies a removal of `hold` on a PR of another run)")
+            return f"`hold`, no live claim, no change for {idle:.0f} min, {state}: ask the owner on #{ticket} with a card that gives the reason (`owner.md`), then add `needs-human`"
+        return (f"`hold`, no live claim, no change for {idle:.0f} min, {state}: ask the owner on #{ticket} with a card to remove "
+                "`hold` (`owner.md`; the auto mode denies a removal of `hold` on a PR of another run), then add `needs-human`")
     if not checks and not conflict and idle > STALE:   # no CI event (a push of GITHUB_TOKEN): Automerge waits for ever
         return f"no CI run on its head for {idle:.0f} min: start CI on its branch (`github.md`)"
     if not conflict and not red:

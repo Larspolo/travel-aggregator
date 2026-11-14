@@ -37,6 +37,7 @@ framework/docs/OPERATOR.md
 .github/workflows/unconflict.yml
 .github/workflows/claims.yml
 .github/workflows/close.yml
+.github/workflows/cards.yml
 .github/workflows/dashboard.yml
 .github/workflows/pacer.yml
 .github/workflows/metrics.yml
@@ -65,6 +66,7 @@ framework/tools/tokens.py
 framework/tools/operator_check.py
 framework/tools/owner_gate.py
 framework/tools/owner_tasks.py
+framework/tools/card.py
 framework/tools/unconflict.py
 framework/tools/unconflict_pick.py
 framework/tools/merge_main.py
@@ -121,6 +123,7 @@ framework/tests/test_owner_tasks.py
 framework/tests/test_owner_tasks_close.py
 framework/tests/test_owner_tasks_project.py
 framework/tests/test_owner_tasks_wait.py
+framework/tests/test_card_lint.py
 framework/tests/test_report.py
 framework/tests/test_tokens.py
 framework/tests/test_tokens_verify.py

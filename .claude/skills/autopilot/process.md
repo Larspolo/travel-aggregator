@@ -24,8 +24,9 @@ dashboard counts them.
 - Was a check slow, or CI red, for a reason outside your code (install, download, cache, network)? → fix it
   in this PR when the fix is small, else make a `tooling` ticket.
 - Did `git status` show files that do not belong in git (logs, worlds, images, caches)? → add them to `.gitignore`.
-- Did something block you that only the owner can change (a host, the environment, the scheduled task, a GitHub
-  setting)? → make a `needs-human` ticket with numbered steps and the exact values. Look for an open one first.
+- Did something block you? → use another resource first (`owner.md`, "Before you ask"), and put the route that
+  works into the code or the setup. Only for what the owner alone can change (the environment, the scheduled task,
+  a GitHub setting): a `needs-human` ticket with a card, numbered steps and the exact values. Look for an open one first.
 
 After step 8, run `python3 framework/tools/claim.py 0 --review`: exit 0 means that this run does the process review (#898: a gap
 of merged PRs in `[review]` of `agent.toml`, shorter after owner work on the system; owner, 2026-10-29). Then run the
